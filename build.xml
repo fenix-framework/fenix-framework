@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project basedir="." default="compile" name="The fenix-framework Build File">
+
+  <property name="src.dir" location="src"/>
+  <property name="java.src.dir" location="${src.dir}/java"/>
+  <property name="build.dir" location="classes"/>
+  <property name="dist.dir" location="dist"/>
+  <property name="lib.dir" location="lib"/>
+  <property name="jar.file" value="${dist.dir}/fenix-framework.jar"/>
+
+
+  <target name="clean-all" description="Removes any generated files">
+    <delete dir="${build.dir}"/>
+    <delete dir="${dist.dir}"/>
+  </target>
+
+  <target name="compile" description="Compiles the fenix-framework source">
+    <mkdir dir="${build.dir}"/>
+    <javac srcdir="${java.src.dir}" destdir="${build.dir}" extdirs="${lib.dir}" target="1.5" debug="on"/>
+  </target>
+
+  <target name="jar" depends="compile" description="Generates the jar with the fenix-framework">
+    <mkdir dir="${dist.dir}"/>
+    <jar destfile="${jar.file}" basedir="${build.dir}"/>
+  </target>
+</project>
