@@ -95,8 +95,8 @@ public abstract class Transaction extends jvstm.Transaction {
         return currentFenixTransaction().getDomainObject(classname, oid);
     }
 
-    public static DomainObject readDomainObject(String classname, int oid) {
-        return currentFenixTransaction().readDomainObject(classname, oid);
+    public static DomainObject readDomainObject(String classname, Integer oid) {
+        return (oid == null) ? null : currentFenixTransaction().readDomainObject(classname, oid);
     }
 
     public static long getOIDFor(DomainObject obj) {
