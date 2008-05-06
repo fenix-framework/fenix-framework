@@ -17,11 +17,11 @@ import org.apache.ojb.broker.query.QueryBySQL;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.util.ClassHelper;
 
-import eu.ist.fenixframework.DomainObject;
-import eu.ist.fenixframework.pstm.Transaction;
+import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.pstm.Transaction;
 
-import eu.ist.fenixframework.pstm.ojb.FenixJdbcAccessImpl;
-import eu.ist.fenixframework.pstm.ojb.DomainAllocator;
+import pt.ist.fenixframework.pstm.ojb.FenixJdbcAccessImpl;
+import pt.ist.fenixframework.pstm.ojb.DomainAllocator;
 
 
 public class FenixPersistenceBroker extends PersistenceBrokerImpl {
