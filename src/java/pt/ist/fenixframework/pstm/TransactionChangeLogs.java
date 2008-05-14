@@ -17,6 +17,7 @@ import jvstm.VBoxBody;
 import jvstm.util.Cons;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.ojb.DomainAllocator;
 
 import org.apache.ojb.broker.Identity;
@@ -102,13 +103,13 @@ public class TransactionChangeLogs {
         // the set of objects is kept so that a strong reference exists 
         // for each of the objects modified by another server until no running 
         // transaction in the current VM may need to access it
-	private Map<DomainObject,List<String>> objectAttrChanges = new HashMap<DomainObject,List<String>>();
+	private Map<AbstractDomainObject,List<String>> objectAttrChanges = new HashMap<AbstractDomainObject,List<String>>();
 
 	AlienTransaction(int txNumber) {
 	    this.txNumber = txNumber;
 	}
 
-        void register(DomainObject obj, String attrName) {
+        void register(AbstractDomainObject obj, String attrName) {
             List<String> allAttrs = objectAttrChanges.get(obj);
 
             if (allAttrs == null) {
@@ -122,8 +123,8 @@ public class TransactionChangeLogs {
         Cons<VBoxBody> commit() {
             Cons<VBoxBody> newBodies = Cons.empty();
 
-            for (Map.Entry<DomainObject,List<String>> entry : objectAttrChanges.entrySet()) {
-                DomainObject obj = entry.getKey();
+            for (Map.Entry<AbstractDomainObject,List<String>> entry : objectAttrChanges.entrySet()) {
+                AbstractDomainObject obj = entry.getKey();
                 List<String> allAttrs = entry.getValue();
 
                 for (String attr : allAttrs) {
@@ -241,7 +242,7 @@ public class TransactionChangeLogs {
                 int idInternal = rs.getInt(2);
                 String attr = rs.getString(3);
 
-                DomainObject obj = getDomainObject(pb, className, idInternal);
+                AbstractDomainObject obj = (AbstractDomainObject)getDomainObject(pb, className, idInternal);
                 alienTx.register(obj, attr);
 
                 int nextTxNum = -1;

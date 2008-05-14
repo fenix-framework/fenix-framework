@@ -4,7 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.Transaction;
 
 import org.apache.ojb.broker.Identity;
@@ -24,8 +24,8 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
         super(broker);
     }
 
-    private DomainObject allocateObject(ClassDescriptor cld, ResultSet rs) throws SQLException {
-        DomainObject result = (DomainObject)DomainAllocator.allocateObject(cld.getClassOfObject());
+    private AbstractDomainObject allocateObject(ClassDescriptor cld, ResultSet rs) throws SQLException {
+        AbstractDomainObject result = (AbstractDomainObject)DomainAllocator.allocateObject(cld.getClassOfObject());
 
         result.setIdInternal(rs.getInt("ID_INTERNAL"));
         return result;
@@ -54,10 +54,10 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
 
                 // if it is a domain object
                 if (targetClassDescriptor.getFactoryClass() == DomainAllocator.class) {
-                    DomainObject materializedObject = allocateObject(targetClassDescriptor, rs);
+                    AbstractDomainObject materializedObject = allocateObject(targetClassDescriptor, rs);
 
                     // cache object
-                    materializedObject = (DomainObject)Transaction.getCache().cache(materializedObject);
+                    materializedObject = (AbstractDomainObject)Transaction.getCache().cache(materializedObject);
 
                     materializedObject.readFromResultSet(rs);
                     return materializedObject;

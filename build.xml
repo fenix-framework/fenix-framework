@@ -17,6 +17,9 @@
   <target name="compile" description="Compiles the fenix-framework source">
     <mkdir dir="${build.dir}"/>
     <javac srcdir="${java.src.dir}" destdir="${build.dir}" extdirs="${lib.dir}" target="1.5" debug="on"/>
+    <copy todir="${build.dir}">
+      <fileset dir="${src.dir}/etc" />
+    </copy>
   </target>
 
   <target name="jar" depends="compile" description="Generates the jar with the fenix-framework">

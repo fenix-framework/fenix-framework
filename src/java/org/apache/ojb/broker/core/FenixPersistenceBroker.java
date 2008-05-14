@@ -17,7 +17,7 @@ import org.apache.ojb.broker.query.QueryBySQL;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.util.ClassHelper;
 
-import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.Transaction;
 
 import pt.ist.fenixframework.pstm.ojb.FenixJdbcAccessImpl;
@@ -121,14 +121,14 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
 
                     Integer oid = rs.getInt("ID_INTERNAL");
 
-                    DomainObject result = (DomainObject)Transaction.getCache().lookup(getTopLevelClass(), oid);
+                    AbstractDomainObject result = (AbstractDomainObject)Transaction.getCache().lookup(getTopLevelClass(), oid);
 
                     if (result == null) {
-                        result = (DomainObject)DomainAllocator.allocateObject(targetClassDescriptor.getClassOfObject());
+                        result = (AbstractDomainObject)DomainAllocator.allocateObject(targetClassDescriptor.getClassOfObject());
                         result.setIdInternal(oid);
 
                         // cache object
-                        result = (DomainObject)Transaction.getCache().cache(result);
+                        result = (AbstractDomainObject)Transaction.getCache().cache(result);
 
                         result.readFromResultSet(rs);
                     }

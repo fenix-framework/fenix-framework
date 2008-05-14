@@ -12,14 +12,15 @@ public class FenixFramework {
 
     private static Config config;
 
-    public static void initialize(String domainModelPath, Config config) {
+    public static void initialize(Config config) {
         synchronized (INIT_LOCK) {
             if (initialized) {
                 throw new Error("Fenix framework already initialized");
             }
 
             FenixFramework.config = ((config != null) ? config : new Config());
-            MetadataManager.init(domainModelPath);
+            config.checkConfig();
+            MetadataManager.init(config);
             initialized = true;
         }
     }
