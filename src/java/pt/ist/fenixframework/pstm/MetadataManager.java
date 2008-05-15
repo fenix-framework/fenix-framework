@@ -9,6 +9,8 @@ import pt.ist.fenixframework.Config;
 import org.apache.ojb.broker.metadata.ConnectionPoolDescriptor;
 import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
 import org.apache.ojb.broker.metadata.SequenceDescriptor;
+import org.apache.ojb.broker.util.configuration.impl.OjbConfiguration;
+
 
 public class MetadataManager {
 
@@ -25,7 +27,8 @@ public class MetadataManager {
             // first, get the domain model
             this.domainModel = DmlCompiler.getFenixDomainModel(new String[] { config.getDomainModelPath() });
 
-            // create the OJB's MetadataManager
+            // create the OJB's MetadataManager, but use the correct OJB.properties file
+            System.setProperty(OjbConfiguration.OJB_PROPERTIES_FILE, "pt/ist/fenixframework/OJB.properties");
             this.ojbMetadataManager = org.apache.ojb.broker.metadata.MetadataManager.getInstance();
 
             // config the OJB's database descriptor

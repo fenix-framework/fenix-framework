@@ -76,27 +76,21 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
             if ("<init>".equals(name) && CONSTRUCTOR_DESC.equals(desc)) {
                 // we process it and remove the original, if any, by returning null
                 mv.visitCode();
-                boolean initInstance = isDomainBaseClass(descToName(classDesc));
-                if (belongsToDomainModel(descToName(superDesc))) {
+
+                // all the domain objects must inherit an allocate-instance only constructor
+                // in the present case, it is declared on the AbstractDomainObject class
+                mv.visitVarInsn(ALOAD, 0);
+                mv.visitVarInsn(ALOAD, 1);
+                mv.visitMethodInsn(INVOKESPECIAL, superDesc, "<init>", CONSTRUCTOR_DESC);
+
+                if (isDomainBaseClass(descToName(classDesc))) {
+                    // for base classes, we must invoke the initInstance() method
                     mv.visitVarInsn(ALOAD, 0);
-                    mv.visitVarInsn(ALOAD, 1);
-                    mv.visitMethodInsn(INVOKESPECIAL, superDesc, "<init>", CONSTRUCTOR_DESC);
-                    if (initInstance) {
-                        mv.visitVarInsn(ALOAD, 0);
-                        mv.visitMethodInsn(INVOKESPECIAL, classDesc, "initInstance", "()V");
-                    }
-                    mv.visitInsn(RETURN);
-                    mv.visitMaxs(2, 2);
-                } else {
-                    mv.visitVarInsn(ALOAD, 0);
-                    mv.visitMethodInsn(INVOKESPECIAL, superDesc, "<init>", "()V");
-                    if (initInstance) {
-                        mv.visitVarInsn(ALOAD, 0);
-                        mv.visitMethodInsn(INVOKESPECIAL, classDesc, "initInstance", "()V");
-                    }
-                    mv.visitInsn(RETURN);
-                    mv.visitMaxs(1, 2);
+                    mv.visitMethodInsn(INVOKESPECIAL, classDesc, "initInstance", "()V");
                 }
+                 
+                mv.visitInsn(RETURN);
+                mv.visitMaxs(2, 2);
                 mv.visitEnd();
 
                 foundConstructor = true;

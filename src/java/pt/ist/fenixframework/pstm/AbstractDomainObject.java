@@ -11,13 +11,18 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
 
     private Integer idInternal;
 
-    public AbstractDomainObject() {
+    protected AbstractDomainObject() {
         super();
         // All domain objects become persistent upon their creation.
         // Ensure that this object gets an idInternal
         // jcachopo: This should be changed in the future...
         ensureIdInternal();
         Transaction.storeNewObject(this);
+    }
+
+    protected AbstractDomainObject(org.apache.ojb.odmg.OJB dummy) {
+        // do nothing
+        // this constructor exists only as part of the allocate-instance protocol
     }
 
     public Integer getIdInternal() {
