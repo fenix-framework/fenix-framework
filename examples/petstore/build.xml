@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project basedir="." default="compile" name="The fenix-framework PetStore example">
+  
+  <property name="framework.dir" location="../../"/>
+  <property name="src.dir" location="src"/>
+  <property name="src.gen.dir" location="src_gen"/>
+  <property name="java.src.dir" location="${src.dir}/java"/>
+  <property name="dml.src.dir" location="${src.dir}/dml"/>
+  <property name="build.dir" location="classes"/>
+  <property name="config.dir" location="config"/>
+  <property name="lib.dir" location="${framework.dir}/lib"/>
+  <property name="petstore.dml" location="${dml.src.dir}/petstore.dml"/>
+  <property name="dml.fenix.sqltypes" value="${config.dir}/dataTypesJDBCTypes.properties"/>
+  <property name="dml.fenix.typeconverters" value="${config.dir}/dataTypeConversors.properties"/>
+ 
+
+  <target name="clean-all" description="Removes any generated files">
+    <delete dir="${build.dir}"/>
+    <delete dir="${src.gen.dir}"/>
+  </target>
+
+  <target name="generate-domain" description="Generates the domain classes">
+    <mkdir dir="${src.gen.dir}"/>
+    <java classname="dml.DmlCompiler" fork="true">
+      <jvmarg value="-Ddml.fenix.sqltypes=${dml.fenix.sqltypes}"/>
+      <jvmarg value="-Ddml.fenix.typeconverters=${dml.fenix.typeconverters}"/>
+      <arg value="-f"/>
+      <arg value="-d"/>
+      <arg value="${java.src.dir}"/>
+      <arg value="-db"/>
+      <arg value="${src.gen.dir}"/>
+      <!-- <arg value="-gf"/> -->
+      <arg value="-generator"/>
+      <arg value="dml.FenixCodeGeneratorReadFromRs"/>
+      <arg value="${petstore.dml}"/>
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="dml.jar"/>
+          <include name="dml-runtime.jar"/>
+          <include name="antlr.jar"/>
+        </fileset>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="compile" depends="generate-domain" description="Compiles all the source code">
+    <mkdir dir="${build.dir}"/>
+    <javac destdir="${build.dir}" extdirs="${lib.dir}" target="1.5" debug="on">
+      <src path="${java.src.dir}"/>
+      <src path="${src.gen.dir}"/>
+      <classpath>
+        <pathelement path="${framework.dir}/classes"/>
+      </classpath>
+    </javac>
+
+    <java classname="pt.ist.fenixframework.pstm.PostProcessDomainClasses" 
+          dir="${build.dir}"
+          fork="true">
+      <classpath>
+        <pathelement path="${build.dir}"/>
+        <pathelement path="${framework.dir}/classes"/>
+        <fileset dir="${lib.dir}"/>
+      </classpath>
+      <arg value="-d"/>
+      <arg value="${petstore.dml}"/>
+    </java>
+  </target>
+
+  <target name="run" depends="compile" description="runs the application">
+    <java classname="pt.ist.fenixframework.example.petstore.InitPetstoreDomain" fork="true">
+      <arg value="${petstore.dml}"/>
+      <classpath>
+        <pathelement path="${build.dir}"/>
+        <pathelement path="${framework.dir}/classes"/>
+        <fileset dir="${lib.dir}"/>
+      </classpath>
+    </java>
+  </target>
+</project>

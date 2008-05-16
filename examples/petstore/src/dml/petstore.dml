@@ -1,0 +1,183 @@
+class pt.ist.fenixframework.example.petstore.domain.PetStore;
+
+// Accounts
+
+class pt.ist.fenixframework.example.petstore.domain.Account {
+    String userId;
+    String password;
+}
+
+relation PetStoreHasAccounts {
+    pt.ist.fenixframework.example.petstore.domain.PetStore playsRole petStore;
+    pt.ist.fenixframework.example.petstore.domain.Account playsRole account {
+        multiplicity *;
+        //indexed by userId;
+    }
+}
+
+
+// Customers
+
+class pt.ist.fenixframework.example.petstore.domain.Customer {
+    String email;
+    String firstname;
+    String lastname;
+    String language;
+    String telephone;
+}
+
+relation CustomerHasAccount {
+    pt.ist.fenixframework.example.petstore.domain.Customer playsRole customer;
+    pt.ist.fenixframework.example.petstore.domain.Account playsRole account;
+}
+
+relation PetStoreHasCustomers {
+    pt.ist.fenixframework.example.petstore.domain.PetStore playsRole petStore;
+    pt.ist.fenixframework.example.petstore.domain.Customer playsRole customer {
+        multiplicity *;
+    }
+}
+
+class pt.ist.fenixframework.example.petstore.domain.Address {
+    String city;
+    String country;
+    String state;
+    String street1;
+    String street2;
+    String zipcode;
+}
+
+relation CustomerHasAddress {
+    pt.ist.fenixframework.example.petstore.domain.Customer playsRole customer;
+    pt.ist.fenixframework.example.petstore.domain.Address playsRole address;
+}
+
+
+class pt.ist.fenixframework.example.petstore.domain.CreditCard {
+    String number;
+    String type;
+    String expiryDate;
+}
+
+relation CustomerHasCreditCard {
+    pt.ist.fenixframework.example.petstore.domain.Customer playsRole customer;
+    pt.ist.fenixframework.example.petstore.domain.CreditCard playsRole creditCard;
+}
+
+// Products
+
+class pt.ist.fenixframework.example.petstore.domain.NamedEntity {
+    String name;
+    String description;
+}
+
+class pt.ist.fenixframework.example.petstore.domain.Product extends pt.ist.fenixframework.example.petstore.domain.NamedEntity {
+    String productId;
+}
+
+relation PetStoreHasProducts {
+    pt.ist.fenixframework.example.petstore.domain.PetStore playsRole petStore;
+    pt.ist.fenixframework.example.petstore.domain.Product playsRole product {
+        multiplicity *;
+        //indexed by productId;
+    }
+}
+
+// Categories
+
+class pt.ist.fenixframework.example.petstore.domain.Category extends pt.ist.fenixframework.example.petstore.domain.NamedEntity {
+    String categoryId;
+}
+
+relation CategoryHasProducts {
+    pt.ist.fenixframework.example.petstore.domain.Category playsRole category;
+    pt.ist.fenixframework.example.petstore.domain.Product playsRole product {
+        multiplicity *;
+        //indexed by productId;
+    }
+}
+
+relation PetStoreHasCategories {
+    pt.ist.fenixframework.example.petstore.domain.PetStore playsRole petStore;
+    pt.ist.fenixframework.example.petstore.domain.Category playsRole category {
+        multiplicity *;
+        //indexed by categoryId;
+    }
+}
+
+
+// Items
+
+class pt.ist.fenixframework.example.petstore.domain.Item {
+    String itemId;
+    BigDecimal listPrice;
+    BigDecimal unitCost;
+    String description;
+    String imagePath;
+}
+
+relation ProductHasItems {
+    pt.ist.fenixframework.example.petstore.domain.Product playsRole product;
+    pt.ist.fenixframework.example.petstore.domain.Item playsRole item {
+        multiplicity *;
+    }
+}
+
+relation PetStoreHasItems {
+    pt.ist.fenixframework.example.petstore.domain.PetStore playsRole petStore;
+    pt.ist.fenixframework.example.petstore.domain.Item playsRole item {
+        multiplicity *;
+        //indexed by itemId;
+    }
+}
+
+
+// Orders
+
+class pt.ist.fenixframework.example.petstore.domain.Order {
+    String status;
+    Date orderDate;
+}
+
+
+relation OrderHasAddress {
+    pt.ist.fenixframework.example.petstore.domain.Order playsRole order {
+        multiplicity *;
+    }
+    pt.ist.fenixframework.example.petstore.domain.Address playsRole address;
+}
+
+relation OrderHasCreditCard {
+    pt.ist.fenixframework.example.petstore.domain.Order playsRole order {
+        multiplicity *;
+    }
+    pt.ist.fenixframework.example.petstore.domain.CreditCard playsRole creditCard;
+}
+
+relation OrderHasCustomer {
+    pt.ist.fenixframework.example.petstore.domain.Order playsRole order {
+        multiplicity *;
+    }
+    pt.ist.fenixframework.example.petstore.domain.Customer playsRole customer;
+}
+
+
+class pt.ist.fenixframework.example.petstore.domain.OrderItem {
+    int quantity;
+    BigDecimal unitPrice;
+}
+
+
+relation OrderItemHasItem {
+    pt.ist.fenixframework.example.petstore.domain.Item playsRole item;
+    pt.ist.fenixframework.example.petstore.domain.OrderItem playsRole orderItem {
+        multiplicity *;
+    }
+}
+
+relation OrderHasItems {
+    pt.ist.fenixframework.example.petstore.domain.Order playsRole order;
+    pt.ist.fenixframework.example.petstore.domain.OrderItem playsRole orderItem {
+        multiplicity *;
+    }
+}

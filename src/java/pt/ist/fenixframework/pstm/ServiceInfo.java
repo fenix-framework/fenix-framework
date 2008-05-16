@@ -2,6 +2,7 @@ package pt.ist.fenixframework.pstm;
 
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -64,11 +65,16 @@ public class ServiceInfo {
     }
 
     private static Set<String> readSubjectsToMonitor(String fileName) {
-        ResourceBundle rb = ResourceBundle.getBundle(fileName);
-        
         Set<String> valuesSet = new HashSet<String>();
-        for (Enumeration<String> keys = rb.getKeys(); keys.hasMoreElements(); ) {
-            valuesSet.add(keys.nextElement().toUpperCase());
+
+        try {
+            ResourceBundle rb = ResourceBundle.getBundle(fileName);
+            for (Enumeration<String> keys = rb.getKeys(); keys.hasMoreElements(); ) {
+                valuesSet.add(keys.nextElement().toUpperCase());
+            }
+        } catch (MissingResourceException mre) {
+            // if the resource does not exist, that's ok: it means that no monitoring will be performed
+            // so, ignore the exception and return an empty set
         }
         
         return valuesSet;
