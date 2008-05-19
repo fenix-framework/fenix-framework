@@ -5,6 +5,19 @@ import dml.DomainModel;
 import pt.ist.fenixframework.pstm.MetadataManager;
 
 
+/**
+ * This class provides a method to initialize the entire Fenix
+ * Framework.  To do it, programmers should call the static
+ * <code>initialize(Config)</code> method with a proper instance of
+ * the <code>Config</code> class.
+ *
+ * After initialization, it is possible to get an instance of the
+ * <code>DomainModel</code> class representing the structure of the
+ * application's domain.
+ *
+ * @see Config
+ * @see dml.DomainModel
+ */
 public class FenixFramework {
 
     private static final Object INIT_LOCK = new Object();
