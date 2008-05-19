@@ -25,7 +25,7 @@ public class MetadataManager {
 
         try {
             // first, get the domain model
-            this.domainModel = DmlCompiler.getFenixDomainModel(new String[] { config.getDomainModelPath() });
+            this.domainModel = DmlCompiler.getFenixDomainModelForURL(config.getDomainModelURL());
 
             // create the OJB's MetadataManager, but use the correct OJB.properties file
             System.setProperty(OjbConfiguration.OJB_PROPERTIES_FILE, "pt/ist/fenixframework/OJB.properties");

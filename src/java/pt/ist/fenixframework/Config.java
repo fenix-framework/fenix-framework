@@ -1,5 +1,9 @@
 package pt.ist.fenixframework;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * An instance of the <code>Config</code> class bundles together the
  * initialization parameters used by the Fenix Framework.  Therefore,
@@ -133,6 +137,18 @@ public class Config {
 
     public String getDomainModelPath() {
         return domainModelPath;
+    }
+
+    public URL getDomainModelURL() {
+        URL url = this.getClass().getResource(domainModelPath);
+        if (url == null) {
+            try {
+                url = new File(domainModelPath).toURI().toURL();
+            } catch (MalformedURLException mue) {
+                throw new Error("FenixFramework config error: wrong domainModelPath '" + domainModelPath + "'");
+            }
+        }
+        return url;
     }
 
     public String getDbAlias() {

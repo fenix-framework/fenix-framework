@@ -14,7 +14,7 @@ public class InitPetstoreDomain {
 
     public static void main(final String[] args) {
         Config config = new Config() {{ 
-            domainModelPath = args[0];
+            domainModelPath = "/petstore.dml";
             dbAlias = "//localhost:3306/xpto"; 
             dbUsername = "root";
             dbPassword = "";

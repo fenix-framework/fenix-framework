@@ -64,11 +64,14 @@
       <arg value="-d"/>
       <arg value="${petstore.dml}"/>
     </java>
+
+    <copy todir="${build.dir}">
+      <fileset dir="${dml.src.dir}" />
+    </copy>
   </target>
 
   <target name="run" depends="compile" description="runs the application">
     <java classname="pt.ist.fenixframework.example.petstore.InitPetstoreDomain" fork="true">
-      <arg value="${petstore.dml}"/>
       <classpath>
         <pathelement path="${build.dir}"/>
         <pathelement path="${framework.dir}/classes"/>
