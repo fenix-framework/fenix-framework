@@ -3,7 +3,7 @@
 
   <property name="src.dir" location="src"/>
   <property name="java.src.dir" location="${src.dir}/java"/>
-  <property name="build.dir" location="classes"/>
+  <property name="build.dir" location="build"/>
   <property name="dist.dir" location="dist"/>
   <property name="lib.dir" location="lib"/>
   <property name="jar.file" value="${dist.dir}/fenix-framework.jar"/>
