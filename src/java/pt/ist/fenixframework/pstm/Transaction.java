@@ -79,8 +79,6 @@ public abstract class Transaction extends jvstm.Transaction {
         STATISTICS.incAborts();
 
         jvstm.Transaction.abort();
-        Transaction.begin();
-        Transaction.currentFenixTransaction().setReadOnly();
     }
     
     public static FenixTransaction currentFenixTransaction() {
@@ -201,8 +199,7 @@ public abstract class Transaction extends jvstm.Transaction {
                 txFinished = true;
             } finally {
                 if (! txFinished) {
-                    STATISTICS.incAborts();
-                    jvstm.Transaction.abort();
+                    Transaction.abort();
                 }
             }
         }
