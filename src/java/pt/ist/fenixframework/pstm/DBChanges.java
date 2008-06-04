@@ -44,8 +44,10 @@ class DBChanges {
     public Set getModifiedObjects() {
         Set modified = new HashSet();
 
-        for (AttrChangeLog log : attrChangeLogs) {
-            modified.add(log.obj);
+        if (attrChangeLogs != null) {
+            for (AttrChangeLog log : attrChangeLogs) {
+                modified.add(log.obj);
+            }
         }
 
         return modified;
