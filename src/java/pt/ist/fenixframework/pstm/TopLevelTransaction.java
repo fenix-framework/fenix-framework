@@ -346,6 +346,11 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
     @Override
     protected Cons<VBoxBody> doCommit(int newTxNumber) {
+        persistTransaction(newTxNumber);
+        return super.doCommit(newTxNumber);
+    }
+
+    protected void persistTransaction(int newTxNumber) {
         long time1 = System.currentTimeMillis();
         long time2 = 0;
         long time3 = 0;
@@ -365,20 +370,15 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         time4 = System.currentTimeMillis();
         dbChanges.cache();
         time5 = System.currentTimeMillis();
-        Cons<VBoxBody> result = super.doCommit(newTxNumber);
-        time6 = System.currentTimeMillis();
 
-        if ((time6 - time1) > 500) {
+        if ((time5 - time1) > 500) {
             System.out.println(
                                "doCommit: ,1: " + (time1 == 0 || time2 == 0 ? "" : (time2 - time1))
                                + "   ,2: " + (time2 == 0 || time3 == 0 ? "" : (time3 - time2))
                                + "   ,3: " + (time3 == 0 || time4 == 0 ? "" : (time4 - time3))
                                + "   ,4: " + (time4 == 0 || time5 == 0 ? "" : (time5 - time4))
-                               + "   ,5: " + (time5 == 0 || time6 == 0 ? "" : (time6 - time5))
                                );
         }
-
-        return result;
     }
 
 
