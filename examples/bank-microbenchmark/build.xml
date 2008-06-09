@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project basedir="." default="compile" name="A very simple bank example using the fenix-framework">
+  
+  <property name="src.dir" location="src"/>
+  <property name="src.gen.dir" location="src_gen"/>
+  <property name="common.java.dir" location="${src.dir}/common/java"/>
+  <property name="ff.src.dir" location="${src.dir}/fenix-framework"/>
+  <property name="dml.src.dir" location="${ff.src.dir}/dml"/>
+  <property name="ff.java.dir" location="${ff.src.dir}/java"/>
+  <property name="hibernate.src.dir" location="${src.dir}/hibernate"/>
+  <property name="hibernate.java.dir" location="${hibernate.src.dir}/java"/>
+  <property name="hibernate.etc.dir" location="${hibernate.src.dir}/etc"/>
+  <property name="build.dir" location="classes"/>
+  <property name="config.dir" location="config"/>
+  <property name="bank.dml" location="${dml.src.dir}/bank.dml"/>
+  <property name="dml.fenix.sqltypes" value="${config.dir}/dataTypesJDBCTypes.properties"/>
+  <property name="dml.fenix.typeconverters" value="${config.dir}/dataTypeConversors.properties"/>
+  <property name="framework.dir" location="../../"/>
+  <property name="framework.lib.dir" location="${framework.dir}/lib"/>
+  <property name="framework.build.dir" location="${framework.dir}/build"/>
+  <property name="hibernate.lib.dir" location="lib-hibernate"/>
+
+  <property name="txsys.ff" value="pt.ist.fenixframework.example.bankbench.ff.FFTxSystem"/>
+  <property name="txsys.hib" value="pt.ist.fenixframework.example.bankbench.hib.HibTxSystem"/>
+ 
+
+  <path id="hib.project.class.path">
+    <pathelement path="${build.dir}"/>
+    <fileset dir="${hibernate.lib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+
+
+  <path id="ff.project.class.path">
+    <pathelement path="${build.dir}"/>
+    <pathelement path="${framework.build.dir}"/>
+    <fileset dir="${framework.lib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+
+  <path id="full.project.class.path">
+    <pathelement path="${build.dir}"/>
+    <pathelement path="${framework.build.dir}"/>
+    <fileset dir="${framework.lib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+    <fileset dir="${hibernate.lib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+
+
+  <target name="clean-all" description="Removes any generated files">
+    <delete dir="${build.dir}"/>
+    <delete dir="${src.gen.dir}"/>
+  </target>
+
+  <target name="generate-domain" description="Generates the domain classes">
+    <mkdir dir="${src.gen.dir}"/>
+    <java classname="dml.DmlCompiler" fork="true">
+      <jvmarg value="-Ddml.fenix.sqltypes=${dml.fenix.sqltypes}"/>
+      <jvmarg value="-Ddml.fenix.typeconverters=${dml.fenix.typeconverters}"/>
+      <arg value="-f"/>
+      <arg value="-d"/>
+      <arg value="${ff.java.dir}"/>
+      <arg value="-db"/>
+      <arg value="${src.gen.dir}"/>
+      <!-- <arg value="-gf"/> -->
+      <arg value="-generator"/>
+      <arg value="dml.FenixCodeGeneratorReadFromRs"/>
+      <arg value="${bank.dml}"/>
+      <classpath refid="ff.project.class.path"/>
+    </java>
+  </target>
+
+  <target name="compile" depends="generate-domain" description="Compiles all the source code">
+    <mkdir dir="${build.dir}"/>
+    <javac destdir="${build.dir}" extdirs="${framework.lib.dir}:${hibernate.lib.dir}" target="1.5" debug="on">
+      <src path="${common.java.dir}"/>
+      <src path="${ff.java.dir}"/>
+      <src path="${src.gen.dir}"/>
+      <src path="${hibernate.java.dir}"/>
+      <classpath refid="full.project.class.path"/>
+    </javac>
+
+    <java classname="pt.ist.fenixframework.pstm.PostProcessDomainClasses" 
+          dir="${build.dir}"
+          fork="true">
+      <classpath refid="ff.project.class.path"/>
+      <arg value="-d"/>
+      <arg value="${bank.dml}"/>
+    </java>
+
+    <copy todir="${build.dir}">
+      <fileset dir="${dml.src.dir}" />
+      <fileset dir="${config.dir}" />
+      <fileset dir="${hibernate.etc.dir}" />
+    </copy>
+  </target>
+
+
+  <target name="generate-sql" depends="compile">
+    <java classname="tmp.DomainModelSQLGen">
+      <arg value="${bank.dml}"/>
+      <arg value="${build.dir}/bank.sql"/>
+      <classpath refid="ff.project.class.path"/>
+    </java>
+  </target>
+	
+
+  <macrodef name="run-populate-domain">
+    <attribute name="txsystem" />
+    <attribute name="classpathid" />
+    <attribute name="numClients" default="1000" />
+    <attribute name="accountsPerClient" default="10" />
+    <attribute name="initialAmount" default="1000" />
+    <sequential>
+      <java classname="pt.ist.fenixframework.example.bankbench.PopulateDomain" fork="true">
+        <jvmarg value="-Dtxsystem.classname=@{txsystem}" />
+        <!-- jvmarg value="-agentlib:yjpagent=sampling,onexit=snapshot"/ -->
+        <!-- jvmarg value="-agentlib:yjpagent=alloc,onexit=memory"/ -->
+        <arg value="@{numClients}"/>
+        <arg value="@{accountsPerClient}"/>
+        <arg value="@{initialAmount}"/>
+        <classpath refid="@{classpathid}"/>
+      </java>
+    </sequential>
+  </macrodef>
+
+  <target name="populate-domain-ff" depends="compile" description="creates domain objects for FF">
+    <run-populate-domain txsystem="${txsys.ff}" classpathid="ff.project.class.path" />
+  </target>
+
+  <target name="populate-domain-hib" depends="compile" description="creates domain objects for Hibernate">
+    <run-populate-domain txsystem="${txsys.hib}" classpathid="hib.project.class.path" />
+  </target>
+
+
+  <macrodef name="run-bench">
+    <attribute name="txsystem" />
+    <attribute name="classpathid" />
+    <attribute name="numThreads" default="20" />
+    <attribute name="maxClientId" default="1000" />
+    <attribute name="loops" default="100000" />
+    <sequential>
+      <java classname="pt.ist.fenixframework.example.bankbench.Main" fork="true">
+        <jvmarg value="-Dtxsystem.classname=@{txsystem}" />
+        <jvmarg value="-Xmx512M"/>
+        <!-- jvmarg value="-agentlib:yjpagent=sampling,onexit=snapshot"/ -->
+        <arg value="@{numThreads}"/>
+        <arg value="@{maxClientId}"/>
+        <arg value="@{loops}"/>
+        <classpath refid="@{classpathid}"/>
+      </java>
+    </sequential>
+  </macrodef>
+
+
+  <target name="bench-ff" depends="compile" description="runs the FF benchmark">
+    <run-bench txsystem="${txsys.ff}" classpathid="ff.project.class.path" />
+  </target>
+
+  <target name="bench-hib" depends="compile" description="runs the Hibernate benchmark">
+    <run-bench txsystem="${txsys.hib}" classpathid="hib.project.class.path" />
+  </target>
+</project>

@@ -1,0 +1,19 @@
+
+package pt.ist.fenixframework.example.bankbench.ff;
+
+valueType pt.ist.fenixframework.example.bankbench.Money as Money;
+
+class FFClient {
+    String name;
+}
+
+class FFAccount {
+    Money balance;
+}
+
+relation ClientHasAccounts {
+    FFClient playsRole owner;
+    FFAccount playsRole account {
+        multiplicity *;
+    }
+}
