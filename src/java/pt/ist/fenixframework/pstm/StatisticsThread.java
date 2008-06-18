@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.pstm;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.apache.ojb.broker.PersistenceBroker;
@@ -31,13 +32,14 @@ class StatisticsThread extends Thread {
     
     private void reportStatistics() {
         PersistenceBroker broker = null;
+        Statement stmt = null;
         
         try {
             broker = PersistenceBrokerFactory.defaultPersistenceBroker();
             broker.beginTransaction();
             
             Connection conn = broker.serviceConnectionManager().getConnection();
-            Statement stmt = conn.createStatement();
+            stmt = conn.createStatement();
 
             TransactionStatistics.Report stats = Transaction.STATISTICS.getReportAndReset();
             numReport++;
@@ -99,6 +101,13 @@ class StatisticsThread extends Thread {
                     broker.abortTransaction();
                 }
                 broker.close();
+            }
+            if (stmt != null) {
+        	try {
+		    stmt.close();
+		} catch (SQLException e) {
+		    // nothing can be done now.
+		}
             }
         }
     }

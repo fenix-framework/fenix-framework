@@ -303,6 +303,9 @@ public class TransactionChangeLogs {
             broker.close();
             broker = null;
 
+            stmt.close();
+            rs.close();
+            
             new CleanThread().start();
             new StatisticsThread().start();
 
