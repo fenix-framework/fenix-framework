@@ -60,7 +60,16 @@ class DBChanges {
 		|| ((objsToDelete != null) && (!objsToDelete.isEmpty())) || ((mToNTuples != null) && (!mToNTuples.isEmpty()));
     }
 
+    public boolean isNewObject(DomainObject obj) {
+        return (newObjs != null) && newObjs.contains(obj);
+    }
+
     public void logAttrChange(DomainObject obj, String attrName) {
+        if (isNewObject(obj)) {
+            // don't need to warn others of changes to new objects
+            return;
+        }
+
 	if (attrChangeLogs == null) {
 	    attrChangeLogs = new HashSet<AttrChangeLog>();
 	}
@@ -76,6 +85,11 @@ class DBChanges {
     }
 
     public void storeObject(DomainObject obj, String attrName) {
+        if (isNewObject(obj)) {
+            // don't need to update new objects
+            return;
+        }
+
 	logAttrChange(obj, attrName);
 
 	if (objsToStore == null) {
@@ -242,22 +256,33 @@ class DBChanges {
     }
 
     private void writeAttrChangeLogs(Connection conn, int txNumber) throws SQLException {
-	if (attrChangeLogs != null) {
-	    Statement stmt = null;
-	    try {
-		// allocate a large capacity StringBuilder to avoid reallocation
-		int bufferCapacity = Math.min(MIN_BUFFER_CAPACITY + (attrChangeLogs.size() * PER_RECORD_LENGTH),
-			MAX_BUFFER_CAPACITY);
-		StringBuilder sqlCmd = new StringBuilder(bufferCapacity);
-		sqlCmd.append(SQL_CHANGE_LOGS_CMD_PREFIX);
+        int numRecords = (attrChangeLogs == null) ? 0 : attrChangeLogs.size();
 
-		stmt = conn.createStatement();
+        // allocate a large capacity StringBuilder to avoid reallocation
+        int bufferCapacity = Math.min(MIN_BUFFER_CAPACITY + (numRecords * PER_RECORD_LENGTH),
+                                      MAX_BUFFER_CAPACITY);
+        StringBuilder sqlCmd = new StringBuilder(bufferCapacity);
+        sqlCmd.append(SQL_CHANGE_LOGS_CMD_PREFIX);
 
-		boolean addedRecord = false;
-		long appendTime = 0;
-		long statementTime = 0;
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+
+            boolean addedRecord = false;
+
+            if (attrChangeLogs == null) {
+                // if no AttrChangeLog exists, then it means that we
+                // only created objects, without changing any other
+                // object
+
+                // Still, we need to notify other servers of the tx
+                // number, so create an empty changelog line...
+                sqlCmd.append("('',0,'',");
+                sqlCmd.append(txNumber);
+                sqlCmd.append(")");
+                addedRecord = true;
+            } else {
 		for (AttrChangeLog log : attrChangeLogs) {
-		    long marker1 = System.currentTimeMillis();
 		    if (addedRecord) {
 			sqlCmd.append(",");
 		    }
@@ -271,41 +296,30 @@ class DBChanges {
 		    sqlCmd.append(txNumber);
 		    sqlCmd.append(")");
 		    addedRecord = true;
-		    long marker2 = System.currentTimeMillis();
 
 		    if ((bufferCapacity - sqlCmd.length()) < BUFFER_THRESHOLD) {
 			stmt.execute(sqlCmd.toString());
-			long marker3 = System.currentTimeMillis();
 			sqlCmd.setLength(0);
 			sqlCmd.append(SQL_CHANGE_LOGS_CMD_PREFIX);
 			addedRecord = false;
-			long marker4 = System.currentTimeMillis();
-			statementTime += marker3 - marker2;
-			appendTime += marker4 - marker3;
-		    }
-		    appendTime += marker2 - marker1;
-		}
-		if (addedRecord) {
-		    try {
-			long startTime = System.currentTimeMillis();
-			stmt.execute(sqlCmd.toString());
-			long endTime = System.currentTimeMillis();
-			statementTime += endTime - startTime;
-		    } catch (SQLException ex) {
-			System.out.println("SqlException: " + ex.getMessage());
-			System.out.println("Deadlock trying to insert: " + sqlCmd.toString());
-			throw new CommitException();
 		    }
 		}
-		// System.out.println("Appends took: " + appendTime + "
-		// statements took: " + statementTime);
-	    } finally {
-		if (stmt != null) {
-		    stmt.close();
-		}
-	    }
-	}
+            }
 
+            if (addedRecord) {
+                try {
+                    stmt.execute(sqlCmd.toString());
+                } catch (SQLException ex) {
+                    System.out.println("SqlException: " + ex.getMessage());
+                    System.out.println("Deadlock trying to insert: " + sqlCmd.toString());
+                    throw new CommitException();
+                }
+            }
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
+        }
     }
 
     // copied and adapted from OJB's MtoNBroker

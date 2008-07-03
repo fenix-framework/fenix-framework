@@ -242,8 +242,14 @@ public class TransactionChangeLogs {
                 int idInternal = rs.getInt(2);
                 String attr = rs.getString(3);
 
-                AbstractDomainObject obj = (AbstractDomainObject)getDomainObject(pb, className, idInternal);
-                alienTx.register(obj, attr);
+                if (! className.equals("")) {
+                    // if the className is empty, then this line
+                    // doesn't represent a real change (see the
+                    // comment on the DbChanges.writeAttrChangeLogs
+                    // method)
+                    AbstractDomainObject obj = (AbstractDomainObject)getDomainObject(pb, className, idInternal);
+                    alienTx.register(obj, attr);
+                }
 
                 int nextTxNum = -1;
                 if (rs.next()) {
