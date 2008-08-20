@@ -312,7 +312,7 @@ public class TransactionChangeLogs {
             stmt.close();
             rs.close();
             
-            new CleanThread().start();
+            new CleanThread(maxTx).start();
             new StatisticsThread().start();
 
 	    return maxTx;
@@ -331,35 +331,29 @@ public class TransactionChangeLogs {
 	private String server;
 	private int lastTxNumber = -1;
 	
-	CleanThread() {
+	CleanThread(int lastTxNumber) {
             this.server = Util.getServerName();
+            this.lastTxNumber = lastTxNumber;
 
 	    setDaemon(true);
 	}
 	
         public void run() {
-	    while (lastTxNumber == -1) {
-		initializeServerRecord();
-		try {
-		    sleep(SECONDS_BETWEEN_UPDATES * 1000);
-		} catch (InterruptedException ie) {
-		    // ignore it
-		}
+	    while (! initializeServerRecord()) {
+                // intentionally empty
 	    }
 	    
 	    while (true) {
-		updateServerRecord();
 		try {
 		    sleep(SECONDS_BETWEEN_UPDATES * 1000);
 		} catch (InterruptedException ie) {
 		    // ignore it
 		}
+		updateServerRecord();
 	    }
 	}
 	
-	private void initializeServerRecord() {
-	    int currentTxNumber = Transaction.getMostRecentCommitedNumber();
-
+	private boolean initializeServerRecord() {
 	    PersistenceBroker broker = null;
 	    
 	    try {
@@ -370,12 +364,12 @@ public class TransactionChangeLogs {
 		Statement stmt = conn.createStatement();
 
 		// delete previous record for this server and insert a new one
-		stmt.executeUpdate("DELETE FROM LAST_TX_PROCESSED WHERE SERVER = '" + server + "' or LAST_UPDATE < ADDDATE(NOW(),-1)");
-		stmt.executeUpdate("INSERT INTO LAST_TX_PROCESSED VALUES ('" + server + "'," + currentTxNumber + ",null)");
+		stmt.executeUpdate("DELETE FROM LAST_TX_PROCESSED WHERE SERVER = '" + server + "' or LAST_UPDATE < (NOW() - 3600)");
+		stmt.executeUpdate("INSERT INTO LAST_TX_PROCESSED VALUES ('" + server + "'," + lastTxNumber + ",null)");
 		
 		broker.commitTransaction();
 
-		this.lastTxNumber = currentTxNumber;
+                return true;
 	    } catch (Exception e) {
 		e.printStackTrace();
 		System.out.println("Couldn't initialize the clean thread");
@@ -385,6 +379,8 @@ public class TransactionChangeLogs {
 		    broker.close();
 		}
 	    }
+
+            return false;
 	}
 	
 	private void updateServerRecord() {
