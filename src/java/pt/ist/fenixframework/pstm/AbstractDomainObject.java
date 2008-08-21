@@ -1,11 +1,13 @@
 package pt.ist.fenixframework.pstm;
 
 import java.lang.reflect.Field;
-
-import pt.ist.fenixframework.DomainObject;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
+
+import pt.ist.fenixframework.DomainObject;
 
 public abstract class AbstractDomainObject implements DomainObject,dml.runtime.FenixDomainObject {
 
@@ -100,4 +102,18 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
     public boolean isDeleted() {
         throw new UnsupportedOperationException();
     }
+
+    protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes, final int columnCount)
+    		throws SQLException {
+	if (columnIndexes[columnCount] == null) {
+	    synchronized (columnIndexes) {
+		if (columnIndexes[columnCount] == null) {
+		    int columnIndex = Integer.valueOf(resultSet.findColumn(columnName));
+		    columnIndexes[columnCount] = columnIndex;
+		}
+	    }
+	}
+	return columnIndexes[columnCount].intValue();
+    }
+
 }

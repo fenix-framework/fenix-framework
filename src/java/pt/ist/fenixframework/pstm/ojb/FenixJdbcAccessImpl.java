@@ -3,9 +3,8 @@ package pt.ist.fenixframework.pstm.ojb;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import pt.ist.fenixframework.pstm.AbstractDomainObject;
-import pt.ist.fenixframework.pstm.Transaction;
+import java.util.Hashtable;
+import java.util.Map;
 
 import org.apache.ojb.broker.Identity;
 import org.apache.ojb.broker.PBFactoryException;
@@ -15,8 +14,10 @@ import org.apache.ojb.broker.PersistenceBrokerSQLException;
 import org.apache.ojb.broker.accesslayer.JdbcAccessImpl;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.FieldDescriptor;
-import org.apache.ojb.broker.util.ClassHelper;
 import org.apache.ojb.broker.util.logging.Logger;
+
+import pt.ist.fenixframework.pstm.AbstractDomainObject;
+import pt.ist.fenixframework.pstm.Transaction;
 
 public class FenixJdbcAccessImpl extends JdbcAccessImpl {
 
@@ -100,6 +101,23 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
         }
     }
 
+    private static final Map<String, Integer> columnIndexMap = new Hashtable<String, Integer>();
+
+    private static int getColumIndex(final ResultSet rs, final ClassDescriptor classDescriptor, final FieldDescriptor fieldDescriptor) throws SQLException {
+	final String tablename = classDescriptor.getFullTableName();
+	Integer columnIndex = columnIndexMap.get(tablename);
+	if (columnIndex == null) {
+	    synchronized (columnIndexMap) {
+		if (!columnIndexMap.containsKey(tablename)) {
+		    final int i = rs.findColumn(fieldDescriptor.getColumnName());
+		    columnIndexMap.put(tablename, Integer.valueOf(i));
+		}
+	    }
+	    columnIndex = columnIndexMap.get(tablename);
+	}
+	return columnIndex.intValue();
+    }
+
     public static ClassDescriptor findCorrectClassDescriptor(ClassDescriptor cld, ResultSet rs) 
         throws PersistenceBrokerException, SQLException
     {
@@ -112,7 +130,8 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
         {
             try
             {
-                String concreteClass = rs.getString(concreteClassFD.getColumnName());
+        	final int columnIndex = getColumIndex(rs, cld, concreteClassFD);
+                String concreteClass = rs.getString(columnIndex);
                 if (concreteClass == null || concreteClass.trim().length() == 0)
                 {
                     throw new PersistenceBrokerException(
