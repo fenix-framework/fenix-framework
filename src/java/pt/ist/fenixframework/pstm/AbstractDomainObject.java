@@ -13,6 +13,12 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
 
     private Integer idInternal;
 
+    public class UnableToDetermineIdException extends RuntimeException {
+	public UnableToDetermineIdException(Throwable cause) {
+	    super("Unable to determine id Exception", cause);
+	}
+    }
+
     protected AbstractDomainObject() {
         super();
         // All domain objects become persistent upon their creation.
@@ -50,7 +56,7 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
             Integer id = (Integer)broker.serviceSequenceManager().getUniqueValue(cld.getFieldDescriptorByName("idInternal"));
             setIdInternal(id);
         } catch (Exception e) {
-            throw new Error("Couldn't ensure an idInternal for a new DomainObject", e);
+	    throw new UnableToDetermineIdException(e);
         }
     }
 
