@@ -89,7 +89,7 @@ public class MetadataManager {
         cpd.setTestOnReturn(false);
         cpd.setTestWhileIdle(false);
         cpd.setTimeBetweenEvictionRunsMillis(-1L);
-        cpd.setWhenExhaustedAction((byte) 2);
+        cpd.setWhenExhaustedAction((byte) 1);
         cpd.setValidationQuery("select 1");
         cpd.setLogAbandoned(false);
         cpd.setRemoveAbandoned(false);
