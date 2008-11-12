@@ -1,8 +1,11 @@
 package pt.ist.fenixframework.pstm;
 
+import java.util.Collections;
+
 import antlr.ANTLRException;
 import dml.DmlCompiler;
 import dml.DomainModel;
+import dml.FenixDomainModel;
 
 import pt.ist.fenixframework.Config;
 
@@ -25,7 +28,7 @@ public class MetadataManager {
 
         try {
             // first, get the domain model
-            this.domainModel = DmlCompiler.getFenixDomainModelForURL(config.getDomainModelURL());
+            this.domainModel = DmlCompiler.getDomainModelForURLs(FenixDomainModel.class, config.getDomainModelURLs());;
 
             // create the OJB's MetadataManager, but use the correct OJB.properties file
             System.setProperty(OjbConfiguration.OJB_PROPERTIES_FILE, "pt/ist/fenixframework/OJB.properties");

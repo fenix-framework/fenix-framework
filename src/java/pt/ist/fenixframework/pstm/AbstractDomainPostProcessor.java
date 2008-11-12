@@ -1,10 +1,14 @@
 package pt.ist.fenixframework.pstm;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -34,7 +38,27 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
         int i = 0;
         while (i < args.length) {
             if ("-d".equals(args[i])) {
-                dmlFiles.add(getNextArg(args, i));
+
+        	final String arg = getNextArg(args, i);
+        	final File dir = new File(arg);
+        	if (dir.isDirectory()) {
+        	    final List<String> urls = new ArrayList<String>();
+        	    for (final File file : dir.listFiles()) {
+        		if (file.isFile() && file.getName().endsWith(".dml")) {
+        		    try {
+        			urls.add(file.getCanonicalPath());
+        		    } catch (IOException e) {
+        			throw new Error(e);
+        		    }
+        		}
+        	    }
+        	    Collections.sort(urls);
+        	    for (final String url : urls) {
+        		dmlFiles.add(url);
+        	    }
+        	} else {
+        	    dmlFiles.add(arg);
+        	}
                 consumeArg(args, i);
                 i += 2;
             } else if ("-cfn".equals(args[i])) {
