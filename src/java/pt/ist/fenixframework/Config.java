@@ -3,8 +3,6 @@ package pt.ist.fenixframework;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * An instance of the <code>Config</code> class bundles together the
@@ -62,7 +60,7 @@ public class Config {
      * to the domain model of the application.  A non-null value
      * must be specified for this parameter.
      */
-    protected String[] domainModelPaths = null;
+    protected String domainModelPath = null;
 
     /**
      * This <strong>required</strong> parameter specifies the JDBC
@@ -131,30 +129,26 @@ public class Config {
     }
 
     public void checkConfig() {
-        checkRequired(domainModelPaths, "domainModelPaths");
+        checkRequired(domainModelPath, "domainModelPath");
         checkRequired(dbAlias, "dbAlias");
         checkRequired(dbUsername, "dbUsername");
         checkRequired(dbPassword, "dbPassword");
     }
 
-    public String[] getDomainModelPaths() {
-        return domainModelPaths;
+    public String getDomainModelPath() {
+        return domainModelPath;
     }
 
-    public List<URL> getDomainModelURLs() {
-	final List<URL> urls = new ArrayList<URL>();
-	for (final String domainModelPath : domainModelPaths) {
-	    URL url = this.getClass().getResource(domainModelPath);
-	    if (url == null) {
-		try {
-		    url = new File(domainModelPath).toURI().toURL();
-		} catch (MalformedURLException mue) {
-		    throw new Error("FenixFramework config error: wrong domainModelPath '" + domainModelPath + "'");
-		}
-	    }
-	    urls.add(url);
-	}
-        return urls;
+    public URL getDomainModelURL() {
+        URL url = this.getClass().getResource(domainModelPath);
+        if (url == null) {
+            try {
+                url = new File(domainModelPath).toURI().toURL();
+            } catch (MalformedURLException mue) {
+                throw new Error("FenixFramework config error: wrong domainModelPath '" + domainModelPath + "'");
+            }
+        }
+        return url;
     }
 
     public String getDbAlias() {
