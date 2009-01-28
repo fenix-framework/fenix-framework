@@ -151,6 +151,11 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
             String className = ((DomainClass)iter.next()).getFullName();
             try {
                 loadClass(className);
+            } catch (ClassFormatError cfe) {
+        	// If this happens, the class was already injected by other injectors,
+        	// in which case it was already processed by this processor in a previous
+        	// compile... so it should probably be ok to ignore this exception and
+        	// keep going.
             } catch (ClassNotFoundException cnfe) {
                 System.err.println("Error: Couldn't load class " + className + ": " + cnfe);
             }
