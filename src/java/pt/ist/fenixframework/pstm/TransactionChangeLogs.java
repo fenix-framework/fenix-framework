@@ -325,7 +325,7 @@ public class TransactionChangeLogs {
     }
 
     private static class CleanThread extends Thread {
-	private static final long SECONDS_BETWEEN_UPDATES = 30;
+	private static final long SECONDS_BETWEEN_UPDATES = 120;
 
 	private String server;
 	private int lastTxNumber = -1;
