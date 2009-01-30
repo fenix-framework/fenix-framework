@@ -16,15 +16,14 @@ import jvstm.ActiveTransactionsRecord;
 import jvstm.VBoxBody;
 import jvstm.util.Cons;
 
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.pstm.AbstractDomainObject;
-import pt.ist.fenixframework.pstm.ojb.DomainAllocator;
-
 import org.apache.ojb.broker.Identity;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.accesslayer.LookupException;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
+
+import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.pstm.ojb.DomainAllocator;
 
 public class TransactionChangeLogs {
 
@@ -326,7 +325,7 @@ public class TransactionChangeLogs {
     }
 
     private static class CleanThread extends Thread {
-	private static final long SECONDS_BETWEEN_UPDATES = 120;
+	private static final long SECONDS_BETWEEN_UPDATES = 30;
 
 	private String server;
 	private int lastTxNumber = -1;
@@ -339,18 +338,24 @@ public class TransactionChangeLogs {
 	}
 	
         public void run() {
-	    while (! initializeServerRecord()) {
-                // intentionally empty
-	    }
+            try {
+        	while (! initializeServerRecord()) {
+        	    // intentionally empty
+        	}
 	    
-	    while (true) {
-		try {
-		    sleep(SECONDS_BETWEEN_UPDATES * 1000);
-		} catch (InterruptedException ie) {
-		    // ignore it
-		}
-		updateServerRecord();
-	    }
+        	while (true) {
+        	    try {
+        		sleep(SECONDS_BETWEEN_UPDATES * 1000);
+        	    } catch (InterruptedException ie) {
+        		// ignore it
+        	    }
+        	    updateServerRecord();
+        	}
+            } finally {
+        	System.out.println("Exiting CleanThread!");
+        	System.err.flush();
+        	System.out.flush();
+            }
 	}
 	
 	private boolean initializeServerRecord() {
@@ -416,6 +421,9 @@ public class TransactionChangeLogs {
 		e.printStackTrace();
 		System.out.println("Couldn't update database in the clean thread");
 		//throw new Error("Couldn't update database in the clean thread");
+	    } catch (Throwable t) {
+		t.printStackTrace();
+		System.out.println("Couldn't update database in the clean thread because of a Throwable.");
 	    } finally {
 		if (broker != null) {
 		    broker.close();
