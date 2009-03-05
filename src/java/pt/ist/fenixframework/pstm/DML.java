@@ -18,9 +18,8 @@ public class DML {
         return (FenixDomainModel)DmlCompiler.getDomainModel(modelClass, Arrays.asList(dmlFiles));
     }
 
-    public static FenixDomainModel getDomainModelForURL(URL dmlFileURL) throws ANTLRException {
+    public static FenixDomainModel getDomainModelForURLs(List<URL> dmlFileURLs) throws ANTLRException {
         Class<FenixDomainModel> modelClass = FenixDomainModel.class;
-        List<URL> urls = Collections.singletonList(dmlFileURL);
-        return (FenixDomainModel)DmlCompiler.getDomainModelForURLs(modelClass, urls);
+        return (FenixDomainModel)DmlCompiler.getDomainModelForURLs(modelClass, dmlFileURLs);
     }
 }

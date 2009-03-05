@@ -3,6 +3,8 @@ package pt.ist.fenixframework;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An instance of the <code>Config</code> class bundles together the
@@ -57,10 +59,21 @@ public class Config {
     /**
      * This <strong>required</strong> parameter specifies the path to
      * the file (or resource) containing the DML code that corresponds
-     * to the domain model of the application.  A non-null value
-     * must be specified for this parameter.
+     * to the domain model of the application.  A non-null value must
+     * be specified for this parameter (or else, to the
+     * domainModelPaths, in case more than one DML file is used by the
+     * project).
      */
     protected String domainModelPath = null;
+
+    /**
+     * This <strong>required</strong> parameter specifies the path to
+     * each file (or resource) containing the DML code that
+     * corresponds to the domain model of the application.  A non-null
+     * value must be specified for this parameter (or else, to the
+     * domainModelPath parameter).
+     */
+    protected String[] domainModelPaths = null;
 
     /**
      * This <strong>required</strong> parameter specifies the JDBC
@@ -131,8 +144,12 @@ public class Config {
 
     private static void checkRequired(Object obj, String fieldName) {
         if (obj == null) {
-            throw new Error("The required field '" + fieldName + "' was not specified in the FenixFramework config.");
+            missingRequired(fieldName);
         }
+    }
+
+    private static void missingRequired(String fieldName) {
+        throw new Error("The required field '" + fieldName + "' was not specified in the FenixFramework config.");
     }
 
     private void insertConnectionEncoding(String encoding) {
@@ -154,27 +171,40 @@ public class Config {
     }
 
     public void checkConfig() {
-        checkRequired(domainModelPath, "domainModelPath");
+        if ((domainModelPath == null) && (domainModelPaths == null)) {
+            missingRequired("domainModelPath or domainModelPaths");
+        }
+        
+        if ((domainModelPath != null) && (domainModelPaths != null)) {
+            throw new Error("It is not possible to specify both the 'domainModelPath' " 
+                            + "and 'domainModelPaths' parameters in the FenixFramework config.");
+        }
+
         checkRequired(dbAlias, "dbAlias");
         checkRequired(dbUsername, "dbUsername");
         checkRequired(dbPassword, "dbPassword");
 	insertConnectionEncoding("UTF-8");
     }
 
-    public String getDomainModelPath() {
-        return domainModelPath;
+    public String[] getDomainModelPaths() {
+        // either domainModelPaths or domainModelPath is null
+        return (domainModelPath != null) ? new String[] { domainModelPath } : domainModelPaths;
     }
 
-    public URL getDomainModelURL() {
-        URL url = this.getClass().getResource(domainModelPath);
-        if (url == null) {
-            try {
-                url = new File(domainModelPath).toURI().toURL();
-            } catch (MalformedURLException mue) {
-                throw new Error("FenixFramework config error: wrong domainModelPath '" + domainModelPath + "'");
-            }
-        }
-        return url;
+    public List<URL> getDomainModelURLs() { 
+	final List<URL> urls = new ArrayList<URL>(); 
+	for (final String domainModelPath : getDomainModelPaths()) { 
+	    URL url = this.getClass().getResource(domainModelPath); 
+	    if (url == null) { 
+		try { 
+		    url = new File(domainModelPath).toURI().toURL(); 
+		} catch (MalformedURLException mue) { 
+		    throw new Error("FenixFramework config error: wrong domainModelPath '" + domainModelPath + "'"); 
+		} 
+	    } 
+	    urls.add(url); 
+	}
+	return urls;
     }
 
     public String getDbAlias() {

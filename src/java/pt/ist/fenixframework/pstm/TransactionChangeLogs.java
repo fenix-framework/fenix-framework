@@ -1,5 +1,6 @@
 package pt.ist.fenixframework.pstm;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
