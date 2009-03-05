@@ -1,0 +1,40 @@
+ ||<tablestyle="width: 90%" bgcolor="#E0E0FF"> '''Method name''' ||<#E0E0FF> '''Description'''||
+ ||~-String[] getName(int c_id)-~ || Return customer's first and last name given his c_id||
+ ||~-Book getBook(int i_id)-~ || Return a book (with author information) given the book i_id||
+ ||~-Customer getCustomer(String UNAME)-~ || Get the customer with the given username or null in case of any error. ||
+ ||~-Vector doSubjectSearch(String search_key)-~ || Get a list of Books sorted by title for a given subject (search_key), limited to 50 elements||
+ ||~-Vector doTitleSearch(String search_key)-~ || Get a list of Books for title similar to the search_key (soundex) sorted by title, limited to 50 elements ||
+ ||~-Vector doAuthorSearch(String search_key)-~ || Get books from an author whose last name sounds like search_key (using soundex()) sorted by title, limit to 50||
+ ||~-Vector getNewProducts(String subject)-~ || Get a list of ShortBooks for a given subject sorted by publication date (descending) and title, limited to 50 elements ||
+ ||~-Vector getBestSellers(String subject)-~ || Get a list of most ordered ShortBooks for a given subject, considering only the most recent orders (last 3333), sorted by order quantity (descending), limited to 50 elements ||
+ ||~-void getRelated(int i_id, Vector i_id_vec, Vector i_thumbnail_vec)-~ || Get pairs (i_id, i_thumbnail) for all items related with the given i_id ||
+ ||~-void adminUpdate(int i_id, double cost, String image, String thumbnail)-~ || Update an item (book) with a new cost, image and thumbnail. Also set the 5 related book using the following rule: pick the 10000 latest orders' clients. Of those, sum all the quantities they ordered of each book and pick the top 5.  Set them as the related books.  If there are less than 5 that match, choose random books to fill. ||
+ ||~-String GetUserName(int C_ID)-~ || Return a user's username given the user id||
+ ||~-String GetPassword(String C_UNAME)-~ || Return a user's password given the username ||
+ ||~-Order GetMostRecentOrder(String c_uname, Vector order_lines)-~ || Get the most recent order for a given customer (or null) if none. The order_lines DTOs are returned in the vector parameter order_lines ||
+ ||||<#FFFFE0> Shopping Cart code below  ||
+ ||~-int createEmptyCart()-~ || Create a new empty shopping cart ||
+ ||~-Cart doCart(int SHOPPING_ID, Integer I_ID, Vector ids, Vector quantities)-~ || Top-level shopping cart processing. Uses: addItem, refreshCart, addRandom, resetCart. ||
+ ||~-void addItem(int SHOPPING_ID, int I_ID)-~ || Adds an item to the shopping cart in quantity 1 or increases existing item's quantity by 1. ||
+ ||~-void refreshCart(int SHOPPING_ID, Vector ids, Vector quantities)-~ || Update the quantities in the shopping cart. Remove when quantities are 0. ||
+ ||~-void addRandomItemToCartIfNecessary_shouldGoAway(Connection con, int SHOPPING_ID)-~ || If the shopping cart is empty add a random item. ||
+ ||~-void resetCartTime(pt.ist.fenixframework.example.tpcw.domain.ShoppingCart cart)-~ || Reset the shopping cart to the current time. ||
+ ||~-Cart getCart(int SHOPPING_ID, double c_discount)-~ || Get the shopping cart and apply the given discount ||
+ ||||<#FFFFE0> Customer / Order code below ||
+ ||~-void refreshSession(int C_ID)-~ || Update the customer's session information (login time and expiration time). ||
+ ||~-Customer createNewCustomer(Customer cust)-~ || Create a new customer with the given the customer information ||
+ ||~-BuyConfirmResult doBuyConfirm(int shopping_id, int customer_id, String cc_type, long cc_number, String cc_name, Date cc_expiry, String shipping)-~ || Execute the purchase process (use existing address) ||
+ ||~-BuyConfirmResult doBuyConfirm(int shopping_id, int customer_id, String cc_type, long cc_number, String cc_name, Date cc_expiry, String shipping, String street_1, String street_2, String city, String state, String zip, String country)-~ || Execute the purchace process (using a new address) ||
+ ||~-double getCDiscount(int c_id)-~ || Return the customer's discount amount. (Changed to private method) ||
+ ||~-int getCAddrID(int c_id)-~ || Return the customer's address id. (Changed to private method) ||
+ ||~-int getCAddr(int c_id)-~ || Return the customer's address id. This method does the same as getCAddrID(). (Changed to private method) ||
+ ||~-void enterCCXact(int o_id, String cc_type, long cc_number, String cc_name, Date cc_expiry, double total, int ship_addr_id)-~ || Creates a new credit cart transaction. (Changed to private method) ||
+ ||~-void clearCart(int shopping_id)-~ || Empties the shopping cart contents. (Changed to private method) ||
+ ||~-int enterAddress(String street1, String street2, String city, String state, String zip, String country)-~ || Creates a new address if it doesn't already exit and returns it (originally returned its ID) (Changed to private method) ||
+ ||~-int enterOrder(int customer_id, Cart cart, int ship_addr_id, String shipping, double c_discount)-~ || Places a new Order based on an existing shopping cart. Ajusts the available stock accordingly. (Changed to private method) ||
+ ||~-void addOrderLine(int ol_id, int ol_o_id, int ol_i_id, int ol_qty, double ol_discount, String ol_comment)-~ || Add a new order line to an existing order. (Changed to private method) ||
+ ||~-int getStock(int i_id)-~ || Get the stock for a given item id, zero by default if an error occurs. (Changed to private method) ||
+ ||~-void setStock(int i_id, int new_stock)-~ || Set the stock value for an item with the given item id. (Changed to private method) ||
+ ||~-void verifyDBConsistency()-~ || (Changed to private method) ||
+
+

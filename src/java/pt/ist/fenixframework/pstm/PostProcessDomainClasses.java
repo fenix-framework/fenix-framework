@@ -13,6 +13,8 @@ import org.objectweb.asm.Opcodes;
 
 import dml.DomainClass;
 
+import jvstm.ProcessAtomicAnnotations;
+
 public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
     private static final String CONSTRUCTOR_DESC = "(Lorg/apache/ojb/odmg/OJB;)V";
 
@@ -20,6 +22,10 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
         PostProcessDomainClasses loader = new PostProcessDomainClasses();
         loader.processArgs(args);
         loader.start();
+
+        // process, also, the @Atomic annotations
+        ProcessAtomicAnnotations processor = new ProcessAtomicAnnotations(Transaction.class, new String[] { "." });
+        processor.start();
     }
 
     protected ClassVisitor makeNewClassVisitor(ClassWriter cw) {

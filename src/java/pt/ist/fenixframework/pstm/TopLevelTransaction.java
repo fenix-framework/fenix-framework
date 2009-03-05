@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.pstm;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import jvstm.ActiveTransactionsRecord;
@@ -219,6 +220,9 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
                 }
             }
 
+            if (bodiesRead == EMPTY_MAP) {
+                bodiesRead = new HashMap<jvstm.VBox,VBoxBody>();
+            }
             bodiesRead.put(vbox, body);
             value = body.value;
         }

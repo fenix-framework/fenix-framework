@@ -11,7 +11,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
-import dml.DmlCompiler;
 import dml.DomainClass;
 import dml.DomainModel;
 
@@ -70,7 +69,7 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
                 throw new Error("No DML files specified");
             } else {
                 try {
-                    domainModel = DmlCompiler.getFenixDomainModel(dmlFiles.toArray(new String[dmlFiles.size()]));
+                    domainModel = DML.getDomainModel(dmlFiles.toArray(new String[dmlFiles.size()]));
                 } catch (antlr.ANTLRException ae) {
                     System.err.println("Error parsing the DML files, leaving the domain empty");
                 }
@@ -123,9 +122,9 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
             // get an input stream to read the bytecode of the class
             is = classURL.openStream();
             ClassReader cr = new ClassReader(is);
-            ClassWriter cw = new ClassWriter(false);
+            ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             ClassVisitor cv = makeNewClassVisitor(cw);
-            cr.accept(cv, false);
+            cr.accept(cv, 0);
             bytecode = cw.toByteArray();
             finishedProcessingClass(classURL, bytecode);
         } catch (Exception e) {

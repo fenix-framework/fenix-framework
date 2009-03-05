@@ -1,0 +1,40 @@
+package pt.ist.fenixframework.example.dbinit.domain;
+
+// valueType java.math.BigDecimal as BigDecimalAuto {
+//     externalizeWith {
+// 	String toString();
+//     }
+// }
+
+// Root
+class Root {}
+
+// DataStore
+class DataStore {
+    int valor;
+//     float f;
+//     double d;
+//     byte b;
+//     short s;
+//     bytearray ba;
+//     boolean bo;
+//     char c;
+//     Character aCharacter;
+
+
+    String aString;
+//     bytearray aByteArray;
+
+//     //JodaTimes
+//     DateTime aDateTime;
+//     LocalDate aLocalDate;
+//     Partial aPartialEmpty;
+
+//     BigDecimalAuto aBigDecimalAuto;
+
+}
+
+relation RootDataStore {
+	Root playsRole root;
+	DataStore playsRole dataStore;
+}

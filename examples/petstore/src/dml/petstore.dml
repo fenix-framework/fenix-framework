@@ -1,6 +1,14 @@
 
 package pt.ist.fenixframework.example.petstore.domain;
 
+valueType java.math.BigDecimal as BigDecimal {
+    externalizeWith {
+        String toString();
+    }
+}
+
+
+
 class PetStore;
 
 // Accounts
@@ -139,7 +147,7 @@ relation PetStoreHasItems {
 
 class Order {
     String status;
-    Date orderDate;
+    LocalDate orderDate;
 }
 
 

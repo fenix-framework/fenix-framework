@@ -11,10 +11,7 @@
   <property name="hibernate.java.dir" location="${hibernate.src.dir}/java"/>
   <property name="hibernate.etc.dir" location="${hibernate.src.dir}/etc"/>
   <property name="build.dir" location="classes"/>
-  <property name="config.dir" location="config"/>
   <property name="bank.dml" location="${dml.src.dir}/bank.dml"/>
-  <property name="dml.fenix.sqltypes" value="${config.dir}/dataTypesJDBCTypes.properties"/>
-  <property name="dml.fenix.typeconverters" value="${config.dir}/dataTypeConversors.properties"/>
   <property name="framework.dir" location="../../"/>
   <property name="framework.lib.dir" location="${framework.dir}/lib"/>
   <property name="framework.build.dir" location="${framework.dir}/build"/>
@@ -23,6 +20,7 @@
   <property name="txsys.ff" value="pt.ist.fenixframework.example.bankbench.ff.FFTxSystem"/>
   <property name="txsys.hib" value="pt.ist.fenixframework.example.bankbench.hib.HibTxSystem"/>
  
+  <import file="${framework.dir}/src/etc/dml-generate.xml"/>
 
   <path id="hib.project.class.path">
     <pathelement path="${build.dir}"/>
@@ -58,21 +56,9 @@
   </target>
 
   <target name="generate-domain" description="Generates the domain classes">
-    <mkdir dir="${src.gen.dir}"/>
-    <java classname="dml.DmlCompiler" fork="true">
-      <jvmarg value="-Ddml.fenix.sqltypes=${dml.fenix.sqltypes}"/>
-      <jvmarg value="-Ddml.fenix.typeconverters=${dml.fenix.typeconverters}"/>
-      <arg value="-f"/>
-      <arg value="-d"/>
-      <arg value="${ff.java.dir}"/>
-      <arg value="-db"/>
-      <arg value="${src.gen.dir}"/>
-      <!-- <arg value="-gf"/> -->
-      <arg value="-generator"/>
-      <arg value="dml.FenixCodeGeneratorReadFromRs"/>
-      <arg value="${bank.dml}"/>
+    <dml-compile dml="${bank.dml}" java-sources="${ff.java.dir}" java-gen="${src.gen.dir}">
       <classpath refid="ff.project.class.path"/>
-    </java>
+    </dml-compile>
   </target>
 
   <target name="compile" depends="generate-domain" description="Compiles all the source code">
@@ -95,7 +81,6 @@
 
     <copy todir="${build.dir}">
       <fileset dir="${dml.src.dir}" />
-      <fileset dir="${config.dir}" />
       <fileset dir="${hibernate.etc.dir}" />
     </copy>
   </target>

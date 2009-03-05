@@ -4,12 +4,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
 
-import pt.ist.fenixframework.pstm.ojb.FenixPersistentField;
+import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
+
+import pt.ist.fenixframework.pstm.ojb.ReadOnlyPersistentField;
+import pt.ist.fenixframework.pstm.ojb.WriteOnlyPersistentField;
 import pt.ist.fenixframework.pstm.ojb.DomainAllocator;
 
 import org.apache.commons.lang.StringUtils;
@@ -22,12 +23,11 @@ import org.apache.ojb.broker.metadata.ObjectReferenceDescriptor;
 import org.apache.ojb.broker.metadata.fieldaccess.PersistentField;
 import org.apache.ojb.broker.accesslayer.conversions.FieldConversion;
 
-import dml.DmlCompiler;
 import dml.DomainClass;
 import dml.DomainEntity;
-import dml.DomainModel;
 import dml.Role;
 import dml.Slot;
+import dml.ValueType;
 
 /**
  * @author - Shezad Anavarali (shezad@ist.utl.pt)
@@ -47,10 +47,6 @@ public class OJBMetadataGenerator {
 
     private static String classToDebug = null;
 
-    private static ResourceBundle rbConversors = ResourceBundle.getBundle("dataTypeConversors");
-
-    private static ResourceBundle rbJDBCTypes = ResourceBundle.getBundle("dataTypesJDBCTypes");
-
     /**
      * @param args
      * @throws Exception
@@ -62,7 +58,7 @@ public class OJBMetadataGenerator {
             classToDebug = args[1];
         }
 
-        DomainModel domainModel = DmlCompiler.getFenixDomainModel(dmlFilesArray);
+        FenixDomainModel domainModel = DML.getDomainModel(dmlFilesArray);
         Map ojbMetadata = MetadataManager.getInstance().getGlobalRepository().getDescriptorTable();
 
         updateOJBMappingFromDomainModel(ojbMetadata, domainModel);
@@ -90,7 +86,7 @@ public class OJBMetadataGenerator {
         }
     }
 
-    public static void updateOJBMappingFromDomainModel(Map ojbMetadata, DomainModel domainModel)
+    public static void updateOJBMappingFromDomainModel(Map ojbMetadata, FenixDomainModel domainModel)
             throws Exception {
 
 	final DescriptorRepository descriptorRepository = MetadataManager.getInstance().getGlobalRepository();
@@ -186,7 +182,7 @@ public class OJBMetadataGenerator {
     }
 
 
-    protected static void updateFields(final DomainModel domainModel,
+    protected static void updateFields(final FenixDomainModel domainModel,
                                        final ClassDescriptor classDescriptor,
                                        final DomainClass domClass, 
                                        final Map ojbMetadata, 
@@ -195,7 +191,7 @@ public class OJBMetadataGenerator {
         DomainEntity domEntity = domClass;
         int fieldID = 1;
 
-        addFieldDescriptor(domainModel, "idInternal", "java.lang.Integer", fieldID++, classDescriptor, persistentFieldClass);
+        addPrimaryFieldDescriptor(domainModel, fieldID++, classDescriptor, persistentFieldClass);
 
         while (domEntity instanceof DomainClass) {
             DomainClass dClass = (DomainClass) domEntity;
@@ -204,7 +200,7 @@ public class OJBMetadataGenerator {
             while (slots.hasNext()) {
                 Slot slot = slots.next();
 
-                addFieldDescriptor(domainModel, slot.getName(), slot.getType(), fieldID++, classDescriptor, persistentFieldClass);
+                addFieldDescriptor(domainModel, slot, fieldID++, classDescriptor, persistentFieldClass);
             }
 
             domEntity = dClass.getSuperclass();
@@ -212,48 +208,43 @@ public class OJBMetadataGenerator {
 
     }
 
-    protected static void addFieldDescriptor(DomainModel domainModel,
-                                             String slotName,
-                                             String slotType,
+    protected static void addPrimaryFieldDescriptor(FenixDomainModel domainModel,
+                                                    int fieldID, 
+                                                    ClassDescriptor classDescriptor,
+                                                    Class persistentFieldClass) throws Exception {
+        String slotName = "idInternal";
+
+        FieldDescriptor fieldDescriptor = new FieldDescriptor(classDescriptor, fieldID);
+        fieldDescriptor.setColumnName(convertToDBStyle(slotName));
+        fieldDescriptor.setAccess("readwrite");
+        fieldDescriptor.setPrimaryKey(true);
+        fieldDescriptor.setAutoIncrement(true);
+
+        PersistentField persistentField = new ReadOnlyPersistentField(persistentFieldClass, slotName);
+        fieldDescriptor.setPersistentField(persistentField);
+
+        String sqlType = domainModel.getJdbcTypeFor("int");
+        fieldDescriptor.setColumnType(sqlType);
+
+        classDescriptor.addFieldDescriptor(fieldDescriptor);
+    }
+
+
+    protected static void addFieldDescriptor(FenixDomainModel domainModel,
+                                             Slot slot,
                                              int fieldID, 
                                              ClassDescriptor classDescriptor,
                                              Class persistentFieldClass) throws Exception {
-        if (classDescriptor.getFieldDescriptorByName(slotName) == null){
+        String slotName = slot.getName();
+        if (classDescriptor.getFieldDescriptorByName(slotName) == null) {
             FieldDescriptor fieldDescriptor = new FieldDescriptor(classDescriptor, fieldID);
             fieldDescriptor.setColumnName(convertToDBStyle(slotName));
             fieldDescriptor.setAccess("readwrite");
 
-            if (slotName.equals("idInternal")) {
-                fieldDescriptor.setPrimaryKey(true);
-                fieldDescriptor.setAutoIncrement(true);
-            }
-            PersistentField persistentField = new FenixPersistentField(persistentFieldClass, slotName);
+            PersistentField persistentField = new ReadOnlyPersistentField(persistentFieldClass, slotName);
             fieldDescriptor.setPersistentField(persistentField);
 
-            String converter = null;
-            try {
-                converter = rbConversors.getString(slotType);
-            } catch (MissingResourceException e) {
-                // it's ok if some type does not exist in this bundle
-                // so, ignore the errors that may occur
-            }
-
-            // specifying a converter overrides the special handling of enums
-            boolean isEnum = ((converter == null) && domainModel.isEnumType(slotType));
-
-            if (isEnum) {
-                // we can't use a Class.forName(slotType) here because the value
-                // of slotType is not correct for inner classes: it uses the Java source code 
-                // notation (a dot) rather than the $ needed by the Class.forName method
-                Class<? extends Enum> enumClass = (Class<? extends Enum>) persistentField.getType();
-                fieldDescriptor.setFieldConversion(new Enum2SqlConversion(enumClass));
-            } else {
-                if (converter != null) {
-                    fieldDescriptor.setFieldConversionClassName(converter.trim());
-                }
-            }
-
-            String sqlType = (isEnum ? "VARCHAR" : rbJDBCTypes.getString(slotType).trim());
+            String sqlType = domainModel.getJdbcTypeFor(slot.getSlotType().getDomainName());
             fieldDescriptor.setColumnType(sqlType);
 
             classDescriptor.addFieldDescriptor(fieldDescriptor);
@@ -354,7 +345,7 @@ public class OJBMetadataGenerator {
             final ClassDescriptor classDescriptor, Class persistentFieldClass, Role role,
             String roleName, CollectionDescriptor collectionDescriptor) throws ClassNotFoundException {
         collectionDescriptor.setItemClass(Class.forName(role.getType().getFullName()));
-        collectionDescriptor.setPersistentField(persistentFieldClass, roleName);
+        collectionDescriptor.setPersistentField(new WriteOnlyPersistentField(persistentFieldClass, roleName));
         collectionDescriptor.setRefresh(false);
         collectionDescriptor.setCascadingStore(ObjectReferenceDescriptor.CASCADE_NONE);
         collectionDescriptor.setCollectionClass(OJBFunctionalSetWrapper.class);
@@ -394,7 +385,7 @@ public class OJBMetadataGenerator {
         ObjectReferenceDescriptor referenceDescriptor = new ObjectReferenceDescriptor(classDescriptor);
         referenceDescriptor.setItemClass(Class.forName(role.getType().getFullName()));
         referenceDescriptor.addForeignKeyField(foreignKeyField);
-        referenceDescriptor.setPersistentField(persistentFieldClass, roleName);
+        referenceDescriptor.setPersistentField(new WriteOnlyPersistentField(persistentFieldClass, roleName));
         referenceDescriptor.setCascadeRetrieve(false);
         referenceDescriptor.setCascadingStore(ObjectReferenceDescriptor.CASCADE_NONE);
         referenceDescriptor.setLazy(false);

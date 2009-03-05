@@ -1,10 +1,7 @@
 package pt.ist.fenixframework.pstm;
 
-import antlr.ANTLRException;
-import dml.DmlCompiler;
-import dml.DomainModel;
-
 import pt.ist.fenixframework.Config;
+import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
 
 import org.apache.ojb.broker.metadata.ConnectionPoolDescriptor;
 import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
@@ -16,16 +13,14 @@ public class MetadataManager {
 
     private static MetadataManager instance;
 
-    private final DomainModel domainModel;
+    private final FenixDomainModel domainModel;
 
     private org.apache.ojb.broker.metadata.MetadataManager ojbMetadataManager;
 
     private MetadataManager(final Config config) {
-        super();
-
         try {
             // first, get the domain model
-            this.domainModel = DmlCompiler.getFenixDomainModelForURL(config.getDomainModelURL());
+            this.domainModel = DML.getDomainModelForURL(config.getDomainModelURL());
 
             // create the OJB's MetadataManager, but use the correct OJB.properties file
             System.setProperty(OjbConfiguration.OJB_PROPERTIES_FILE, "pt/ist/fenixframework/OJB.properties");
@@ -54,7 +49,7 @@ public class MetadataManager {
         }
     }
 
-    public static DomainModel getDomainModel() {
+    public static FenixDomainModel getDomainModel() {
         return instance != null ? instance.domainModel : null;
     }
 

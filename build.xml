@@ -20,6 +20,9 @@
     <copy todir="${build.dir}">
       <fileset dir="${src.dir}/etc" />
     </copy>
+    <copy todir="${build.dir}">
+      <fileset dir="${src.dir}/sql" />
+    </copy>
   </target>
 
   <target name="jar" depends="compile" description="Generates the jar with the fenix-framework">

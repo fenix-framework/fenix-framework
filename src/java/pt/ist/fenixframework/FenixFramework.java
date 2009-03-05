@@ -3,6 +3,7 @@ package pt.ist.fenixframework;
 import dml.DomainModel;
 
 import pt.ist.fenixframework.pstm.MetadataManager;
+import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
 
 
 /**
@@ -34,6 +35,7 @@ public class FenixFramework {
             FenixFramework.config = ((config != null) ? config : new Config());
             config.checkConfig();
             MetadataManager.init(config);
+	    new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
             initialized = true;
         }
     }

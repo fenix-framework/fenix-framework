@@ -1,7 +1,12 @@
 
 package pt.ist.fenixframework.example.bankbench.ff;
 
-valueType pt.ist.fenixframework.example.bankbench.Money as Money;
+valueType pt.ist.fenixframework.example.bankbench.Money as Money {
+    externalizeWith {
+        String exportAsString();
+    }
+    internalizeWith fromString();
+}
 
 class FFClient {
     String name;

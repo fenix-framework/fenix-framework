@@ -6,14 +6,13 @@
   <property name="java.src.dir" location="${src.dir}/java"/>
   <property name="dml.src.dir" location="${src.dir}/dml"/>
   <property name="build.dir" location="classes"/>
-  <property name="config.dir" location="config"/>
   <property name="petstore.dml" location="${dml.src.dir}/petstore.dml"/>
-  <property name="dml.fenix.sqltypes" value="${config.dir}/dataTypesJDBCTypes.properties"/>
-  <property name="dml.fenix.typeconverters" value="${config.dir}/dataTypeConversors.properties"/>
   <property name="framework.dir" location="../../"/>
   <property name="framework.lib.dir" location="${framework.dir}/lib"/>
   <property name="framework.build.dir" location="${framework.dir}/build"/>
- 
+
+
+  <import file="${framework.dir}/src/etc/dml-generate.xml"/>
 
   <path id="project.class.path">
     <pathelement path="${build.dir}"/>
@@ -30,21 +29,9 @@
   </target>
 
   <target name="generate-domain" description="Generates the domain classes">
-    <mkdir dir="${src.gen.dir}"/>
-    <java classname="dml.DmlCompiler" fork="true">
-      <jvmarg value="-Ddml.fenix.sqltypes=${dml.fenix.sqltypes}"/>
-      <jvmarg value="-Ddml.fenix.typeconverters=${dml.fenix.typeconverters}"/>
-      <arg value="-f"/>
-      <arg value="-d"/>
-      <arg value="${java.src.dir}"/>
-      <arg value="-db"/>
-      <arg value="${src.gen.dir}"/>
-      <!-- <arg value="-gf"/> -->
-      <arg value="-generator"/>
-      <arg value="dml.FenixCodeGeneratorReadFromRs"/>
-      <arg value="${petstore.dml}"/>
+    <dml-compile dml="${petstore.dml}" java-sources="${java.src.dir}" java-gen="${src.gen.dir}">
       <classpath refid="project.class.path"/>
-    </java>
+    </dml-compile>
   </target>
 
   <target name="compile" depends="generate-domain" description="Compiles all the source code">
@@ -65,7 +52,6 @@
 
     <copy todir="${build.dir}">
       <fileset dir="${dml.src.dir}" />
-      <fileset dir="${config.dir}" />
     </copy>
   </target>
 

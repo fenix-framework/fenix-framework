@@ -120,7 +120,14 @@ public class Config {
      * initializing the framework, probably a runtime exception will
      * be thrown during the framework initialization.
      */
-    protected boolean initializeStoreIfNeeded = true;
+    protected boolean createRepositoryStructureIfNotExists = true;
+
+    /**
+     * This <strong>optional</strong> parameter indicates whether the database structure should be automatically updated with
+     * missing structure entries when the framework is initialized. Defaults to false.  This is only relevant if some database
+     * structure already exists.
+     */
+    protected boolean updateRepositoryStructureIfNeeded = false;
 
     private static void checkRequired(Object obj, String fieldName) {
         if (obj == null) {
@@ -128,11 +135,30 @@ public class Config {
         }
     }
 
+    private void insertConnectionEncoding(String encoding) {
+	StringBuilder encodingParams = new StringBuilder();
+	encodingParams.append("useUnicode=true&characterEncoding=" + encoding
+			      + "&clobCharacterEncoding=" + encoding
+			      + "&characterSetResults=" + encoding);
+
+	int questionMarkIndex = this.dbAlias.indexOf('?');
+
+	if (questionMarkIndex == -1) { // no parameters yet
+	    this.dbAlias = this.dbAlias + '?' + encodingParams;
+	} else {
+	    String prefix  = this.dbAlias.substring(0, questionMarkIndex + 1); // include the question mark
+	    String rest = this.dbAlias.substring(questionMarkIndex + 1);
+
+	    this.dbAlias = prefix + encodingParams + '&' + rest;
+	}
+    }
+
     public void checkConfig() {
         checkRequired(domainModelPath, "domainModelPath");
         checkRequired(dbAlias, "dbAlias");
         checkRequired(dbUsername, "dbUsername");
         checkRequired(dbPassword, "dbPassword");
+	insertConnectionEncoding("UTF-8");
     }
 
     public String getDomainModelPath() {
@@ -171,7 +197,12 @@ public class Config {
         return errorIfChangingDeletedObject;
     }
 
-    public boolean getInitializeStoreIfNeeded() {
-        return initializeStoreIfNeeded;
+    public boolean getCreateRepositoryStructureIfNotExists() {
+        return createRepositoryStructureIfNotExists;
     }
+
+    public boolean getUpdateRepositoryStructureIfNeeded() {
+	return updateRepositoryStructureIfNeeded;
+    }
+
 }
