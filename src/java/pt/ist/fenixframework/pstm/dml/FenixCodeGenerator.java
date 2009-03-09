@@ -211,10 +211,16 @@ public class FenixCodeGenerator extends CodeGenerator {
 
 
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
-        printWords(out, "return", getSlotExpression(slotName));
+        print(out, "return ");
+        generateGetSlotExpression(slotName, out);
+        print(out, ";");
+    }
+
+    protected void generateGetSlotExpression(String slotName, PrintWriter out) {
+        print(out, getSlotExpression(slotName));
         print(out, ".get(this, \"");
         print(out, slotName);
-        print(out, "\");");
+        print(out, "\")");
     }
 
     protected void generateRelationGetter(String getterName, String valueToReturn, String typeName, PrintWriter out) {
@@ -265,9 +271,9 @@ public class FenixCodeGenerator extends CodeGenerator {
         startMethodBody(out);
         // handle nulls (if the slot value is null, then return null)
         print(out, slot.getTypeName());
-        print(out, " value = get");
-        print(out, capitalize(slot.getName()));
-        println(out, "();");
+        print(out, " value = ");
+        generateGetSlotExpression(slot.getName(), out);
+        println(out, ";");
         
         print(out, "return ");
 
