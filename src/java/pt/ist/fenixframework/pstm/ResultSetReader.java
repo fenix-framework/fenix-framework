@@ -133,7 +133,7 @@ public class ResultSetReader {
 
     public static LocalTime readLocalTime(ResultSet rs, String columnName) throws SQLException {
         Time time = rs.getTime(columnName);
-	return (rs.wasNull() ? null : new LocalTime(time.getTime(), DateTimeZone.UTC));
+	return (rs.wasNull() ? null : new LocalTime(time.getTime()));
     }
 
     public static Partial readPartial(ResultSet rs, String columnName) throws SQLException {
