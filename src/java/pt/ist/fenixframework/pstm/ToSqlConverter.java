@@ -100,7 +100,7 @@ public class ToSqlConverter {
     }
 
     public static Object getValueForLocalTime(LocalTime value) {
-	return (value == null ? null : new java.sql.Time(value.getMillisOfDay()));
+	return (value == null ? null : new java.sql.Time(value.getHourOfDay(), value.getMinuteOfHour(), value.getSecondOfMinute()));
     }
 
     public static Object getValueForPartial(Partial value) {
