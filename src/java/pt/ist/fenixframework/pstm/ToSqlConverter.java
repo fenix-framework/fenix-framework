@@ -100,6 +100,17 @@ public class ToSqlConverter {
     }
 
     public static Object getValueForLocalTime(LocalTime value) {
+        // Creating the java.sql.Time with hours, minutes, and seconds
+        // creates an instant interpreting those values in the default
+        // time zone.  This is needed because currently OJB is sending
+        // instances of TIME to a preparedStatement without specifying
+        // the time zone, which means that it will be interpreted as
+        // being the default time zone.
+        //
+        // So, beware, that we may not change this into a new
+        // java.sql.Time(value.getMillisOfDay()), because, in that
+        // case, the millis would be interpreted as being an instant
+        // relative to the 01/01/1970 00:00:00 GMT.
 	return (value == null ? null : new java.sql.Time(value.getHourOfDay(), value.getMinuteOfHour(), value.getSecondOfMinute()));
     }
 

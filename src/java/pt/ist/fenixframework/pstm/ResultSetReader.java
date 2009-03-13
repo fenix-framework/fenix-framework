@@ -132,8 +132,25 @@ public class ResultSetReader {
     }
 
     public static LocalTime readLocalTime(ResultSet rs, String columnName) throws SQLException {
+        // Get the time without specifying a Calendar for the time
+        // zone, because OJB does not use it when binding the
+        // preparedStatement also.  So, we must get the java.sql.Time
+        // in the default time zone.
+        // 
+        // Moreover, if later we decide to change this, we must
+        // investigate the various options for the MySQL driver,
+        // because by default I think that it does not behave as
+        // expected by the JDBC specification.  Check the options
+        // "noTimezoneConversionForTimeType", "useTimezone",
+        // "useGmtMillisForDatetimes",
+        // "useJDBCCompliantTimezoneShift", "useLegacyDatetimeCode",
+        // and "useSSPSCompatibleTimezoneShift" (at least...).
         Time time = rs.getTime(columnName);
-	return (rs.wasNull() ? null : new LocalTime(time.getTime()));
+
+        // Construct the LocalTime with hours, minutes, and seconds,
+        // for symmetry with the ToSqlConverter code (see the comment
+        // there, also).
+	return (rs.wasNull() ? null : new LocalTime(time.getHours(), time.getMinutes(), time.getSeconds()));
     }
 
     public static Partial readPartial(ResultSet rs, String columnName) throws SQLException {
