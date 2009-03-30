@@ -92,9 +92,11 @@
   <target name="run" depends="externalize,internalize" description="runs the test" />
 
   <target name="generate-sql" depends="compile">
-    <java classname="tmp.DomainModelSQLGen">
+    <java classname="pt.ist.fenixframework.pstm.repository.SQLUpdateGenerator">
+      <arg value="//localhost:3306/test"/>
+      <arg value="test"/>
+      <arg value="test"/>
       <arg value="${externalization.dml}"/>
-      <arg value="${build.dir}/externalization.sql"/>
       <classpath refid="project.class.path"/>
     </java>
   </target>

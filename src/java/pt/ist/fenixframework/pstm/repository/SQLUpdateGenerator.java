@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -382,18 +383,36 @@ public class SQLUpdateGenerator {
 	fileWriter.close();
     }
 
+    private static String getArg(String[] args, int index) {
+        if (args.length < index) {
+            System.out.println("Usage: SQLUpdateGenerator <dbAlias> <dbUser> <dbPasswd> <dmlFile>+");
+            System.exit(1);
+        }
+
+        return args[index];
+    }
+
     // the following code might still be invoked from pt.ist.fenixWebFramework.repository.SQLUpdateGenerator.
     public static void main(String[] args) {
 	Connection connection = null;
 	try {
-	    final String domainModelArg = args[0];
-	    final String dbAliasArg = args[1];
-	    final String dbUserArg = args[2];
-	    final String dbPassArg = args[3];
-            final String tableCharset = (args.length > 4) ? args[4] : null;
+            int nextArg = 0;
+
+            String tableCharset = null;
+            if ((args.length > 0) && ("-charset".equals(args[0]))) {
+                tableCharset = getArg(args, 1);
+                nextArg = 2;
+            }
+
+	    final String dbAliasArg = getArg(args, nextArg++);
+	    final String dbUserArg = getArg(args, nextArg++);
+	    final String dbPassArg = getArg(args, nextArg++);
+
+            // all the remaining args are DML files
+	    final String[] domainModelFiles = Arrays.copyOfRange(args, nextArg, args.length);
 
 	    FenixFramework.initialize(new Config() {{
-		domainModelPath = domainModelArg;
+		domainModelPaths = domainModelFiles;
 		dbAlias = dbAliasArg;
 		dbUsername = dbUserArg;
 		dbPassword = dbPassArg;
