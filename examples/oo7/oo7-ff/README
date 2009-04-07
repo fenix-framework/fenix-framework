@@ -1,0 +1,6 @@
+1. ant generate-sql
+2. change USER,PASS,DBNAME,MYSQL in config/mysql_create_db.sh
+3. run config/mysql_create_db.sh
+4. change FenixFrameWork config in InitOO7FFDatabase.java and OO7FFBenchmark.java
+5. run ant populateDB or use dump file in config/dumps/
+6. run ant runBenchmark
