@@ -74,8 +74,8 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
         return Transaction.getOIDFor(this);
     }
 
-    public static DomainObject fromOID(long oid) {
-        return (DomainObject)Transaction.getObjectForOID(oid);
+    public static <T extends DomainObject> T fromOID(long oid) {
+        return (T)Transaction.getObjectForOID(oid);
     }
 
     jvstm.VBoxBody addNewVersion(String attrName, int txNumber) {
