@@ -18,6 +18,7 @@ import org.joda.time.LocalDate;
 public class InternalizeAndPrint {
 
     public static void main(final String[] args) {
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("GMT+10"));
 	Configuration.initializeFenixFramework();
 
         Transaction.withTransaction(new TransactionalCommand() {
