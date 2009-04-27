@@ -3,9 +3,11 @@ package pt.ist.fenixframework.pstm;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.CommitException;
+import jvstm.ResumeException;
 import jvstm.VBoxBody;
 import jvstm.cps.ConsistencyCheckTransaction;
 import jvstm.cps.ConsistentTopLevelTransaction;
@@ -59,7 +61,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
     private ServiceInfo serviceInfo = ServiceInfo.getCurrentServiceInfo();
 
-    private PersistenceBroker broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+    private PersistenceBroker broker;
 
     // for statistics
     protected int numBoxReads = 0;
@@ -69,21 +71,67 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     TopLevelTransaction(ActiveTransactionsRecord record) {
         super(record);
 
+        initDbConnection(false);
+        initDbChanges();
+    }
+
+    protected void initDbConnection(boolean resuming) {
+        // first, get a new broker that will give access to the DB connection
+        this.broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+
 	// open a connection to the database and set this tx number to the number that
 	// corresponds to that connection number.  The connection number should always be 
 	// greater than the current number, because the current number is obtained from
 	// Transaction.getCommitted, which is set only after the commit to the database
-        ActiveTransactionsRecord newRecord = updateFromTxLogsOnDatabase(record);
-        if (newRecord != record) {
+        ActiveTransactionsRecord newRecord = updateFromTxLogsOnDatabase(this.activeTxRecord);
+        if (newRecord != this.activeTxRecord) {
             // if a new record is returned, that means that this transaction will belong 
             // to that new record, so we must take it off from its current record and set
             // it properly
+
+            // but, if we are resuming, we must ensure first that the
+            // transaction is still valid for the new transaction
+            // record
+            if (resuming) {
+                checkValidity(newRecord);
+            }
+
             newRecord.incrementRunning();
             this.activeTxRecord.decrementRunning();
             this.activeTxRecord = newRecord;
             setNumber(newRecord.transactionNumber);
         }
-        initDbChanges();
+    }
+
+    protected void checkValidity(ActiveTransactionsRecord record) {
+        // we must see whether any of the boxes read by this
+        // transaction was changed by some transaction upto the one
+        // corresponding to the new record (newer ones don't matter)
+
+        int newTxNumber = record.transactionNumber;
+
+        for (Map.Entry<jvstm.VBox,VBoxBody> entry : this.bodiesRead.entrySet()) {
+            if (entry.getKey().body.getBody(newTxNumber) != entry.getValue()) {
+                throw new ResumeException("Transaction is no longer valid for resuming");
+            }
+        }
+    }
+
+    @Override
+    protected void suspendTx() {
+        // close the broker to release the db connection on suspension
+        if (broker != null) {
+            broker.close();
+            broker = null;
+        }
+
+        super.suspendTx();
+    }
+
+    @Override
+    protected void resumeTx() {
+        super.resumeTx();
+        initDbConnection(true);
     }
 
     protected void initDbChanges() {

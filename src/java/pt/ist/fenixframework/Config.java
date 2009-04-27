@@ -142,6 +142,17 @@ public class Config {
      */
     protected boolean updateRepositoryStructureIfNeeded = false;
 
+    /**
+     * This <strong>optional</strong> parameter indicates the class of
+     * the Root object.  If specified, the framework will initialize
+     * and persist an instance of this class whenever the application
+     * starts, if one does not exist already.  Moreover, after
+     * initilization, the persistent instance of this class may be
+     * accessed using the FenixFramework.getRoot() method.
+     */
+    protected Class rootClass = null;
+
+
     private static void checkRequired(Object obj, String fieldName) {
         if (obj == null) {
             missingRequired(fieldName);
@@ -235,4 +246,7 @@ public class Config {
 	return updateRepositoryStructureIfNeeded;
     }
 
+    public Class getRootClass() {
+        return rootClass;
+    }
 }

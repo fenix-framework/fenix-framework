@@ -33,9 +33,7 @@ public class MetadataManager {
             this.ojbMetadataManager.setDefaultPBKey(jcd.getPBKey());
 
             // generate the OJB's mappings
-            OJBMetadataGenerator
-                .updateOJBMappingFromDomainModel(ojbMetadataManager.getGlobalRepository().getDescriptorTable(),
-                                                 domainModel);
+            OJBMetadataGenerator.updateOJBMappingFromDomainModel(domainModel);
         } catch (Exception e) {
             // transform any exception during the initialization phase into an Error
             throw new Error(e);

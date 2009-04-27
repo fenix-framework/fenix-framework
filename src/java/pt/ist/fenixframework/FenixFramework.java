@@ -3,6 +3,8 @@ package pt.ist.fenixframework;
 import dml.DomainModel;
 
 import pt.ist.fenixframework.pstm.MetadataManager;
+import pt.ist.fenixframework.pstm.PersistentRoot;
+import pt.ist.fenixframework.pstm.Transaction;
 import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
 
 
@@ -36,6 +38,7 @@ public class FenixFramework {
             config.checkConfig();
             MetadataManager.init(config);
 	    new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
+            PersistentRoot.initRootIfNeeded(config);
             initialized = true;
         }
     }
@@ -46,5 +49,9 @@ public class FenixFramework {
 
     public static DomainModel getDomainModel() {
         return MetadataManager.getDomainModel();
+    }
+
+    public static <T extends DomainObject> T getRoot() {
+        return (T)PersistentRoot.getInstance().getRoot();
     }
 }

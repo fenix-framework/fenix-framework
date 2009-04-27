@@ -59,9 +59,8 @@ public class OJBMetadataGenerator {
         }
 
         FenixDomainModel domainModel = DML.getDomainModel(dmlFilesArray);
-        Map ojbMetadata = MetadataManager.getInstance().getGlobalRepository().getDescriptorTable();
 
-        updateOJBMappingFromDomainModel(ojbMetadata, domainModel);
+        updateOJBMappingFromDomainModel(domainModel);
 
         printUnmmapedAttributes(unmappedObjectReferenceAttributesInDML,
                 "UnmappedObjectReferenceAttributes in DML:");
@@ -86,10 +85,26 @@ public class OJBMetadataGenerator {
         }
     }
 
-    public static void updateOJBMappingFromDomainModel(Map ojbMetadata, FenixDomainModel domainModel)
-            throws Exception {
+    private static void addPersistentRootClassDescriptor(FenixDomainModel domainModel, 
+                                                         DescriptorRepository repository) throws Exception {
+        Class persRootClass = PersistentRoot.class;
+        ClassDescriptor classDescriptor = new ClassDescriptor(repository);
+        classDescriptor.setClassOfObject(persRootClass);
+        classDescriptor.setTableName("FF$PERSISTENT_ROOT");
+        setFactoryMethodAndClass(classDescriptor);
+
+        addPrimaryFieldDescriptor(domainModel, 1, classDescriptor, persRootClass);
+        addFieldDescriptor(domainModel, PersistentRoot.SLOT_NAME, "long", 2, classDescriptor, persRootClass);
+
+        repository.getDescriptorTable().put(PersistentRoot.class.getName(), classDescriptor);
+    }
+
+    public static void updateOJBMappingFromDomainModel(FenixDomainModel domainModel) throws Exception {
 
 	final DescriptorRepository descriptorRepository = MetadataManager.getInstance().getGlobalRepository();
+        Map ojbMetadata = descriptorRepository.getDescriptorTable();
+
+        addPersistentRootClassDescriptor(domainModel, descriptorRepository);
 
         for (final Iterator iterator = domainModel.getClasses(); iterator.hasNext();) {
             final DomainClass domClass = (DomainClass) iterator.next();
@@ -100,7 +115,6 @@ public class OJBMetadataGenerator {
         	classDescriptor.setClassOfObject(clazz);
         	classDescriptor.setTableName(getExpectedTableName(domClass));
         	ojbMetadata.put(domClass.getFullName(), classDescriptor);
-        	MetadataManager.getInstance().getRepository().getDescriptorTable().put(classname, classDescriptor);
             }
         }
 
@@ -200,7 +214,9 @@ public class OJBMetadataGenerator {
             while (slots.hasNext()) {
                 Slot slot = slots.next();
 
-                addFieldDescriptor(domainModel, slot, fieldID++, classDescriptor, persistentFieldClass);
+                String slotName = slot.getName();
+                String slotType = slot.getSlotType().getDomainName();
+                addFieldDescriptor(domainModel, slotName, slotType, fieldID++, classDescriptor, persistentFieldClass);
             }
 
             domEntity = dClass.getSuperclass();
@@ -231,11 +247,11 @@ public class OJBMetadataGenerator {
 
 
     protected static void addFieldDescriptor(FenixDomainModel domainModel,
-                                             Slot slot,
+                                             String slotName,
+                                             String slotType,
                                              int fieldID, 
                                              ClassDescriptor classDescriptor,
                                              Class persistentFieldClass) throws Exception {
-        String slotName = slot.getName();
         if (classDescriptor.getFieldDescriptorByName(slotName) == null) {
             FieldDescriptor fieldDescriptor = new FieldDescriptor(classDescriptor, fieldID);
             fieldDescriptor.setColumnName(convertToDBStyle(slotName));
@@ -244,7 +260,7 @@ public class OJBMetadataGenerator {
             PersistentField persistentField = new ReadOnlyPersistentField(persistentFieldClass, slotName);
             fieldDescriptor.setPersistentField(persistentField);
 
-            String sqlType = domainModel.getJdbcTypeFor(slot.getSlotType().getDomainName());
+            String sqlType = domainModel.getJdbcTypeFor(slotType);
             fieldDescriptor.setColumnType(sqlType);
 
             classDescriptor.addFieldDescriptor(fieldDescriptor);

@@ -1,12 +1,25 @@
 package pt.ist.fenixframework.pstm;
 
 import jvstm.VBoxBody;
+import jvstm.ResumeException;
 
 
 class ReadOnlyTopLevelTransaction extends TopLevelTransaction {
 
     ReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
         super(record);
+    }
+
+    @Override
+    protected void checkValidity(jvstm.ActiveTransactionsRecord record) {
+        // for read-only transactions, for which we do not store the
+        // read-set, it is not possible to know that we will see a
+        // consistent read after resuming, unless the new record is
+        // exactly the same that we have
+
+        if (record != this.activeTxRecord) {
+            throw new ResumeException("Transaction may be no longer valid for resuming");
+        }
     }
 
     protected void initDbChanges() {
