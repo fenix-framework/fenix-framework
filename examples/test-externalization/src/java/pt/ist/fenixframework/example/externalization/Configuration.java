@@ -30,7 +30,9 @@ public class Configuration {
     static void initializeFenixFramework() {
         Config config = new Config() {{
             domainModelPath = "/externalization.dml";
-   	    dbAlias = "//localhost:3306/test?useJDBCCompliantTimezoneShift=true";
+            // this timezone stuff needs to be further investigated
+   	    //dbAlias = "//localhost:3306/test?useJDBCCompliantTimezoneShift=true";
+            dbAlias = "//localhost:3306/test";
             dbUsername = "test";
             dbPassword = "test";
 	    /* uncomment the next line if you want the repository structure automatically updated when your domain definition
