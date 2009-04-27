@@ -102,7 +102,7 @@ public abstract class Transaction extends jvstm.Transaction {
         return ((long)cid << 32) + obj.getIdInternal();
     }
 
-    public static DomainObject getObjectForOID(long oid) {
+    public static <T extends DomainObject> T getObjectForOID(long oid) {
         int cid = (int)(oid >> 32);
         int idInternal = (int)(oid & 0x7FFFFFFF);
         String classname = DomainClassInfo.mapIdToClassname(cid);
@@ -111,7 +111,7 @@ public abstract class Transaction extends jvstm.Transaction {
             throw new MissingObjectException();
         }
 
-        return getDomainObject(classname, idInternal);
+        return (T) getDomainObject(classname, idInternal);
     }
 
     public static String getClassnameForOID(long oid) {
