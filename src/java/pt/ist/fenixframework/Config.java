@@ -48,7 +48,7 @@ import java.util.List;
  *
  * The current set of required parameters are the following:
  * <ul>
- * <li>domainModelPath</li>
+ * <li>domainModelPath XOR domainModelPaths</li>
  * <li>dbAlias</li>
  * <li>dbUsername</li>
  * <li>dbPassword</li>
