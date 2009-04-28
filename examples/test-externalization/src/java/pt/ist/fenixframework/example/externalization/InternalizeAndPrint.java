@@ -1,6 +1,6 @@
 package pt.ist.fenixframework.example.externalization;
 
-import jvstm.TransactionalCommand;
+import jvstm.Atomic;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
@@ -20,15 +20,16 @@ public class InternalizeAndPrint {
     public static void main(final String[] args) {
 	Configuration.initializeFenixFramework();
 
-        Transaction.withTransaction(new TransactionalCommand() {
-                public void doIt() {
-		    Root root = (Root)Transaction.getDomainObject(Root.class.getName(), 1);
-                    DataStore actualDataStore = root.getDataStore();
+        doIt();
+    }
 
-		    DataStore expectedDataStore = Configuration.createTestDataStore();
- 		    Configuration.checkDataStoreEquality(actualDataStore, expectedDataStore);
-                }
-            });
+    @Atomic
+    private static void doIt() {
+        Root root = FenixFramework.getRoot();
+        DataStore actualDataStore = root.getDataStore();
+        
+        DataStore expectedDataStore = Configuration.createTestDataStore();
+        Configuration.checkDataStoreEquality(actualDataStore, expectedDataStore);
     }
 }
 
