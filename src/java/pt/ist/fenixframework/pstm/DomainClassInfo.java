@@ -150,14 +150,24 @@ public class DomainClassInfo {
     }
 
     public static int mapClassToId(Class objClass) {
-	return classInfoMap.get(objClass).classId;
+	if (objClass == PersistentRoot.class) {
+	    return 0;
+	} else {
+	    return classInfoMap.get(objClass).classId;
+	}
     }
 
     public static String mapIdToClassname(int cid) {
-	if ((cid < 1) || (cid >= classInfoById.length)) {
+	return mapIdToClass(cid).getName();
+    }
+
+    private static Class mapIdToClass(int cid) {
+	if (cid == 0) {
+	    return PersistentRoot.class;
+	} else if ((cid < 1) || (cid >= classInfoById.length)) {
 	    return null;
 	} else {
-	    return classInfoById[cid].domainClass.getName();
+	    return classInfoById[cid].domainClass;
 	}
     }
 
