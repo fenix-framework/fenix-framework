@@ -16,6 +16,7 @@ public class Main {
             dbUsername = "tpcw";
             dbPassword = "tpcw";
 	    // updateRepositoryStructureIfNeeded = true;
+            rootClass = Root.class;
         }};
         FenixFramework.initialize(config);
     }
@@ -24,7 +25,7 @@ public class Main {
 
     synchronized private static Root getRoot() {
 	if (rootObject == null) {
-	    rootObject = (Root)Transaction.getDomainObject(Root.class.getName(), 1);
+	    rootObject = FenixFramework.getRoot();
 	}
 	return rootObject;
     }

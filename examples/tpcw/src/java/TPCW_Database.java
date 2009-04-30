@@ -72,6 +72,7 @@ import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.example.tpcw.database.DataAccess;
 import jvstm.Atomic;
 
+import pt.ist.fenixframework.example.tpcw.domain.Root;
 import pt.ist.fenixframework.example.tpcw.domain.ShoppingCart;
 
 public class TPCW_Database {
@@ -86,6 +87,7 @@ public class TPCW_Database {
             dbUsername = "tpcw";
             dbPassword = "tpcw";
 	    // updateRepositoryStructureIfNeeded = true;
+            rootClass = Root.class;
         }};
         FenixFramework.initialize(config);
     }

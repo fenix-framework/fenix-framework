@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Vector;
 
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.pstm.Transaction;
 
 import tpcw_dto.BuyConfirmResult;
@@ -19,7 +20,7 @@ public class DataAccess {
 
     synchronized private static Root getRoot() {
 	if (rootObject == null) {
-	    rootObject = (Root)Transaction.getDomainObject(Root.class.getName(), 1);
+	    rootObject = FenixFramework.getRoot();
 	}
 	return rootObject;
     }

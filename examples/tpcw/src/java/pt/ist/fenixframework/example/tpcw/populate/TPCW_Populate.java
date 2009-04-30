@@ -157,6 +157,7 @@ class TPCW_Populate {
 	    dbUsername = paramDbUsername;
 	    dbPassword = paramDbPassword;
 	    updateRepositoryStructureIfNeeded = true;
+	    rootClass = Root.class;
 	}};
 	FenixFramework.initialize(config);
     
@@ -202,7 +203,7 @@ class TPCW_Populate {
     private static void ensureRootObject() {
         Transaction.withTransaction(new TransactionalCommand() {
                 public void doIt() {
-		    Root root = (Root)Transaction.getDomainObject(Root.class.getName(), 1);
+		    Root root = FenixFramework.getRoot();
 		    // force object to load to check if it really exists or is just a stub
 		    try {
 			root.getLoaded();
