@@ -1,7 +1,7 @@
 
 package pt.ist.fenixframework.example.petstore;
 
-import jvstm.TransactionalCommand;
+import jvstm.Atomic;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
@@ -18,15 +18,17 @@ public class InitPetstoreDomain {
             dbAlias = "//localhost:3306/xpto"; 
             dbUsername = "root";
             dbPassword = "";
+            rootClass = PetStore.class;
         }};
         FenixFramework.initialize(config);
 
-        Transaction.withTransaction(new TransactionalCommand() {
-                public void doIt() {
-                    PetStore petStore = (PetStore)Transaction.getDomainObject(PetStore.class.getName(), 1);
-                    System.out.println("Current PetStore instance: " + petStore);
-                    System.out.println("Current PetStore accounts: " + petStore.getAccountSet());
-                }
-            });
+        doIt();
+    }
+
+    @Atomic
+    private static void doIt() {
+        PetStore petStore = FenixFramework.getRoot();
+        System.out.println("Current PetStore instance: " + petStore);
+        System.out.println("Current PetStore accounts: " + petStore.getAccountSet());
     }
 }
