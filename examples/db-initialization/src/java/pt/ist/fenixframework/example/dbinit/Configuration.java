@@ -17,24 +17,11 @@ public class Configuration {
             dbAlias = "//localhost:3306/test";
             dbUsername = "test";
             dbPassword = "test";
+            rootClass = Root.class;
 	    /* uncomment the next line if you want the repository structure automatically updated when your domain definition
 	       changes */
 	    // updateRepositoryStructureIfNeeded = true;
         }};
         FenixFramework.initialize(config);
     }
-
-    static Root ensureRootObject() {
-	Root root = (Root)Transaction.getDomainObject(Root.class.getName(), 1);
-	// force object to load to check if it really exists or is just a stub
-	try {
-	    root.getDataStore();
-	} catch (VersionNotAvailableException ex) {
-	    // then create the object.  It is assumed that this object will be created with idInternal 1.
-	    System.out.println("IT IS NORMAL TO SEE AN EXCEPTION IF THE ROOT OBJECT COULD NOT BE READ.  THIS SHOULD BE OK.");
-	    root = new Root();
-	}
-	return root;
-    }
-
 }
