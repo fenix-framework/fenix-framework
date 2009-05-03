@@ -4,13 +4,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -186,8 +184,15 @@ public class SQLUpdateGenerator {
 		    stringBuilder.append(" ");
 		    if (columnName.equals("ID_INTERNAL")) {
 			stringBuilder.append("int(11) NOT NULL auto_increment");
+			stringBuilder.append(", add column OID bigint unsigned default null");
 		    } else {
 			stringBuilder.append(mySqlTypeTranslation.get(fieldDescriptor.getColumnType()));
+		    }
+
+		    if (columnName.startsWith("KEY_")) {
+			stringBuilder.append(", add column ");
+			stringBuilder.append(escapeName(columnName).replace("KEY_", "OID_"));
+			stringBuilder.append(" bigint unsigned default null");
 		    }
 		    stringBuilder.append(";\n");
 		}
@@ -196,7 +201,8 @@ public class SQLUpdateGenerator {
 	    if (primaryKey.isEmpty() && classDescriptor.getFieldDescriptorByName("idInternal") != null) {
 		stringBuilder.append("alter table ");
 		stringBuilder.append(escapeName(tablename));
-		stringBuilder.append(" add primary key (ID_INTERNAL);\n");
+		stringBuilder.append(" add primary key (ID_INTERNAL)");
+		stringBuilder.append(", add index (OID);\n");
 	    }
 
 	    for (final Iterator iterator = classDescriptor.getObjectReferenceDescriptors().iterator(); iterator.hasNext();) {
@@ -208,6 +214,9 @@ public class SQLUpdateGenerator {
 		    stringBuilder.append(escapeName(tablename));
 		    stringBuilder.append(" add index (");
 		    stringBuilder.append(escapeName(fieldDescriptor.getColumnName()));
+		    stringBuilder.append(")");
+		    stringBuilder.append(", add index (");
+		    stringBuilder.append(escapeName(fieldDescriptor.getColumnName()).replace("KEY_", "OID_"));
 		    stringBuilder.append(");\n");
 		}
 	    }
@@ -270,10 +279,17 @@ public class SQLUpdateGenerator {
 	stringBuilder.append("create table ");
 	stringBuilder.append(escapeName(indirectionTablename));
 	stringBuilder.append(" (");
+
 	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0]);
 	stringBuilder.append(" int(11) not null, ");
 	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0]);
 	stringBuilder.append(" int(11) not null, ");
+
+	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0].replace("KEY_", "OID_"));
+	stringBuilder.append(" int(11) not null, ");
+	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0].replace("KEY_", "OID_"));
+	stringBuilder.append(" int(11) not null");
+
 	stringBuilder.append(" primary key (");
 	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0]);
 	stringBuilder.append(", ");
@@ -283,6 +299,17 @@ public class SQLUpdateGenerator {
 	stringBuilder.append("), key(");
 	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0]);
 	stringBuilder.append(")");
+
+	stringBuilder.append(", key (");
+	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0].replace("KEY_", "OID_"));
+	stringBuilder.append(", ");
+	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0].replace("KEY_", "OID_"));
+	stringBuilder.append("), key(");
+	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0].replace("KEY_", "OID_"));
+	stringBuilder.append("), key(");
+	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0].replace("KEY_", "OID_"));
+	stringBuilder.append(")");
+
 	stringBuilder.append(") type=InnoDB;\n");
     }
 

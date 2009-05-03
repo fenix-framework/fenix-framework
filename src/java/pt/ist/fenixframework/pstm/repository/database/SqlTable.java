@@ -50,6 +50,12 @@ public class SqlTable {
             stringBuilder.append(typeTranslated);
             if (name.equals("ID_INTERNAL")) {
         	stringBuilder.append(" NOT NULL auto_increment");
+        	stringBuilder.append(", OID bigint unsigned default null");
+            }
+            if (name.startsWith("KEY_")) {
+        	stringBuilder.append(", ");
+        	stringBuilder.append(name.replace("KEY_", "OID_"));
+        	stringBuilder.append(" bigint unsigned default null");
             }
         }
 
@@ -141,6 +147,8 @@ public class SqlTable {
                 stringBuilder.append(primaryKey[i]);
             }
             stringBuilder.append(")");
+
+            stringBuilder.append(",\n  index (OID)");
         } else {
             System.out.println("No primary key for table " + tablename);
         }
@@ -149,6 +157,12 @@ public class SqlTable {
             stringBuilder.append(",\n  index (");
             stringBuilder.append(columnName);
             stringBuilder.append(")");
+
+            if (columnName.startsWith("KEY_")) {
+                stringBuilder.append(",\n  index (");
+                stringBuilder.append(columnName.replace("KEY_", "OID_"));
+                stringBuilder.append(")");        	
+            }
         }
         stringBuilder.append("\n");
 
