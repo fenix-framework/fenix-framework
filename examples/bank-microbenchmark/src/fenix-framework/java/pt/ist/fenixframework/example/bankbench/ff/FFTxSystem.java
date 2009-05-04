@@ -19,6 +19,7 @@ public class FFTxSystem extends TxSystem {
             dbAlias = "//localhost:3306/ff-bank"; 
             dbUsername = "test";
             dbPassword = "test";
+            rootClass = BankBenchApp.class;
         }};
         FenixFramework.initialize(config);
     }
@@ -33,7 +34,8 @@ public class FFTxSystem extends TxSystem {
     }
 
     public Client getClient(int id){
-        return (Client)Transaction.getDomainObject(FFClient.class.getName(), id);
+        BankBenchApp app = FenixFramework.getRoot();
+        return app.getClient(id);
     }
 
     public DomainFactory makeDomainFactory() {

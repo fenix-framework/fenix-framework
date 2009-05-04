@@ -86,15 +86,6 @@
   </target>
 
 
-  <target name="generate-sql" depends="compile">
-    <java classname="tmp.DomainModelSQLGen">
-      <arg value="${bank.dml}"/>
-      <arg value="${build.dir}/bank.sql"/>
-      <classpath refid="ff.project.class.path"/>
-    </java>
-  </target>
-	
-
   <macrodef name="run-populate-domain">
     <attribute name="txsystem" />
     <attribute name="classpathid" />

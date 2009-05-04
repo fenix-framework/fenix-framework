@@ -8,7 +8,12 @@ valueType pt.ist.fenixframework.example.bankbench.Money as Money {
     internalizeWith fromString();
 }
 
+class BankBenchApp {
+    int lastClientId;
+}
+
 class FFClient {
+    int id;
     String name;
 }
 
@@ -21,4 +26,12 @@ relation ClientHasAccounts {
     FFAccount playsRole account {
         multiplicity *;
     }
+}
+
+relation BankBenchAppHasClients {
+    FFClient playsRole client {
+        multiplicity *;
+    }
+
+    BankBenchApp playsRole bankApp;
 }
