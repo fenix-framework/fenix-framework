@@ -30,9 +30,6 @@ public class OO7FFDatabase extends OO7Database {
 	public OO7FFDatabase(int scale,PrintStream pw) {
 		super(scale);
 		infoStream = pw;
-		Transaction.begin();
-		OO7Application.initTests();
-		Transaction.commit();
 	}
 
 	@Override

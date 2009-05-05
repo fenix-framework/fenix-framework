@@ -40,6 +40,7 @@ public class OO7FFBenchmark extends OO7Benchmark {
 			dbAlias = "//localhost:3306/ssilva";
 			dbUsername = "ssilva";
 			dbPassword = "ssilva";
+                        rootClass = OO7Application.class;
 		}};
 		FenixFramework.initialize(config);
 
