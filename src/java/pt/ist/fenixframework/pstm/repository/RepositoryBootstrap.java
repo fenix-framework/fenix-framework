@@ -130,11 +130,11 @@ public class RepositoryBootstrap {
 	ResultSet resultSet = null;
 	try {
 	    final String dbName = connection.getCatalog();
-	    resultSet = databaseMetaData.getTables(dbName, "", "TX_CHANGE_LOGS", new String[] {"TABLE"});
+	    resultSet = databaseMetaData.getTables(dbName, "", "FF$TX_CHANGE_LOGS", new String[] {"TABLE"});
 
 	    while (resultSet.next()) {
 		final String tableName = resultSet.getString(3);
-		if (tableName.equals("TX_CHANGE_LOGS")) {
+		if (tableName.equals("FF$TX_CHANGE_LOGS")) {
 		    return true;
 		}
 	    }

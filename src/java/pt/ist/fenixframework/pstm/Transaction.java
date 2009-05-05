@@ -90,7 +90,7 @@ public abstract class Transaction extends jvstm.Transaction {
     }
 
     public static DomainObject getDomainObject(String classname, int oid) {
-        return currentFenixTransaction().getDomainObject(classname, oid);
+        return TransactionChangeLogs.getDomainObject(classname, oid);
     }
 
     public static DomainObject readDomainObject(String classname, Integer oid) {

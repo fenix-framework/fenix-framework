@@ -142,10 +142,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         return broker;
     }
 
-    public DomainObject getDomainObject(String classname, int oid) {
-        return TransactionChangeLogs.getDomainObject(broker, classname, oid);
-    }
-
     public DomainObject readDomainObject(String classname, int oid) {
         return TransactionChangeLogs.readDomainObject(broker, classname, oid);
     }
@@ -165,7 +161,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
             return TransactionChangeLogs.updateFromTxLogsOnDatabase(getOJBBroker(), record);
         } catch (Exception sqle) {
 //            sqle.printStackTrace();
-            throw new Error("Error while updating from TX_CHANGE_LOGS: Cannot proceed: " + sqle.getMessage(), sqle);
+            throw new Error("Error while updating from FF$TX_CHANGE_LOGS: Cannot proceed: " + sqle.getMessage(), sqle);
         }
     }
 

@@ -45,7 +45,7 @@ class StatisticsThread extends Thread {
             numReport++;
 
             StringBuilder sqlStmtText = new StringBuilder();
-            sqlStmtText.append("INSERT INTO TRANSACTION_STATISTICS ");
+            sqlStmtText.append("INSERT INTO FF$TRANSACTION_STATISTICS ");
             // column names -> keep them in sync with the values
             sqlStmtText.append("(SERVER,NUM_REPORT,NUM_READS,NUM_WRITES,NUM_ABORTS,NUM_CONFLICTS,SECONDS,STATS_WHEN,");
             sqlStmtText.append("READ_ONLY_READS_MIN,READ_ONLY_READS_MAX,READ_ONLY_READS_SUM,");

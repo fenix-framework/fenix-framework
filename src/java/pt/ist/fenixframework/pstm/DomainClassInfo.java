@@ -38,7 +38,7 @@ public class DomainClassInfo {
 		Connection conn = broker.serviceConnectionManager().getConnection();
 		stmt = conn.createStatement();
 
-		rs = stmt.executeQuery("SELECT DOMAIN_CLASS_NAME,DOMAIN_CLASS_ID FROM DOMAIN_CLASS_INFO");
+		rs = stmt.executeQuery("SELECT DOMAIN_CLASS_NAME,DOMAIN_CLASS_ID FROM FF$DOMAIN_CLASS_INFO");
 
 		Map<Class, DomainClassInfo> map = new IdentityHashMap<Class, DomainClassInfo>();
 		ArrayList<DomainClassInfo> array = new ArrayList<DomainClassInfo>();
@@ -70,7 +70,7 @@ public class DomainClassInfo {
 				logger.info("Registering new domain class '" + javaClass.getName() + "' with id "
 					+ classInfo.classId);
 			    }
-			    stmt.executeUpdate("INSERT INTO DOMAIN_CLASS_INFO VALUES ('" + javaClass.getName() + "', "
+			    stmt.executeUpdate("INSERT INTO FF$DOMAIN_CLASS_INFO VALUES ('" + javaClass.getName() + "', "
 				    + classInfo.classId + ")");
 			}
 		    }

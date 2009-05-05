@@ -22,6 +22,7 @@ import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.accesslayer.LookupException;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
+import org.apache.ojb.broker.metadata.DescriptorRepository;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.pstm.ojb.DomainAllocator;
@@ -40,15 +41,17 @@ public class TransactionChangeLogs {
 	}
     }
 
+    private static final DescriptorRepository OJB_REPOSITORY = MetadataManager.getOjbMetadataManager().getRepository();
+
     private static final Map<String,ClassInfo> CLASS_INFOS = new ConcurrentHashMap<String,ClassInfo>();
 
-    private static ClassInfo getClassInfo(PersistenceBroker pb, String className) {
+    private static ClassInfo getClassInfo(String className) {
 	ClassInfo info = CLASS_INFOS.get(className);
 	if (info == null) {
 	    try {
 		Class realClass = Class.forName(className);
-		ClassDescriptor cld = pb.getClassDescriptor(realClass);
-		Class topLevelClass = pb.getTopLevelClass(realClass);
+		ClassDescriptor cld = OJB_REPOSITORY.getDescriptorFor(realClass);
+		Class topLevelClass = OJB_REPOSITORY.getTopLevelClass(realClass);
 		info = new ClassInfo(cld, topLevelClass);
 		CLASS_INFOS.put(className, info);
 	    } catch (ClassNotFoundException cnfe) {
@@ -61,8 +64,8 @@ public class TransactionChangeLogs {
 
 
     // this method should be called only when we know the concrete class name of the object to get
-    static DomainObject getDomainObject(PersistenceBroker pb, String className, int idInternal) {
-	ClassInfo info = getClassInfo(pb, className);
+    static DomainObject getDomainObject(String className, int idInternal) {
+	ClassInfo info = getClassInfo(className);
         DomainObject obj = (DomainObject)Transaction.getCache().lookup(info.topLevelClass, idInternal);
 
         if (obj == null) {
@@ -78,7 +81,7 @@ public class TransactionChangeLogs {
 
 
     static DomainObject readDomainObject(PersistenceBroker pb, String className, int idInternal) {
-	ClassInfo info = getClassInfo(pb, className);
+	ClassInfo info = getClassInfo(className);
         DomainObject obj = (DomainObject)Transaction.getCache().lookup(info.topLevelClass, idInternal);
 
         if (obj == null) {
@@ -186,7 +189,7 @@ public class TransactionChangeLogs {
 	// read tx logs
 	int maxTxNumber = record.transactionNumber;
 
-	ResultSet rs = stmt.executeQuery("SELECT OBJ_CLASS,OBJ_ID,OBJ_ATTR,TX_NUMBER FROM TX_CHANGE_LOGS WHERE TX_NUMBER > " 
+	ResultSet rs = stmt.executeQuery("SELECT OBJ_OID,OBJ_ATTR,TX_NUMBER FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER > " 
 					 + (forUpdate ? (maxTxNumber - 1) : maxTxNumber)
 					 + " ORDER BY TX_NUMBER"
 					 + (forUpdate ? " FOR UPDATE" : ""));
@@ -219,11 +222,11 @@ public class TransactionChangeLogs {
             
             int currentCommittedNumber = Transaction.getMostRecentCommitedNumber();
 
-            int txNum = rs.getInt(4);
+            int txNum = rs.getInt(3);
 
             // skip all the records already processed
             while ((txNum <= currentCommittedNumber) && rs.next()) {
-                txNum = rs.getInt(4);
+                txNum = rs.getInt(3);
             }
 
             if (txNum <= currentCommittedNumber) {
@@ -238,22 +241,21 @@ public class TransactionChangeLogs {
             AlienTransaction alienTx = new AlienTransaction(txNum);
 
             while (alienTx != null) {
-                String className = rs.getString(1);
-                int idInternal = rs.getInt(2);
-                String attr = rs.getString(3);
+                long oid = rs.getLong(1);
+                String attr = rs.getString(2);
 
-                if (! className.equals("")) {
-                    // if the className is empty, then this line
+                if (oid != 0) {
+                    // if the oid is 0, then this line
                     // doesn't represent a real change (see the
                     // comment on the DbChanges.writeAttrChangeLogs
                     // method)
-                    AbstractDomainObject obj = (AbstractDomainObject)getDomainObject(pb, className, idInternal);
+                    AbstractDomainObject obj = AbstractDomainObject.fromOID(oid);
                     alienTx.register(obj, attr);
                 }
 
                 int nextTxNum = -1;
                 if (rs.next()) {
-                    nextTxNum = rs.getInt(4);
+                    nextTxNum = rs.getInt(3);
                 }
 
                 if (nextTxNum != txNum) {
@@ -302,7 +304,7 @@ public class TransactionChangeLogs {
 
 	    Connection conn = broker.serviceConnectionManager().getConnection();
 	    Statement stmt = conn.createStatement();
-	    ResultSet rs = stmt.executeQuery("SELECT MAX(TX_NUMBER) FROM TX_CHANGE_LOGS");
+	    ResultSet rs = stmt.executeQuery("SELECT MAX(TX_NUMBER) FROM FF$TX_CHANGE_LOGS");
 	    int maxTx = (rs.next() ? rs.getInt(1) : -1);
 
 	    broker.commitTransaction();
@@ -370,8 +372,8 @@ public class TransactionChangeLogs {
 		Statement stmt = conn.createStatement();
 
 		// delete previous record for this server and insert a new one
-		stmt.executeUpdate("DELETE FROM LAST_TX_PROCESSED WHERE SERVER = '" + server + "' or LAST_UPDATE < (NOW() - 3600)");
-		stmt.executeUpdate("INSERT INTO LAST_TX_PROCESSED VALUES ('" + server + "'," + lastTxNumber + ",null)");
+		stmt.executeUpdate("DELETE FROM FF$LAST_TX_PROCESSED WHERE SERVER = '" + server + "' or LAST_UPDATE < (NOW() - 3600)");
+		stmt.executeUpdate("INSERT INTO FF$LAST_TX_PROCESSED VALUES ('" + server + "'," + lastTxNumber + ",null)");
 		
 		broker.commitTransaction();
 
@@ -402,17 +404,17 @@ public class TransactionChangeLogs {
 		Statement stmt = conn.createStatement();
 
 		// update record for this server
-		stmt.executeUpdate("UPDATE LAST_TX_PROCESSED SET LAST_TX=" 
+		stmt.executeUpdate("UPDATE FF$LAST_TX_PROCESSED SET LAST_TX=" 
 				   + currentTxNumber 
 				   + ",LAST_UPDATE=NULL WHERE SERVER = '" 
 				   + server + "'");
 		
 		// delete obsolete values
-		ResultSet rs = stmt.executeQuery("SELECT MIN(LAST_TX) FROM LAST_TX_PROCESSED WHERE LAST_UPDATE > NOW() - " 
+		ResultSet rs = stmt.executeQuery("SELECT MIN(LAST_TX) FROM FF$LAST_TX_PROCESSED WHERE LAST_UPDATE > NOW() - " 
 						 + (2 * SECONDS_BETWEEN_UPDATES));
 		int min = (rs.next() ? rs.getInt(1) : 0);
 		if (min > 0) {
-		    stmt.executeUpdate("DELETE FROM TX_CHANGE_LOGS WHERE TX_NUMBER < " + min);
+		    stmt.executeUpdate("DELETE FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER < " + min);
 		}
 
 		broker.commitTransaction();

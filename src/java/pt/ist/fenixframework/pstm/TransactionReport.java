@@ -167,7 +167,7 @@ public class TransactionReport implements Serializable {
     }
 
     private String mekeQueryString() {
-	return "select left(SERVER, locate(':', SERVER) - 1), NUM_READS, NUM_WRITES, NUM_ABORTS, NUM_CONFLICTS, STATS_WHEN from TRANSACTION_STATISTICS "
+	return "select left(SERVER, locate(':', SERVER) - 1), NUM_READS, NUM_WRITES, NUM_ABORTS, NUM_CONFLICTS, STATS_WHEN from FF$TRANSACTION_STATISTICS "
 		+ "where STATS_WHEN >='"
 		+ dateTimeFormatter.print(startOfReport.toDateMidnight())
 		+ "' and STATS_WHEN < '"
@@ -183,7 +183,7 @@ public class TransactionReport implements Serializable {
 	    broker = PersistenceBrokerFactory.defaultPersistenceBroker();
 	    final Connection connection = broker.serviceConnectionManager().getConnection();
 	    statement = connection.createStatement();
-	    final String query = "select distinct(left(TRANSACTION_STATISTICS.SERVER, locate(':', TRANSACTION_STATISTICS.SERVER) - 1)) from TRANSACTION_STATISTICS";
+	    final String query = "select distinct(left(FF$TRANSACTION_STATISTICS.SERVER, locate(':', TRANSACTION_STATISTICS.SERVER) - 1)) from TRANSACTION_STATISTICS";
 	    resultSet = statement.executeQuery(query);
 	    while (resultSet.next()) {
 		servers.add(resultSet.getString(1));

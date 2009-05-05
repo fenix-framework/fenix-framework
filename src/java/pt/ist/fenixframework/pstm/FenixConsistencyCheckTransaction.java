@@ -52,10 +52,6 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction
         return parent.getOJBBroker();
     }
 
-    public DomainObject getDomainObject(String classname, int oid) {
-        return parent.getDomainObject(classname, oid);
-    }
-
     public DomainObject readDomainObject(String classname, int oid) {
         return parent.readDomainObject(classname, oid);
     }

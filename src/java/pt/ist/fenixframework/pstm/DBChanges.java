@@ -25,10 +25,10 @@ import org.apache.ojb.broker.metadata.CollectionDescriptor;
 import org.apache.ojb.broker.util.ObjectModificationDefaultImpl;
 
 class DBChanges {
-    private static final String SQL_CHANGE_LOGS_CMD_PREFIX = "INSERT INTO TX_CHANGE_LOGS VALUES ";
+    private static final String SQL_CHANGE_LOGS_CMD_PREFIX = "INSERT INTO FF$TX_CHANGE_LOGS VALUES ";
     // The following value is the approximate length of each tuple to add after
     // the VALUES
-    private static final int PER_RECORD_LENGTH = 100;
+    private static final int PER_RECORD_LENGTH = 60;
     private static final int MIN_BUFFER_CAPACITY = 256;
     private static final int MAX_BUFFER_CAPACITY = 10000;
     private static final int BUFFER_THRESHOLD = 256;
@@ -226,7 +226,7 @@ class DBChanges {
 	if ((info != null) && info.shouldLog()) {
 	    PreparedStatement stmt = null;
 	    try {
-		stmt = conn.prepareStatement("INSERT INTO SERVICE_LOG VALUES (?,?,?,?)");
+		stmt = conn.prepareStatement("INSERT INTO FF$SERVICE_LOG VALUES (?,?,?,?)");
 		time9 = System.currentTimeMillis();
 		stmt.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
 		stmt.setString(2, info.username);
@@ -277,7 +277,7 @@ class DBChanges {
 
                 // Still, we need to notify other servers of the tx
                 // number, so create an empty changelog line...
-                sqlCmd.append("('',0,'',");
+                sqlCmd.append("(0,'',");
                 sqlCmd.append(txNumber);
                 sqlCmd.append(")");
                 addedRecord = true;
@@ -286,10 +286,8 @@ class DBChanges {
 		    if (addedRecord) {
 			sqlCmd.append(",");
 		    }
-		    sqlCmd.append("('");
-		    sqlCmd.append(log.obj.getClass().getName());
-		    sqlCmd.append("',");
-		    sqlCmd.append(log.obj.getIdInternal());
+		    sqlCmd.append("(");
+		    sqlCmd.append(log.obj.getOID());
 		    sqlCmd.append(",'");
 		    sqlCmd.append(log.attr);
 		    sqlCmd.append("',");
