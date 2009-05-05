@@ -286,9 +286,9 @@ public class SQLUpdateGenerator {
 	stringBuilder.append(" int(11) not null, ");
 
 	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0].replace("KEY_", "OID_"));
-	stringBuilder.append(" int(11) not null, ");
+	stringBuilder.append(" bigint unsigned default null, ");
 	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0].replace("KEY_", "OID_"));
-	stringBuilder.append(" int(11) not null");
+	stringBuilder.append(" bigint unsigned default null, ");
 
 	stringBuilder.append(" primary key (");
 	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0]);
