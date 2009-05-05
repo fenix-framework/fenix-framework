@@ -17,7 +17,7 @@ public class SqlTable {
         mySqlTypeTranslation.put("DOUBLE", "double");
         mySqlTypeTranslation.put("FLOAT", "float(10,2)");
         mySqlTypeTranslation.put("INTEGER", "int(11)");
-        mySqlTypeTranslation.put("LONGVARCHAR", "text");
+        mySqlTypeTranslation.put("LONGVARCHAR", "longtext");
         mySqlTypeTranslation.put("TIME", "time");
         mySqlTypeTranslation.put("TIMESTAMP", "timestamp NULL default NULL");
         mySqlTypeTranslation.put("VARCHAR", "text");
