@@ -6,12 +6,29 @@
   <property name="build.dir" location="build"/>
   <property name="dist.dir" location="dist"/>
   <property name="lib.dir" location="lib"/>
-  <property name="jar.file" value="${dist.dir}/fenix-framework.jar"/>
-
+  <property name="jar.filename" value="${dist.dir}/fenix-framework"/>
+  <property name="svntask.dir" location="lib-devel/svntask"/>
 
   <target name="clean-all" description="Removes any generated files">
     <delete dir="${build.dir}"/>
     <delete dir="${dist.dir}"/>
+  </target>
+
+  <target name="version">
+    <typedef resource="com/googlecode/svntask/svntask.xml">
+      <classpath>
+        <fileset dir="${svntask.dir}">
+          <include name="svnkit.jar"/>
+          <include name="svntask.jar"/>
+        </fileset>
+      </classpath>
+    </typedef>
+
+    <!-- Do an update first to make sure you have the latest version -->
+    <!-- svn><update path="." force="true" recursive="true" /></svn -->
+
+    <svn><info path="./" revisionProperty="revisionVersion" /></svn>
+    <property name="svn.version" value="${revisionVersion}" />
   </target>
 
   <target name="compile" description="Compiles the fenix-framework source">
@@ -25,8 +42,8 @@
     </copy>
   </target>
 
-  <target name="jar" depends="compile" description="Generates the jar with the fenix-framework">
+  <target name="jar" depends="compile,version" description="Generates the jar with the fenix-framework">
     <mkdir dir="${dist.dir}"/>
-    <jar destfile="${jar.file}" basedir="${build.dir}"/>
+    <jar destfile="${jar.filename}-r${svn.version}.jar" basedir="${build.dir}"/>
   </target>
 </project>
