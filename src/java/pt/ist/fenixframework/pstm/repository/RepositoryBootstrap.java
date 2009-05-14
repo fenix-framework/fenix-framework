@@ -54,8 +54,12 @@ public class RepositoryBootstrap {
 		try {
 		    boolean newInfrastructureCreated = false;
 		    if (!infrastructureExists(connection) && config.getCreateRepositoryStructureIfNotExists()) {
-			createInfrastructure(connection);
-			newInfrastructureCreated = true;
+                        if (infrastructureNeedsUpdate(connection)) {
+                            updateInfrastructure(connection);
+                        } else {
+                            createInfrastructure(connection);
+                            newInfrastructureCreated = true;
+                        }
 		    }
 		    if (newInfrastructureCreated || config.getUpdateRepositoryStructureIfNeeded()) {
 			final String updates = SQLUpdateGenerator.generateInMem(connection, null);
@@ -126,15 +130,19 @@ public class RepositoryBootstrap {
     }
 
     private boolean infrastructureExists(final Connection connection) throws SQLException {
+        return tableExists(connection, "FF$TX_CHANGE_LOGS");
+    }
+
+    private boolean tableExists(final Connection connection, String tableName) throws SQLException {
 	final DatabaseMetaData databaseMetaData = connection.getMetaData();
 	ResultSet resultSet = null;
 	try {
 	    final String dbName = connection.getCatalog();
-	    resultSet = databaseMetaData.getTables(dbName, "", "FF$TX_CHANGE_LOGS", new String[] {"TABLE"});
+	    resultSet = databaseMetaData.getTables(dbName, "", tableName, new String[] {"TABLE"});
 
 	    while (resultSet.next()) {
-		final String tableName = resultSet.getString(3);
-		if (tableName.equals("FF$TX_CHANGE_LOGS")) {
+		final String existingTableName = resultSet.getString(3);
+		if (tableName.equals(existingTableName)) {
 		    return true;
 		}
 	    }
@@ -159,4 +167,11 @@ public class RepositoryBootstrap {
     }
   
 
+    private boolean infrastructureNeedsUpdate(final Connection connection) throws SQLException {
+        return tableExists(connection, "TX_CHANGE_LOGS");
+    }
+
+    private void updateInfrastructure(final Connection connection) throws SQLException, IOException {
+	executeSqlStream(connection, "/rename-system-tables.sql");
+    }
 }
