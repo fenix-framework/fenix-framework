@@ -18,6 +18,11 @@ public class WriteOnlyPersistentField extends FenixPersistentField {
         this.setterMethod.setAccessible(true);
     }
 
+    public Class getType() {
+        // we are sure that the setter method has one parameter
+        return setterMethod.getParameterTypes()[0];
+    }
+
     public void set(Object obj, Object value) throws MetadataException {
         if (obj == null) {
             // is this really needed?
@@ -42,7 +47,7 @@ public class WriteOnlyPersistentField extends FenixPersistentField {
             Class currentClass = declaringClass;
             while (currentClass != null) {
                 for (Method m : currentClass.getDeclaredMethods()) {
-                    if (m.getName().equals(name)) {
+                    if (m.getName().equals(name) && (m.getParameterTypes().length == 1)) {
                         return m;
                     }
                 }

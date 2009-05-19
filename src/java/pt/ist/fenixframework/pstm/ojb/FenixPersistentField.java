@@ -9,20 +9,17 @@ import org.apache.ojb.broker.metadata.fieldaccess.PersistentField;
 public abstract class FenixPersistentField implements PersistentField {
     private final Class declaringClass;
     private final String propName;
-    private final Class propType;
 
     public FenixPersistentField() {
         // this constructor is needed by OJB just to
         // invoke the usesAccessorsAndMutators method
         this.declaringClass = null;
         this.propName = null;
-        this.propType = null;
     }
 
     public FenixPersistentField(Class declaringClass, String propName) {
         this.declaringClass = declaringClass;
         this.propName = propName;
-        this.propType = findGetter(declaringClass, "get" + StringUtils.capitalize(propName)).getReturnType();
     }
 
 
@@ -36,10 +33,6 @@ public abstract class FenixPersistentField implements PersistentField {
 
     public String getName() {
         return propName;
-    }
-
-    public Class getType() {
-        return propType;
     }
 
     protected Method findGetter(Class declaringClass, String name) {

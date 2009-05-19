@@ -22,7 +22,10 @@ import org.apache.ojb.broker.accesslayer.LookupException;
 import org.apache.ojb.broker.core.ValueContainer;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.CollectionDescriptor;
+import org.apache.ojb.broker.metadata.JdbcType;
+import org.apache.ojb.broker.util.JdbcTypesHelper;
 import org.apache.ojb.broker.util.ObjectModificationDefaultImpl;
+
 
 class DBChanges {
     private static final String SQL_CHANGE_LOGS_CMD_PREFIX = "INSERT INTO FF$TX_CHANGE_LOGS VALUES ";
@@ -112,11 +115,11 @@ class DBChanges {
 	}
     }
 
-    public void addRelationTuple(String relation, Object obj1, String colNameOnObj1, Object obj2, String colNameOnObj2) {
+    public void addRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2) {
 	setRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, false);
     }
 
-    public void removeRelationTuple(String relation, Object obj1, String colNameOnObj1, Object obj2, String colNameOnObj2) {
+    public void removeRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2) {
 	setRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, true);
     }
 
@@ -132,7 +135,7 @@ class DBChanges {
 	}
     }
 
-    private void setRelationTuple(String relation, Object obj1, String colNameOnObj1, Object obj2, String colNameOnObj2,
+    private void setRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2,
 	    boolean remove) {
 	if (mToNTuples == null) {
 	    mToNTuples = new HashMap<RelationTupleInfo, RelationTupleInfo>();
@@ -320,10 +323,13 @@ class DBChanges {
         }
     }
 
+    private static JdbcType KEY_JDBC_TYPE = JdbcTypesHelper.getJdbcTypeByName("INTEGER");
+    private static JdbcType OID_JDBC_TYPE = JdbcTypesHelper.getJdbcTypeByName("BIGINT");
+
     // copied and adapted from OJB's MtoNBroker
     protected void updateMtoNRelation(PersistenceBroker pb, RelationTupleInfo tupleInfo) {
-	Object obj1 = tupleInfo.obj1;
-	Object obj2 = tupleInfo.obj2;
+	DomainObject obj1 = tupleInfo.obj1;
+	DomainObject obj2 = tupleInfo.obj2;
 
 	ClassDescriptor cld1 = pb.getDescriptorRepository().getDescriptorFor(obj1.getClass());
 	CollectionDescriptor cod = cld1.getCollectionDescriptorByName(tupleInfo.colNameOnObj1);
@@ -337,18 +343,28 @@ class DBChanges {
 	    obj2 = tupleInfo.obj1;
 	}
 
-	ValueContainer[] pkValues1 = pb.serviceBrokerHelper().getKeyValues(cld1, obj1);
-	String[] pkColumns1 = cod.getFksToThisClass();
+	String[] keyColumns = new String[2];
+	keyColumns[0] = cod.getFksToThisClass()[0];
+	keyColumns[1] = cod.getFksToItemClass()[0];
 
-	ClassDescriptor cld2 = pb.getDescriptorRepository().getDescriptorFor(obj2.getClass());
-	ValueContainer[] pkValues2 = pb.serviceBrokerHelper().getKeyValues(cld2, obj2);
-	String[] pkColumns2 = cod.getFksToItemClass();
+	ValueContainer[] keyValues = new ValueContainer[2];
+        keyValues[0] = new ValueContainer(obj1.getIdInternal(), KEY_JDBC_TYPE);
+        keyValues[1] = new ValueContainer(obj2.getIdInternal(), KEY_JDBC_TYPE);
+
+	String[] oidColumns = new String[2];
+	oidColumns[0] = keyColumns[0].replace("KEY_", "OID_");
+	oidColumns[1] = keyColumns[1].replace("KEY_", "OID_");
+
+	ValueContainer[] oidValues = new ValueContainer[2];
+        oidValues[0] = new ValueContainer(obj1.getOid(), OID_JDBC_TYPE);
+        oidValues[1] = new ValueContainer(obj2.getOid(), OID_JDBC_TYPE);
 
 	String table = cod.getIndirectionTable();
 
 	// always remove the tuple
-	String sqlStmt = pb.serviceSqlGenerator().getDeleteMNStatement(table, pkColumns1, pkColumns2);
-	pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, pkValues1, pkValues2);
+	String sqlStmt = pb.serviceSqlGenerator().getDeleteMNStatement(table, keyColumns, null);
+        System.out.println("----- DELETE STATEMENT: " + sqlStmt);
+	pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, keyValues, null);
 
 	// if it was not to remove but to add, then add it
 	// this "delete-first, add-after" serves to ensure that we can add
@@ -356,20 +372,21 @@ class DBChanges {
 	// the same tuple to a relation and still have the Set semantics for the
 	// relation.
 	if (!tupleInfo.remove) {
-	    sqlStmt = pb.serviceSqlGenerator().getInsertMNStatement(table, pkColumns1, pkColumns2);
-	    pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, pkValues1, pkValues2);
+	    sqlStmt = pb.serviceSqlGenerator().getInsertMNStatement(table, keyColumns, oidColumns);
+            System.out.println("----- INSERT STATEMENT: " + sqlStmt);
+	    pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, keyValues, oidValues);
 	}
     }
 
     static class RelationTupleInfo {
 	final String relation;
-	final Object obj1;
+	final DomainObject obj1;
 	final String colNameOnObj1;
-	final Object obj2;
+	final DomainObject obj2;
 	final String colNameOnObj2;
 	final boolean remove;
 
-	RelationTupleInfo(String relation, Object obj1, String colNameOnObj1, Object obj2, String colNameOnObj2, boolean remove) {
+	RelationTupleInfo(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2, boolean remove) {
 	    this.relation = relation;
 	    this.obj1 = obj1;
 	    this.colNameOnObj1 = colNameOnObj1;

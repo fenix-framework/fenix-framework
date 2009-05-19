@@ -2,6 +2,7 @@ package pt.ist.fenixframework.pstm.dml;
 
 import java.util.*;
 import java.io.*;
+import java.lang.reflect.Method;
 import dml.*;
 
 import pt.ist.fenixframework.pstm.AbstractDomainObject;
@@ -26,6 +27,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         return AbstractDomainObject.class.getName();
     }
 
+    @Override
     protected void generateFilePreamble(String subPackageName, PrintWriter out) {
         generatePackageDecl(subPackageName, out);
         println(out, "import " + VBox.class.getName() + ";");
@@ -33,13 +35,14 @@ public class FenixCodeGenerator extends CodeGenerator {
         println(out, "import " + OJBFunctionalSetWrapper.class.getName() + ";");
     }
 
-
+    @Override
     protected void generateBaseClassBody(DomainClass domClass, PrintWriter out) {
         super.generateBaseClassBody(domClass, out);
         generateCheckDisconnected(domClass, out);
-        generateDatabaseReader(domClass.getSlots(), domClass.hasSuperclass(), out);
+        generateDatabaseReader(domClass, out);
     }
 
+    @Override
     protected void generateBaseClassConstructorsBody(DomainClass domClass, PrintWriter out) {
 	super.generateBaseClassConstructorsBody(domClass, out);
         final Slot ojbConcreteClassSlot = domClass.findSlot("ojbConcreteClass");
@@ -57,6 +60,7 @@ public class FenixCodeGenerator extends CodeGenerator {
 	return domainEntity != null && domainEntity instanceof DomainClass && ((DomainClass) domainEntity).getSuperclass() != null;
     }
 
+    @Override
     protected void generateStaticRelationSlots(Role role, PrintWriter out) {
         super.generateStaticRelationSlots(role, out);
 
@@ -117,6 +121,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         print(out, "\");");
     }
 
+    @Override
     protected void generateSetterBody(String setterName, String slotName, String typeName, PrintWriter out) {
         if (! setterName.startsWith("set$")) {
             print(out, getSlotExpression(slotName));
@@ -130,7 +135,8 @@ public class FenixCodeGenerator extends CodeGenerator {
         }
     }
 
-    protected void generateInitInstance(Iterator slotsIter, Iterator roleSlotsIter, PrintWriter out) {
+    @Override
+    protected void generateInitInstance(DomainClass domClass, PrintWriter out) {
         // generate initInstance method to be used by OJB
         onNewline(out);
         newline(out);
@@ -139,17 +145,20 @@ public class FenixCodeGenerator extends CodeGenerator {
         print(out, "initInstance(true);");
         endMethodBody(out);
 
-        super.generateInitInstance(slotsIter, roleSlotsIter, out);
+        super.generateInitInstance(domClass, out);
     }
 
+    @Override
     protected String getNewSlotExpression(Slot slot) {
         return "VBox.makeNew(allocateOnly, false)";
     }
 
+    @Override
     protected String getNewRoleOneSlotExpression(Role role) {
         return "VBox.makeNew(allocateOnly, true)";
     }
 
+    @Override
     protected String getNewRoleStarSlotExpression(Role role) {
         StringBuilder buf = new StringBuilder();
 
@@ -168,15 +177,18 @@ public class FenixCodeGenerator extends CodeGenerator {
         return buf.toString();
     }
 
+    @Override
     protected String getRelationAwareBaseTypeFor(Role role) {
         // FIXME: handle other types of collections other than sets
         return "RelationList";
     }
 
+    @Override
     protected String getBoxBaseType() {
         return "VBox";
     }
 
+    @Override
     protected String getRoleArgs(Role role) {
         String args = super.getRoleArgs(role);
         if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
@@ -188,21 +200,25 @@ public class FenixCodeGenerator extends CodeGenerator {
         return args;
     }
 
+    @Override
     protected String getRoleOneBaseType() {
         return "dml.runtime.RoleOneFenix";
     }
 
 
+    @Override
     protected void generateRoleClassGetter(Role role, Role otherRole, PrintWriter out) {
         super.generateRoleClassGetter(role, otherRole, out);
 
-        // generate also the getFkBox method
+        // generate also the setFkBox method
         if (role.getMultiplicityUpper() == 1) {
             print(out, "public void setFk(");
             print(out, getTypeFullName(otherRole.getType()));
             print(out, " o1, java.lang.Integer newFk)");
             startMethodBody(out);
-            print(out, "o1.setKey");
+            print(out, "((");
+            print(out, otherRole.getType().getBaseName());
+            print(out, ") o1).setKey");
             print(out, capitalize(role.getName()));
             print(out, "(newFk);");
             endMethodBody(out);
@@ -210,6 +226,7 @@ public class FenixCodeGenerator extends CodeGenerator {
     }
 
 
+    @Override
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
         print(out, "return ");
         generateGetSlotExpression(slotName, out);
@@ -234,6 +251,33 @@ public class FenixCodeGenerator extends CodeGenerator {
         endMethodBody(out);
     }
 
+    @Override
+    protected void generateInitRoleSlot(Role role, PrintWriter out) {
+        // init also the foreign key slot
+        if (role.getMultiplicityUpper() == 1) {
+            onNewline(out);
+            printWords(out, getFkName(role.getName()));
+            print(out, " = ");
+            print(out, getNewSlotExpression(null));
+            print(out, ";");
+        }
+
+        super.generateInitRoleSlot(role, out);
+    }
+
+    @Override
+    protected void generateRoleSlot(Role role, PrintWriter out) {
+        // generate also the foreign key slot
+        if (role.getMultiplicityUpper() == 1) {
+            onNewline(out);
+            printWords(out, "private", getBoxType("java.lang.Integer"), getFkName(role.getName()));
+            print(out, ";");
+        }
+        
+        super.generateRoleSlot(role, out);
+    }
+
+    @Override
     protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
         super.generateRoleSlotMethodsMultStar(role, out);
 
@@ -260,41 +304,41 @@ public class FenixCodeGenerator extends CodeGenerator {
     @Override
     protected void generateSlotAccessors(Slot slot, PrintWriter out) {
         super.generateSlotAccessors(slot, out);
-        generateExternalizationGetter(slot, out);
-        generateInternalizationSetter(slot, out);
+        generateExternalizationGetter(slot.getName(), slot.getSlotType(), out);
+        generateInternalizationSetter(slot.getName(), slot.getSlotType(), out);
     }
 
-    protected void generateExternalizationGetter(Slot slot, PrintWriter out) {
+    protected void generateExternalizationGetter(String name, ValueType type, PrintWriter out) {
         newline(out);
-        printFinalMethod(out, "private", "Object", "get$" + slot.getName());
+        ValueType vt = getExternalizationType(type);
+        String returnType = getSqlTypeName(type);
+        printFinalMethod(out, "private", returnType, "get$" + name);
 
         startMethodBody(out);
-        // handle nulls (if the slot value is null, then return null)
-        print(out, slot.getTypeName());
+        // handle nulls (if the value is null, then return null)
+        print(out, type.getFullname());
         print(out, " value = ");
-        generateGetSlotExpression(slot.getName(), out);
+        generateGetSlotExpression(name, out);
         println(out, ";");
         
         print(out, "return ");
 
-        if (FenixDomainModel.isNullableType(slot.getSlotType())) {
+        if (FenixDomainModel.isNullableType(type)) {
             print(out, "(value == null) ? null : ");
         }
 
-        print(out, getExternalizationExpression(slot));
+        print(out, getExternalizationExpression(type));
         print(out, ";");
         endMethodBody(out);            
     }
 
-    protected String getExternalizationExpression(Slot slot) {
+    protected String getExternalizationExpression(ValueType vt) {
         StringBuilder expression = new StringBuilder();
 
         // start with the variable holding the slot value (not null)
         expression.append("value");
 
         // now, go through the externalization elements, externalizing this value
-        ValueType vt = slot.getSlotType();
-        
         while (! (vt.isBuiltin() || vt.isEnum())) {
             List<ExternalizationElement> extElems = vt.getExternalizationElements();
             if (extElems.size() != 1) {
@@ -335,15 +379,32 @@ public class FenixCodeGenerator extends CodeGenerator {
         return expression.toString();
     }
 
-
-    protected void generateInternalizationSetter(Slot slot, PrintWriter out) {
+    protected void generateInternalizationSetter(String name, ValueType type, PrintWriter out) {
         newline(out);
         print(out, "private final void set$");
-        print(out, slot.getName());
+        print(out, name);
         print(out, "(");
 
-        ValueType vt = slot.getSlotType();
-        
+        ValueType vt = getExternalizationType(type);
+        print(out, vt.getFullname());
+        print(out, " arg0, int txNumber)");
+
+
+        startMethodBody(out);
+        print(out, "this.");
+        print(out, name);
+        print(out, ".persistentLoad(");
+
+        if (FenixDomainModel.isNullableType(vt)) {
+            print(out, "(arg0 == null) ? null : ");
+        }
+
+        print(out, getRsReaderExpression(type));
+        print(out, ", txNumber);");
+        endMethodBody(out);            
+    }
+
+    protected ValueType getExternalizationType(ValueType vt) {
         while (! (vt.isBuiltin() || vt.isEnum())) {
             List<ExternalizationElement> extElems = vt.getExternalizationElements();
             if (extElems.size() != 1) {
@@ -353,27 +414,26 @@ public class FenixCodeGenerator extends CodeGenerator {
             ExternalizationElement extElem = extElems.get(0);
             vt = extElem.getType();
         }
-        print(out, vt.getFullname());
-        print(out, " arg0, int txNumber)");
 
-
-        startMethodBody(out);
-        print(out, "this.");
-        print(out, slot.getName());
-        print(out, ".persistentLoad(");
-
-        if (FenixDomainModel.isNullableType(vt)) {
-            print(out, "(arg0 == null) ? null : ");
-        }
-
-        print(out, getRsReaderExpression(slot));
-        print(out, ", txNumber);");
-        endMethodBody(out);            
+        return vt;
     }
 
-    protected String getRsReaderExpression(Slot slot) {
+    protected String getSqlTypeName(ValueType vt) {
+        ValueType extType = getExternalizationType(vt);
+        String toSqlMethodName = "getValueFor" + (extType.isEnum() ? "Enum" : extType.getDomainName());
+
+        for (Method m : ToSqlConverter.class.getDeclaredMethods()) {
+            if (m.getName().equals(toSqlMethodName)) {
+                return m.getReturnType().getName();
+            }
+        }
+
+        throw new Error("Something's wrong.  Couldn't find the appropriate base value type.");
+    }
+
+    protected String getRsReaderExpression(ValueType type) {
         StringBuilder buf = new StringBuilder();
-        buildReconstructionExpression(buf, slot.getSlotType(), 0);
+        buildReconstructionExpression(buf, type, 0);
         return buf.toString();
     }
 
@@ -418,8 +478,6 @@ public class FenixCodeGenerator extends CodeGenerator {
     }
 
 
-
-
     protected void generateOJBSetter(String slotName, String typeName, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", "void", "set$" + slotName, makeArg(typeName, slotName));
@@ -435,6 +493,7 @@ public class FenixCodeGenerator extends CodeGenerator {
     }
 
 
+    @Override
     protected void generateRoleSlotMethodsMultOne(Role role, PrintWriter out) {
         super.generateRoleSlotMethodsMultOne(role, out);
 
@@ -442,7 +501,38 @@ public class FenixCodeGenerator extends CodeGenerator {
         String slotName = role.getName();
         //generateGetter("public", "get$" + slotName, slotName, typeName, out);
         generateOJBSetter(slotName, typeName, out);
+
+        // generate also the getters and setters for the foreign key
+        String fkName = getFkName(role.getName());
+        ValueType fkType = getDomainModel().findValueType("Integer");
+
+        // We should generate only the following setter (private), but
+        // in Fenix there is code that depends on public getters and
+        // setters for the foreign keys.  So, for now, generate public
+        // getters and setters
+        //
+        //generateSetter("private", "set" + capitalize(fkName), fkName, fkType.getFullname(), out);
+        generateSlotGetter(fkName, fkType.getFullname(), out);
+        generateSlotSetter(fkName, fkType.getFullname(), out);
+
+        generateOidOJBGetter(role.getName(), out);
+        
+        generateExternalizationGetter(fkName, fkType, out);
+        generateInternalizationSetter(fkName, fkType, out);
     }
+
+    protected void generateOidOJBGetter(String name, PrintWriter out) {
+        newline(out);
+        printMethod(out, "private", "java.lang.Long", "get$oid" + capitalize(name));
+        startMethodBody(out);
+        print(out, AbstractDomainObject.class.getName());
+        print(out, " value = get");
+        print(out, capitalize(name));
+        println(out, "();");
+        print(out, "return (value == null) ? null : value.getOid();");
+        endMethodBody(out);
+    }
+
 
     protected void generateCheckDisconnected(DomainClass domClass, PrintWriter out) {
         newline(out);
@@ -480,7 +570,7 @@ public class FenixCodeGenerator extends CodeGenerator {
     // code related to the database reading/writing
 
 
-    protected void generateDatabaseReader(Iterator slotsIter, boolean hasSuperclass, PrintWriter out) {
+    protected void generateDatabaseReader(DomainClass domClass, PrintWriter out) {
         newline(out);
         printMethod(out, "protected", "void", "readSlotsFromResultSet", 
                     makeArg("java.sql.ResultSet", "rs"),
@@ -488,23 +578,32 @@ public class FenixCodeGenerator extends CodeGenerator {
         print(out, " throws java.sql.SQLException");
         startMethodBody(out);
 
-        if (hasSuperclass) {
+        if (domClass.hasSuperclass()) {
             println(out, "super.readSlotsFromResultSet(rs, txNumber);");
         }
 
-        while (slotsIter.hasNext()) {
-            Slot slot = (Slot)slotsIter.next();
-            
-            onNewline(out);
-            print(out, "set$");
-            print(out, slot.getName());
-            print(out, "(");
-            printRsReaderExpressions(out, slot.getSlotType(), convertToDBStyle(slot.getName()), 0);
-            print(out, ", txNumber);");
+        for (Slot slot : domClass.getSlotsList()) {
+            generateOneSlotRsReader(out, slot.getName(), slot.getSlotType());
+        }
+
+        for (Role role : domClass.getRoleSlotsList()) {
+            if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+                generateOneSlotRsReader(out, getFkName(role.getName()), getDomainModel().findValueType("Integer"));
+            }
         }
         
         endMethodBody(out);
     }
+
+    protected void generateOneSlotRsReader(PrintWriter out, String name, ValueType type) {
+        onNewline(out);
+        print(out, "set$");
+        print(out, name);
+        print(out, "(");
+        printRsReaderExpressions(out, type, convertToDBStyle(name), 0);
+        print(out, ", txNumber);");
+    }
+
 
     protected int printRsReaderExpressions(PrintWriter out, ValueType vt, String colBaseName, int colNum) {
         if (vt.isBuiltin()) {
@@ -539,6 +638,10 @@ public class FenixCodeGenerator extends CodeGenerator {
             print(out, "__" + colNum);
         }
         print(out, "\")");
+    }
+
+    protected String getFkName(String slotName) {
+        return "key" + capitalize(slotName);
     }
 
 

@@ -184,16 +184,18 @@ public class SQLUpdateGenerator {
 		    stringBuilder.append(" ");
 		    if (columnName.equals("ID_INTERNAL")) {
 			stringBuilder.append("int(11) NOT NULL auto_increment");
-			stringBuilder.append(", add column OID bigint unsigned default null");
+			//stringBuilder.append(", add column OID bigint unsigned default null");
+                    } else if (columnName.equals("OID")) {
+			stringBuilder.append("bigint unsigned NOT NULL");
 		    } else {
 			stringBuilder.append(mySqlTypeTranslation.get(fieldDescriptor.getColumnType()));
 		    }
 
-		    if (columnName.startsWith("KEY_")) {
-			stringBuilder.append(", add column ");
-			stringBuilder.append(escapeName(columnName).replace("KEY_", "OID_"));
-			stringBuilder.append(" bigint unsigned default null");
-		    }
+// 		    if (columnName.startsWith("KEY_")) {
+// 			stringBuilder.append(", add column ");
+// 			stringBuilder.append(escapeName(columnName).replace("KEY_", "OID_"));
+// 			stringBuilder.append(" bigint unsigned default null");
+// 		    }
 		    stringBuilder.append(";\n");
 		}
 	    }

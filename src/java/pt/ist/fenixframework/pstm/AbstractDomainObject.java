@@ -37,7 +37,7 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
         return idInternal;
     }
     
-    public Integer get$idInternal() {
+    private Integer get$idInternal() {
         return idInternal;
     }
     
@@ -71,7 +71,17 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
     }
 
     public long getOID() {
+        return getOid();
+    }
+
+    // duplicate method (see get OID()).  This is the name that should stick.
+    // the other is to go away
+    public long getOid() {
         return Transaction.getOIDFor(this);
+    }
+
+    private long get$oid() {
+        return getOid();
     }
 
     public static <T extends DomainObject> T fromOID(long oid) {

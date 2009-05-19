@@ -18,6 +18,10 @@ public class ReadOnlyPersistentField extends FenixPersistentField {
         this.getterMethod.setAccessible(true);
     }
 
+    public Class getType() {
+        return getterMethod.getReturnType();
+    }
+
     public void set(Object obj, Object value) throws MetadataException {
         throw new Error("The set of a ReadOnlyPersistentField should never be called");
     }

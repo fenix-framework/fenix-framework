@@ -136,11 +136,11 @@ public abstract class Transaction extends jvstm.Transaction {
 	currentDBChanges().deleteObject(obj);
     }
 
-    public static void addRelationTuple(String relation, Object obj1, String colNameOnObj1, Object obj2, String colNameOnObj2) {
+    public static void addRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2) {
 	currentDBChanges().addRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2);
     }
 
-    public static void removeRelationTuple(String relation, Object obj1, String colNameOnObj1, Object obj2, String colNameOnObj2) {
+    public static void removeRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2) {
 	currentDBChanges().removeRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2);
     }
 

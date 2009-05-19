@@ -118,27 +118,6 @@ public class FenixDomainModel extends DomainModel {
      public void finalizeDomain() {
          super.finalizeDomain();
 
-         // go through each of the relations and add the foreign keys
-         // for the roles with multiplicity one to the corresponding
-         // classes...
-         for (DomainRelation rel : relations.values()) {
-             List<Role> roles = rel.getRoles();
-             int numRoles = roles.size();
-             if (numRoles != 2) {
-                 if (numRoles > 2) {
-                     throw new RuntimeException("Can't handle with more than two roles yet!");
-                 }
-             }
-
-             Role r0 = roles.get(0);
-             Role r1 = roles.get(1);
-
-             // FIXME: the following cast to DomainClass is horrible.
-             // The hierarchy DomainEntity -- DomainClass -- DomainRelation should be revised...
-             addForeignKeySlotIfNeeded((DomainClass)r0.getType(), r1);
-             addForeignKeySlotIfNeeded((DomainClass)r1.getType(), r0);
-         }
-
          for (final DomainClass domainClass : classes.values()) {
              final DomainEntity domainEntity = domainClass.getSuperclass();
              final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
@@ -167,26 +146,4 @@ public class FenixDomainModel extends DomainModel {
      private boolean isDomainClass(final DomainEntity domainEntity) {
          return domainEntity instanceof DomainClass;
      }
-
-    private void addForeignKeySlotIfNeeded(DomainClass domClass, Role role) {
-        if (role.getMultiplicityUpper() == 1) {
-            String fkName = "key" + CodeGenerator.capitalize(role.getName());
-            
-            Slot existingSlot = domClass.findSlot(fkName);
-            if (existingSlot != null) {
-                if (existingSlot.getTypeName().equals("java.lang.Integer")) {
-                    System.err.printf("The slot %s in class %s corresponds to a foreign key and should not be specified in the DML...\n", 
-                                      fkName, 
-                                      domClass.getName());
-                } else {
-                    System.err.printf("A slot with the name %s already exists in class %s!\n", 
-                                      fkName, 
-                                      domClass.getName());
-                    System.exit(1);
-                }
-            }
-
-            domClass.addSlot(new Slot(fkName, findValueType("Integer")));
-        }
-    }
 }

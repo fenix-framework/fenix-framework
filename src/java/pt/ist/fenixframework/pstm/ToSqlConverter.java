@@ -9,78 +9,78 @@ import org.joda.time.Partial;
 public class ToSqlConverter {
 
     // enums
-    public static Object getValueForEnum(Enum value) {
+    public static String getValueForEnum(Enum value) {
         return value.name();
     }
 
     // primitive types
-    public static Object getValueForboolean(boolean value) {
+    public static boolean getValueForboolean(boolean value) {
         return value;
     }
 
-    public static Object getValueForbyte(byte value) {
+    public static byte getValueForbyte(byte value) {
         return value;
     }
 
-    public static Object getValueForchar(char value) {
+    public static char getValueForchar(char value) {
         return value;
     }
 
-    public static Object getValueForshort(short value) {
+    public static short getValueForshort(short value) {
         return value;
     }
 
-    public static Object getValueForint(int value) {
+    public static int getValueForint(int value) {
         return value;
     }
 
-    public static Object getValueForfloat(float value) {
+    public static float getValueForfloat(float value) {
         return value;
     }
 
-    public static Object getValueForlong(long value) {
+    public static long getValueForlong(long value) {
         return value;
     }
 
-    public static Object getValueFordouble(double value) {
+    public static double getValueFordouble(double value) {
         return value;
     }
 
     
     // wrapper types
-    public static Object getValueForBoolean(Boolean value) {
+    public static Boolean getValueForBoolean(Boolean value) {
         return value;
     }
 
-    public static Object getValueForByte(Byte value) {
+    public static Byte getValueForByte(Byte value) {
         return value;
     }
 
-    public static Object getValueForCharacter(Character value) {
+    public static Character getValueForCharacter(Character value) {
         return value;
     }
 
-    public static Object getValueForShort(Short value) {
+    public static Short getValueForShort(Short value) {
         return value;
     }
 
-    public static Object getValueForInteger(Integer value) {
+    public static Integer getValueForInteger(Integer value) {
         return value;
     }
 
-    public static Object getValueForFloat(Float value) {
+    public static Float getValueForFloat(Float value) {
         return value;
     }
 
-    public static Object getValueForLong(Long value) {
+    public static Long getValueForLong(Long value) {
         return value;
     }
 
-    public static Object getValueForDouble(Double value) {
+    public static Double getValueForDouble(Double value) {
         return value;
     }
 
-    public static Object getValueForString(String value) {
+    public static String getValueForString(String value) {
         return value;
     }
 
@@ -90,16 +90,16 @@ public class ToSqlConverter {
         return value;
     }
 
-    public static Object getValueForDateTime(DateTime value) {
+    public static java.sql.Timestamp getValueForDateTime(DateTime value) {
         return (value == null ? null : new java.sql.Timestamp(value.getMillis()));
     }
 
     /* See ResultSetReader.readLocalDate() for an explanation of why we use Strings instead of dates in the database */
-    public static Object getValueForLocalDate(LocalDate value) {
+    public static String getValueForLocalDate(LocalDate value) {
         return (value == null ? null : LocalDateExternalization.localDateToString(value));
     }
 
-    public static Object getValueForLocalTime(LocalTime value) {
+    public static java.sql.Time getValueForLocalTime(LocalTime value) {
         // Creating the java.sql.Time with hours, minutes, and seconds
         // creates an instant interpreting those values in the default
         // time zone.  This is needed because currently OJB is sending
@@ -114,7 +114,7 @@ public class ToSqlConverter {
 	return (value == null ? null : new java.sql.Time(value.getHourOfDay(), value.getMinuteOfHour(), value.getSecondOfMinute()));
     }
 
-    public static Object getValueForPartial(Partial value) {
+    public static String getValueForPartial(Partial value) {
         return (value == null) ? null : PartialExternalization.partialToString(value);
     }
 

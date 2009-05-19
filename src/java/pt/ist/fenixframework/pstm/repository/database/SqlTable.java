@@ -50,13 +50,13 @@ public class SqlTable {
             stringBuilder.append(typeTranslated);
             if (name.equals("ID_INTERNAL")) {
         	stringBuilder.append(" NOT NULL auto_increment");
-        	stringBuilder.append(", OID bigint unsigned default null");
+        	//stringBuilder.append(", OID bigint unsigned default null");
             }
-            if (name.startsWith("KEY_")) {
-        	stringBuilder.append(", ");
-        	stringBuilder.append(name.replace("KEY_", "OID_"));
-        	stringBuilder.append(" bigint unsigned default null");
-            }
+//             if (name.startsWith("KEY_")) {
+//         	stringBuilder.append(", ");
+//         	stringBuilder.append(name.replace("KEY_", "OID_"));
+//         	stringBuilder.append(" bigint unsigned default null");
+//             }
         }
 
         public boolean equals(Object obj) {

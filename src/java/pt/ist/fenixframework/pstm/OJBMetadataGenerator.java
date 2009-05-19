@@ -37,14 +37,6 @@ public class OJBMetadataGenerator {
 
     private static final String DOMAIN_OBJECT_CLASSNAME = "net.sourceforge.fenixedu.domain.DomainObject";
 
-    private static final Set<String> unmappedObjectReferenceAttributesInDML = new TreeSet<String>();
-
-    private static final Set<String> unmappedCollectionReferenceAttributesInDML = new TreeSet<String>();
-
-    private static final Set<String> unmappedObjectReferenceAttributesInOJB = new TreeSet<String>();
-
-    private static final Set<String> unmappedCollectionReferenceAttributesInOJB = new TreeSet<String>();
-
     private static String classToDebug = null;
 
     /**
@@ -62,27 +54,7 @@ public class OJBMetadataGenerator {
 
         updateOJBMappingFromDomainModel(domainModel);
 
-        printUnmmapedAttributes(unmappedObjectReferenceAttributesInDML,
-                "UnmappedObjectReferenceAttributes in DML:");
-        printUnmmapedAttributes(unmappedCollectionReferenceAttributesInDML,
-                "UnmappedCollectionReferenceAttributes in DML:");
-        printUnmmapedAttributes(unmappedObjectReferenceAttributesInOJB,
-                "UnmappedObjectReferenceAttributes in OJB:");
-        printUnmmapedAttributes(unmappedCollectionReferenceAttributesInOJB,
-                "UnmappedCollectionReferenceAttributes in OJB:");
-
         System.exit(0);
-
-    }
-
-    private static void printUnmmapedAttributes(Set<String> unmappedAttributesSet, String title) {
-        if (!unmappedAttributesSet.isEmpty()) {
-            System.out.println();
-            System.out.println(title);
-            for (String objectReference : unmappedAttributesSet) {
-                System.out.println(objectReference);
-            }
-        }
     }
 
     private static void addPersistentRootClassDescriptor(FenixDomainModel domainModel, 
@@ -207,6 +179,9 @@ public class OJBMetadataGenerator {
 
         addPrimaryFieldDescriptor(domainModel, fieldID++, classDescriptor, persistentFieldClass);
 
+        // write the OID also
+        addFieldDescriptor(domainModel, "oid", "long", fieldID++, classDescriptor, persistentFieldClass);
+
         while (domEntity instanceof DomainClass) {
             DomainClass dClass = (DomainClass) domEntity;
 
@@ -217,6 +192,17 @@ public class OJBMetadataGenerator {
                 String slotName = slot.getName();
                 String slotType = slot.getSlotType().getDomainName();
                 addFieldDescriptor(domainModel, slotName, slotType, fieldID++, classDescriptor, persistentFieldClass);
+            }
+
+            for (Role role : dClass.getRoleSlotsList()) {
+                String roleName = role.getName();
+                if ((role.getMultiplicityUpper() == 1) && (roleName != null)) {
+                    String foreignKeyField = "key" + StringUtils.capitalize(roleName);
+                    addFieldDescriptor(domainModel, foreignKeyField, "Integer", fieldID++, classDescriptor, persistentFieldClass);
+
+                    String foreignOidField = "oid" + StringUtils.capitalize(roleName);
+                    addFieldDescriptor(domainModel, foreignOidField, "Long", fieldID++, classDescriptor, persistentFieldClass);
+                }
             }
 
             domEntity = dClass.getSuperclass();
@@ -290,27 +276,8 @@ public class OJBMetadataGenerator {
 
                     // reference descriptors
                     if (classDescriptor.getObjectReferenceDescriptorByName(roleName) == null) {
-
-                        String foreignKeyField = "key" + StringUtils.capitalize(roleName);
-
-                        if (findSlotByName(dClass, foreignKeyField) == null) {
-                            unmappedObjectReferenceAttributesInDML.add(foreignKeyField + " -> "
-                                    + dClass.getName());
-                            continue;
-                        }
-
-                        if (classDescriptor.getFieldDescriptorByName(foreignKeyField) == null) {
-                            Class classToVerify = Class.forName(dClass.getFullName());
-                            if (!Modifier.isAbstract(classToVerify.getModifiers())) {
-                                unmappedObjectReferenceAttributesInOJB.add(foreignKeyField + " -> "
-                                        + dClass.getName());
-                                continue;
-                            }
-                        }
-
-                        generateReferenceDescriptor(classDescriptor, persistentFieldClass, role,
-                                roleName, foreignKeyField);
-
+                        String fkField = "key" + StringUtils.capitalize(roleName);
+                        generateReferenceDescriptor(classDescriptor, persistentFieldClass, role, roleName, fkField);
                     }
                 } else {
 
@@ -322,15 +289,7 @@ public class OJBMetadataGenerator {
 
                         if (role.getOtherRole().getMultiplicityUpper() == 1) {
 
-                            String foreignKeyField = "key"
-                                    + StringUtils.capitalize(role.getOtherRole().getName());
-
-                            if (findSlotByName((DomainClass) role.getType(), foreignKeyField) == null) {
-                                unmappedCollectionReferenceAttributesInDML.add(foreignKeyField + " | "
-                                        + ((DomainClass) role.getType()).getName() + " -> "
-                                        + dClass.getName());
-                                continue;
-                            }
+                            String fkField = "key" + StringUtils.capitalize(role.getOtherRole().getName());
 
                             ClassDescriptor otherClassDescriptor = (ClassDescriptor) ojbMetadata
                                     .get(((DomainClass) role.getType()).getFullName());
@@ -341,7 +300,7 @@ public class OJBMetadataGenerator {
                                 continue;
                             }
 
-                            generateOneToManyCollectionDescriptor(collectionDescriptor, foreignKeyField);
+                            generateOneToManyCollectionDescriptor(collectionDescriptor, fkField);
 
                         } else {
                             generateManyToManyCollectionDescriptor(collectionDescriptor, role);
@@ -407,23 +366,6 @@ public class OJBMetadataGenerator {
         referenceDescriptor.setLazy(false);
 
         classDescriptor.addObjectReferenceDescriptor(referenceDescriptor);
-    }
-
-    private static Slot findSlotByName(DomainClass domainClass, String slotName) {
-        DomainClass domainClassIter = domainClass;
-        while (domainClassIter != null) {
-
-            for (Iterator<Slot> slotsIter = domainClassIter.getSlots(); slotsIter.hasNext();) {
-                Slot slot = (Slot) slotsIter.next();
-                if (slot.getName().equals(slotName)) {
-                    return slot;
-                }
-            }
-
-            domainClassIter = (DomainClass) domainClassIter.getSuperclass();
-        }
-
-        return null;
     }
 
     private static String convertToDBStyle(String string) {

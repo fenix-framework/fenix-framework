@@ -127,7 +127,6 @@ public class Configuration {
 	while (slotsIterator.hasNext()) {
 	    Slot slot = slotsIterator.next();
 	    String slotName = slot.getName();
-	    if (slotName.startsWith("key")) continue;
 
 	    String slotGetterName = "get" + capitalize(slotName);
 	    Method slotGetter = null;
