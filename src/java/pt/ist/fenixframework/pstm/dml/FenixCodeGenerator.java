@@ -506,15 +506,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         String fkName = getFkName(role.getName());
         ValueType fkType = getDomainModel().findValueType("Integer");
 
-        // We should generate only the following setter (private), but
-        // in Fenix there is code that depends on public getters and
-        // setters for the foreign keys.  So, for now, generate public
-        // getters and setters
-        //
-        //generateSetter("private", "set" + capitalize(fkName), fkName, fkType.getFullname(), out);
-        generateSlotGetter(fkName, fkType.getFullname(), out);
-        generateSlotSetter(fkName, fkType.getFullname(), out);
-
+        generateSetter("private", "set" + capitalize(fkName), fkName, fkType.getFullname(), out);
         generateOidOJBGetter(role.getName(), out);
         
         generateExternalizationGetter(fkName, fkType, out);
