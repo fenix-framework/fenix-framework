@@ -6,6 +6,8 @@ import java.util.Map;
 
 import dml.*;
 
+import pt.ist.fenixframework.pstm.Transaction;
+
 public class FenixDomainModel extends DomainModel {
 
     private static Map<String,String> BUILT_IN_JDBC_MAP = new HashMap<String,String>();
@@ -22,6 +24,12 @@ public class FenixDomainModel extends DomainModel {
             }
         }
         return true;
+    }
+
+
+    public FenixDomainModel() {
+        super();
+        initializeDerivedValueTypes();
     }
 
 
@@ -63,6 +71,29 @@ public class FenixDomainModel extends DomainModel {
 
         // The JodaTime's Period class is dealt with in the Fenix app code base for the time being
         //registerFenixValueType("org.joda.time.Period", "Period", "");
+    }
+
+    protected void initializeDerivedValueTypes() {
+        ValueType longType = findValueType("long");
+        PlainValueType txNumType = new PlainValueType(longType.getFullname());
+
+        String thisClassName = this.getClass().getName();
+        String externalizeName = thisClassName + ".externalizeTxNumber";
+        txNumType.addExternalizationElement(new ExternalizationElement(longType, externalizeName));
+
+        String internalizeName = thisClassName + ".internalizeTxNumber";
+        txNumType.setInternalizationMethodName(internalizeName);
+
+        newValueType("TxNumber", txNumType);
+    }
+
+    public static long externalizeTxNumber(long number) {
+        // ignore the number passed as argument and always use the current transaction number
+        return Transaction.current().getNumber();
+    }
+
+    public static long internalizeTxNumber(long number) {
+        return number;
     }
 
     protected void registerFenixValueType(String valueTypeName, String aliasName, String jdbcType) {

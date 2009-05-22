@@ -33,6 +33,7 @@ class Root {}
 
 // DataStore
 class DataStore {
+    TxNumber txNumber;
     boolean aboolean;
     byte abyte;
     char achar;
