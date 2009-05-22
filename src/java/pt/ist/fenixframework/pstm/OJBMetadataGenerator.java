@@ -65,7 +65,7 @@ public class OJBMetadataGenerator {
         classDescriptor.setTableName("FF$PERSISTENT_ROOT");
         setFactoryMethodAndClass(classDescriptor);
 
-        addPrimaryFieldDescriptor(domainModel, 1, classDescriptor, persRootClass);
+        addPrimaryFieldDescriptor(domainModel, "oid", "long", 1, classDescriptor, persRootClass);
         addFieldDescriptor(domainModel, PersistentRoot.SLOT_NAME, "long", 2, classDescriptor, persRootClass);
 
         repository.getDescriptorTable().put(PersistentRoot.class.getName(), classDescriptor);
@@ -177,7 +177,7 @@ public class OJBMetadataGenerator {
         DomainEntity domEntity = domClass;
         int fieldID = 1;
 
-        addPrimaryFieldDescriptor(domainModel, fieldID++, classDescriptor, persistentFieldClass);
+        addPrimaryFieldDescriptor(domainModel, "idInternal", "int", fieldID++, classDescriptor, persistentFieldClass);
 
         // write the OID also
         addFieldDescriptor(domainModel, "oid", "long", fieldID++, classDescriptor, persistentFieldClass);
@@ -211,11 +211,11 @@ public class OJBMetadataGenerator {
     }
 
     protected static void addPrimaryFieldDescriptor(FenixDomainModel domainModel,
+                                                    String slotName,
+                                                    String slotType,
                                                     int fieldID, 
                                                     ClassDescriptor classDescriptor,
                                                     Class persistentFieldClass) throws Exception {
-        String slotName = "idInternal";
-
         FieldDescriptor fieldDescriptor = new FieldDescriptor(classDescriptor, fieldID);
         fieldDescriptor.setColumnName(convertToDBStyle(slotName));
         fieldDescriptor.setAccess("readwrite");
@@ -225,7 +225,7 @@ public class OJBMetadataGenerator {
         PersistentField persistentField = new ReadOnlyPersistentField(persistentFieldClass, slotName);
         fieldDescriptor.setPersistentField(persistentField);
 
-        String sqlType = domainModel.getJdbcTypeFor("int");
+        String sqlType = domainModel.getJdbcTypeFor(slotType);
         fieldDescriptor.setColumnType(sqlType);
 
         classDescriptor.addFieldDescriptor(fieldDescriptor);

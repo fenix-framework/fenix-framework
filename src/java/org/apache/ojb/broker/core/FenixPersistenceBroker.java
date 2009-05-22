@@ -117,11 +117,17 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
             } else {
                 try {
                     ResultSet rs = getRsAndStmt().m_rs;
+
+                    AbstractDomainObject result = FenixJdbcAccessImpl.readObjectFromRs(rs);
+                    if (result != null) {
+                        return result;
+                    }
+
                     ClassDescriptor targetClassDescriptor = FenixJdbcAccessImpl.findCorrectClassDescriptor(cld, rs);
 
                     Integer oid = rs.getInt("ID_INTERNAL");
 
-                    AbstractDomainObject result = (AbstractDomainObject)Transaction.getCache().lookup(getTopLevelClass(), oid);
+                    result = (AbstractDomainObject)Transaction.getCache().lookup(getTopLevelClass(), oid);
 
                     if (result == null) {
                         result = (AbstractDomainObject)DomainAllocator.allocateObject(targetClassDescriptor.getClassOfObject());

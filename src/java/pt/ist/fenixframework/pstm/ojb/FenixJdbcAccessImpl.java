@@ -51,11 +51,16 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
             // data available read object, else return null
             if (rs.next())
             {
+                AbstractDomainObject materializedObject = readObjectFromRs(rs);
+                if (materializedObject != null) {
+                    return materializedObject;
+                }
+
                 ClassDescriptor targetClassDescriptor = findCorrectClassDescriptor(cld, rs);
 
                 // if it is a domain object
                 if (targetClassDescriptor.getFactoryClass() == DomainAllocator.class) {
-                    AbstractDomainObject materializedObject = allocateObject(targetClassDescriptor, rs);
+                    materializedObject = allocateObject(targetClassDescriptor, rs);
 
                     // cache object
                     materializedObject = (AbstractDomainObject)Transaction.getCache().cache(materializedObject);
@@ -152,5 +157,26 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
                 throw new PersistenceBrokerException(e);
             }
         }
+    }
+
+    public static AbstractDomainObject readObjectFromRs(ResultSet rs) {
+        // this method tries to load the object from its OID
+        // see whether the OID column in the resultSet is already filled
+        try {
+            long objectOid = rs.getLong("OID");
+            if (objectOid != 0) {
+                // if it is, then we may get the object by its OID and skip all the old stuff
+                AbstractDomainObject materializedObject = AbstractDomainObject.fromOID(objectOid);
+                materializedObject.readFromResultSet(rs);
+                return materializedObject;
+            }
+        } catch (SQLException sqle) {
+            // we may have an SQLException if, for example, there is no OID column
+            // in that case, simply ignore this and continue with the old code
+            sqle.printStackTrace();
+        }
+
+        // null means that something failed
+        return null;
     }
 }

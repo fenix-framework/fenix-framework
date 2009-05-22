@@ -28,30 +28,38 @@ public class RepositoryBootstrap {
 	this.config = config;
     }
 
+    private void applyInfrastructureChanges(Connection conn) throws SQLException {
+        if (columnExists(conn, "FF$PERSISTENT_ROOT", "ID_INTERNAL")) {
+            executeSqlInstructions(conn, "ALTER TABLE FF$PERSISTENT_ROOT CHANGE COLUMN ID_INTERNAL OID BIGINT");
+        }
+    }
+
     public void updateDataRepositoryStructureIfNeeded() {
-	if (config.getCreateRepositoryStructureIfNotExists() || config.getUpdateRepositoryStructureIfNeeded()) {
-	    Connection connection = null;
-	    try {
-		connection = getConnection();
+        Connection connection = null;
+        try {
+            connection = getConnection();
 
-		Statement statement = null;
-		ResultSet resultSet = null;
-		try {
-		    statement = connection.createStatement();
-		    resultSet = statement.executeQuery("SELECT GET_LOCK('FenixFrameworkInit', 100)");
-		    if (!resultSet.next() || (resultSet.getInt(1) != 1)) {
-			return;
-		    }
-		} finally {
-		    if (resultSet != null) {
-			resultSet.close();
-		    }
-		    if (statement != null) {
-			statement.close();
-		    }
-		}
+            Statement statement = null;
+            ResultSet resultSet = null;
+            try {
+                statement = connection.createStatement();
+                resultSet = statement.executeQuery("SELECT GET_LOCK('FenixFrameworkInit', 100)");
+                if (!resultSet.next() || (resultSet.getInt(1) != 1)) {
+                    return;
+                }
+            } finally {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            }
 
-		try {
+            try {
+                applyInfrastructureChanges(connection);
+
+                if (config.getCreateRepositoryStructureIfNotExists() || config.getUpdateRepositoryStructureIfNeeded()) {
 		    boolean newInfrastructureCreated = false;
 		    if (!infrastructureExists(connection) && config.getCreateRepositoryStructureIfNotExists()) {
                         if (infrastructureNeedsUpdate(connection)) {
@@ -65,34 +73,34 @@ public class RepositoryBootstrap {
 			final String updates = SQLUpdateGenerator.generateInMem(connection, null);
 			executeSqlInstructions(connection, updates);
 		    }
-		} finally {
-		    Statement statementUnlock = null;
-		    try {
-			statementUnlock = connection.createStatement();
-			statementUnlock.executeUpdate("DO RELEASE_LOCK('FenixFrameworkInit')");
-		    } finally {
-			if (statementUnlock != null) {
-			    statementUnlock.close();
-			}
-		    }
 		}
+            } finally {
+                Statement statementUnlock = null;
+                try {
+                    statementUnlock = connection.createStatement();
+                    statementUnlock.executeUpdate("DO RELEASE_LOCK('FenixFrameworkInit')");
+                } finally {
+                    if (statementUnlock != null) {
+                        statementUnlock.close();
+                    }
+                }
+            }
 
-		connection.commit();
-	    } catch (Exception ex) {
-		ex.printStackTrace();
-	    } finally {
-		if (connection != null) {
-		    try {
-			connection.close();
-		    } catch (SQLException e) {
-			// nothing can be done.
-		    }
-		}
-	    }
-	}
+            connection.commit();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    // nothing can be done.
+                }
+            }
+        }
     }
 
-    private void executeSqlInstructions(final Connection connection, final String sqlInstructions) throws IOException, SQLException {
+    private void executeSqlInstructions(final Connection connection, final String sqlInstructions) throws SQLException {
 	for (final String instruction : sqlInstructions.split(";")) {
 	    final String trimmed = instruction.trim();
 	    if (trimmed.length() > 0) {
@@ -147,6 +155,20 @@ public class RepositoryBootstrap {
 		}
 	    }
 	    return false;
+	} finally {
+	    if (resultSet != null) {
+		resultSet.close();
+	    }
+	}
+    }
+
+    private boolean columnExists(Connection connection, String tableName, String colName) throws SQLException {
+	final DatabaseMetaData databaseMetaData = connection.getMetaData();
+	ResultSet resultSet = null;
+	try {
+	    final String dbName = connection.getCatalog();
+	    resultSet = databaseMetaData.getColumns(dbName, "", tableName, colName);
+	    return resultSet.next();
 	} finally {
 	    if (resultSet != null) {
 		resultSet.close();
