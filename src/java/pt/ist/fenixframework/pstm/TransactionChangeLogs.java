@@ -162,7 +162,10 @@ public class TransactionChangeLogs {
 
     public static void cleanOldAlienTxs(int txNumber) {
         while ((! ALIEN_TRANSACTIONS.isEmpty()) && (ALIEN_TRANSACTIONS.peek().txNumber <= txNumber)) {
-            ALIEN_TRANSACTIONS.poll().freeResources();
+            AlienTransaction tx = ALIEN_TRANSACTIONS.poll();
+            if (tx != null) {
+                tx.freeResources();
+            }
         }
     }
 
