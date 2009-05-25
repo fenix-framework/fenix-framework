@@ -150,7 +150,10 @@ public class RepositoryBootstrap {
 
 	    while (resultSet.next()) {
 		final String existingTableName = resultSet.getString(3);
-		if (tableName.equals(existingTableName)) {
+                // we need to use the equalsIgnoreCase here because on
+                // MS Windows (at least), the name of the tables
+                // change case
+		if (tableName.equalsIgnoreCase(existingTableName)) {
 		    return true;
 		}
 	    }
