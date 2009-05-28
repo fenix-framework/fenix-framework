@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.CommitException;
@@ -14,6 +16,12 @@ import jvstm.cps.ConsistentTopLevelTransaction;
 import jvstm.cps.DependenceRecord;
 import jvstm.util.Cons;
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.TxIntrospector;
+import pt.ist.fenixframework.TxIntrospector.Entry;
+import pt.ist.fenixframework.TxIntrospector.RelationChangelog;
+
+import pt.ist.fenixframework.pstm.DBChanges.AttrChangeLog;
+import pt.ist.fenixframework.pstm.DBChanges.RelationTupleInfo;
 
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
@@ -21,7 +29,8 @@ import org.apache.ojb.broker.accesslayer.LookupException;
 
 import org.apache.log4j.Logger;
 
-public class TopLevelTransaction extends ConsistentTopLevelTransaction implements FenixTransaction {
+public class TopLevelTransaction extends ConsistentTopLevelTransaction 
+    implements FenixTransaction, TxIntrospector {
 
     private static final Logger logger = Logger.getLogger(TopLevelTransaction.class);
     private static int NUM_READS_THRESHOLD = 10000000;
@@ -461,5 +470,49 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     protected Iterator<DependenceRecord> getDependenceRecordsToRecheck() {
         // for now, just return an empty iterator
         return Util.emptyIterator();
+    }
+
+    // implement the TxIntrospector interface
+
+    public Set<DomainObject> getNewObjects() {
+        return getDBChanges().getNewObjects();
+    }
+
+    public Set<DomainObject> getModifiedObjects() {
+        return getDBChanges().getModifiedObjects();
+    }
+
+    public Set<Entry> getReadSetLog() {
+        throw new Error("getReadSetLog not implemented yet");
+//         Set<Entry> entries = new HashSet<Entry>(bodiesRead.size());
+
+//         for (Map.Entry<VBox,VBoxBody> entry : bodiesRead.entrySet()) {
+//             entries.add(new Entry());
+//         }
+
+//         return entries;
+    }
+
+    public Set<Entry> getWriteSetLog() {
+        Set<AttrChangeLog> attrChangeLogs = getDBChanges().getAttrChangeLogs();
+        Set<Entry> entries = new HashSet<Entry>(attrChangeLogs.size());
+
+        for (AttrChangeLog log : attrChangeLogs) {
+            AbstractDomainObject obj = (AbstractDomainObject)log.obj;
+            entries.add(new Entry(obj, log.attr, getLocalValue(obj.getBoxFor(log.attr))));
+        }
+
+        return entries;
+    }
+    
+    public Set<RelationChangelog> getRelationsChangelog() {
+        Set<RelationTupleInfo> tupleInfos = getDBChanges().getMtoNRelationTupleInfos();
+        Set<RelationChangelog> entries = new HashSet<RelationChangelog>(tupleInfos.size());
+
+        for (RelationTupleInfo tuple : tupleInfos) {
+            entries.add(new RelationChangelog(tuple.relation, tuple.obj1, tuple.obj2, tuple.remove));
+        }
+
+        return entries;
     }
 }

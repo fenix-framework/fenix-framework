@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,8 +43,28 @@ class DBChanges {
     private Set objsToDelete = null;
     private Map<RelationTupleInfo, RelationTupleInfo> mToNTuples = null;
 
-    public Set getModifiedObjects() {
-	Set modified = new HashSet();
+    protected Set<AttrChangeLog> getAttrChangeLogs() {
+        Set<AttrChangeLog> set = attrChangeLogs;
+
+        if (set == null) {
+            set = new HashSet<AttrChangeLog>();
+        }
+
+        return Collections.unmodifiableSet(set);
+    }
+
+    protected Set<DomainObject> getNewObjects() {
+        Set<DomainObject> set = newObjs;
+
+        if (set == null) {
+            set = new HashSet<DomainObject>();
+        }
+
+        return Collections.unmodifiableSet(set);
+    }
+
+    public Set<DomainObject> getModifiedObjects() {
+	Set<DomainObject> modified = new HashSet<DomainObject>();
 
 	if (attrChangeLogs != null) {
 	    for (AttrChangeLog log : attrChangeLogs) {
@@ -52,6 +73,18 @@ class DBChanges {
 	}
 
 	return modified;
+    }
+
+    protected Set<RelationTupleInfo> getMtoNRelationTupleInfos() {
+        Set<RelationTupleInfo> set;
+
+        if (mToNTuples == null) {
+            set = new HashSet<RelationTupleInfo>();
+        } else {
+            set = mToNTuples.keySet();
+        }
+
+        return Collections.unmodifiableSet(set);
     }
 
     public boolean isDeleted(Object obj) {
@@ -363,7 +396,6 @@ class DBChanges {
 
 	// always remove the tuple
 	String sqlStmt = pb.serviceSqlGenerator().getDeleteMNStatement(table, keyColumns, null);
-        System.out.println("----- DELETE STATEMENT: " + sqlStmt);
 	pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, keyValues, null);
 
 	// if it was not to remove but to add, then add it
@@ -373,7 +405,6 @@ class DBChanges {
 	// relation.
 	if (!tupleInfo.remove) {
 	    sqlStmt = pb.serviceSqlGenerator().getInsertMNStatement(table, keyColumns, oidColumns);
-            System.out.println("----- INSERT STATEMENT: " + sqlStmt);
 	    pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, keyValues, oidValues);
 	}
     }

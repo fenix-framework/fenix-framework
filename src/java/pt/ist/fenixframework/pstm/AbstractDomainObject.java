@@ -88,21 +88,34 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
         return (T)Transaction.getObjectForOID(oid);
     }
 
-    jvstm.VBoxBody addNewVersion(String attrName, int txNumber) {
+    VersionedSubject getSlotNamed(String attrName) {
 	Class myClass = this.getClass();
 	while (myClass != Object.class) {
 	    try {
 		Field f = myClass.getDeclaredField(attrName);
 		f.setAccessible(true);
-		return ((VersionedSubject)f.get(this)).addNewVersion(attrName, txNumber);
+		return (VersionedSubject)f.get(this);
 	    } catch (NoSuchFieldException nsfe) {
 		myClass = myClass.getSuperclass();
 	    } catch (IllegalAccessException iae) {
-		throw new Error("Couldn't addNewVersion to attribute " + attrName + ": " + iae);
+		throw new Error("Couldn't find attribute " + attrName + ": " + iae);
 	    } catch (SecurityException se) {
-		throw new Error("Couldn't addNewVersion to attribute " + attrName + ": " + se);
+		throw new Error("Couldn't find attribute " + attrName + ": " + se);
 	    }
 	}
+        
+        return null;
+    }
+
+    VBox getBoxFor(String attrName) {
+        return (VBox)getSlotNamed(attrName);
+    }
+
+    jvstm.VBoxBody addNewVersion(String attrName, int txNumber) {
+        VersionedSubject vs = getSlotNamed(attrName);
+        if (vs != null) {
+            return vs.addNewVersion(attrName, txNumber);
+        }
         
         System.out.println("!!! WARNING !!!: addNewVersion couldn't find the appropriate slot");
         return null;
