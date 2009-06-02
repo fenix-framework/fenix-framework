@@ -50,6 +50,8 @@ public class SuspendTest {
                     abort();
                 } else if (cmd.equals("rename")) {
                     rename(scanner.nextLine().trim(), scanner.nextLine().trim());
+                } else if (cmd.equals("show")) {
+                    showPerson(scanner.nextLine().trim());
                 } else {
                     System.out.println("Unknown command: '" + cmd + "'");
                 }
@@ -85,7 +87,7 @@ public class SuspendTest {
         resumeTx();
 
         for (Person p : app.getPersonSet()) {
-            System.out.println(p.getName());
+            System.out.println(p.getName() + " (oid=" + p.getOid() + ", " + p + ")");
         }
 
         Transaction.suspend();
@@ -106,6 +108,20 @@ public class SuspendTest {
             }
         }
 
+        Transaction.suspend();
+    }
+
+    private void showPerson(String oidTxt) {
+        resumeTx();
+
+        try {
+            long oid = Long.parseLong(oidTxt);
+            Person p = Person.fromOID(oid);
+            System.out.println(p.getName() + " (oid=" + p.getOid() + ", " + p + ")");
+        } catch (Exception ex) {
+            System.out.println("Can't show person with oid = " + oidTxt);
+        }
+        
         Transaction.suspend();
     }
 

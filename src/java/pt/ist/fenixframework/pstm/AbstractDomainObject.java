@@ -53,8 +53,17 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
         try {
             PersistenceBroker broker = Transaction.getOJBBroker();
             ClassDescriptor cld = broker.getClassDescriptor(this.getClass());
-            Integer id = (Integer)broker.serviceSequenceManager().getUniqueValue(cld.getFieldDescriptorByName("idInternal"));
-            setIdInternal(id);
+            
+            // find successive ids until one is available
+            while (true) {
+                Integer id = (Integer)broker.serviceSequenceManager().getUniqueValue(cld.getFieldDescriptorByName("idInternal"));
+                this.idInternal = id;
+                Object cached = Transaction.getCache().cache(this);
+                if (cached == this) {
+                    // break the loop once we got this instance cached
+                    return;
+                }
+            }
         } catch (Exception e) {
 	    throw new UnableToDetermineIdException(e);
         }

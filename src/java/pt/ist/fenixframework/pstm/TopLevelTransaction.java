@@ -425,7 +425,10 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction
             throw new Error("Error while obtaining database connection", le);
         }
         time4 = System.currentTimeMillis();
-        dbChanges.cache();
+        // calling the dbChanges.cache() method is no longer needed,
+        // given that we are caching objects as soon as they are
+        // instantiated
+        //dbChanges.cache();
         time5 = System.currentTimeMillis();
 
         if ((time5 - time1) > 500) {
