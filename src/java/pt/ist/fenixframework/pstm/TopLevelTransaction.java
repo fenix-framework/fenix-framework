@@ -502,7 +502,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction
 
         for (AttrChangeLog log : attrChangeLogs) {
             AbstractDomainObject obj = (AbstractDomainObject)log.obj;
-            entries.add(new Entry(obj, log.attr, getLocalValue(obj.getBoxFor(log.attr))));
+            entries.add(new Entry(obj, log.attr, obj.getCurrentValueFor(log.attr)));
         }
 
         return entries;

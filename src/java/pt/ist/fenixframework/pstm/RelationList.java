@@ -58,6 +58,15 @@ public class RelationList<E1,E2> extends AbstractList<E2> implements VersionedSu
         return getElementsBox().addNewVersion(attr, txNumber, true);
     }
 
+    public Object getCurrentValue(Object obj, String attrName) {
+        // what's the correct value to return here?  should it be the
+        // RelationList instance or the FunctionalSet within it?  I'll
+        // go with the RelationList for now, but maybe this will
+        // change later.  Either way, this code should be considered
+        // experimental.
+        return this;
+    }
+
     private FunctionalSet<E2> elementSet() {
 	consolidateElements();
 	return getElementsBox().get(listHolder, attributeName);

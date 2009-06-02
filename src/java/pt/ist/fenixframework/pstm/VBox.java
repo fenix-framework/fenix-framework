@@ -79,6 +79,10 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runti
 	}
     }
 
+    public Object getCurrentValue(Object obj, String attrName) {
+        return this.get(obj, attrName);
+    }
+
     boolean reload(Object obj, String attr) {
 	try {
 	    doReload(obj, attr);

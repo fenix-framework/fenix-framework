@@ -116,8 +116,8 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
         return null;
     }
 
-    VBox getBoxFor(String attrName) {
-        return (VBox)getSlotNamed(attrName);
+    Object getCurrentValueFor(String attrName) {
+        return getSlotNamed(attrName).getCurrentValue(this, attrName);
     }
 
     jvstm.VBoxBody addNewVersion(String attrName, int txNumber) {
