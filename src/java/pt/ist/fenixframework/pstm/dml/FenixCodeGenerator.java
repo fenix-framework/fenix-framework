@@ -148,6 +148,34 @@ public class FenixCodeGenerator extends CodeGenerator {
         super.generateInitInstance(domClass, out);
     }
 
+
+    @Override
+    protected void generateInitializePrimitiveIfNeeded(Slot slot, PrintWriter out) {
+	super.generateInitializePrimitiveIfNeeded(slot, out);
+	if (findWrapperEntry(slot.getTypeName()) == null) {
+            generateSlotInitialization(slot.getName(), out);
+	}
+    }
+
+    protected void generateSlotInitialization(String name, PrintWriter out) {
+        // This method generates the code that initializes all of the
+        // non-primitive slots to null, so that the corresponding vbox
+        // appears in the TxIntrospector.getWriteSetLog() set of
+        // entries.  This will probably disappear once we have the
+        // HBase-based version of the fenix-framework, where each box
+        // knows to which object and attribute it belongs to.  If we
+        // had that, the getWriteSetLog method could use the JVSTM
+        // write-set instead of the DBChanges.attrChangeLogs.  This,
+        // of course, assuming that creating a box always calls its
+        // put method, with the consequence of making that box go into
+        // the write-set.  Even though I've not checked this rigth
+        // now, I strongly believe that's the behavior of the JVSTM.
+        onNewline(out);
+        print(out, "if (!allocateOnly) this.");
+        print(out, name + ".put(this, \"" + name);
+        println(out, "\", null);");
+    }
+
     @Override
     protected String getNewSlotExpression(Slot slot) {
         return "VBox.makeNew(allocateOnly, false)";
@@ -263,6 +291,9 @@ public class FenixCodeGenerator extends CodeGenerator {
         }
 
         super.generateInitRoleSlot(role, out);
+        if (role.getMultiplicityUpper() == 1) {
+            generateSlotInitialization(role.getName(), out);
+        }
     }
 
     @Override

@@ -68,7 +68,9 @@ class DBChanges {
 
 	if (attrChangeLogs != null) {
 	    for (AttrChangeLog log : attrChangeLogs) {
-		modified.add(log.obj);
+                if (! isNewObject(log.obj)) {
+                    modified.add(log.obj);
+                }
 	    }
 	}
 
@@ -101,11 +103,6 @@ class DBChanges {
     }
 
     public void logAttrChange(DomainObject obj, String attrName) {
-        if (isNewObject(obj)) {
-            // don't need to warn others of changes to new objects
-            return;
-        }
-
 	if (attrChangeLogs == null) {
 	    attrChangeLogs = new HashSet<AttrChangeLog>();
 	}
@@ -121,12 +118,12 @@ class DBChanges {
     }
 
     public void storeObject(DomainObject obj, String attrName) {
+	logAttrChange(obj, attrName);
+
         if (isNewObject(obj)) {
             // don't need to update new objects
             return;
         }
-
-	logAttrChange(obj, attrName);
 
 	if (objsToStore == null) {
 	    objsToStore = new HashSet();
@@ -319,6 +316,11 @@ class DBChanges {
                 addedRecord = true;
             } else {
 		for (AttrChangeLog log : attrChangeLogs) {
+                    if (isNewObject(log.obj)) {
+                        // don't need to warn others of changes to new objects
+                        continue;
+                    }
+
 		    if (addedRecord) {
 			sqlCmd.append(",");
 		    }
