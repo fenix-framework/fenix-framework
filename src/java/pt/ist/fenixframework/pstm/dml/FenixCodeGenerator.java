@@ -549,9 +549,9 @@ public class FenixCodeGenerator extends CodeGenerator {
         printMethod(out, "private", "java.lang.Long", "get$oid" + capitalize(name));
         startMethodBody(out);
         print(out, AbstractDomainObject.class.getName());
-        print(out, " value = get");
-        print(out, capitalize(name));
-        println(out, "();");
+        print(out, " value = ");
+        generateGetSlotExpression(name, out);
+        println(out, ";");
         print(out, "return (value == null) ? null : value.getOid();");
         endMethodBody(out);
     }
