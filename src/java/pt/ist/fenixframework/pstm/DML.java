@@ -9,17 +9,18 @@ import dml.DmlCompiler;
 
 import antlr.ANTLRException;
 
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
 
 public class DML {
 
-    public static FenixDomainModel getDomainModel(String[] dmlFiles) throws ANTLRException {
-        Class<FenixDomainModel> modelClass = FenixDomainModel.class;
+    public static FenixDomainModel getDomainModel(Class<? extends FenixDomainModel> modelClass, 
+                                                  String[] dmlFiles) throws ANTLRException {
         return (FenixDomainModel)DmlCompiler.getDomainModel(modelClass, Arrays.asList(dmlFiles));
     }
 
-    public static FenixDomainModel getDomainModelForURLs(List<URL> dmlFileURLs) throws ANTLRException {
-        Class<FenixDomainModel> modelClass = FenixDomainModel.class;
+    public static FenixDomainModel getDomainModelForURLs(Class<? extends FenixDomainModel> modelClass, 
+                                                         List<URL> dmlFileURLs) throws ANTLRException {
         return (FenixDomainModel)DmlCompiler.getDomainModelForURLs(modelClass, dmlFileURLs);
     }
 }

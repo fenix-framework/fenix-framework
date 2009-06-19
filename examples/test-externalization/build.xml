@@ -17,7 +17,6 @@
   <!-- java.file.encoding should match your terminal's encoding -->
   <property name="java.file.encoding" value="UTF-8"/>
 
-
   <import file="${framework.dir}/src/etc/dml-generate.xml"/>
 
   <path id="project.class.path">
@@ -47,14 +46,10 @@
       <classpath refid="project.class.path"/>
     </javac>
 
-    <java classname="pt.ist.fenixframework.pstm.PostProcessDomainClasses" 
-          dir="${build.dir}"
-          fork="true">
+    <post-process-domain dir="${build.dir}" dml="${externalization.dml}">
       <jvmarg value="-Dfile.encoding=${java.file.encoding}" />
       <classpath refid="project.class.path"/>
-      <arg value="-d"/>
-      <arg value="${externalization.dml}"/>
-    </java>
+    </post-process-domain>
 
     <copy todir="${build.dir}">
       <fileset dir="${dml.src.dir}" />

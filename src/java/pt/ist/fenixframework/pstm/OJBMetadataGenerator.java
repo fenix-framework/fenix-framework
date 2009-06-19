@@ -39,23 +39,6 @@ public class OJBMetadataGenerator {
 
     private static String classToDebug = null;
 
-    /**
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
-
-        String[] dmlFilesArray = { args[0] };
-        if (args.length == 2) {
-            classToDebug = args[1];
-        }
-
-        FenixDomainModel domainModel = DML.getDomainModel(dmlFilesArray);
-
-        updateOJBMappingFromDomainModel(domainModel);
-
-        System.exit(0);
-    }
 
     private static void addPersistentRootClassDescriptor(FenixDomainModel domainModel, 
                                                          DescriptorRepository repository) throws Exception {

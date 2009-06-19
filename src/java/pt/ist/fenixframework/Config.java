@@ -6,6 +6,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
+
 /**
  * An instance of the <code>Config</code> class bundles together the
  * initialization parameters used by the Fenix Framework.  Therefore,
@@ -152,6 +154,13 @@ public class Config {
      */
     protected Class rootClass = null;
 
+    /**
+     * This <strong>optional</strong> parameter indicates which
+     * subclass of FenixDomainModel should be created by the
+     * DmlCompiler when parsing a DML file.
+     */
+    protected Class<FenixDomainModel> domainModelClass = FenixDomainModel.class;
+
 
     private static void checkRequired(Object obj, String fieldName) {
         if (obj == null) {
@@ -194,6 +203,7 @@ public class Config {
         checkRequired(dbAlias, "dbAlias");
         checkRequired(dbUsername, "dbUsername");
         checkRequired(dbPassword, "dbPassword");
+        checkRequired(domainModelClass, "domainModelClass");
 	insertConnectionEncoding("UTF-8");
     }
 
@@ -248,5 +258,9 @@ public class Config {
 
     public Class getRootClass() {
         return rootClass;
+    }
+
+    public Class<FenixDomainModel> getDomainModelClass() {
+        return domainModelClass;
     }
 }

@@ -42,13 +42,10 @@
       <classpath refid="project.class.path"/>
     </javac>
 
-    <java classname="pt.ist.fenixframework.pstm.PostProcessDomainClasses" 
-          dir="${build.dir}"
-          fork="true">
+    <post-process-domain dir="${build.dir}" dml="${petstore.dml}">
+      <jvmarg value="-Dfile.encoding=${java.file.encoding}" />
       <classpath refid="project.class.path"/>
-      <arg value="-d"/>
-      <arg value="${petstore.dml}"/>
-    </java>
+    </post-process-domain>
 
     <copy todir="${build.dir}">
       <fileset dir="${dml.src.dir}" />

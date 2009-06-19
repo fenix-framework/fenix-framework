@@ -18,12 +18,16 @@ import org.objectweb.asm.Opcodes;
 import dml.DomainClass;
 import dml.DomainModel;
 
+import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
+
+
 public abstract class AbstractDomainPostProcessor extends ClassLoader implements Opcodes {
     private ArrayList<String> dmlFiles = new ArrayList<String>();
     private HashSet<String> loadedClasses = new HashSet<String>();
 
     private DomainModel domainModel;
     protected String classFullName;
+    protected String domainModelClassName = FenixDomainModel.class.getName();
 
     // --------------------------------
     // HACK!!!
@@ -63,6 +67,10 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
                 classFullName = getNextArg(args, i);
                 consumeArg(args, i);
                 i += 2;
+            } else if ("-domainModelClass".equals(args[i])) {
+                domainModelClassName = getNextArg(args, i);
+                consumeArg(args, i);
+                i += 2;
             } else if (args[i] != null) {
                 throw new Error("Unknown argument: '" + args[i] + "'");
             } else {
@@ -92,13 +100,21 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
                 throw new Error("No DML files specified");
             } else {
                 try {
-                    domainModel = DML.getDomainModel(dmlFiles.toArray(new String[dmlFiles.size()]));
+                    domainModel = DML.getDomainModel(getDomainModelClass(), dmlFiles.toArray(new String[dmlFiles.size()]));
                 } catch (antlr.ANTLRException ae) {
                     System.err.println("Error parsing the DML files, leaving the domain empty");
                 }
             }
         }
         return domainModel;
+    }
+
+    protected Class<FenixDomainModel> getDomainModelClass() {
+        try {
+            return (Class<FenixDomainModel>)Class.forName(domainModelClassName);
+        } catch (ClassNotFoundException cnfe) {
+            throw new Error("Invalid classname for the DomainModel class", cnfe);
+        }
     }
 
     public static String descToName(String desc) {
