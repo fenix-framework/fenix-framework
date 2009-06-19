@@ -159,7 +159,7 @@ public class Config {
      * subclass of FenixDomainModel should be created by the
      * DmlCompiler when parsing a DML file.
      */
-    protected Class<FenixDomainModel> domainModelClass = FenixDomainModel.class;
+    protected Class<? extends FenixDomainModel> domainModelClass = FenixDomainModel.class;
 
 
     private static void checkRequired(Object obj, String fieldName) {
@@ -260,7 +260,7 @@ public class Config {
         return rootClass;
     }
 
-    public Class<FenixDomainModel> getDomainModelClass() {
+    public Class<? extends FenixDomainModel> getDomainModelClass() {
         return domainModelClass;
     }
 }
