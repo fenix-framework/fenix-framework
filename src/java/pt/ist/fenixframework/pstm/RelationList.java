@@ -35,19 +35,18 @@ public class RelationList<E1,E2> extends AbstractList<E2> implements VersionedSu
 
 	VBox elementsBox = null;
 	if (allocateOnly) {
-	    elementsBox = VBox.makeNew(allocateOnly, true);
+	    elementsBox = SoftReferencedVBox.makeNew(allocateOnly);
 	} else {
-	    elementsBox = new ReferenceBox<FunctionalSet<E2>>(FunctionalSet.EMPTY);
+	    elementsBox = new SoftReferencedVBox<FunctionalSet<E2>>(FunctionalSet.EMPTY);
 	}
 	this.elementsRef = new SoftReference<VBox<FunctionalSet<E2>>>(elementsBox);
     }
-
 
     // The access to the elementsRef field should be synchronized
     private synchronized VBox<FunctionalSet<E2>> getElementsBox() {
 	VBox<FunctionalSet<E2>> box = elementsRef.get();
 	if (box == null) {
-	    box = VBox.makeNew(true, true);
+	    box = SoftReferencedVBox.makeNew(true);
 	    this.elementsRef = new SoftReference<VBox<FunctionalSet<E2>>>(box);
 	}
 	return box;
@@ -55,7 +54,7 @@ public class RelationList<E1,E2> extends AbstractList<E2> implements VersionedSu
 
 
     public jvstm.VBoxBody addNewVersion(String attr, int txNumber) {
-        return getElementsBox().addNewVersion(attr, txNumber, true);
+        return getElementsBox().addNewVersion(attr, txNumber);
     }
 
     public Object getCurrentValue(Object obj, String attrName) {

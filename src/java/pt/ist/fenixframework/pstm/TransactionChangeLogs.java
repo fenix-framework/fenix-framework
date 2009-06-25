@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
 import jvstm.ActiveTransactionsRecord;
@@ -142,31 +141,6 @@ public class TransactionChangeLogs {
 
             return newBodies;
         }
-
-        void freeResources() {
-            objectAttrChanges = null;  // help gc
-        }
-    }
-
-
-    // Alien transactions not yet GCed
-    private static final ConcurrentLinkedQueue<AlienTransaction> ALIEN_TRANSACTIONS = new ConcurrentLinkedQueue<AlienTransaction>();
-
-    static {
-	Transaction.addTxQueueListener(new jvstm.TxQueueListener() {
-		public void noteOldestTransaction(int newOldest) {
-                    cleanOldAlienTxs(newOldest);
-		}
-	    });
-    }
-
-    public static void cleanOldAlienTxs(int txNumber) {
-        while ((! ALIEN_TRANSACTIONS.isEmpty()) && (ALIEN_TRANSACTIONS.peek().txNumber <= txNumber)) {
-            AlienTransaction tx = ALIEN_TRANSACTIONS.poll();
-            if (tx != null) {
-                tx.freeResources();
-            }
-        }
     }
 
 
@@ -265,8 +239,8 @@ public class TransactionChangeLogs {
                     // finished the records for an alien transaction, so "commit" it
                     Cons<VBoxBody> newBodies = alienTx.commit();
 
-                    // add it to the queue of alienTxs to be GCed later
-                    ALIEN_TRANSACTIONS.offer(alienTx);
+                    // add it to the queue of CommitRecords to be GCed later
+                    TransactionCommitRecords.addCommitRecord(alienTx.txNumber, alienTx);
 
                     ActiveTransactionsRecord newRecord = new ActiveTransactionsRecord(txNum, newBodies);
                     Transaction.setMostRecentActiveRecord(newRecord);

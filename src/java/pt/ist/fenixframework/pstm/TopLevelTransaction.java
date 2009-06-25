@@ -404,6 +404,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction
     @Override
     protected Cons<VBoxBody> doCommit(int newTxNumber) {
         persistTransaction(newTxNumber);
+        TransactionCommitRecords.addCommitRecord(newTxNumber, dbChanges.getModifiedObjects());
         return super.doCommit(newTxNumber);
     }
 
