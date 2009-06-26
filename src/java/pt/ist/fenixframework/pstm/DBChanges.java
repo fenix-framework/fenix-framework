@@ -77,18 +77,6 @@ class DBChanges {
 	return modified;
     }
 
-    protected Set<RelationTupleInfo> getMtoNRelationTupleInfos() {
-        Set<RelationTupleInfo> set;
-
-        if (mToNTuples == null) {
-            set = new HashSet<RelationTupleInfo>();
-        } else {
-            set = new HashSet<RelationTupleInfo>(mToNTuples.values());
-        }
-
-        return Collections.unmodifiableSet(set);
-    }
-
     public boolean isDeleted(Object obj) {
 	return (objsToDelete != null) && objsToDelete.contains(obj);
     }

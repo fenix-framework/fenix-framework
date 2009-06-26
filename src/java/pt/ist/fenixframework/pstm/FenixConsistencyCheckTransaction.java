@@ -68,4 +68,12 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction
     public boolean isBoxValueLoaded(VBox vbox) {
         throw new Error("It doesn't make sense to call isBoxValueLoaded for a FenixConsistencyCheckTransaction");
     }
+
+    public void logRelationAdd(String relationName, DomainObject o1, DomainObject o2) {
+        throw new Error("It doesn't make sense to call logRelationAdd for a FenixConsistencyCheckTransaction");
+    }
+
+    public void logRelationRemove(String relationName, DomainObject o1, DomainObject o2) {
+        throw new Error("It doesn't make sense to call logRelationRemove for a FenixConsistencyCheckTransaction");
+    }
 }

@@ -21,7 +21,6 @@ import pt.ist.fenixframework.TxIntrospector.Entry;
 import pt.ist.fenixframework.TxIntrospector.RelationChangelog;
 
 import pt.ist.fenixframework.pstm.DBChanges.AttrChangeLog;
-import pt.ist.fenixframework.pstm.DBChanges.RelationTupleInfo;
 
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
@@ -508,15 +507,69 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction
 
         return entries;
     }
-    
-    public Set<RelationChangelog> getRelationsChangelog() {
-        Set<RelationTupleInfo> tupleInfos = getDBChanges().getMtoNRelationTupleInfos();
-        Set<RelationChangelog> entries = new HashSet<RelationChangelog>(tupleInfos.size());
 
-        for (RelationTupleInfo tuple : tupleInfos) {
-            entries.add(new RelationChangelog(tuple.relation, tuple.obj1, tuple.obj2, tuple.remove));
+
+    // ---------------------------------------------------------------
+    // keep a log of all relation changes, which are more
+    // coarse-grained and semantically meaningfull than looking only
+    // at changes made to the objects that implement the relations
+
+    private HashMap<RelationTupleChange,RelationTupleChange> relationTupleChanges = null;
+    
+    public void logRelationAdd(String relationName, DomainObject o1, DomainObject o2) {
+        logRelationTuple(relationName, o1, o2, false);
+    }
+
+    public void logRelationRemove(String relationName, DomainObject o1, DomainObject o2) {
+        logRelationTuple(relationName, o1, o2, true);
+    }
+    
+    private void logRelationTuple(String relationName, DomainObject o1, DomainObject o2, boolean remove) {
+	if (relationTupleChanges == null) {
+	    relationTupleChanges = new HashMap<RelationTupleChange, RelationTupleChange>();
+	}
+
+	RelationTupleChange log = new RelationTupleChange(relationName, o1, o2, remove);
+	relationTupleChanges.put(log, log);
+    }
+
+
+    public Set<RelationChangelog> getRelationsChangelog() {
+        Set<RelationChangelog> entries = new HashSet<RelationChangelog>();
+
+        if (relationTupleChanges != null) {
+            for (RelationTupleChange log : relationTupleChanges.values()) {
+                entries.add(new RelationChangelog(log.relationName, log.obj1, log.obj2, log.remove));
+            }
         }
 
         return entries;
+    }
+
+    private static class RelationTupleChange {
+	final String relationName;
+	final DomainObject obj1;
+	final DomainObject obj2;
+	final boolean remove;
+
+	RelationTupleChange(String relationName, DomainObject obj1, DomainObject obj2, boolean remove) {
+	    this.relationName = relationName;
+	    this.obj1 = obj1;
+	    this.obj2 = obj2;
+	    this.remove = remove;
+	}
+
+	public int hashCode() {
+	    return relationName.hashCode() + obj1.hashCode() + obj2.hashCode();
+	}
+
+	public boolean equals(Object obj) {
+	    if ((obj != null) && (obj.getClass() == this.getClass())) {
+		RelationTupleChange other = (RelationTupleChange) obj;
+		return this.relationName.equals(other.relationName) && this.obj1.equals(other.obj1) && this.obj2.equals(other.obj2);
+	    } else {
+		return false;
+	    }
+	}
     }
 }

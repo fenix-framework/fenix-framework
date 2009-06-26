@@ -11,4 +11,6 @@ public interface FenixTransaction {
     public DomainObject readDomainObject(String classname, int oid);
     public <T> T getBoxValue(VBox<T> vbox, Object obj, String attr);
     public boolean isBoxValueLoaded(VBox vbox);
+    public void logRelationAdd(String relationName, DomainObject o1, DomainObject o2);
+    public void logRelationRemove(String relationName, DomainObject o1, DomainObject o2);
 }

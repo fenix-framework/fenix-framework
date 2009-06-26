@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import dml.*;
 
 import pt.ist.fenixframework.pstm.AbstractDomainObject;
+import pt.ist.fenixframework.pstm.LoggingRelation;
 import pt.ist.fenixframework.pstm.OJBFunctionalSetWrapper;
 import pt.ist.fenixframework.pstm.RelationList;
 import pt.ist.fenixframework.pstm.ResultSetReader;
@@ -61,46 +62,62 @@ public class FenixCodeGenerator extends CodeGenerator {
     }
 
     @Override
+    protected String getDirectRelationType() {
+        return LoggingRelation.class.getName();
+    }
+
+    @Override
     protected void generateStaticRelationSlots(Role role, PrintWriter out) {
         super.generateStaticRelationSlots(role, out);
 
-        if (role.isFirstRole()
-            && (role.getMultiplicityUpper() != 1) 
-            && (role.getOtherRole().getMultiplicityUpper() != 1)) {
-
-            // a relation many-to-many need a listener...
-            Role otherRole = role.getOtherRole();
-            String firstType = getTypeFullName(otherRole.getType());
-            String secondType = getTypeFullName(role.getType());
+        if (role.isFirstRole()) {
             String relationName = getRelationSlotNameFor(role);
 
+            // set the relationName of the LoggingRelation object
             newline(out);
             printWords(out, "static");
             newBlock(out);
             printWords(out, relationName);
-            print(out, ".addListener(new ");
-            print(out, makeGenericType("dml.runtime.RelationAdapter", firstType, secondType));
-            print(out, "()");
-            newBlock(out);
+            print(out, ".setRelationName(\"");
+            print(out, getEntityFullName(role.getRelation()));
+            print(out, "\");");
 
-            println(out, "@Override");
-            printMethod(out, "public", "void", "beforeAdd",
-                        makeArg(firstType, "arg0"),
-                        makeArg(secondType, "arg1"));
-            startMethodBody(out);
-            generateRelationRegisterCall("addRelationTuple", role, otherRole, out);
-            endMethodBody(out);
+            if ((role.getMultiplicityUpper() != 1) 
+                && (role.getOtherRole().getMultiplicityUpper() != 1)) {
 
-            println(out, "@Override");
-            printMethod(out, "public", "void", "beforeRemove",
-                        makeArg(firstType, "arg0"),
-                        makeArg(secondType, "arg1"));
-            startMethodBody(out);
-            generateRelationRegisterCall("removeRelationTuple", role, otherRole, out);
-            endMethodBody(out);
+                // a relation many-to-many need a listener...
+                Role otherRole = role.getOtherRole();
+                String firstType = getTypeFullName(otherRole.getType());
+                String secondType = getTypeFullName(role.getType());
 
-            closeBlock(out);
-            print(out, ");");
+                newline(out);
+                printWords(out, relationName);
+                print(out, ".addListener(new ");
+                print(out, makeGenericType("dml.runtime.RelationAdapter", firstType, secondType));
+                print(out, "()");
+                newBlock(out);
+
+                println(out, "@Override");
+                printMethod(out, "public", "void", "beforeAdd",
+                            makeArg(firstType, "arg0"),
+                            makeArg(secondType, "arg1"));
+                startMethodBody(out);
+                generateRelationRegisterCall("addRelationTuple", role, otherRole, out);
+                endMethodBody(out);
+
+                println(out, "@Override");
+                printMethod(out, "public", "void", "beforeRemove",
+                            makeArg(firstType, "arg0"),
+                            makeArg(secondType, "arg1"));
+                startMethodBody(out);
+                generateRelationRegisterCall("removeRelationTuple", role, otherRole, out);
+                endMethodBody(out);
+
+                closeBlock(out);
+                print(out, ");");
+            }
+
+            // close the static block
             closeBlock(out);
         }
     }
