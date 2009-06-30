@@ -79,7 +79,7 @@ public class FenixDomainModel extends DomainModel {
         PlainValueType txNumType = new PlainValueType(txNumberClassName);
 
         String externalizeName = txNumberClassName + ".externalize";
-        ValueType longType = findValueType("long");
+        ValueType longType = findValueType("Long");
         txNumType.addExternalizationElement(new ExternalizationElement(longType, externalizeName));
 
         String internalizeName = txNumberClassName + ".internalize";
