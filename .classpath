@@ -8,7 +8,6 @@
 	<classpathentry kind="lib" path="lib/commons-lang-2.0.jar"/>
 	<classpathentry kind="lib" path="lib/commons-pool.jar"/>
 	<classpathentry kind="lib" path="lib/db-ojb-1.0.0.jar"/>
-	<classpathentry kind="lib" path="lib/dml.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart.jar"/>
 	<classpathentry kind="lib" path="lib/jvstm.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.8.jar"/>
@@ -17,5 +16,6 @@
 	<classpathentry kind="lib" path="lib/asm-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/asm-commons-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-1.5.2.jar"/>
+	<classpathentry kind="lib" path="lib/dml-20090519.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
