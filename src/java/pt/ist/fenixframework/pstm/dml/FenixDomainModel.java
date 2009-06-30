@@ -7,6 +7,7 @@ import java.util.Map;
 import dml.*;
 
 import pt.ist.fenixframework.pstm.Transaction;
+import pt.ist.fenixframework.TxNumber;
 
 public class FenixDomainModel extends DomainModel {
 
@@ -74,27 +75,19 @@ public class FenixDomainModel extends DomainModel {
     }
 
     protected void initializeDerivedValueTypes() {
-        ValueType longType = findValueType("long");
-        PlainValueType txNumType = new PlainValueType(longType.getFullname());
+        String txNumberClassName = TxNumber.class.getName();
+        PlainValueType txNumType = new PlainValueType(txNumberClassName);
 
-        String thisClassName = this.getClass().getName();
-        String externalizeName = thisClassName + ".externalizeTxNumber";
+        String externalizeName = txNumberClassName + ".externalize";
+        ValueType longType = findValueType("long");
         txNumType.addExternalizationElement(new ExternalizationElement(longType, externalizeName));
 
-        String internalizeName = thisClassName + ".internalizeTxNumber";
+        String internalizeName = txNumberClassName + ".internalize";
         txNumType.setInternalizationMethodName(internalizeName);
 
         newValueType("TxNumber", txNumType);
     }
 
-    public static long externalizeTxNumber(long number) {
-        // ignore the number passed as argument and always use the current transaction number
-        return Transaction.current().getNumber();
-    }
-
-    public static long internalizeTxNumber(long number) {
-        return number;
-    }
 
     protected void registerFenixValueType(String valueTypeName, String aliasName, String jdbcType) {
         newValueType(aliasName, valueTypeName);
