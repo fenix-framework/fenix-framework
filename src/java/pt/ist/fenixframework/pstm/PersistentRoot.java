@@ -20,8 +20,8 @@ public class PersistentRoot extends AbstractDomainObject {
         throw new Error("Instantiating a PersistentRoot does not make sense.");
     }
 
-    public PersistentRoot(org.apache.ojb.odmg.OJB dummy) {
-        super(dummy);
+    public PersistentRoot(DomainObjectAllocator.OID oid) {
+        super(oid);
 
         // use a PrimitiveBox rather than a ReferenceBox.  This,
         // coupled with an OJB mapping that writes the OID of the

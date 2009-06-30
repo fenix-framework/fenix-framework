@@ -11,7 +11,6 @@ import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
 
 import pt.ist.fenixframework.pstm.ojb.ReadOnlyPersistentField;
 import pt.ist.fenixframework.pstm.ojb.WriteOnlyPersistentField;
-import pt.ist.fenixframework.pstm.ojb.DomainAllocator;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
@@ -145,9 +144,7 @@ public class OJBMetadataGenerator {
 
     private static void setFactoryMethodAndClass(ClassDescriptor cld) {
         // this will eventually disappear
-        // I'll keep it here for debug only, for now
-        cld.setFactoryClass(DomainAllocator.class);
-        cld.setFactoryMethod("allocate");
+        cld.setFactoryClass(DomainObjectAllocator.class);
     }
 
 

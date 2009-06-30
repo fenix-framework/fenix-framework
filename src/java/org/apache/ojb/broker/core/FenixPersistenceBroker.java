@@ -17,11 +17,8 @@ import org.apache.ojb.broker.query.QueryBySQL;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.util.ClassHelper;
 
-import pt.ist.fenixframework.pstm.AbstractDomainObject;
-import pt.ist.fenixframework.pstm.Transaction;
-
 import pt.ist.fenixframework.pstm.ojb.FenixJdbcAccessImpl;
-import pt.ist.fenixframework.pstm.ojb.DomainAllocator;
+import pt.ist.fenixframework.pstm.DomainObjectAllocator;
 
 
 public class FenixPersistenceBroker extends PersistenceBrokerImpl {
@@ -112,37 +109,11 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
         protected Object getObjectFromResultSet() throws PersistenceBrokerException {
             ClassDescriptor cld = getQueryObject().getClassDescriptor();
             
-            if (cld.getFactoryClass() != DomainAllocator.class) {
+            if (cld.getFactoryClass() != DomainObjectAllocator.class) {
                 return super.getObjectFromResultSet();
             } else {
-                try {
-                    ResultSet rs = getRsAndStmt().m_rs;
-
-                    AbstractDomainObject result = FenixJdbcAccessImpl.readObjectFromRs(rs);
-                    if (result != null) {
-                        return result;
-                    }
-
-                    ClassDescriptor targetClassDescriptor = FenixJdbcAccessImpl.findCorrectClassDescriptor(cld, rs);
-
-                    Integer oid = rs.getInt("ID_INTERNAL");
-
-                    result = (AbstractDomainObject)Transaction.getCache().lookup(getTopLevelClass(), oid);
-
-                    if (result == null) {
-                        result = (AbstractDomainObject)DomainAllocator.allocateObject(targetClassDescriptor.getClassOfObject());
-                        result.setIdInternal(oid);
-
-                        // cache object
-                        result = (AbstractDomainObject)Transaction.getCache().cache(result);
-
-                        result.readFromResultSet(rs);
-                    }
-
-                    return result;
-                } catch (SQLException sqle) {
-                    throw new PersistenceBrokerException(sqle);
-                }
+                ResultSet rs = getRsAndStmt().m_rs;
+                return FenixJdbcAccessImpl.readObjectFromRs(rs);
             }
         }
     }

@@ -1,21 +1,19 @@
-package pt.ist.fenixframework.pstm.ojb;
+package pt.ist.fenixframework.pstm;
 
 import java.lang.reflect.Constructor;
-import org.apache.ojb.odmg.OJB;
 
-public class DomainAllocator {
+public class DomainObjectAllocator {
 
-    public static Object allocate() {
-        throw new Error("DomainAllocator: Calling the allocate() method is an error.");
-    }
+//     public static Object allocate() {
+//         throw new Error("DomainAllocator: Calling the allocate() method is an error.");
+//     }
 
-    public static Object allocateObject(Class objClass) {
+    public static AbstractDomainObject allocateObject(Class objClass, int idInternal) {
         try {
             // the allocate-only constructor is the constructor 
-            // with a single argument of the class OJB
-            // the actual argument may (should?) be null
-            Constructor constructor = objClass.getDeclaredConstructor(OJB.class);
-            return constructor.newInstance((OJB) null);
+            // with a single argument of the static inner class OID below
+            Constructor constructor = objClass.getDeclaredConstructor(OID.class);
+            return (AbstractDomainObject)constructor.newInstance(new OID(idInternal));
         } catch (NoSuchMethodException nsme) {
             throw new Error("Could not allocate a domain object because the necessary constructor is missing", nsme);
         } catch (InstantiationException ie) {
@@ -26,6 +24,14 @@ public class DomainAllocator {
             System.out.println("++++++ Found an Exception that prevented the allocation of an object of class " + objClass);
             exc.printStackTrace();
             throw new Error("Could not allocate a domain object because of an exception", exc);
+        }
+    }
+
+    public static class OID {
+        public final int idInternal;
+
+        private OID(int idInternal) {
+            this.idInternal = idInternal;
         }
     }
 }

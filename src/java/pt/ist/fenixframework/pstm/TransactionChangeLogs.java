@@ -24,7 +24,6 @@ import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.DescriptorRepository;
 
 import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.pstm.ojb.DomainAllocator;
 
 public class TransactionChangeLogs {
 
@@ -68,8 +67,7 @@ public class TransactionChangeLogs {
         DomainObject obj = (DomainObject)Transaction.getCache().lookup(info.topLevelClass, idInternal);
 
         if (obj == null) {
-            obj = (DomainObject)DomainAllocator.allocateObject(info.classDescriptor.getClassOfObject());
-            obj.setIdInternal(idInternal);
+            obj = DomainObjectAllocator.allocateObject(info.classDescriptor.getClassOfObject(), idInternal);
                 
             // cache object and return the canonical object
             obj = (DomainObject)Transaction.getCache().cache(obj);

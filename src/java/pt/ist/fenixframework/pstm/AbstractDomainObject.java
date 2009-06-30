@@ -11,7 +11,8 @@ import pt.ist.fenixframework.DomainObject;
 
 public abstract class AbstractDomainObject implements DomainObject,dml.runtime.FenixDomainObject {
 
-    private Integer idInternal;
+    // this should be final, but the ensureIdInternal method prevents it
+    private int idInternal;
 
     public class UnableToDetermineIdException extends RuntimeException {
 	public UnableToDetermineIdException(Throwable cause) {
@@ -28,9 +29,9 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
         Transaction.storeNewObject(this);
     }
 
-    protected AbstractDomainObject(org.apache.ojb.odmg.OJB dummy) {
-        // do nothing
+    protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
         // this constructor exists only as part of the allocate-instance protocol
+        this.idInternal = oid.idInternal;
     }
 
     public Integer getIdInternal() {
@@ -40,15 +41,7 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
     private Integer get$idInternal() {
         return idInternal;
     }
-    
-    public void setIdInternal(Integer idInternal) {
-        if ((this.idInternal != null) && (! this.idInternal.equals(idInternal))) {
-            System.out.println("!!!!!! WARNING !!!!!! Changing the idInternal of an object: " + this);
-            //throw new Error("Cannot change the idInternal of an object");
-        }
-        this.idInternal = idInternal;
-    }
-    
+        
     protected void ensureIdInternal() {
         try {
             PersistenceBroker broker = Transaction.getOJBBroker();

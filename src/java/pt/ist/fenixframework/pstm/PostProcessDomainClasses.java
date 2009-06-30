@@ -10,13 +10,15 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import dml.DomainClass;
 
 import jvstm.ProcessAtomicAnnotations;
 
 public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
-    private static final String CONSTRUCTOR_DESC = "(Lorg/apache/ojb/odmg/OJB;)V";
+    private static final String CONSTRUCTOR_DESC = 
+        Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] { Type.getType(DomainObjectAllocator.OID.class) });
 
     public static void main (final String args[]) {
         PostProcessDomainClasses loader = new PostProcessDomainClasses();
