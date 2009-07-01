@@ -295,14 +295,14 @@ public class SQLUpdateGenerator {
 	    final String indirectionTablename, final String columnName) {
 	stringBuilder.append("alter table ");
 	stringBuilder.append(escapeName(indirectionTablename));
-	stringBuilder.append(" add column");
+	stringBuilder.append(" add column ");
 
 	stringBuilder.append(columnName);
 	stringBuilder.append(" bigint unsigned default null");
 
 	stringBuilder.append(", add key(");
 	stringBuilder.append(columnName);
-	stringBuilder.append(");");
+	stringBuilder.append(");\n");
     }
 
     private static void appendIndirectionTable(final StringBuilder stringBuilder,
@@ -363,9 +363,9 @@ public class SQLUpdateGenerator {
 	try {
 	    final ResultSet resultSet = statement.executeQuery("show create table " + escapeName(indirectionTablename));
 	    resultSet.next();
-	    final String result = resultSet.getString(1);
+	    final String result = resultSet.getString(2);
 	    resultSet.close();
-	    return result.indexOf(columnName) > 0;
+	    return result.indexOf("`" + columnName + "`") > 0;
 	} catch (final MySQLSyntaxErrorException mySQLSyntaxErrorException) {
 	    return false;
 	} catch (com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException ex) {
