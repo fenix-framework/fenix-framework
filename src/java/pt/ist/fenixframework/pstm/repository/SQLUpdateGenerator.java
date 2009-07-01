@@ -262,10 +262,13 @@ public class SQLUpdateGenerator {
 	    for (final Iterator iterator = classDescriptor.getCollectionDescriptors().iterator(); iterator.hasNext();) {
 		final CollectionDescriptor collectionDescriptor = (CollectionDescriptor) iterator.next();
 		final String indirectionTablename = collectionDescriptor.getIndirectionTable();
-		if (indirectionTablename != null && !processedIndirectionTables.contains(indirectionTablename)
-			&& !exists(indirectionTablename, connection)) {
+		if (indirectionTablename != null && !processedIndirectionTables.contains(indirectionTablename)) {
 		    processedIndirectionTables.add(indirectionTablename);
-		    appendIndirectionTable(stringBuilderForMultiLineInstructions, collectionDescriptor, indirectionTablename);
+		    if (!exists(indirectionTablename, connection)) {
+			appendIndirectionTable(stringBuilderForMultiLineInstructions, collectionDescriptor, indirectionTablename);
+		    } else {
+			appendIndirectionTableUpdates(stringBuilderForMultiLineInstructions, collectionDescriptor, indirectionTablename, connection);
+		    }
 		}
 	    }
 	}
@@ -274,6 +277,32 @@ public class SQLUpdateGenerator {
 
 	return getOutputStringForSingleLineInstructions(stringBuilderForSingleLineInstructions)
 		+ "\n\n" + stringBuilderForMultiLineInstructions.toString();
+    }
+
+    private static void appendIndirectionTableUpdates(final StringBuilder stringBuilderForMultiLineInstructions,
+	    final CollectionDescriptor collectionDescriptor, final String indirectionTablename, final Connection connection) throws SQLException {
+	final String column1Name = collectionDescriptor.getFksToThisClass()[0].replace("KEY_", "OID_");
+	final String column2Name = collectionDescriptor.getFksToItemClass()[0].replace("KEY_", "OID_");
+	if (!exists(indirectionTablename, column1Name, connection)) {
+	    appendIndirectionTableUpdates(stringBuilderForMultiLineInstructions, indirectionTablename, column1Name);
+	}
+	if (!exists(indirectionTablename, column2Name, connection)) {
+	    appendIndirectionTableUpdates(stringBuilderForMultiLineInstructions, indirectionTablename, column2Name);
+	}
+    }
+
+    private static void appendIndirectionTableUpdates(final StringBuilder stringBuilder,
+	    final String indirectionTablename, final String columnName) {
+	stringBuilder.append("alter table ");
+	stringBuilder.append(escapeName(indirectionTablename));
+	stringBuilder.append(" add column");
+
+	stringBuilder.append(columnName);
+	stringBuilder.append(" bigint unsigned default null");
+
+	stringBuilder.append(", add key(");
+	stringBuilder.append(columnName);
+	stringBuilder.append(");");
     }
 
     private static void appendIndirectionTable(final StringBuilder stringBuilder,
@@ -322,6 +351,21 @@ public class SQLUpdateGenerator {
 	    resultSet.next();
 	    resultSet.close();
 	    return true;
+	} catch (final MySQLSyntaxErrorException mySQLSyntaxErrorException) {
+	    return false;
+	} catch (com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException ex) {
+	    return false;
+	}
+    }
+
+    private static boolean exists(final String indirectionTablename, final String columnName, final Connection connection) throws SQLException {
+	final Statement statement = connection.createStatement();
+	try {
+	    final ResultSet resultSet = statement.executeQuery("show create table " + escapeName(indirectionTablename));
+	    resultSet.next();
+	    final String result = resultSet.getString(1);
+	    resultSet.close();
+	    return result.indexOf(columnName) > 0;
 	} catch (final MySQLSyntaxErrorException mySQLSyntaxErrorException) {
 	    return false;
 	} catch (com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException ex) {
