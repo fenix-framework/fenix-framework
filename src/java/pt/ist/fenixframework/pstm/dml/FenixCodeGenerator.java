@@ -79,7 +79,9 @@ public class FenixCodeGenerator extends CodeGenerator {
             newBlock(out);
             printWords(out, relationName);
             print(out, ".setRelationName(\"");
-            print(out, getEntityFullName(role.getRelation()));
+            print(out, getTypeFullName(role.getOtherRole().getType()));
+            print(out, ".");
+            print(out, role.getRelation().getName());
             print(out, "\");");
 
             if ((role.getMultiplicityUpper() != 1) 
