@@ -157,11 +157,7 @@ public class DomainClassInfo {
 	}
     }
 
-    public static String mapIdToClassname(int cid) {
-	return mapIdToClass(cid).getName();
-    }
-
-    private static Class mapIdToClass(int cid) {
+    static Class mapIdToClass(int cid) {
 	if (cid == 0) {
 	    return PersistentRoot.class;
 	} else if ((cid < 1) || (cid >= classInfoById.length)) {

@@ -60,26 +60,16 @@ public class TransactionChangeLogs {
         return info;
     }
 
-
-    // this method should be called only when we know the concrete class name of the object to get
-    static DomainObject getDomainObject(String className, int idInternal) {
-	ClassInfo info = getClassInfo(className);
-        DomainObject obj = (DomainObject)Transaction.getCache().lookup(info.topLevelClass, idInternal);
-
-        if (obj == null) {
-            obj = DomainObjectAllocator.allocateObject(info.classDescriptor.getClassOfObject(), idInternal);
-                
-            // cache object and return the canonical object
-            obj = (DomainObject)Transaction.getCache().cache(obj);
-        }
-
-        return obj;
-    }
-
-
     static DomainObject readDomainObject(PersistenceBroker pb, String className, int idInternal) {
 	ClassInfo info = getClassInfo(className);
-        DomainObject obj = (DomainObject)Transaction.getCache().lookup(info.topLevelClass, idInternal);
+        //DomainObject obj = (DomainObject)Transaction.getCache().lookup(info.topLevelClass, idInternal);
+
+        // As the cache now only maps OIDs to objects, the previous
+        // method is no longer easy to implement.  So, don't go to the
+        // cache first and always go to the database.  This may be a
+        // performance problem if the readDomainObject is called many
+        // times, but this method should disappear, either way.
+        DomainObject obj = null;
 
         if (obj == null) {
             Identity oid = new Identity(null, info.topLevelClass, new Object[] { idInternal });

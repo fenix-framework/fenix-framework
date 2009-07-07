@@ -12,7 +12,7 @@ import pt.ist.fenixframework.DomainObject;
 public abstract class AbstractDomainObject implements DomainObject,dml.runtime.FenixDomainObject {
 
     // this should be final, but the ensureIdInternal method prevents it
-    private int idInternal;
+    private long oid;
 
     public class UnableToDetermineIdException extends RuntimeException {
 	public UnableToDetermineIdException(Throwable cause) {
@@ -31,26 +31,29 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
 
     protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
         // this constructor exists only as part of the allocate-instance protocol
-        this.idInternal = oid.idInternal;
+        this.oid = oid.oid;
     }
 
-    public Integer getIdInternal() {
-        return idInternal;
+    public final Integer getIdInternal() {
+        return (int)(this.oid & 0x7FFFFFFF);
     }
     
     private Integer get$idInternal() {
-        return idInternal;
+        return getIdInternal();
     }
         
     protected void ensureIdInternal() {
         try {
             PersistenceBroker broker = Transaction.getOJBBroker();
-            ClassDescriptor cld = broker.getClassDescriptor(this.getClass());
+            Class myClass = this.getClass();
+            ClassDescriptor cld = broker.getClassDescriptor(myClass);
             
+            long cid = ((long)DomainClassInfo.mapClassToId(myClass) << 32);
+
             // find successive ids until one is available
             while (true) {
                 Integer id = (Integer)broker.serviceSequenceManager().getUniqueValue(cld.getFieldDescriptorByName("idInternal"));
-                this.idInternal = id;
+                this.oid = cid + id;
                 Object cached = Transaction.getCache().cache(this);
                 if (cached == this) {
                     // break the loop once we got this instance cached
@@ -76,10 +79,10 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
         return getOid();
     }
 
-    // duplicate method (see get OID()).  This is the name that should stick.
+    // duplicate method (see getOID()).  This is the name that should stick.
     // the other is to go away
     public long getOid() {
-        return Transaction.getOIDFor(this);
+        return oid;
     }
 
     private long get$oid() {
@@ -87,8 +90,26 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
     }
 
     public static <T extends DomainObject> T fromOID(long oid) {
-        return (T)Transaction.getObjectForOID(oid);
+        DomainObject obj = Transaction.getCache().lookup(oid);
+
+        if (obj == null) {
+            obj = DomainObjectAllocator.allocateObject(oid);
+                
+            // cache object and return the canonical object
+            obj = Transaction.getCache().cache(obj);
+        }
+
+        return (T)obj;
     }
+
+    // This method should not be used.  It is temporary only until we
+    // get rid of the DomainReference class in the Fenix web
+    // application.
+    public static <T extends DomainObject> T fromClassAndID(Class objClass, int id) {
+        long cid = ((long)DomainClassInfo.mapClassToId(objClass) << 32);
+        return (T)fromOID(cid + id);
+    }
+
 
     VersionedSubject getSlotNamed(String attrName) {
 	Class myClass = this.getClass();

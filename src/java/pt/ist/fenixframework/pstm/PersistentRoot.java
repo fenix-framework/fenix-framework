@@ -70,6 +70,6 @@ public class PersistentRoot extends AbstractDomainObject {
     }
 
     public static PersistentRoot getInstance() {
-        return (PersistentRoot)Transaction.getDomainObject(PersistentRoot.class.getName(), 1);
+        return AbstractDomainObject.fromOID(1L);
     }
 }

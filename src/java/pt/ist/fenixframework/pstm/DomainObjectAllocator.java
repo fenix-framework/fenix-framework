@@ -4,16 +4,18 @@ import java.lang.reflect.Constructor;
 
 public class DomainObjectAllocator {
 
-//     public static Object allocate() {
-//         throw new Error("DomainAllocator: Calling the allocate() method is an error.");
-//     }
+    public static AbstractDomainObject allocateObject(long oid) {
+        Class objClass = DomainClassInfo.mapIdToClass((int)(oid >> 32));
 
-    public static AbstractDomainObject allocateObject(Class objClass, int idInternal) {
+        if (objClass == null) {
+            throw new MissingObjectException();
+        }
+
         try {
             // the allocate-only constructor is the constructor 
             // with a single argument of the static inner class OID below
             Constructor constructor = objClass.getDeclaredConstructor(OID.class);
-            return (AbstractDomainObject)constructor.newInstance(new OID(idInternal));
+            return (AbstractDomainObject)constructor.newInstance(new OID(oid));
         } catch (NoSuchMethodException nsme) {
             throw new Error("Could not allocate a domain object because the necessary constructor is missing", nsme);
         } catch (InstantiationException ie) {
@@ -28,10 +30,10 @@ public class DomainObjectAllocator {
     }
 
     public static class OID {
-        public final int idInternal;
+        public final long oid;
 
-        private OID(int idInternal) {
-            this.idInternal = idInternal;
+        private OID(long oid) {
+            this.oid = oid;
         }
     }
 }

@@ -8,31 +8,26 @@ import org.apache.ojb.broker.cache.ObjectCache;
 
 public class FenixCacheWrapper implements ObjectCache {
 
-    private FenixCache delegate = Transaction.getCache();
-
     public FenixCacheWrapper(PersistenceBroker arg0, Properties props) {
     }
 
 
     public void cache(Identity oid, Object obj) {
-	delegate.cache(oid, obj);
+        // do nothing, because the cache is already managed by the fenix framework code
     }
 
 
     public Object lookup(Identity oid) {
-	return delegate.lookup(oid);
+        // do nothing, because the cache is already managed by the fenix framework code
+        return null;
     }
 
 
     public void remove(Identity oid) {
-	delegate.remove(oid);
+        // do nothing, because the cache is already managed by the fenix framework code
     }
 
     public void clear() {
-	delegate.clear();
-    }
-
-    public static int getNumberOfCachedItems() {
-        return FenixCache.getNumberOfCachedItems();
+        // do nothing, because the cache is already managed by the fenix framework code
     }
 }

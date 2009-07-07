@@ -89,36 +89,15 @@ public abstract class Transaction extends jvstm.Transaction {
 	return currentFenixTransaction().getDBChanges();
     }
 
-    public static DomainObject getDomainObject(String classname, int oid) {
-        return TransactionChangeLogs.getDomainObject(classname, oid);
-    }
-
     public static DomainObject readDomainObject(String classname, Integer oid) {
         return (oid == null) ? null : currentFenixTransaction().readDomainObject(classname, oid);
     }
 
-    public static long getOIDFor(DomainObject obj) {
-        int cid = DomainClassInfo.mapClassToId(obj.getClass());
-        return ((long)cid << 32) + obj.getIdInternal();
-    }
-
+    @Deprecated
     public static <T extends DomainObject> T getObjectForOID(long oid) {
-        int cid = (int)(oid >> 32);
-        int idInternal = (int)(oid & 0x7FFFFFFF);
-        String classname = DomainClassInfo.mapIdToClassname(cid);
-
-        if (classname == null) {
-            throw new MissingObjectException();
-        }
-
-        return (T) getDomainObject(classname, idInternal);
+        return AbstractDomainObject.<T>fromOID(oid);
     }
 
-    public static String getClassnameForOID(long oid) {
-        int cid = (int)(oid >> 32);
-        return DomainClassInfo.mapIdToClassname(cid);
-    }
-    
     public static void logAttrChange(DomainObject obj, String attrName) {
 	currentDBChanges().logAttrChange(obj, attrName);
     }
