@@ -1,5 +1,7 @@
 package pt.ist.fenixframework.pstm;
 
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +11,7 @@ import org.apache.ojb.broker.metadata.ClassDescriptor;
 
 import pt.ist.fenixframework.DomainObject;
 
-public abstract class AbstractDomainObject implements DomainObject,dml.runtime.FenixDomainObject {
+public abstract class AbstractDomainObject implements DomainObject,dml.runtime.FenixDomainObject,Serializable {
 
     // this should be final, but the ensureIdInternal method prevents it
     private long oid;
@@ -168,4 +170,24 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
 	return columnIndexes[columnCount].intValue();
     }
 
+    // serialization code
+    protected Object writeReplace() throws ObjectStreamException {
+	return new SerializedForm(this);
+    }
+
+    private static class SerializedForm implements Serializable {
+        private static final long serialVersionUID = 1L;
+	
+        // use string to allow future expansion of an OID
+	private String oid;
+
+	SerializedForm(AbstractDomainObject obj) {
+	    this.oid = String.valueOf(obj.getOid());
+	}
+
+	Object readResolve() throws ObjectStreamException {
+            long objOid = Long.parseLong(this.oid);
+	    return AbstractDomainObject.fromOID(objOid);
+	}
+    }
 }
