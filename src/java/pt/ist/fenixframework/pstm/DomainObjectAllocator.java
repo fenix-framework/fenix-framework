@@ -5,7 +5,7 @@ import java.lang.reflect.Constructor;
 public class DomainObjectAllocator {
 
     public static AbstractDomainObject allocateObject(long oid) {
-        Class objClass = DomainClassInfo.mapIdToClass((int)(oid >> 32));
+        Class objClass = DomainClassInfo.mapOidToClass(oid);
 
         if (objClass == null) {
             throw new MissingObjectException();

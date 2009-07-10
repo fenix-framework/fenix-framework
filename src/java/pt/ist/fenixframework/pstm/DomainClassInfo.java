@@ -157,7 +157,7 @@ public class DomainClassInfo {
 	}
     }
 
-    static Class mapIdToClass(int cid) {
+    private static Class mapIdToClass(int cid) {
 	if (cid == 0) {
 	    return PersistentRoot.class;
 	} else if ((cid < 1) || (cid >= classInfoById.length)) {
@@ -165,6 +165,18 @@ public class DomainClassInfo {
 	} else {
 	    return classInfoById[cid].domainClass;
 	}
+    }
+
+    private static int mapOidToClassId(long oid) {
+	if (oid == 1) {
+	    return 0;
+	} else {
+	    return (((int)(oid >> 32)) & 0x0000FFFF); // shift class id to rightmost position and clear server id bits
+	}
+    }
+    
+    public static Class mapOidToClass(long oid) {
+	return mapIdToClass(mapOidToClassId(oid));
     }
 
     // the non-static part starts here
