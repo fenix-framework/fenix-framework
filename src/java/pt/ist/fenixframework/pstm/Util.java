@@ -25,11 +25,15 @@ class Util {
     private static final String uidString = (new UID()).toString();
 
     public static String getServerName() {
+        final String hostAddress = getHostAddress();
+        final String username = getUsername();
+        final String appName = getAppName();
+        return username + "@" + hostAddress + ":" + appName + ":" + uidString;
+    }
+
+    public static String getHostAddress() {
         try {
-            final String hostAddress = InetAddress.getLocalHost().getHostAddress();
-            final String username = getUsername();
-            final String appName = getAppName();
-            return username + "@" + hostAddress + ":" + appName + ":" + uidString;
+            return InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException uhe) {
             throw new Error("Couldn't get this host address, which is needed to register in the database");
         }

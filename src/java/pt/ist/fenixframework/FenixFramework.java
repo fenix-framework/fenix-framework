@@ -2,6 +2,7 @@ package pt.ist.fenixframework;
 
 import dml.DomainModel;
 
+import pt.ist.fenixframework.pstm.DataAccessPatterns;
 import pt.ist.fenixframework.pstm.MetadataManager;
 import pt.ist.fenixframework.pstm.PersistentRoot;
 import pt.ist.fenixframework.pstm.Transaction;
@@ -38,6 +39,7 @@ public class FenixFramework {
             config.checkConfig();
             MetadataManager.init(config);
 	    new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
+            DataAccessPatterns.init(config);
             PersistentRoot.initRootIfNeeded(config);
             initialized = true;
         }

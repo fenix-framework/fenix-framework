@@ -161,6 +161,13 @@ public class Config {
      */
     protected Class<? extends FenixDomainModel> domainModelClass = FenixDomainModel.class;
 
+    /**
+     * This <strong>optional</strong> parameter indicates whether the
+     * framework should collect information about the data-access
+     * patterns of the application.
+     */
+    protected boolean collectDataAccessPatterns = false;
+
 
     private static void checkRequired(Object obj, String fieldName) {
         if (obj == null) {
@@ -258,6 +265,10 @@ public class Config {
 
     public Class getRootClass() {
         return rootClass;
+    }
+
+    public boolean getCollectDataAccessPatterns() {
+        return collectDataAccessPatterns;
     }
 
     public Class<? extends FenixDomainModel> getDomainModelClass() {

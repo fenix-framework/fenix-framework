@@ -75,13 +75,31 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction
     protected int numBoxReads = 0;
     protected int numBoxWrites = 0;
 
+    // used by the DataAccessPatterns module
+    private String contextURI = "";
 
     TopLevelTransaction(ActiveTransactionsRecord record) {
         super(record);
 
         initDbConnection(false);
         initDbChanges();
+        initContext();
     }
+
+	
+    //initialize the information necessary for the identification of
+    //the surrounding context for the acquisition of statistical data
+    protected void initContext() {
+        String uri = RequestInfo.getRequestURI();
+        if (uri != null) {
+            this.contextURI = uri;
+        }
+    }
+	
+    protected String getContext() {
+        return contextURI;
+    }
+
 
     protected void initDbConnection(boolean resuming) {
         // first, get a new broker that will give access to the DB connection
