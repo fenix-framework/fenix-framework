@@ -12,6 +12,7 @@ import org.apache.ojb.broker.metadata.ClassDescriptor;
 import pt.ist.fenixframework.DomainObject;
 
 public abstract class AbstractDomainObject implements DomainObject,dml.runtime.FenixDomainObject,Serializable {
+    private static final long serialVersionUID = 1L;
 
     // this should be final, but the ensureIdInternal method prevents it
     private long oid;

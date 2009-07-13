@@ -27,6 +27,7 @@ import com.sun.image.codec.jpeg.ImageFormatException;
 import com.sun.image.codec.jpeg.JPEGImageEncoder;
 
 public class TransactionReport implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 
