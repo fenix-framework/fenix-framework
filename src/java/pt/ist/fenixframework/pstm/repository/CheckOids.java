@@ -9,12 +9,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.FieldDescriptor;
+import org.apache.ojb.broker.metadata.CollectionDescriptor;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
@@ -62,52 +65,64 @@ public class CheckOids {
 	}
     }
 
-    public static void checkOids(Connection connection) throws Exception {
-        Map<String,ClassDescriptor> ojbMetadata = DatabaseDescriptorFactory.getDescriptorTable();
 
-        DomainModel domainModel = FenixFramework.getDomainModel();
+    private static List<String> getAllClassnames(DomainModel domainModel) {
         List<String> classnames = new ArrayList<String>();
         for (DomainClass domClass : domainModel.getDomainClasses()) {
             classnames.add(domClass.getFullName());
         }
         
         Collections.sort(classnames);
+        return classnames;
+    }
+
+
+    public static void checkOids(Connection connection) throws Exception {
+        checkOidsOfObjects(connection);
+        checkOidsOfIndirectionTables(connection);
+    }
+
+    public static void checkOidsOfObjects(Connection connection) throws Exception {
+        DomainModel domainModel = FenixFramework.getDomainModel();
+        List<String> classnames = getAllClassnames(domainModel);
 
         System.out.println("Total classes = " + classnames.size());
 
+        Map<String,ClassDescriptor> ojbMetadata = DatabaseDescriptorFactory.getDescriptorTable();
+
         int num = 0;
         for (String classname : classnames) {
-            if (classname.equals("net.sourceforge.fenixedu.domain.Enrolment")) {
-                continue;
-            }
+//             if (classname.equals("net.sourceforge.fenixedu.domain.Enrolment")) {
+//                 continue;
+//             }
 
             ClassDescriptor cd = ojbMetadata.get(classname);
             if (cd == null) {
                 System.err.println(" ##### Couldn't find a classDescriptor for class " + classname);
             } else {
-                String tableName = cd.getFullTableName();
+                System.out.printf("%5d - ", num++);
                 System.out.print("Checking oids for " + classname);
-                System.out.print(" # = " + num++);
-                System.out.println(" (table = " + tableName + ")");
-                checkOidsForTable(connection, tableName, domainModel.findClass(classname), cd);
+                checkOidsForClass(connection, domainModel.findClass(classname), cd);
 	    }
 	}
     }
 
-    private static void checkOidsForTable(Connection connection,
-                                          String tableName,
+    private static void checkOidsForClass(Connection connection,
                                           DomainClass domClass,
                                           ClassDescriptor classDesc) throws Exception {
 
         String where = "";
-        
+
+        // handle the special case of Fenix, where we are still using
+        // the OJB_CONCRETE_CLASS column to identify the class of the objects
         if (classDesc.getFieldDescriptorByName("ojbConcreteClass") != null) {
             where = " where OJB_CONCRETE_CLASS = '" + domClass.getFullName() + "'";
         }
 
+        String tableName = classDesc.getFullTableName();
         int numRows = countRows(connection, tableName, where);
 
-        System.out.println("Total rows = " + numRows);
+        System.out.printf(" (table = %s, rows = %d)\n", tableName, numRows);
 
         StringBuilder selectStmt = new StringBuilder();
         selectStmt.append("select ID_INTERNAL,OID");
@@ -130,21 +145,12 @@ public class CheckOids {
         Statement stmt = connection.createStatement();
         ResultSet rs = stmt.executeQuery(selectStmt.toString());
 
-        int num = 0;
-        int tot = 0;
         while (rs.next()) {
-            num++;
-            tot++;
-            if ((numRows > 100000) && (num == (numRows / 10))) {
-                System.out.println("   (progress = " + tot + ")");
-                num = 0;
-            }
-
             int idInternal = rs.getInt(1);
             long oid = rs.getLong(2);
 
             if (! same(idInternal, oid)) {
-                System.err.println(" #################### mismatch between ID_INTERNAL and OID: " + idInternal + " != " + oid);
+                System.err.println("        !!! mismatch between ID_INTERNAL and OID: " + idInternal + " != " + oid);
             }
 
             // check all the foreign keys, also
@@ -154,8 +160,99 @@ public class CheckOids {
                 long oidKey = rs.getLong(pos++);
 
                 if (! same(key, oidKey)) {
-                    System.err.print(" ######### mismatch between KEY and OID: " + key + " != " + oidKey);
-                    System.err.println(" (colName = " + fk + ", OID = " + oid + ")");
+                    System.err.print("        ### mismatch between KEY and OID: " + key + " != " + oidKey);
+                    System.err.println(" (for colName = " + fk + " in object with OID = " + oid + ")");
+                }
+            }
+        }
+
+        rs.close();
+        stmt.close();
+    }
+
+
+    private static final class IndirectionTable implements Comparable<IndirectionTable> {
+        private final String table;
+        private final CollectionDescriptor colDesc;
+
+        IndirectionTable(String table, CollectionDescriptor colDesc) {
+            this.table = table;
+            this.colDesc = colDesc;
+        }
+
+        public int compareTo(IndirectionTable other) {
+            return this.table.compareTo(other.table);
+        }
+
+        public boolean equals(Object other) {
+            return (other != null) && (other.getClass() == this.getClass()) && ((IndirectionTable)other).table.equals(this.table);
+        }
+
+        public int hashCode() {
+            return table.hashCode();
+        }
+    }
+        
+
+    public static void checkOidsOfIndirectionTables(Connection connection) throws Exception {
+        Set<IndirectionTable> tablesToCheck = new TreeSet<IndirectionTable>();
+	for (ClassDescriptor classDesc : DatabaseDescriptorFactory.getDescriptorTable().values()) {
+	    for (CollectionDescriptor colDesc : (Iterable<CollectionDescriptor>)classDesc.getCollectionDescriptors()) {
+		String tableName = colDesc.getIndirectionTable();
+                if (tableName != null) {
+                    tablesToCheck.add(new IndirectionTable(tableName, colDesc));
+                }
+            }
+        }
+
+        System.out.println("Total indirection tables = " + tablesToCheck.size());
+
+        int num = 0;
+        for (IndirectionTable indTable : tablesToCheck) {
+            System.out.printf("%5d - ", num++);
+            System.out.print("Checking oids for " + indTable.table);
+            checkOidsForIndTable(connection, indTable.colDesc);
+	}
+    }
+
+    public static void checkOidsForIndTable(Connection connection, CollectionDescriptor colDesc) throws Exception {
+        String tableName = colDesc.getIndirectionTable();
+        int numRows = countRows(connection, tableName, "");
+
+        System.out.printf(" (rows = %d)\n", numRows);
+
+        StringBuilder selectStmt = new StringBuilder();
+        selectStmt.append("select ");
+
+        String firstKey = colDesc.getFksToThisClass()[0];
+	selectStmt.append(firstKey);
+	selectStmt.append(",");
+	selectStmt.append(firstKey.replace("KEY_", "OID_"));
+	selectStmt.append(",");
+
+        String secondKey = colDesc.getFksToItemClass()[0];
+	selectStmt.append(secondKey);
+	selectStmt.append(",");
+	selectStmt.append(secondKey.replace("KEY_", "OID_"));
+
+        selectStmt.append(" from ");
+        selectStmt.append(tableName);
+
+        String[] foreignKeys = new String[] { firstKey, secondKey };
+
+        // Now, execute the select and check the results
+        Statement stmt = connection.createStatement();
+        ResultSet rs = stmt.executeQuery(selectStmt.toString());
+
+        while (rs.next()) {
+            int pos = 1;
+            for (String fk : foreignKeys) {
+                int key = rs.getInt(pos++);
+                long oidKey = rs.getLong(pos++);
+
+                if (! same(key, oidKey)) {
+                    System.err.print("        ### mismatch between KEY and OID: " + key + " != " + oidKey);
+                    System.err.println(" (for colName = " + fk + ")");
                 }
             }
         }
