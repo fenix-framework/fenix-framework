@@ -11,7 +11,7 @@ import org.apache.ojb.broker.metadata.ClassDescriptor;
 
 import pt.ist.fenixframework.DomainObject;
 
-public abstract class AbstractDomainObject implements DomainObject,dml.runtime.FenixDomainObject,Serializable {
+public abstract class AbstractDomainObject implements DomainObject, dml.runtime.FenixDomainObject, Serializable {
     // this should be final, but the ensureIdInternal method prevents it
     private long oid;
 
@@ -22,95 +22,95 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
     }
 
     protected AbstractDomainObject() {
-        super();
-        // All domain objects become persistent upon their creation.
-        // Ensure that this object gets an idInternal
-        // jcachopo: This should be changed in the future...
-        ensureIdInternal();
-        Transaction.storeNewObject(this);
+	super();
+	// All domain objects become persistent upon their creation.
+	// Ensure that this object gets an idInternal
+	// jcachopo: This should be changed in the future...
+	ensureIdInternal();
+	Transaction.storeNewObject(this);
     }
 
     protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
-        // this constructor exists only as part of the allocate-instance protocol
-        this.oid = oid.oid;
+	// this constructor exists only as part of the allocate-instance
+	// protocol
+	this.oid = oid.oid;
     }
 
     public final Integer getIdInternal() {
-        return (int)(this.oid & 0x7FFFFFFF);
+	return (int) (this.oid & 0x7FFFFFFF);
     }
-    
-    private Integer get$idInternal() {
-        return getIdInternal();
-    }
-        
-    protected void ensureIdInternal() {
-        try {
-            PersistenceBroker broker = Transaction.getOJBBroker();
-            Class myClass = this.getClass();
-            ClassDescriptor cld = broker.getClassDescriptor(myClass);
-            
-            long cid = ((long)DomainClassInfo.mapClassToId(myClass) << 32);
 
-            // find successive ids until one is available
-            while (true) {
-                Integer id = (Integer)broker.serviceSequenceManager().getUniqueValue(cld.getFieldDescriptorByName("idInternal"));
-                this.oid = cid + id;
-                Object cached = Transaction.getCache().cache(this);
-                if (cached == this) {
-                    // break the loop once we got this instance cached
-                    return;
-                }
-            }
-        } catch (Exception e) {
+    private Integer get$idInternal() {
+	return getIdInternal();
+    }
+
+    protected void ensureIdInternal() {
+	try {
+	    PersistenceBroker broker = Transaction.getOJBBroker();
+	    Class myClass = this.getClass();
+	    ClassDescriptor cld = broker.getClassDescriptor(myClass);
+
+	    long cid = ((long) DomainClassInfo.mapClassToId(myClass) << 32);
+
+	    // find successive ids until one is available
+	    while (true) {
+		Integer id = (Integer) broker.serviceSequenceManager().getUniqueValue(cld.getFieldDescriptorByName("idInternal"));
+		this.oid = cid + id;
+		Object cached = Transaction.getCache().cache(this);
+		if (cached == this) {
+		    // break the loop once we got this instance cached
+		    return;
+		}
+	    }
+	} catch (Exception e) {
 	    throw new UnableToDetermineIdException(e);
-        }
+	}
     }
 
     @Override
     public final int hashCode() {
-        return super.hashCode();
+	return super.hashCode();
     }
 
     @Override
     public final boolean equals(Object obj) {
-        return super.equals(obj);
+	return super.equals(obj);
     }
 
     public long getOID() {
-        return getOid();
+	return getOid();
     }
 
-    // duplicate method (see getOID()).  This is the name that should stick.
+    // duplicate method (see getOID()). This is the name that should stick.
     // the other is to go away
     public long getOid() {
-        return oid;
+	return oid;
     }
 
     private long get$oid() {
-        return getOid();
+	return getOid();
     }
 
     public static <T extends DomainObject> T fromOID(long oid) {
-        DomainObject obj = Transaction.getCache().lookup(oid);
+	DomainObject obj = Transaction.getCache().lookup(oid);
 
-        if (obj == null) {
-            obj = DomainObjectAllocator.allocateObject(oid);
-                
-            // cache object and return the canonical object
-            obj = Transaction.getCache().cache(obj);
-        }
+	if (obj == null) {
+	    obj = DomainObjectAllocator.allocateObject(oid);
 
-        return (T)obj;
+	    // cache object and return the canonical object
+	    obj = Transaction.getCache().cache(obj);
+	}
+
+	return (T) obj;
     }
 
-    // This method should not be used.  It is temporary only until we
+    // This method should not be used. It is temporary only until we
     // get rid of the DomainReference class in the Fenix web
     // application.
     public static <T extends DomainObject> T fromClassAndID(Class objClass, int id) {
-        long cid = ((long)DomainClassInfo.mapClassToId(objClass) << 32);
-        return (T)fromOID(cid + id);
+	long cid = ((long) DomainClassInfo.mapClassToId(objClass) << 32);
+	return (T) fromOID(cid + id);
     }
-
 
     VersionedSubject getSlotNamed(String attrName) {
 	Class myClass = this.getClass();
@@ -118,7 +118,7 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
 	    try {
 		Field f = myClass.getDeclaredField(attrName);
 		f.setAccessible(true);
-		return (VersionedSubject)f.get(this);
+		return (VersionedSubject) f.get(this);
 	    } catch (NoSuchFieldException nsfe) {
 		myClass = myClass.getSuperclass();
 	    } catch (IllegalAccessException iae) {
@@ -127,37 +127,37 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
 		throw new Error("Couldn't find attribute " + attrName + ": " + se);
 	    }
 	}
-        
-        return null;
+
+	return null;
     }
 
     Object getCurrentValueFor(String attrName) {
-        return getSlotNamed(attrName).getCurrentValue(this, attrName);
+	return getSlotNamed(attrName).getCurrentValue(this, attrName);
     }
 
     jvstm.VBoxBody addNewVersion(String attrName, int txNumber) {
-        VersionedSubject vs = getSlotNamed(attrName);
-        if (vs != null) {
-            return vs.addNewVersion(attrName, txNumber);
-        }
-        
-        System.out.println("!!! WARNING !!!: addNewVersion couldn't find the appropriate slot");
-        return null;
+	VersionedSubject vs = getSlotNamed(attrName);
+	if (vs != null) {
+	    return vs.addNewVersion(attrName, txNumber);
+	}
+
+	System.out.println("!!! WARNING !!!: addNewVersion couldn't find the appropriate slot");
+	return null;
     }
 
     public final void readFromResultSet(java.sql.ResultSet rs) throws java.sql.SQLException {
-        int txNumber = Transaction.current().getNumber();
-        readSlotsFromResultSet(rs, txNumber);
+	int txNumber = Transaction.current().getNumber();
+	readSlotsFromResultSet(rs, txNumber);
     }
 
     protected abstract void readSlotsFromResultSet(java.sql.ResultSet rs, int txNumber) throws java.sql.SQLException;
 
     public boolean isDeleted() {
-        throw new UnsupportedOperationException();
+	throw new UnsupportedOperationException();
     }
 
-    protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes, final int columnCount)
-    		throws SQLException {
+    protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,
+	    final int columnCount) throws SQLException {
 	if (columnIndexes[columnCount] == null) {
 	    synchronized (columnIndexes) {
 		if (columnIndexes[columnCount] == null) {
@@ -175,9 +175,9 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
     }
 
     private static class SerializedForm implements Serializable {
-        private static final long serialVersionUID = 1L;
-	
-        // use string to allow future expansion of an OID
+	private static final long serialVersionUID = 1L;
+
+	// use string to allow future expansion of an OID
 	private String oid;
 
 	SerializedForm(AbstractDomainObject obj) {
@@ -185,8 +185,20 @@ public abstract class AbstractDomainObject implements DomainObject,dml.runtime.F
 	}
 
 	Object readResolve() throws ObjectStreamException {
-            long objOid = Long.parseLong(this.oid);
+	    long objOid = Long.parseLong(this.oid);
 	    return AbstractDomainObject.fromOID(objOid);
+	}
+    }
+
+    public final String getExternalId() {
+	return String.valueOf(getOID());
+    }
+
+    public static <T extends DomainObject> T fromExternalId(String extId) {
+	if (extId == null) {
+	    return null;
+	} else {
+	    return AbstractDomainObject.<T> fromOID(Long.valueOf(extId));
 	}
     }
 }
