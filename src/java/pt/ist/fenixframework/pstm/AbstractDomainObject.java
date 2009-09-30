@@ -10,6 +10,7 @@ import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.FenixFramework;
 
 public abstract class AbstractDomainObject implements DomainObject, dml.runtime.FenixDomainObject, Serializable {
     // this should be final, but the ensureIdInternal method prevents it
@@ -154,6 +155,22 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 
     public boolean isDeleted() {
 	throw new UnsupportedOperationException();
+    }
+
+    protected boolean checkDisconnected() {
+	return true;
+    }
+
+    protected void deleteDomainObject() {
+	if (!checkDisconnected()) {
+	    if (FenixFramework.getConfig().isErrorfIfDeletingObjectNotDisconnected()) {
+		throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this);
+	    } else {
+		System.out.println("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this);
+	    }
+	}
+
+	Transaction.deleteObject(this);
     }
 
     protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,
