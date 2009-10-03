@@ -92,10 +92,6 @@ public class CheckOids {
 
         int num = 0;
         for (String classname : classnames) {
-//             if (classname.equals("net.sourceforge.fenixedu.domain.Enrolment")) {
-//                 continue;
-//             }
-
             ClassDescriptor cd = ojbMetadata.get(classname);
             if (cd == null) {
                 System.err.println(" ##### Couldn't find a classDescriptor for class " + classname);

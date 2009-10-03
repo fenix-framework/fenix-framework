@@ -344,7 +344,6 @@ class DBChanges {
         }
     }
 
-    private static JdbcType KEY_JDBC_TYPE = JdbcTypesHelper.getJdbcTypeByName("INTEGER");
     private static JdbcType OID_JDBC_TYPE = JdbcTypesHelper.getJdbcTypeByName("BIGINT");
 
     // copied and adapted from OJB's MtoNBroker
@@ -364,17 +363,9 @@ class DBChanges {
 	    obj2 = tupleInfo.obj1;
 	}
 
-	String[] keyColumns = new String[2];
-	keyColumns[0] = cod.getFksToThisClass()[0];
-	keyColumns[1] = cod.getFksToItemClass()[0];
-
-	ValueContainer[] keyValues = new ValueContainer[2];
-        keyValues[0] = new ValueContainer(obj1.getIdInternal(), KEY_JDBC_TYPE);
-        keyValues[1] = new ValueContainer(obj2.getIdInternal(), KEY_JDBC_TYPE);
-
 	String[] oidColumns = new String[2];
-	oidColumns[0] = keyColumns[0].replace("KEY_", "OID_");
-	oidColumns[1] = keyColumns[1].replace("KEY_", "OID_");
+	oidColumns[0] = cod.getFksToThisClass()[0];
+	oidColumns[1] = cod.getFksToItemClass()[0];
 
 	ValueContainer[] oidValues = new ValueContainer[2];
         oidValues[0] = new ValueContainer(obj1.getOid(), OID_JDBC_TYPE);
@@ -383,8 +374,8 @@ class DBChanges {
 	String table = cod.getIndirectionTable();
 
 	// always remove the tuple
-	String sqlStmt = pb.serviceSqlGenerator().getDeleteMNStatement(table, keyColumns, null);
-	pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, keyValues, null);
+	String sqlStmt = pb.serviceSqlGenerator().getDeleteMNStatement(table, oidColumns, null);
+	pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, oidValues, null);
 
 	// if it was not to remove but to add, then add it
 	// this "delete-first, add-after" serves to ensure that we can add
@@ -392,8 +383,8 @@ class DBChanges {
 	// the same tuple to a relation and still have the Set semantics for the
 	// relation.
 	if (!tupleInfo.remove) {
-	    sqlStmt = pb.serviceSqlGenerator().getInsertMNStatement(table, keyColumns, oidColumns);
-	    pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, keyValues, oidValues);
+	    sqlStmt = pb.serviceSqlGenerator().getInsertMNStatement(table, oidColumns, null);
+	    pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, oidValues, null);
 	}
     }
 

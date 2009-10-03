@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 
 import org.apache.ojb.broker.Identity;
+import org.apache.ojb.broker.ManageableCollection;
 import org.apache.ojb.broker.PBKey;
 import org.apache.ojb.broker.PersistenceBrokerException;
 import org.apache.ojb.broker.accesslayer.JdbcAccess;
@@ -14,14 +15,18 @@ import org.apache.ojb.broker.accesslayer.PagingIterator;
 import org.apache.ojb.broker.accesslayer.RsIterator;
 import org.apache.ojb.broker.accesslayer.RsQueryObject;
 import org.apache.ojb.broker.accesslayer.ChainingIterator;
+import org.apache.ojb.broker.query.Criteria;
 import org.apache.ojb.broker.query.Query;
 import org.apache.ojb.broker.query.QueryBySQL;
+import org.apache.ojb.broker.query.QueryFactory;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.CollectionDescriptor;
+import org.apache.ojb.broker.metadata.FieldDescriptor;
 import org.apache.ojb.broker.metadata.ObjectReferenceDescriptor;
 import org.apache.ojb.broker.util.ClassHelper;
 
 import pt.ist.fenixframework.pstm.ojb.FenixJdbcAccessImpl;
+import pt.ist.fenixframework.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.DomainObjectAllocator;
 
 
@@ -75,38 +80,60 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
     // "retrieveReference", "getReferencedObjectIdentity" and
     // "getReferencedObject" methods
     @Override
-    public void retrieveReference(Object pInstance, String pAttributeName) throws PersistenceBrokerException {
-        ClassDescriptor cld = getClassDescriptor(pInstance.getClass());
-        CollectionDescriptor cod = cld.getCollectionDescriptorByName(pAttributeName);
-        if (cod != null) {
-            super.retrieveReference(pInstance, pAttributeName);
-            // when we dispatch to the super, then we're done
-            return;
+    public void retrieveReference(Object obj, String pAttributeName) throws PersistenceBrokerException {
+        // In the new version of the fenix-framework, where we use OIDs allover as foreign keys
+        // this method is no longer called for retrieving references to single objects
+        // (those described by an ObjectReferenceDescriptor).
+        // Now, this method should be used only for retrieving collections.
+        //
+        // So, the code here is the merging of the original
+        // PersistenceBrokerImpl.retrieveReference with the
+        // QueryReferenceBroker.retrieveCollection method, changed to
+        // use OIDs rather the primary keys (which remain to be,
+        // still, the idInternal, to create the SQL queries.
+
+        ClassDescriptor cld = getClassDescriptor(obj.getClass());
+        CollectionDescriptor cds = cld.getCollectionDescriptorByName(pAttributeName);
+        if (cds == null) {
+            throw new PersistenceBrokerException("In the Fenix Framework retrieveReference should be called only for collections");
         }
 
-        ObjectReferenceDescriptor ord = cld.getObjectReferenceDescriptorByName(pAttributeName);
-        if (ord == null) {
-            throw new PersistenceBrokerException("did not find attribute " + pAttributeName +
-                                                 " for class " + pInstance.getClass().getName());
-        }
+        // this collection type will be used:
+        Class collectionClass = cds.getCollectionClass();
+        Query fkQuery = getFKQuery((AbstractDomainObject)obj, cld, cds);
 
-        Object refObj = null;
-
-        Object[] fkValues = ord.getForeignKeyValues(pInstance, cld);
-        if (fkValues[0] != null) {
-            // we have some non-null foreign key
-
-            // ensure that top-level extents are used for Identities
-            Identity id = new Identity(ord.getItemClass(), getTopLevelClass(ord.getItemClass()), fkValues);
-            refObj = doGetObjectByIdentity(id);
-        }
-
-        // finally, set the field to the referenced object
-        ord.getPersistentField().set(pInstance, refObj);
+        ManageableCollection result = referencesBroker.getCollectionByQuery(collectionClass, fkQuery, false);
+        cds.getPersistentField().set(obj, result);
     }
 
 
+    // this method results from the merging and simplification of the
+    // getFKQuery, getFKQueryMtoN, and getFKQuery1toN methods that
+    // exist in OJB's QueryReferenceBroker class.
+    private Query getFKQuery(AbstractDomainObject obj, ClassDescriptor cld, CollectionDescriptor cod) {
+        if (cod.isMtoNRelation()) {
+            // each of the following arrays have one element only
+            Object[] thisClassFks = cod.getFksToThisClass();
+            Object[] itemClassFks = cod.getFksToItemClass();
+            String table = cod.getIndirectionTable();
 
+            Criteria criteria = new Criteria();
+            criteria.addColumnEqualTo(table + "." + thisClassFks[0], obj.getOid());
+            criteria.addColumnEqualToField(table + "." + itemClassFks[0], "OID");
+
+            ClassDescriptor refCld = getClassDescriptor(cod.getItemClass());
+            return QueryFactory.newQuery(refCld.getClassOfObject(), table, criteria);
+        } else {
+            ClassDescriptor refCld = getClassDescriptor(cod.getItemClass());
+            // the following array will have only one element
+            FieldDescriptor[] fields = cod.getForeignKeyFieldDescriptors(refCld);
+
+            Criteria criteria = new Criteria();
+            criteria.addEqualTo(fields[0].getAttributeName(), obj.getOid());
+
+            return QueryFactory.newQuery(refCld.getClassOfObject(), criteria);
+        }
+    }
 
     // copied from PersistenceBrokerImpl, to change the RsIteratorFactory used
     protected OJBIterator getIteratorFromQuery(Query query, ClassDescriptor cld) throws PersistenceBrokerException {

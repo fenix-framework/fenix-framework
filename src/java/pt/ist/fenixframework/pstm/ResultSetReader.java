@@ -13,7 +13,15 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.Partial;
 
+import pt.ist.fenixframework.DomainObject;
+
+
 public class ResultSetReader {
+
+    public static <T extends DomainObject> T readDomainObject(ResultSet rs, String columnName) throws SQLException {
+        long oid = rs.getLong(columnName);
+        return (T)((oid == 0) ? null : AbstractDomainObject.fromOID(oid));
+    }
 
     public static <T extends Enum<T>> T readEnum(Class<T> enumClass, ResultSet rs, String columnName) throws SQLException {
         String name = rs.getString(columnName);

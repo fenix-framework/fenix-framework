@@ -485,6 +485,7 @@ public class SQLUpdateGenerator {
 	    final String[] domainModelFiles = Arrays.copyOfRange(args, nextArg, args.length);
 
 	    FenixFramework.initialize(new Config() {{
+                createRepositoryStructureIfNotExists = false;
 		domainModelPaths = domainModelFiles;
 		dbAlias = dbAliasArg;
 		dbUsername = dbUserArg;

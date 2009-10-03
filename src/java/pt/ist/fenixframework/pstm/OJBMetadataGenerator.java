@@ -20,7 +20,6 @@ import org.apache.ojb.broker.metadata.FieldDescriptor;
 import org.apache.ojb.broker.metadata.MetadataManager;
 import org.apache.ojb.broker.metadata.ObjectReferenceDescriptor;
 import org.apache.ojb.broker.metadata.fieldaccess.PersistentField;
-import org.apache.ojb.broker.accesslayer.conversions.FieldConversion;
 
 import dml.DomainClass;
 import dml.DomainEntity;
@@ -177,9 +176,6 @@ public class OJBMetadataGenerator {
             for (Role role : dClass.getRoleSlotsList()) {
                 String roleName = role.getName();
                 if ((role.getMultiplicityUpper() == 1) && (roleName != null)) {
-                    String foreignKeyField = "key" + StringUtils.capitalize(roleName);
-                    addFieldDescriptor(domainModel, foreignKeyField, "Integer", fieldID++, classDescriptor, persistentFieldClass);
-
                     String foreignOidField = "oid" + StringUtils.capitalize(roleName);
                     addFieldDescriptor(domainModel, foreignOidField, "Long", fieldID++, classDescriptor, persistentFieldClass);
                 }
@@ -252,15 +248,7 @@ public class OJBMetadataGenerator {
                     continue;
                 }
 
-                if (role.getMultiplicityUpper() == 1) {
-
-                    // reference descriptors
-                    if (classDescriptor.getObjectReferenceDescriptorByName(roleName) == null) {
-                        String fkField = "key" + StringUtils.capitalize(roleName);
-                        generateReferenceDescriptor(classDescriptor, persistentFieldClass, role, roleName, fkField);
-                    }
-                } else {
-
+                if (role.getMultiplicityUpper() != 1) {
                     // collection descriptors
                     if (classDescriptor.getCollectionDescriptorByName(roleName) == null) {
 
@@ -269,7 +257,7 @@ public class OJBMetadataGenerator {
 
                         if (role.getOtherRole().getMultiplicityUpper() == 1) {
 
-                            String fkField = "key" + StringUtils.capitalize(role.getOtherRole().getName());
+                            String fkField = "oid" + StringUtils.capitalize(role.getOtherRole().getName());
 
                             ClassDescriptor otherClassDescriptor = (ClassDescriptor) ojbMetadata
                                     .get(((DomainClass) role.getType()).getFullName());
@@ -313,8 +301,8 @@ public class OJBMetadataGenerator {
             CollectionDescriptor collectionDescriptor, Role role) {
 
         String indirectionTableName = convertToDBStyle(role.getRelation().getName());
-        String fkToItemClass = "KEY_" + convertToDBStyle(role.getType().getName());
-        String fkToThisClass = "KEY_" + convertToDBStyle(role.getOtherRole().getType().getName());
+        String fkToItemClass = "OID_" + convertToDBStyle(role.getType().getName());
+        String fkToThisClass = "OID_" + convertToDBStyle(role.getOtherRole().getType().getName());
 
         if (fkToItemClass.equals(fkToThisClass)) {
             fkToItemClass = fkToItemClass + "_" + convertToDBStyle(role.getName());
@@ -324,28 +312,12 @@ public class OJBMetadataGenerator {
         collectionDescriptor.setIndirectionTable(indirectionTableName);
         collectionDescriptor.addFkToItemClass(fkToItemClass);
         collectionDescriptor.addFkToThisClass(fkToThisClass);
-        collectionDescriptor.setCascadingStore(ObjectReferenceDescriptor.CASCADE_NONE);
         collectionDescriptor.setCascadingDelete(ObjectReferenceDescriptor.CASCADE_NONE);
     }
 
     private static void generateOneToManyCollectionDescriptor(CollectionDescriptor collectionDescriptor,
             String foreignKeyField) {
-        collectionDescriptor.setCascadingStore(ObjectReferenceDescriptor.CASCADE_NONE);
         collectionDescriptor.addForeignKeyField(foreignKeyField);
-    }
-
-    private static void generateReferenceDescriptor(final ClassDescriptor classDescriptor,
-            Class persistentFieldClass, Role role, String roleName, String foreignKeyField)
-            throws ClassNotFoundException {
-        ObjectReferenceDescriptor referenceDescriptor = new ObjectReferenceDescriptor(classDescriptor);
-        referenceDescriptor.setItemClass(Class.forName(role.getType().getFullName()));
-        referenceDescriptor.addForeignKeyField(foreignKeyField);
-        referenceDescriptor.setPersistentField(new WriteOnlyPersistentField(persistentFieldClass, roleName));
-        referenceDescriptor.setCascadeRetrieve(false);
-        referenceDescriptor.setCascadingStore(ObjectReferenceDescriptor.CASCADE_NONE);
-        referenceDescriptor.setLazy(false);
-
-        classDescriptor.addObjectReferenceDescriptor(referenceDescriptor);
     }
 
     private static String convertToDBStyle(String string) {

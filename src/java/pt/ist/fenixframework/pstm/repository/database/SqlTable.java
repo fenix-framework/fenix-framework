@@ -52,11 +52,6 @@ public class SqlTable {
         	stringBuilder.append(" NOT NULL auto_increment");
         	//stringBuilder.append(", OID bigint unsigned default null");
             }
-//             if (name.startsWith("KEY_")) {
-//         	stringBuilder.append(", ");
-//         	stringBuilder.append(name.replace("KEY_", "OID_"));
-//         	stringBuilder.append(" bigint unsigned default null");
-//             }
         }
 
         public boolean equals(Object obj) {
@@ -157,12 +152,6 @@ public class SqlTable {
             stringBuilder.append(",\n  index (");
             stringBuilder.append(columnName);
             stringBuilder.append(")");
-
-            if (columnName.startsWith("KEY_")) {
-                stringBuilder.append(",\n  index (");
-                stringBuilder.append(columnName.replace("KEY_", "OID_"));
-                stringBuilder.append(")");        	
-            }
         }
         stringBuilder.append("\n");
 

@@ -58,9 +58,8 @@ public class DatabaseDescriptorFactory {
 
             addColumns(sqlTable, classDescriptor.getFieldDescriptions());
             setPrimaryKey(sqlTable, classDescriptor.getPkFields());
-            addIndexes(sqlTable, classDescriptor);
 
-            addSqlIndirectionTableDescription(sqlTables, classDescriptor);
+            processCollectionDescriptors(sqlTables, classDescriptor);
         }
     }
 
@@ -93,33 +92,35 @@ public class DatabaseDescriptorFactory {
         sqlTable.primaryKey(primaryKey);
     }
 
-    private static void addIndexes(final SqlTable sqlTable, final ClassDescriptor classDescriptor) {
-        for (final Iterator iterator = classDescriptor.getObjectReferenceDescriptors().iterator(); iterator.hasNext();) {
-            final ObjectReferenceDescriptor objectReferenceDescriptor = (ObjectReferenceDescriptor) iterator.next();
-            final String foreignKeyField = (String) objectReferenceDescriptor.getForeignKeyFields().get(0);
-            final FieldDescriptor fieldDescriptor = classDescriptor.getFieldDescriptorByName(foreignKeyField);
+    private static void processCollectionDescriptors(Map<String, SqlTable> sqlTables, ClassDescriptor classDescriptor) {
+        for (CollectionDescriptor cod : (Iterable<CollectionDescriptor>)classDescriptor.getCollectionDescriptors()) {
+            if (cod.getIndirectionTable() != null) {
+                // many-to-many relation
+                addSqlIndirectionTableDescription(sqlTables, cod);
+            } else {
+                // one-to-many means that we should index the foreign key in the other table
+                ClassDescriptor otherClass = classDescriptor.getRepository().getDescriptorFor(cod.getItemClass());
+                FieldDescriptor[] foreignKeys = cod.getForeignKeyFieldDescriptors(otherClass);
 
-            sqlTable.index(fieldDescriptor.getColumnName());
-        }
-    }
-
-    private static void addSqlIndirectionTableDescription(final Map<String, SqlTable> sqlTables,
-            final ClassDescriptor classDescriptor) {
-        for (final Iterator iterator = classDescriptor.getCollectionDescriptors().iterator(); iterator.hasNext();) {
-            final CollectionDescriptor collectionDescriptor = (CollectionDescriptor) iterator.next();
-            final String indirectionTablename = collectionDescriptor.getIndirectionTable();
-            if (indirectionTablename != null) {
-                final SqlTable indirectionSqlTable = obtainSQLTable(sqlTables, indirectionTablename);
-
-                final String foreignKeyToThis = collectionDescriptor.getFksToThisClass()[0];
-                final String foreignKeyToOther = collectionDescriptor.getFksToItemClass()[0];
-
-                indirectionSqlTable.addColumn(foreignKeyToThis, "INTEGER");
-                indirectionSqlTable.addColumn(foreignKeyToOther, "INTEGER");
-
-                indirectionSqlTable.primaryKey(new String[] { foreignKeyToThis, foreignKeyToOther });
+                SqlTable otherSqlTable = obtainSQLTable(sqlTables, otherClass.getFullTableName());
+                // add index
+                otherSqlTable.index(foreignKeys[0].getColumnName());
             }
         }
     }
 
+
+    private static void addSqlIndirectionTableDescription(final Map<String, SqlTable> sqlTables,
+            final CollectionDescriptor collectionDescriptor) {
+        final String indirectionTablename = collectionDescriptor.getIndirectionTable();
+        final SqlTable indirectionSqlTable = obtainSQLTable(sqlTables, indirectionTablename);
+
+        final String foreignKeyToThis = collectionDescriptor.getFksToThisClass()[0];
+        final String foreignKeyToOther = collectionDescriptor.getFksToItemClass()[0];
+        
+        indirectionSqlTable.addColumn(foreignKeyToThis, "BIGINT");
+        indirectionSqlTable.addColumn(foreignKeyToOther, "BIGINT");
+
+        indirectionSqlTable.primaryKey(new String[] { foreignKeyToThis, foreignKeyToOther });
+    }
 }
