@@ -345,6 +345,7 @@ class DBChanges {
     }
 
     private static JdbcType OID_JDBC_TYPE = JdbcTypesHelper.getJdbcTypeByName("BIGINT");
+    private final static String[] EMPTY_ARRAY = new String[0];
 
     // copied and adapted from OJB's MtoNBroker
     protected void updateMtoNRelation(PersistenceBroker pb, RelationTupleInfo tupleInfo) {
@@ -383,7 +384,7 @@ class DBChanges {
 	// the same tuple to a relation and still have the Set semantics for the
 	// relation.
 	if (!tupleInfo.remove) {
-	    sqlStmt = pb.serviceSqlGenerator().getInsertMNStatement(table, oidColumns, null);
+	    sqlStmt = pb.serviceSqlGenerator().getInsertMNStatement(table, oidColumns, EMPTY_ARRAY);
 	    pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, oidValues, null);
 	}
     }
