@@ -274,6 +274,10 @@ public class OidSqlGenerator {
     public static void generate() throws IOException {
 	domainModel = FenixFramework.getDomainModel();
 
+ 	for (final DomainClass domainClass : domainModel.getDomainClasses()) {
+ 	    new DomainClassEntry(domainClass);
+	}
+
 	for (final DomainClass domainClass : domainModel.getDomainClasses()) {
 	    final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
 	    if (domainClassHierarchyLevel == 0) {
