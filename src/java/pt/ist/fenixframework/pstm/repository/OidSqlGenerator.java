@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.FenixFramework;
-import pt.utl.ist.codeGenerator.OidSqlGenerator.DomainClassEntry;
 import dml.DomainClass;
 import dml.DomainEntity;
 import dml.DomainModel;
