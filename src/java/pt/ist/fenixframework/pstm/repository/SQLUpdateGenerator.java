@@ -191,11 +191,6 @@ public class SQLUpdateGenerator {
 			stringBuilder.append(mySqlTypeTranslation.get(fieldDescriptor.getColumnType()));
 		    }
 
-// 		    if (columnName.startsWith("KEY_")) {
-// 			stringBuilder.append(", add column ");
-// 			stringBuilder.append(escapeName(columnName).replace("KEY_", "OID_"));
-// 			stringBuilder.append(" bigint unsigned default null");
-// 		    }
 		    stringBuilder.append(";\n");
 		}
 	    }
@@ -281,8 +276,8 @@ public class SQLUpdateGenerator {
 
     private static void appendIndirectionTableUpdates(final StringBuilder stringBuilderForMultiLineInstructions,
 	    final CollectionDescriptor collectionDescriptor, final String indirectionTablename, final Connection connection) throws SQLException {
-	final String column1Name = collectionDescriptor.getFksToThisClass()[0].replace("KEY_", "OID_");
-	final String column2Name = collectionDescriptor.getFksToItemClass()[0].replace("KEY_", "OID_");
+	final String column1Name = collectionDescriptor.getFksToThisClass()[0];
+	final String column2Name = collectionDescriptor.getFksToItemClass()[0];
 	if (!exists(indirectionTablename, column1Name, connection)) {
 	    appendIndirectionTableUpdates(stringBuilderForMultiLineInstructions, indirectionTablename, column1Name);
 	}
@@ -312,14 +307,9 @@ public class SQLUpdateGenerator {
 	stringBuilder.append(" (");
 
 	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0]);
-	stringBuilder.append(" int(11) not null, ");
+	stringBuilder.append(" bigint unsigned not null, ");
 	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0]);
-	stringBuilder.append(" int(11) not null, ");
-
-	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0].replace("KEY_", "OID_"));
-	stringBuilder.append(" bigint unsigned default null, ");
-	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0].replace("KEY_", "OID_"));
-	stringBuilder.append(" bigint unsigned default null, ");
+	stringBuilder.append(" bigint unsigned not null, ");
 
 	stringBuilder.append(" primary key (");
 	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0]);
@@ -329,16 +319,6 @@ public class SQLUpdateGenerator {
 	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0]);
 	stringBuilder.append("), key(");
 	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0]);
-	stringBuilder.append(")");
-
-	stringBuilder.append(", key (");
-	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0].replace("KEY_", "OID_"));
-	stringBuilder.append(", ");
-	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0].replace("KEY_", "OID_"));
-	stringBuilder.append("), key(");
-	stringBuilder.append(collectionDescriptor.getFksToThisClass()[0].replace("KEY_", "OID_"));
-	stringBuilder.append("), key(");
-	stringBuilder.append(collectionDescriptor.getFksToItemClass()[0].replace("KEY_", "OID_"));
 	stringBuilder.append(")");
 
 	stringBuilder.append(") type=InnoDB;\n");
