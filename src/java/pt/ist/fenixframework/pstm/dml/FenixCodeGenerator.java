@@ -15,8 +15,8 @@ import pt.ist.fenixframework.pstm.Transaction;
 import pt.ist.fenixframework.pstm.VBox;
 
 public class FenixCodeGenerator extends CodeGenerator {
-    private static final String RESULT_SET_READER_CLASS = ResultSetReader.class.getName();
-    private static final String TO_SQL_CONVERTER_CLASS = ToSqlConverter.class.getName();
+    protected static final String RESULT_SET_READER_CLASS = ResultSetReader.class.getName();
+    protected static final String TO_SQL_CONVERTER_CLASS = ToSqlConverter.class.getName();
 
 
     public FenixCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
@@ -291,7 +291,7 @@ public class FenixCodeGenerator extends CodeGenerator {
 
         String paramListType = makeGenericType("java.util.List", getTypeFullName(role.getType()));
 
-        generateRelationGetter("get" + capitalize(role.getName()), role.getName(), paramListType, out);
+        generateRelationGetter("get" + capitalize(role.getName()), getSlotExpression(role.getName()), paramListType, out);
         //generateRelationGetter("get$" + role.getName(), "null", "OJBFunctionalSetWrapper", out);
         generateOJBSetter(role.getName(), "OJBFunctionalSetWrapper", out);
         generateIteratorMethod(role, out);
@@ -304,7 +304,7 @@ public class FenixCodeGenerator extends CodeGenerator {
                          makeGenericType("java.util.Iterator", getTypeFullName(role.getType())),
                          "get" + capitalize(role.getName()) + "Iterator");
         startMethodBody(out);
-        printWords(out, "return", role.getName());
+        printWords(out, "return", getSlotExpression(role.getName()));
         print(out, ".iterator();");
         endMethodBody(out);
     }
@@ -662,7 +662,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         return result.toString();
     }
 
-    private static String convertToDBStyle(String string) {
+    protected static String convertToDBStyle(String string) {
         return splitCamelCaseString(string).replace(' ', '_').toUpperCase();
     }
 }

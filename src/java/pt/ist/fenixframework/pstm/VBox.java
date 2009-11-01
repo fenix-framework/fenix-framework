@@ -6,6 +6,10 @@ import pt.ist.fenixframework.DomainObject;
 public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runtime.FenixVBox<E> {
     static final Object NOT_LOADED_VALUE = new Object();
 
+    public static <T> T notLoadedValue() {
+        return (T)NOT_LOADED_VALUE;
+    }
+
     public VBox() {
         super();
     }
