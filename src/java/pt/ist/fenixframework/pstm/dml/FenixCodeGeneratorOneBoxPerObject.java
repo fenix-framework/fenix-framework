@@ -16,7 +16,6 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     public FenixCodeGeneratorOneBoxPerObject(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
-        System.out.println("#################### Created a FenixCodeGeneratorOneBoxPerObject");
     }
 
     @Override
