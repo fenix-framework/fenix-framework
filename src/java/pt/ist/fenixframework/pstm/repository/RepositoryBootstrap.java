@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import pt.ist.fenixframework.Config;
+import pt.ist.fenixframework.pstm.MetadataManager;
 
 /** This class is used when the fenix-framework starts up.  It is responsible for initializing or updating the repository
  * structure if needed.  There are two optional configuration parameters that govern the behaviour of this class:
@@ -70,7 +71,9 @@ public class RepositoryBootstrap {
                         }
 		    }
 		    if (newInfrastructureCreated || config.getUpdateRepositoryStructureIfNeeded()) {
-			final String updates = SQLUpdateGenerator.generateInMem(connection, null);
+			final String updates = SQLUpdateGenerator.generateInMem(MetadataManager.getDomainModel(), 
+                                                                                connection, 
+                                                                                null);
 			executeSqlInstructions(connection, updates);
 		    }
 		}

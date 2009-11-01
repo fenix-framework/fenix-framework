@@ -12,6 +12,8 @@ import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
 import pt.ist.fenixframework.pstm.ojb.ReadOnlyPersistentField;
 import pt.ist.fenixframework.pstm.ojb.WriteOnlyPersistentField;
 
+import pt.ist.fenixframework.pstm.repository.DbUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.CollectionDescriptor;
@@ -193,7 +195,7 @@ public class OJBMetadataGenerator {
                                                     ClassDescriptor classDescriptor,
                                                     Class persistentFieldClass) throws Exception {
         FieldDescriptor fieldDescriptor = new FieldDescriptor(classDescriptor, fieldID);
-        fieldDescriptor.setColumnName(convertToDBStyle(slotName));
+        fieldDescriptor.setColumnName(DbUtil.convertToDBStyle(slotName));
         fieldDescriptor.setAccess("readwrite");
         fieldDescriptor.setPrimaryKey(true);
         fieldDescriptor.setAutoIncrement(true);
@@ -216,7 +218,7 @@ public class OJBMetadataGenerator {
                                              Class persistentFieldClass) throws Exception {
         if (classDescriptor.getFieldDescriptorByName(slotName) == null) {
             FieldDescriptor fieldDescriptor = new FieldDescriptor(classDescriptor, fieldID);
-            fieldDescriptor.setColumnName(convertToDBStyle(slotName));
+            fieldDescriptor.setColumnName(DbUtil.convertToDBStyle(slotName));
             fieldDescriptor.setAccess("readwrite");
 
             PersistentField persistentField = new ReadOnlyPersistentField(persistentFieldClass, slotName);
@@ -300,13 +302,13 @@ public class OJBMetadataGenerator {
     private static void generateManyToManyCollectionDescriptor(
             CollectionDescriptor collectionDescriptor, Role role) {
 
-        String indirectionTableName = convertToDBStyle(role.getRelation().getName());
-        String fkToItemClass = "OID_" + convertToDBStyle(role.getType().getName());
-        String fkToThisClass = "OID_" + convertToDBStyle(role.getOtherRole().getType().getName());
+        String indirectionTableName = DbUtil.convertToDBStyle(role.getRelation().getName());
+        String fkToItemClass = DbUtil.getFkName(role.getType().getName());
+        String fkToThisClass = DbUtil.getFkName(role.getOtherRole().getType().getName());
 
         if (fkToItemClass.equals(fkToThisClass)) {
-            fkToItemClass = fkToItemClass + "_" + convertToDBStyle(role.getName());
-            fkToThisClass = fkToThisClass + "_" + convertToDBStyle(role.getOtherRole().getName());
+            fkToItemClass = fkToItemClass + "_" + DbUtil.convertToDBStyle(role.getName());
+            fkToThisClass = fkToThisClass + "_" + DbUtil.convertToDBStyle(role.getOtherRole().getName());
         }
 
         collectionDescriptor.setIndirectionTable(indirectionTableName);
@@ -319,20 +321,4 @@ public class OJBMetadataGenerator {
             String foreignKeyField) {
         collectionDescriptor.addForeignKeyField(foreignKeyField);
     }
-
-    private static String convertToDBStyle(String string) {
-	StringBuilder result = new StringBuilder(string.length() + 10);
-	boolean first = true;
-	for (char c : string.toCharArray()) {
-	    if (first) {
-		first = false;
-	    } else if (Character.isUpperCase(c)) {
-		result.append('_');
-	    }
-	    result.append(Character.toUpperCase(c));
-	}
-
-	return result.toString();
-    }
-
 }

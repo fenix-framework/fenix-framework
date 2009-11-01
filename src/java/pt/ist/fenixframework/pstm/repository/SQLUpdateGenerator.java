@@ -1,5 +1,9 @@
 package pt.ist.fenixframework.pstm.repository;
 
+import dml.DomainModel;
+import dml.DomainRelation;
+import dml.Role;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,7 +27,6 @@ import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.CollectionDescriptor;
 import org.apache.ojb.broker.metadata.FieldDescriptor;
-import org.apache.ojb.broker.metadata.ObjectReferenceDescriptor;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Config;
@@ -34,9 +37,6 @@ import pt.ist.fenixframework.pstm.repository.database.SqlTable;
 import com.mysql.jdbc.exceptions.MySQLSyntaxErrorException;
 
 public class SQLUpdateGenerator {
-
-    private static class TableDoesNotExistException extends Exception {
-    }
 
     private static final Map<String, String> mySqlTypeTranslation = new HashMap<String, String>();
     static {
@@ -66,7 +66,7 @@ public class SQLUpdateGenerator {
 	private final Set<TreeSet<String>> uniqyeKeys = new HashSet<TreeSet<String>>();
 	private final Set<TreeSet<String>> indexes = new HashSet<TreeSet<String>>();
 
-	private TableInfo(final String tablename, final Connection connection) throws SQLException, TableDoesNotExistException {
+	private TableInfo(final String tablename, final Connection connection) throws SQLException {
 	    this.tablename = tablename;
 
 	    final Statement statement = connection.createStatement();
@@ -201,25 +201,9 @@ public class SQLUpdateGenerator {
 		stringBuilder.append(" add primary key (ID_INTERNAL)");
 		stringBuilder.append(", add index (OID);\n");
 	    }
-
-	    for (final Iterator iterator = classDescriptor.getObjectReferenceDescriptors().iterator(); iterator.hasNext();) {
-		final ObjectReferenceDescriptor objectReferenceDescriptor = (ObjectReferenceDescriptor) iterator.next();
-		final String foreignKeyField = (String) objectReferenceDescriptor.getForeignKeyFields().get(0);
-		final FieldDescriptor fieldDescriptor = classDescriptor.getFieldDescriptorByName(foreignKeyField);
-		if (!hasIndex(fieldDescriptor.getColumnName())) {
-		    stringBuilder.append("alter table ");
-		    stringBuilder.append(escapeName(tablename));
-		    stringBuilder.append(" add index (");
-		    stringBuilder.append(escapeName(fieldDescriptor.getColumnName()));
-		    stringBuilder.append(")");
-		    stringBuilder.append(", add index (");
-		    stringBuilder.append(escapeName(fieldDescriptor.getColumnName()).replace("KEY_", "OID_"));
-		    stringBuilder.append(");\n");
-		}
-	    }
 	}
 
-	private boolean hasIndex(final String columnName) {
+	boolean hasIndex(final String columnName) {
 	    for (final TreeSet<String> index : indexes) {
 		if (index.size() == 1 && index.contains(columnName)) {
 		    return true;
@@ -229,13 +213,27 @@ public class SQLUpdateGenerator {
 	}
     }
 
+    private static final Map<String, TableInfo> TABLE_INFOS = new HashMap<String,TableInfo>();
+
+    static TableInfo getTableInfo(String tableName, Connection connection) throws SQLException {
+        TableInfo tableInfo = TABLE_INFOS.get(tableName);
+        if (tableInfo == null) {
+            tableInfo = new TableInfo(tableName, connection);
+            TABLE_INFOS.put(tableName, tableInfo);
+        }
+        return tableInfo;
+    }
+
+
     private static String escapeName(String name) {
 	if (name == null || name.length() == 0) return name;
 	if (name.charAt(0) == '`') return name; // already escaped
 	return "`" + name + "`";
     }
 
-    public static String generateInMem(final Connection connection, String tableCharset) throws Exception {
+    public static String generateInMem(DomainModel domainModel,
+                                       Connection connection, 
+                                       String tableCharset) throws Exception {
 	final StringBuilder stringBuilderForSingleLineInstructions = new StringBuilder();
 	final StringBuilder stringBuilderForMultiLineInstructions = new StringBuilder();
 
@@ -247,7 +245,7 @@ public class SQLUpdateGenerator {
 	    final String tableName = classDescriptor.getFullTableName();
 	    if (tableName != null && !tableName.startsWith("OJB")) {
 		if (exists(tableName, connection)) {
-		    final TableInfo tableInfo = new TableInfo(tableName, connection);
+		    final TableInfo tableInfo = getTableInfo(tableName, connection);
 		    tableInfo.appendAlterTables(stringBuilderForSingleLineInstructions, classDescriptor);
 		} else {
 		    createTable(classDescriptor, tableCharset);
@@ -268,10 +266,64 @@ public class SQLUpdateGenerator {
 	    }
 	}
 
+        generateIndexes(domainModel, 
+                        connection,
+                        classDescriptorMap,
+                        stringBuilderForSingleLineInstructions);
+
 	appendCreateTables(stringBuilderForMultiLineInstructions);
 
 	return getOutputStringForSingleLineInstructions(stringBuilderForSingleLineInstructions)
 		+ "\n\n" + stringBuilderForMultiLineInstructions.toString();
+    }
+
+    private static void generateIndexes(DomainModel domainModel, 
+                                        Connection connection,
+                                        Map<String,ClassDescriptor> classDescriptorMap,
+                                        StringBuilder strBuilder) throws SQLException {
+        Iterator iter = domainModel.getRelations();
+        while (iter.hasNext()) {
+            DomainRelation domRelation = (DomainRelation)iter.next();
+            if (is1toNRelation(domRelation)) {
+                addIndexIfNeeded(domRelation.getFirstRole(), connection, classDescriptorMap, strBuilder);
+                addIndexIfNeeded(domRelation.getSecondRole(), connection, classDescriptorMap, strBuilder);
+            }
+        }
+    }
+
+    private static boolean is1toNRelation(DomainRelation domRelation) {
+        int multiplicity1 = domRelation.getFirstRole().getMultiplicityUpper();
+        int multiplicity2 = domRelation.getSecondRole().getMultiplicityUpper();
+        return ((multiplicity1 == 1) && (multiplicity2 != 1))
+            || ((multiplicity1 != 1) && (multiplicity2 == 1));
+    }
+
+    private static void addIndexIfNeeded(Role r, 
+                                         Connection connection,
+                                         Map<String,ClassDescriptor> classDescriptorMap,
+                                         StringBuilder strBuilder) throws SQLException {
+        String rName = r.getName();
+
+        if ((r.getMultiplicityUpper() == 1) && (rName != null)) {
+            String indexColumn = DbUtil.getFkName(rName);
+            String className = r.getOtherRole().getType().getFullName();
+            ClassDescriptor classDescriptor = classDescriptorMap.get(className);
+            String tableName = classDescriptor.getFullTableName();
+
+            if (exists(tableName, connection)) {
+                TableInfo tableInfo = getTableInfo(tableName, connection);
+		if (! tableInfo.hasIndex(indexColumn)) {
+		    strBuilder.append("alter table ");
+		    strBuilder.append(escapeName(tableName));
+		    strBuilder.append(" add index (");
+		    strBuilder.append(escapeName(indexColumn));
+		    strBuilder.append(");\n");
+		}
+            } else {
+                SqlTable sqlTable = sqlTables.get(tableName);
+                sqlTable.index(indexColumn);
+            }
+        }
     }
 
     private static void appendIndirectionTableUpdates(final StringBuilder stringBuilderForMultiLineInstructions,
@@ -371,7 +423,6 @@ public class SQLUpdateGenerator {
 	}
 	addColumns(sqlTable, classDescriptor.getFieldDescriptions());
 	setPrimaryKey(sqlTable, classDescriptor.getPkFields());
-	addIndexes(sqlTable, classDescriptor);
     }
 
     private static void appendCreateTables(final StringBuilder stringBuilder) {
@@ -396,15 +447,6 @@ public class SQLUpdateGenerator {
 	sqlTable.primaryKey(primaryKey);
     }
 
-    private static void addIndexes(final SqlTable sqlTable, final ClassDescriptor classDescriptor) {
-	for (final Iterator iterator = classDescriptor.getObjectReferenceDescriptors().iterator(); iterator.hasNext();) {
-	    final ObjectReferenceDescriptor objectReferenceDescriptor = (ObjectReferenceDescriptor) iterator.next();
-	    final String foreignKeyField = (String) objectReferenceDescriptor.getForeignKeyFields().get(0);
-	    final FieldDescriptor fieldDescriptor = classDescriptor.getFieldDescriptorByName(foreignKeyField);
-
-	    sqlTable.index(fieldDescriptor.getColumnName());
-	}
-    }
 
     private static String getOutputStringForSingleLineInstructions(final StringBuilder stringBuilder) {
 	final Set<String> strings = new TreeSet<String>();
@@ -474,7 +516,7 @@ public class SQLUpdateGenerator {
 
 	    final PersistenceBroker persistenceBroker = PersistenceBrokerFactory.defaultPersistenceBroker();
 	    connection = persistenceBroker.serviceConnectionManager().getConnection();
-	    generate(connection, tableCharset);
+	    generate(FenixFramework.getDomainModel(), connection, tableCharset);
 	} catch (Exception ex) {
 	    ex.printStackTrace();
 	} finally {
@@ -491,10 +533,12 @@ public class SQLUpdateGenerator {
 	System.exit(0);
     }
 
-    private static void generate(final Connection connection, String tableCharset) throws Exception {
+    private static void generate(DomainModel domainModel, 
+                                 Connection connection, 
+                                 String tableCharset) throws Exception {
 	final String destinationFilename = "etc/database_operations/updates.sql";
-	final String result = pt.ist.fenixframework.pstm.repository.SQLUpdateGenerator.generateInMem(connection, tableCharset);
-	pt.ist.fenixframework.pstm.repository.SQLUpdateGenerator.writeFile(destinationFilename, result);
+	final String result = generateInMem(domainModel, connection, tableCharset);
+	writeFile(destinationFilename, result);
     }
 
 }
