@@ -39,6 +39,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
         generateMethodGetRelationFor(domClass, out);
         generateMakeNewStateMethod(out);
+        generateCreateAllListsMethod(domClass, out);
         generateDOStateInnerClass(domClass, out);
     }
 
@@ -187,6 +188,25 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
         println(out, "return new DO_State();");
         endMethodBody(out);
     }
+
+    protected void generateCreateAllListsMethod(DomainClass domClass, PrintWriter out) {
+        printMethod(out, "protected", "void", "create$allLists");
+        startMethodBody(out);
+        println(out, "super.create$allLists();");
+
+        for (Role role : domClass.getRoleSlotsList()) {
+            if ((role.getName() != null) && (role.getMultiplicityUpper() != 1)) {
+                print(out, "get$$relationList(\"");
+                print(out, role.getName());
+                print(out, "\", ");
+                print(out, getRelationSlotNameFor(role));
+                println(out, ");");
+            }
+        }
+
+        endMethodBody(out);
+    }
+
 
     @Override
     protected void generateDatabaseReader(DomainClass domClass, PrintWriter out) {

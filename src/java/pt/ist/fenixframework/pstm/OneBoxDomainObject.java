@@ -43,6 +43,7 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
         this.obj$state = VState.makeNew(false);
         this.obj$state.put(this, OBJ_STATE_SLOT_NAME, make$newState());
         this.isNewObject = true;
+        create$allLists();
     }
 
     // This is the constructor used as part of the allocate-instance
@@ -57,6 +58,12 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
     // each class will have to implement/override this method to
     // create an instance of the appropriate subclass of DO_State
     protected abstract DO_State make$newState();
+
+    // each class will have to override this method to create all of
+    // the lists corresponding to relations when a new instance is
+    // created
+    protected void create$allLists() {
+    }
 
     protected final DO_State get$obj$state(boolean forWriting) {
         DO_State currState = (DO_State)this.obj$state.get(this, OBJ_STATE_SLOT_NAME);
