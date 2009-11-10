@@ -174,26 +174,12 @@ class DBChanges {
     }
 
     void makePersistent(PersistenceBroker pb, int txNumber) throws SQLException, LookupException {
-
-	long time1 = System.currentTimeMillis();
-	long time2 = 0;
-	long time3 = 0;
-	long time4 = 0;
-	long time5 = 0;
-	long time6 = 0;
-	long time7 = 0;
-	long time8 = 0;
-	long time9 = 0;
-	long time10 = 0;
-	long time11 = 0;
-
 	// store new objects
 	if (newObjs != null) {
 	    for (Object obj : newObjs) {
 		pb.store(obj, ObjectModificationDefaultImpl.INSERT);
 	    }
 	}
-	time2 = System.currentTimeMillis();
 
 	boolean foundOptimisticException = false;
 
@@ -209,8 +195,6 @@ class DBChanges {
 	    }
 	}
 
-	time3 = System.currentTimeMillis();
-
 	if (foundOptimisticException) {
 	    throw new jvstm.CommitException();
 	}
@@ -222,8 +206,6 @@ class DBChanges {
 	    }
 	}
 
-	time4 = System.currentTimeMillis();
-
 	// write m-to-n tuples
 	if (mToNTuples != null) {
 	    for (RelationTupleInfo info : mToNTuples.values()) {
@@ -231,46 +213,25 @@ class DBChanges {
 	    }
 	}
 
-	time5 = System.currentTimeMillis();
-
 	// write change logs
 	Connection conn = pb.serviceConnectionManager().getConnection();
-	time6 = System.currentTimeMillis();
 	writeAttrChangeLogs(conn, txNumber);
-	time7 = System.currentTimeMillis();
 
 	// write ServiceInfo
 	ServiceInfo info = ServiceInfo.getCurrentServiceInfo();
-	time8 = System.currentTimeMillis();
 	if ((info != null) && info.shouldLog()) {
 	    PreparedStatement stmt = null;
 	    try {
 		stmt = conn.prepareStatement("INSERT INTO FF$SERVICE_LOG VALUES (?,?,?,?)");
-		time9 = System.currentTimeMillis();
 		stmt.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
 		stmt.setString(2, info.username);
 		stmt.setString(3, info.serviceName);
 		Clob clob = new SerialClob(info.getArgumentsAsString().toCharArray());
 		stmt.setClob(4, clob);
-		time10 = System.currentTimeMillis();
 		stmt.executeUpdate();
-		time11 = System.currentTimeMillis();
 	    } finally {
 		stmt.close();
 	    }
-	}
-
-	if ((time8 - time1) > 500) {
-	    System.out.println("makePersistent: ,1: " + (time1 == 0 || time2 == 0 ? "" : (time2 - time1)) + "   ,2: "
-		    + (time2 == 0 || time3 == 0 ? "" : (time3 - time2)) + "   ,3: "
-		    + (time3 == 0 || time4 == 0 ? "" : (time4 - time3)) + "   ,4: "
-		    + (time4 == 0 || time5 == 0 ? "" : (time5 - time4)) + "   ,5: "
-		    + (time5 == 0 || time6 == 0 ? "" : (time6 - time5)) + "   ,6: "
-		    + (time6 == 0 || time7 == 0 ? "" : (time7 - time6)) + "   ,7: "
-		    + (time7 == 0 || time8 == 0 ? "" : (time8 - time7)) + "   ,8: "
-		    + (time8 == 0 || time9 == 0 ? "" : (time9 - time8)) + "   ,9: "
-		    + (time8 == 0 || time9 == 0 ? "" : (time10 - time9)) + "   ,10: "
-		    + (time8 == 0 || time9 == 0 ? "" : (time11 - time10)));
 	}
     }
 
