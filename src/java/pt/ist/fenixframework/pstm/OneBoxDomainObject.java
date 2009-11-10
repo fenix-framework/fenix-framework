@@ -59,7 +59,7 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
     protected abstract DO_State make$newState();
 
     protected final DO_State get$obj$state(boolean forWriting) {
-        DO_State currState = this.obj$state.get(this, OBJ_STATE_SLOT_NAME);
+        DO_State currState = (DO_State)this.obj$state.get(this, OBJ_STATE_SLOT_NAME);
         if (forWriting && currState.committed) {
             DO_State newState = make$newState();
             currState.copyTo(newState);
@@ -151,10 +151,10 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
     private static RelationList findRelationList(Cons<Pair<String,RelationList>> allLists, Object lastList, String attrName) {
         while (allLists != lastList) {
             Pair<String,RelationList> list = allLists.first();
-            // it is safe to use == instead of equals(Object) to
-            // compare Strings here because this method will always be
-            // called with interned strings
-            if (list.first == attrName) {
+            // it is not safe to use == instead of equals(Object) to
+            // compare Strings here because this method may be
+            // called with non-interned strings (when reading the changelogs from DB)
+            if (list.first.equals(attrName)) {
                 return list.second;
             }
             allLists = allLists.rest();

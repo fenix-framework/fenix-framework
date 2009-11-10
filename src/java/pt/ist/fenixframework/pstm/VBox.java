@@ -40,7 +40,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runti
     }
 
     public void putNotLoadedValue() {
-	this.put((E)NOT_LOADED_VALUE);
+	this.put(VBox.<E>notLoadedValue());
     }
 
     protected void persistentLoad(E value) {
@@ -58,7 +58,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runti
 
     public VBoxBody addNewVersion(String attr, int txNumber) {
 	if (body.version < txNumber) {
-            return commit((E)NOT_LOADED_VALUE, txNumber);
+            return commit(VBox.<E>notLoadedValue(), txNumber);
 	} else {
             // when adding a new version to a box it may happen that a
 	    // version with the same number exists already, if we are
