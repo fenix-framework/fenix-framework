@@ -244,9 +244,12 @@ public class OJBMetadataGenerator {
                 Role role = (Role) roleSlots.next();
                 String roleName = role.getName();
 
+                if (roleName == null) {
+                    continue;
+                }
+
                 if (domClass.getFullName().equals("net.sourceforge.fenixedu.domain.RootDomainObject")
-                        && roleName != null
-                        && (roleName.equals("rootDomainObject") || roleName.equals("rootDomainObjects"))) {
+                    && (roleName.equals("rootDomainObject") || roleName.equals("rootDomainObjects"))) {
                     continue;
                 }
 
