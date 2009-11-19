@@ -17,6 +17,8 @@ import dml.DomainClass;
 import jvstm.ProcessAtomicAnnotations;
 
 public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
+    private static final String OID_INNER_CLASS_INTERNAL_NAME = Type.getInternalName(DomainObjectAllocator.OID.class);
+
     private static final String CONSTRUCTOR_DESC = 
         Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] { Type.getType(DomainObjectAllocator.OID.class) });
 
@@ -51,6 +53,7 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
         private String classDesc = null;
         private String superDesc = null;
         private boolean foundConstructor = false;
+        private boolean foundInnerClass = false;
         private boolean warnOnFiels = false;
 
         public AddOJBConstructorClassAdapter(ClassVisitor cv) {
@@ -64,6 +67,14 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
             super.visit(version, access, name, signature, superName, interfaces);
         }
 
+        @Override
+        public void visitInnerClass(String name, String outerName, String innerName, int access) {
+            if (! foundInnerClass) {
+                foundInnerClass = OID_INNER_CLASS_INTERNAL_NAME.equals(name);
+            }
+            super.visitInnerClass(name, outerName, innerName, access);
+        }
+
         public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
             if (warnOnFiels && ((access & ACC_STATIC) == 0)) {
                 System.err.println(classDesc + ": field not declared on base class -> " + name);
@@ -75,6 +86,16 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
             if (! foundConstructor) {
                 // force it
                 visitMethod(ACC_PUBLIC, "<init>", CONSTRUCTOR_DESC, null, null);
+            }
+
+            if (! foundInnerClass) {
+                // add, also, the InnerClasses attribute for the
+                // DomainObjectAllocator.OID class that is used in the
+                // constructor injected
+                visitInnerClass(OID_INNER_CLASS_INTERNAL_NAME, 
+                                Type.getInternalName(DomainObjectAllocator.class), 
+                                "OID", 
+                                ACC_PUBLIC + ACC_STATIC);
             }
         }
 
