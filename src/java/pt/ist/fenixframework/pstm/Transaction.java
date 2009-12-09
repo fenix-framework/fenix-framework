@@ -64,6 +64,30 @@ public abstract class Transaction extends jvstm.Transaction {
 	return jvstm.Transaction.begin(readOnly);
     }
 
+
+    // This method is here just as a quick solution for providing a
+    // way to create read-only transactions that do not open a
+    // connection to the database, but this should be done in a better
+    // way, probably by changing the API provided by the JVSTM, so
+    // that the call to the Transaction.begin(...) method may receive
+    // an argument specifying the kind of transaction that we want.
+    public static jvstm.Transaction beginReadOnlyPossiblyInThePast(long maxMillisInThePast) {
+        // use normal ReadOnlyTopLevelTransaction if no dbConnection was made recently
+        if (! TopLevelTransaction.lastDbConnectionWithin(maxMillisInThePast)) {
+            return begin(true);
+        }
+
+        jvstm.Transaction parent = current.get();
+        if (parent != null) {
+            throw new Error("This kind of transactions cannot be nested");
+        }
+
+        jvstm.ActiveTransactionsRecord activeRecord = mostRecentRecord.getRecordForNewTransaction();
+        jvstm.Transaction tx = new ReadOnlyTopLevelTransactionPossiblyInThePast(activeRecord);
+        tx.start();
+        return tx;
+    }
+
     public static void forceFinish() {
 	if (current() != null) {
 	    try {

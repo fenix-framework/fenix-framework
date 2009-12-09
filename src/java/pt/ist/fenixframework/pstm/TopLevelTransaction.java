@@ -62,6 +62,18 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	}
     }
 
+    // The following variable is not updated atomically (with a CAS,
+    // or something similar), because the accuracy of its value is not
+    // critical.  It may happen that a starting transaction puts a
+    // lower value into this variable, when racing to update it, but
+    // that means that a new transaction may open a new dbConnection
+    // when it was not needed, but that is OK.
+    protected volatile static long lastDbConnectionTimestamp = 0;
+
+    static boolean lastDbConnectionWithin(long millis) {
+        return (System.currentTimeMillis() - lastDbConnectionTimestamp) < millis;
+    }
+
     // Each TopLevelTx has its DBChanges
     // If this slot is changed to null, it is an indication that the
     // transaction does not allow more changes
@@ -102,6 +114,12 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     protected void initDbConnection(boolean resuming) {
 	// first, get a new broker that will give access to the DB connection
 	this.broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+
+        // update the lastDbConnectionTimestamp with the current time
+        long now = System.currentTimeMillis();
+        if (now > lastDbConnectionTimestamp) {
+            lastDbConnectionTimestamp = now;
+        }
 
 	// open a connection to the database and set this tx number to the
 	// number that
