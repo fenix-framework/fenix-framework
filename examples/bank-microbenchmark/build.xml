@@ -20,6 +20,9 @@
   <property name="txsys.ff" value="pt.ist.fenixframework.example.bankbench.ff.FFTxSystem"/>
   <property name="txsys.hib" value="pt.ist.fenixframework.example.bankbench.hib.HibTxSystem"/>
  
+  <!-- java.file.encoding should match your terminal's encoding -->
+  <property name="java.file.encoding" value="UTF-8"/>
+
   <import file="${framework.dir}/src/etc/dml-generate.xml"/>
 
   <path id="hib.project.class.path">
