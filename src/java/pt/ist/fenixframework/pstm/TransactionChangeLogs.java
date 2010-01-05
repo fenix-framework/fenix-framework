@@ -149,21 +149,34 @@ public class TransactionChangeLogs {
 	// ensure that the connection is up-to-date
 	conn.commit();
         
-	Statement stmt = conn.createStatement();
+        Statement stmt = null;
+        ResultSet rs = null;
         
-	// read tx logs
-	int maxTxNumber = record.transactionNumber;
+        try {
+            stmt = conn.createStatement();
+        
+            // read tx logs
+            int maxTxNumber = record.transactionNumber;
 
-	ResultSet rs = stmt.executeQuery("SELECT OBJ_OID,OBJ_ATTR,TX_NUMBER FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER > " 
-					 + (forUpdate ? (maxTxNumber - 1) : maxTxNumber)
-					 + " ORDER BY TX_NUMBER"
-					 + (forUpdate ? " FOR UPDATE" : ""));
+            rs = stmt.executeQuery("SELECT OBJ_OID,OBJ_ATTR,TX_NUMBER FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER > " 
+                                   + (forUpdate ? (maxTxNumber - 1) : maxTxNumber)
+                                   + " ORDER BY TX_NUMBER"
+                                   + (forUpdate ? " FOR UPDATE" : ""));
 
-        // if there are any results to be processed, process them
-	if (rs.next()) {
-            return processAlienTransaction(pb, rs, record);
-	} else {
-            return record;
+            // if there are any results to be processed, process them
+            if (rs.next()) {
+                return processAlienTransaction(pb, rs, record);
+            } else {
+                return record;
+            }
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+
+            if (stmt != null) {
+                stmt.close();
+            }
         }
     }
 
