@@ -105,14 +105,6 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	return (T) obj;
     }
 
-    // This method should not be used. It is temporary only until we
-    // get rid of the DomainReference class in the Fenix web
-    // application.
-    public static <T extends DomainObject> T fromClassAndID(Class objClass, int id) {
-	long cid = ((long) DomainClassInfo.mapClassToId(objClass) << 32);
-	return (T) fromOID(cid + id);
-    }
-
     VersionedSubject getSlotNamed(String attrName) {
 	Class myClass = this.getClass();
 	while (myClass != Object.class) {
@@ -195,7 +187,7 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	private static final long serialVersionUID = 1L;
 
 	// use string to allow future expansion of an OID
-	private String oid;
+	private final String oid;
 
 	SerializedForm(AbstractDomainObject obj) {
 	    this.oid = String.valueOf(obj.getOid());
