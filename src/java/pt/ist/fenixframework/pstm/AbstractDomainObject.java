@@ -210,4 +210,7 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	    return AbstractDomainObject.<T> fromOID(Long.valueOf(extId));
 	}
     }
+
+    protected void doCheckDisconnectedAction(java.util.List<String> relationList) {
+    }
 }
