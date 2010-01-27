@@ -16,8 +16,8 @@
 	<classpathentry kind="lib" path="lib/asm-commons-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-1.5.2.jar"/>
 	<classpathentry kind="lib" path="lib/dap-framework.jar"/>
-	<classpathentry kind="lib" path="lib/dml-20091101.jar" sourcepath="/dml"/>
 	<classpathentry kind="lib" path="lib/commons-io-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/dml-20100126.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
