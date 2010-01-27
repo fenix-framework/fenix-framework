@@ -172,11 +172,17 @@ public class Config {
     protected boolean collectDataAccessPatterns = false;
 
     /**
-     * This <strong>options</strong> parameter indicates whether the framework
+     * This <strong>optional</strong> parameter indicates whether the framework
      * should throw an exception when a DomainObject that is still connected to
      * other objects is trying to be deleted or rather delete it.
      */
     protected boolean errorfIfDeletingObjectNotDisconnected = false;
+
+    /**
+     * This <strong>optional</strong> parameter indicates whether the framework
+     * will load on startup additional plugins.
+     */
+    protected FenixFrameworkPlugin[] plugins;
 
     private static void checkRequired(Object obj, String fieldName) {
 	if (obj == null) {
@@ -288,5 +294,9 @@ public class Config {
 
     public Class<? extends FenixDomainModel> getDomainModelClass() {
 	return domainModelClass;
+    }
+
+    public FenixFrameworkPlugin[] getPlugins() {
+	return plugins;
     }
 }

@@ -1,0 +1,21 @@
+package pt.ist.fenixframework.pstm;
+
+
+external class AbstractDomainObject;
+
+
+class PersistentRoot {
+	String rootKey;
+}
+
+relation MultipleRoots {
+	PersistentRoot playsRole previous;
+	PersistentRoot playsRole next;
+}
+
+
+relation PersistentRootAbstractDomainObject {
+ AbstractDomainObject playsRole rootObject;
+ PersistentRoot playsRole;
+}
+

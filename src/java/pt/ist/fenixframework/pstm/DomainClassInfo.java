@@ -62,7 +62,7 @@ public class DomainClassInfo {
 
 		    for (DomainClass domClass : model.getDomainClasses()) {
 			Class javaClass = Class.forName(domClass.getFullName());
-			if (!map.containsKey(javaClass)) {
+			if (javaClass != PersistentRoot.class && !map.containsKey(javaClass)) {
 			    DomainClassInfo classInfo = new DomainClassInfo(javaClass, ++maxId);
 			    addNewInfo(map, array, classInfo);
 
@@ -171,10 +171,12 @@ public class DomainClassInfo {
 	if (oid == 1) {
 	    return 0;
 	} else {
-	    return (((int)(oid >> 32)) & 0x0000FFFF); // shift class id to rightmost position and clear server id bits
+	    return (((int) (oid >> 32)) & 0x0000FFFF); // shift class id to
+						       // rightmost position and
+						       // clear server id bits
 	}
     }
-    
+
     public static Class mapOidToClass(long oid) {
 	return mapIdToClass(mapOidToClassId(oid));
     }

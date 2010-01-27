@@ -2,15 +2,11 @@ package pt.ist.fenixframework.pstm;
 
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-import dml.DmlCompiler;
-
-import antlr.ANTLRException;
-
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
+import antlr.ANTLRException;
+import dml.DmlCompiler;
 
 public class DML {
 

@@ -1,49 +1,92 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project basedir="." default="compile" name="The fenix-framework Build File">
+	
+	<property name="src.dir" location="src" />
+	<property name="java.src.dir" location="${src.dir}/java" />
+	<property name="build.dir" location="build" />
+	<property name="dist.dir" location="dist" />
+	<property name="lib.dir" location="lib" />
+	<property name="jar.filename" value="${dist.dir}/fenix-framework" />
+	<property name="generator.jar.filename" value="${dist.dir}/fenix-framework-codegenerators" />
+	<property name="svntask.dir" location="lib-devel/svntask" />
+	<property name="src.gen" location="src_gen" />
+	<property name="domain.file" value="fenix-framework.dml" />
+	<property name="code.generation.include.pattern" value="pt/ist/fenixframework/pstm/dml/" />
 
-  <property name="src.dir" location="src"/>
-  <property name="java.src.dir" location="${src.dir}/java"/>
-  <property name="build.dir" location="build"/>
-  <property name="dist.dir" location="dist"/>
-  <property name="lib.dir" location="lib"/>
-  <property name="jar.filename" value="${dist.dir}/fenix-framework"/>
-  <property name="svntask.dir" location="lib-devel/svntask"/>
+	<import file="${src.dir}/etc/dml-generate.xml" />
 
-  <target name="clean-all" description="Removes any generated files">
-    <delete dir="${build.dir}"/>
-    <delete dir="${dist.dir}"/>
-  </target>
+	<path id="class.path.ref">
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
 
-  <target name="version">
-    <typedef resource="com/googlecode/svntask/svntask.xml">
-      <classpath>
-        <fileset dir="${svntask.dir}">
-          <include name="svnkit.jar"/>
-          <include name="svntask.jar"/>
-        </fileset>
-      </classpath>
-    </typedef>
+	<target name="clean-all" description="Removes any generated files">
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.dir}" />
+		<delete dir="${src.gen}" />
+	</target>
 
-    <!-- Do an update first to make sure you have the latest version -->
-    <!-- svn><update path="." force="true" recursive="true" /></svn -->
+	<target name="version">
+		<typedef resource="com/googlecode/svntask/svntask.xml">
+			<classpath>
+				<fileset dir="${svntask.dir}">
+					<include name="svnkit.jar" />
+					<include name="svntask.jar" />
+				</fileset>
+			</classpath>
+		</typedef>
 
-    <svn><info path="./" revisionProperty="revisionVersion" /></svn>
-    <property name="svn.version" value="${revisionVersion}" />
-  </target>
+		<!-- Do an update first to make sure you have the latest version -->
+		<!-- svn><update path="." force="true" recursive="true" /></svn -->
 
-  <target name="compile" description="Compiles the fenix-framework source">
-    <mkdir dir="${build.dir}"/>
-    <javac srcdir="${java.src.dir}" destdir="${build.dir}" extdirs="${lib.dir}" target="1.5" debug="on"/>
-    <copy todir="${build.dir}">
-      <fileset dir="${src.dir}/etc" />
-    </copy>
-    <copy todir="${build.dir}">
-      <fileset dir="${src.dir}/sql" />
-    </copy>
-  </target>
+		<svn>
+			<info path="./" revisionProperty="revisionVersion" />
+		</svn>
+		<property name="svn.version" value="${revisionVersion}" />
+	</target>
 
-  <target name="jar" depends="compile,version" description="Generates the jar with the fenix-framework">
-    <mkdir dir="${dist.dir}"/>
-    <jar destfile="${jar.filename}-r${svn.version}.jar" basedir="${build.dir}"/>
-  </target>
+	<target name="compile-code-generator" description="Compiles the code generator">
+		<mkdir dir="${build.dir}" />
+		<copy file="build.properties" todir="${build.dir}" />
+		<javac srcdir="${java.src.dir}" includes="${code.generation.include.pattern}" destdir="${build.dir}" extdirs="${lib.dir}" target="1.5" debug="on" />
+	</target>
+
+	<target name="compile" depends="generate-domain" description="Compiles the fenix-framework source">
+		<javac destdir="${build.dir}" extdirs="${lib.dir}" target="1.5" debug="on">
+			<src path="${java.src.dir}" />
+			<src path="${src.gen}" />
+		</javac>
+		<copy todir="${build.dir}">
+			<fileset dir="${src.dir}/etc" />
+		</copy>
+		<copy todir="${build.dir}">
+			<fileset dir="${src.dir}/sql" />
+		</copy>
+		<antcall target="post-compile"/>
+	</target>
+
+	<target name="post-compile" description="Bytecode Magic to inject constructors">
+        <post-process-domain dir="${build.dir}" dml="${build.dir}/${domain.file}">
+            <classpath refid="class.path.ref" />
+            <classpath>
+              <pathelement path="${build.dir}" />
+            </classpath>
+         </post-process-domain>
+	</target>
+	
+	<target name="jar" depends="compile,version" description="Generates the jar with the fenix-framework, excluding code generators">
+		<mkdir dir="${dist.dir}" />
+		<jar destfile="${jar.filename}-r${svn.version}.jar" basedir="${build.dir}"/>
+	</target>
+
+	<target name="generate-domain" depends="compile-code-generator">
+		<copy file="${src.dir}/dml/${domain.file}" todir="${build.dir}" />
+		<dml-compile dml="${build.dir}/${domain.file}" java-sources="${java.src.dir}" java-gen="${src.gen}">
+			<classpath refid="class.path.ref" />
+			<classpath>
+			   <pathelement path="${build.dir}" />
+			</classpath>
+		</dml-compile>
+	</target>
 </project>

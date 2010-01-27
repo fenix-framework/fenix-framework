@@ -1,10 +1,8 @@
 package pt.ist.fenixframework.pstm.dml;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import dml.*;
+import dml.DomainClass;
+import dml.DomainEntity;
+import dml.Slot;
 
 // This class is temporary and should be removed once we get rid of
 // the ojbConcreteClass fields.
