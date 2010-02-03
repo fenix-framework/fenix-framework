@@ -30,7 +30,7 @@ public class FenixDomainModel extends DomainModel {
 	    }
 	}
 
-	TX_NUMBER_CLASS = properties.getProperty("tx.number.class");
+	TX_NUMBER_CLASS = properties.getProperty("tx.number.class", "pt.ist.fenixframework.TxNumber");
     }
 
     private static String[] NON_NULLABLE_TYPES = { "boolean", "byte", "char", "short", "int", "float", "long", "double" };
