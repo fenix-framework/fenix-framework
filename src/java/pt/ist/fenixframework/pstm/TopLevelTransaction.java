@@ -361,23 +361,11 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	try {
 	    Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
-	    long time1 = System.currentTimeMillis();
-	    long time2 = 0;
-	    long time3 = 0;
-	    long time4 = 0;
-	    long time5 = 0;
-	    long time6 = 0;
-	    long time7 = 0;
-	    long time8 = 0;
-	    long time9 = 0;
-
 	    try {
 		if (!pb.isInTransaction()) {
 		    pb.beginTransaction();
 		}
-		time2 = System.currentTimeMillis();
 		try {
-		    time3 = System.currentTimeMillis();
 		    // the updateFromTxLogs is made with the txNumber minus 1 to
 		    // ensure that the select
 		    // for update will return at least a record, and, therefore,
@@ -390,12 +378,10 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 		    if (TransactionChangeLogs.updateFromTxLogsOnDatabase(pb, myRecord, true) != myRecord) {
 			// the cache may have been updated, so perform the
 			// tx-validation again
-			time4 = System.currentTimeMillis();
 			if (!validateCommit()) {
 			    System.out.println("Invalid commit. Restarting.");
 			    throw new jvstm.CommitException();
 			}
-			time5 = System.currentTimeMillis();
 		    }
 		} catch (SQLException sqlex) {
 		    System.out.println("SqlException: " + sqlex.getMessage());
@@ -404,14 +390,11 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 		    throw new Error("Error while obtaining database connection", le);
 		}
 
-		time6 = System.currentTimeMillis();
 		Cons<VBoxBody> newBodies = super.performValidCommit();
-		time7 = System.currentTimeMillis();
 		// ensure that changes are visible to other TXs before releasing
 		// lock
 		try {
 		    pb.commitTransaction();
-		    time8 = System.currentTimeMillis();
 		} catch (Throwable t) {
 		    t.printStackTrace();
 		    System.out.println("Error while commiting exception. Terminating server.");
@@ -424,18 +407,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	    } finally {
 		if (pb != null) {
 		    pb.abortTransaction();
-		    time9 = System.currentTimeMillis();
-		}
-
-		if ((time8 - time1) > 500) {
-		    System.out.println("performValidCommit: ,1: " + (time1 == 0 || time2 == 0 ? "" : (time2 - time1)) + "   ,2: "
-			    + (time2 == 0 || time3 == 0 ? "" : (time3 - time2)) + "   ,3: "
-			    + (time3 == 0 || time4 == 0 ? "" : (time4 - time3)) + "   ,4: "
-			    + (time4 == 0 || time5 == 0 ? "" : (time5 - time4)) + "   ,5: "
-			    + (time5 == 0 || time6 == 0 ? "" : (time6 - time5)) + "   ,6: "
-			    + (time6 == 0 || time7 == 0 ? "" : (time7 - time6)) + "   ,7: "
-			    + (time7 == 0 || time8 == 0 ? "" : (time8 - time7)) + "   ,8: "
-			    + (time8 == 0 || time9 == 0 ? "" : (time9 - time8)));
 		}
 	    }
 	} finally {
@@ -451,35 +422,17 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     }
 
     protected void persistTransaction(int newTxNumber) {
-	long time1 = System.currentTimeMillis();
-	long time2 = 0;
-	long time3 = 0;
-	long time4 = 0;
-	long time5 = 0;
-	long time6 = 0;
-
 	try {
-	    time2 = System.currentTimeMillis();
 	    dbChanges.makePersistent(getOJBBroker(), newTxNumber);
-	    time3 = System.currentTimeMillis();
 	} catch (SQLException sqle) {
 	    throw new Error("Error while accessing database", sqle);
 	} catch (LookupException le) {
 	    throw new Error("Error while obtaining database connection", le);
 	}
-	time4 = System.currentTimeMillis();
 	// calling the dbChanges.cache() method is no longer needed,
 	// given that we are caching objects as soon as they are
 	// instantiated
 	// dbChanges.cache();
-	time5 = System.currentTimeMillis();
-
-	if ((time5 - time1) > 500) {
-	    System.out.println("doCommit: ,1: " + (time1 == 0 || time2 == 0 ? "" : (time2 - time1)) + "   ,2: "
-		    + (time2 == 0 || time3 == 0 ? "" : (time3 - time2)) + "   ,3: "
-		    + (time3 == 0 || time4 == 0 ? "" : (time4 - time3)) + "   ,4: "
-		    + (time4 == 0 || time5 == 0 ? "" : (time5 - time4)));
-	}
     }
 
     // consistency-predicates-system methods
