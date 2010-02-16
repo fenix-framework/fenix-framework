@@ -62,4 +62,4 @@ CREATE TABLE `FF$PERSISTENT_ROOT` (
   KEY `OID` (`OID`)
 ) TYPE=InnoDB;
 
-INSERT INTO FF$PERSISTENT_ROOT VALUES (1, 1, null, null, null, null);
+INSERT INTO FF$PERSISTENT_ROOT VALUES (1, 1, null, null, null, 'pt.ist.fenixframework.root');
