@@ -8,7 +8,6 @@
 	<property name="build.dir" location="build" />
 	<property name="build.dir.classes" location="${build.dir}/classes" />
 	<property name="build.dir.javagen" location="${build.dir}/javaGen" />
-	<property name="build.dir.pom" location="${build.dir}/pom" />
 	<property name="antlr.gen.package" value="dml" />
 	<property name="dist.dir" location="dist" />
 	<property name="lib.dir" location="lib" />
@@ -34,7 +33,6 @@
 		<mkdir dir="${build.dir}" />
 		<mkdir dir="${build.dir.classes}" />
 		<mkdir dir="${build.dir.javagen}" />
-		<mkdir dir="${build.dir.pom}" />
 	</target>
 
 	<target name="clean-all" description="Removes any generated files">

@@ -8,7 +8,7 @@ public class CompilerArgs {
     File destDirectoryBase = null;
     File destDirectory = null;
     String packageName = "";
-    List domainSpecFilenames = new ArrayList();
+    List<String> domainSpecFilenames = new ArrayList<String>();
     Class<? extends CodeGenerator> generatorClass = CodeGenerator.class;
     Class<? extends DomainModel> domainModelClass = DomainModel.class;
 
@@ -96,5 +96,9 @@ public class CompilerArgs {
     void error(String msg) {
 	System.err.println("DmlCompiler: " + msg);
 	System.exit(1);
+    }
+
+    public Class<? extends CodeGenerator> getCodeGenerator() {
+	return generatorClass;
     }
 }
