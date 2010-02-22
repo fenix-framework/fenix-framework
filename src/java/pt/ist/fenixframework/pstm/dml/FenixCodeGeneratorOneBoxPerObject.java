@@ -8,8 +8,8 @@ import dml.runtime.Relation;
 
 public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
-    private static final String DO_STATE_SUPER = properties.getProperty("do.state.super.class");
-    private static final String ONE_BOX_DOMAIN_OBJECT_CLASS = properties.getProperty("onebox.domainObject.class");
+    private static final String DO_STATE_SUPER = "pt.ist.fenixframework.pstm.OneBoxDomainObject.DO_State ";
+    private static final String ONE_BOX_DOMAIN_OBJECT_CLASS = "pt.ist.fenixframework.pstm.OneBoxDomainObject";
 
     protected DomainClass currentClass;
 

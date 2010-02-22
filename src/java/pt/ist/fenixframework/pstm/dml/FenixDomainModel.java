@@ -16,22 +16,7 @@ public class FenixDomainModel extends DomainModel {
 
     private static Map<String, String> BUILT_IN_JDBC_MAP = new HashMap<String, String>();
 
-    private static final String TX_NUMBER_CLASS;
-    protected static final Properties properties;
-
-    static {
-	properties = new Properties();
-	final InputStream inputStream = FenixCodeGenerator.class.getResourceAsStream("build.properties");
-	if (inputStream != null) {
-	    try {
-		properties.load(inputStream);
-	    } catch (IOException e) {
-		e.printStackTrace();
-	    }
-	}
-
-	TX_NUMBER_CLASS = properties.getProperty("tx.number.class", "pt.ist.fenixframework.TxNumber");
-    }
+    private static final String TX_NUMBER_CLASS = "pt.ist.fenixframework.TxNumber";
 
     private static String[] NON_NULLABLE_TYPES = { "boolean", "byte", "char", "short", "int", "float", "long", "double" };
 

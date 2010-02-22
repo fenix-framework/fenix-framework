@@ -1,15 +1,11 @@
 package pt.ist.fenixframework.pstm.dml;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
 import pt.ist.fenixframework.pstm.ToSqlConverter;
-
 import dml.CodeGenerator;
 import dml.CompilerArgs;
 import dml.DomainClass;
@@ -24,32 +20,12 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     protected static final String TO_SQL_CONVERTER_CLASS = ToSqlConverter.class.getName();
 
-    protected static final Properties properties;
-    protected static final String RESULT_SET_READER_CLASS;
+    protected static final String RESULT_SET_READER_CLASS = "pt.ist.fenixframework.pstm.ResultSetReader";
 
-    protected static final String IMPORTS_COMMA_SEPARATED;
-    protected static final String DOMAIN_CLASS_ROOT;
-    protected static final String DIRECT_RELATION_TYPE_CLASS;
-    protected static final String TRANSACTION_CLASS;
-
-    static {
-	properties = new Properties();
-	final InputStream inputStream = FenixCodeGenerator.class.getResourceAsStream("/build.properties");
-	if (inputStream != null) {
-	    try {
-		properties.load(inputStream);
-	    } catch (IOException e) {
-		e.printStackTrace();
-	    }
-	}
-
-	RESULT_SET_READER_CLASS = properties.getProperty("result.set.reader.class");
-	IMPORTS_COMMA_SEPARATED = properties.getProperty("imports.comma.separated");
-	DOMAIN_CLASS_ROOT = properties.getProperty("domain.class.root");
-	DIRECT_RELATION_TYPE_CLASS = properties.getProperty("direct.relation.type.class");
-	TRANSACTION_CLASS = properties.getProperty("transaction.class");
-
-    }
+    protected static final String IMPORTS_COMMA_SEPARATED = "pt.ist.fenixframework.pstm.VBox,pt.ist.fenixframework.pstm.RelationList,pt.ist.fenixframework.pstm.OJBFunctionalSetWrapper";
+    protected static final String DOMAIN_CLASS_ROOT = "pt.ist.fenixframework.pstm.AbstractDomainObject";
+    protected static final String DIRECT_RELATION_TYPE_CLASS = "pt.ist.fenixframework.pstm.LoggingRelation";
+    protected static final String TRANSACTION_CLASS = "pt.ist.fenixframework.pstm.Transaction";
 
     public FenixCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
 	super(compArgs, domainModel);
