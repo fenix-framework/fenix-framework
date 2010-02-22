@@ -213,4 +213,9 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 
     protected void doCheckDisconnectedAction(java.util.List<String> relationList) {
     }
+
+    @Override
+    public String toString() {
+	return getClass().getName() + ":" + getExternalId();
+    }
 }
