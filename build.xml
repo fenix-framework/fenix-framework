@@ -102,8 +102,8 @@
 	<target name="post-compile" description="Bytecode Magic to inject constructors">
 		<taskdef name="dml-postCompile" classname="pt.ist.fenixframework.pstm.antTasks.PostCompileTask">
 			<classpath>
-				<fileset dir="lib" includes="*.jar" />
-				<dirset dir="build/classes" />
+				<fileset dir="${lib.dir}" includes="*.jar" />
+				<dirset dir="${build.dir.classes}" />
 			</classpath>
 		</taskdef>
 		<dml-postCompile domainModelClassName="${fenix.framework.domainModelClass}" dir="${build.dir.classes}">
@@ -118,7 +118,7 @@
 	</target>
 
 	<target name="jar" depends="compile,version" description="Generates the jar with the fenix-framework, excluding code generators">
-		<copy file="${src.dir}/etc/dml-ant.xml" todir="${build.dir.classes}" />
+		<copy file="${src.dir}/etc/dml-ant.xml" todir="${build.dir.classes}/pt/ist/fenixframework/" />
 		<mkdir dir="${dist.dir}" />
 		<jar destfile="${jar.filename}-r${svn.version}.jar" basedir="${build.dir.classes}" />
 	</target>
@@ -127,8 +127,8 @@
 		<copy file="${src.dir}/dml/${domain.file}" todir="${build.dir.classes}" />
 		<taskdef name="domain-generator" classname="dml.antTasks.DmlCompileTask">
 			<classpath>
-				<pathelement location="build/classes" />
-				<fileset dir="lib" includes="*.jar" />
+				<pathelement location="${build.dir.classes}" />
+				<fileset dir="${lib.dir}" includes="*.jar" />
 			</classpath>
 		</taskdef>
 		<domain-generator destDirectory="${java.src.dir}" destDirectoryBase="${src.gen}" domainModelClassName="${fenix.framework.domainModelClass}" generatorClassName="${fenix.framework.codeGenerator}">
