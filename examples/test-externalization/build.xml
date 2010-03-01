@@ -9,7 +9,7 @@
   <property name="externalization.dml" location="${dml.src.dir}/externalization.dml"/>
   <property name="framework.dir" location="../../"/>
   <property name="framework.lib.dir" location="${framework.dir}/lib"/>
-  <property name="framework.build.dir" location="${framework.dir}/build"/>
+  <property name="framework.build.dir" location="${framework.dir}/build/classes"/>
 
   <!-- The encoding of all the source files should be the same! -->
   <property name="javac.encoding" value="UTF-8"/>

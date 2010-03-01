@@ -14,7 +14,7 @@
   <property name="bank.dml" location="${dml.src.dir}/bank.dml"/>
   <property name="framework.dir" location="../../"/>
   <property name="framework.lib.dir" location="${framework.dir}/lib"/>
-  <property name="framework.build.dir" location="${framework.dir}/build"/>
+  <property name="framework.build.dir" location="${framework.dir}/build/classes"/>
   <property name="hibernate.lib.dir" location="lib-hibernate"/>
 
   <property name="txsys.ff" value="pt.ist.fenixframework.example.bankbench.ff.FFTxSystem"/>

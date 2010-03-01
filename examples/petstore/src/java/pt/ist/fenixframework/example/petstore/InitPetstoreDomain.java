@@ -15,9 +15,9 @@ public class InitPetstoreDomain {
     public static void main(final String[] args) {
         Config config = new Config() {{ 
             domainModelPath = "/petstore.dml";
-            dbAlias = "//localhost:3306/xpto"; 
-            dbUsername = "root";
-            dbPassword = "";
+            dbAlias = "//localhost:3306/test"; 
+            dbUsername = "test";
+            dbPassword = "test";
             rootClass = PetStore.class;
         }};
         FenixFramework.initialize(config);

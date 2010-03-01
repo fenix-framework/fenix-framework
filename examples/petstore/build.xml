@@ -9,8 +9,10 @@
   <property name="petstore.dml" location="${dml.src.dir}/petstore.dml"/>
   <property name="framework.dir" location="../../"/>
   <property name="framework.lib.dir" location="${framework.dir}/lib"/>
-  <property name="framework.build.dir" location="${framework.dir}/build"/>
+  <property name="framework.build.dir" location="${framework.dir}/build/classes"/>
 
+  <!-- java.file.encoding should match your terminal's encoding -->
+  <property name="java.file.encoding" value="UTF-8"/>
 
   <import file="${framework.dir}/src/etc/dml-generate.xml"/>
 

@@ -10,7 +10,7 @@ public class Init {
     public static void init() {
         Config config = new Config() {{ 
             domainModelPath = "/domain.dml";
-            dbAlias = "//localhost:3306/test-suspend";
+            dbAlias = "//localhost:3306/test";
             dbUsername = "test";
             dbPassword = "test";
             rootClass = App.class;
