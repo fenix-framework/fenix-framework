@@ -6,6 +6,8 @@ import java.util.Iterator;
 import dml.*;
 import dml.runtime.Relation;
 
+import pt.ist.fenixframework.pstm.repository.DbUtil;
+
 public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     private static final String DO_STATE_SUPER = "pt.ist.fenixframework.pstm.OneBoxDomainObject.DO_State ";
@@ -234,7 +236,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	print(out, "set$");
 	print(out, name);
 	print(out, "(");
-	printRsReaderExpressions(out, type, convertToDBStyle(name), 0);
+	printRsReaderExpressions(out, type, DbUtil.convertToDBStyle(name), 0);
 	print(out, ", state);");
     }
 
@@ -248,7 +250,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
 	print(out, RESULT_SET_READER_CLASS);
 	print(out, ".readDomainObject(rs, \"OID_");
-	print(out, convertToDBStyle(name));
+	print(out, DbUtil.convertToDBStyle(name));
 	print(out, "\");");
     }
 

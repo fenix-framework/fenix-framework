@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import pt.ist.fenixframework.pstm.ToSqlConverter;
+import pt.ist.fenixframework.pstm.repository.DbUtil;
 import dml.CodeGenerator;
 import dml.CompilerArgs;
 import dml.DomainClass;
@@ -592,7 +593,7 @@ public class FenixCodeGenerator extends CodeGenerator {
 	print(out, "set$");
 	print(out, name);
 	print(out, "(");
-	printRsReaderExpressions(out, type, convertToDBStyle(name), 0);
+	printRsReaderExpressions(out, type, DbUtil.convertToDBStyle(name), 0);
 	print(out, ", txNumber);");
     }
 
@@ -618,7 +619,7 @@ public class FenixCodeGenerator extends CodeGenerator {
 
 	print(out, RESULT_SET_READER_CLASS);
 	print(out, ".readDomainObject(rs, \"OID_");
-	print(out, convertToDBStyle(name));
+	print(out, DbUtil.convertToDBStyle(name));
 	print(out, "\"), txNumber);");
     }
 
@@ -643,25 +644,4 @@ public class FenixCodeGenerator extends CodeGenerator {
 	print(out, "\")");
     }
 
-    // MAJOR HACK!!!!! The two following methods were copied verbatim from the
-    // net.sourceforge.fenixedu.util.StringFormatter class
-    private static String splitCamelCaseString(String string) {
-
-	StringBuilder result = new StringBuilder();
-	boolean first = true;
-	for (char c : string.toCharArray()) {
-	    if (first) {
-		first = false;
-	    } else if (Character.isUpperCase(c)) {
-		result.append(' ');
-	    }
-	    result.append(c);
-	}
-
-	return result.toString();
-    }
-
-    protected static String convertToDBStyle(String string) {
-	return splitCamelCaseString(string).replace(' ', '_').toUpperCase();
-    }
 }
