@@ -4,198 +4,208 @@ import java.util.*;
 import java.net.URL;
 
 public class DomainModel {
-    protected Map<String,ValueType> valueTypes = new HashMap<String,ValueType>();
-    protected Map<String,DomainEntity> external = new HashMap<String,DomainEntity>();
-    protected Map<String,DomainClass> classes = new HashMap<String,DomainClass>();
-    protected Map<String,DomainRelation> relations = new HashMap<String,DomainRelation>();
+
+    public static final String AbstractDomainObjectClassName = "pt.ist.fenixframework.pstm.AbstractDomainObject";
+    protected Map<String, ValueType> valueTypes = new HashMap<String, ValueType>();
+    protected Map<String, DomainEntity> external = new HashMap<String, DomainEntity>();
+    protected Map<String, DomainClass> classes = new HashMap<String, DomainClass>();
+    protected Map<String, DomainRelation> relations = new HashMap<String, DomainRelation>();
     private boolean finalized = false;
 
     public DomainModel() {
-        initializeBuiltinValueTypes();
+	initializeBuiltinValueTypes();
+	addExternalEntity(null, DomainModel.AbstractDomainObjectClassName);
     }
 
     protected void initializeBuiltinValueTypes() {
-        newValueType("boolean", "boolean");
-        newValueType("byte", "byte");
-        newValueType("char", "char");
-        newValueType("short", "short");
-        newValueType("int", "int");
-        newValueType("float", "float");
-        newValueType("long", "long");
-        newValueType("double", "double");
-        newValueType("Boolean", "java.lang.Boolean");
-        newValueType("Byte", "java.lang.Byte");
-        newValueType("Character", "java.lang.Character");
-        newValueType("Short", "java.lang.Short");
-        newValueType("Integer", "java.lang.Integer");
-        newValueType("Float", "java.lang.Float");
-        newValueType("Long", "java.lang.Long");
-        newValueType("Double", "java.lang.Double");
-        newValueType("String", "java.lang.String");
+	newValueType("boolean", "boolean");
+	newValueType("byte", "byte");
+	newValueType("char", "char");
+	newValueType("short", "short");
+	newValueType("int", "int");
+	newValueType("float", "float");
+	newValueType("long", "long");
+	newValueType("double", "double");
+	newValueType("Boolean", "java.lang.Boolean");
+	newValueType("Byte", "java.lang.Byte");
+	newValueType("Character", "java.lang.Character");
+	newValueType("Short", "java.lang.Short");
+	newValueType("Integer", "java.lang.Integer");
+	newValueType("Float", "java.lang.Float");
+	newValueType("Long", "java.lang.Long");
+	newValueType("Double", "java.lang.Double");
+	newValueType("String", "java.lang.String");
     }
 
-
     public DomainEntity findClassOrExternal(String name) {
-        DomainEntity domClass = findClass(name);
-        if (domClass == null) {
-            domClass = external.get(name);
-        }
-        return domClass;
+	DomainEntity domClass = findClass(name);
+	if (domClass == null) {
+	    domClass = external.get(name);
+	}
+	return domClass;
     }
 
     public DomainClass findClass(String name) {
-        return classes.get(name);
+	return classes.get(name);
     }
 
     public DomainRelation findRelation(String name) {
-        return relations.get(name);
+	return relations.get(name);
     }
 
     public void addClass(DomainClass domClass) {
-        checkNotFinalized();
-        checkNameUnique(domClass.getFullName());
-        classes.put(domClass.getFullName(), domClass);
+	checkNotFinalized();
+	checkNameUnique(domClass.getFullName());
+	classes.put(domClass.getFullName(), domClass);
     }
 
     public void addRelation(DomainRelation domRelation) {
-        checkNotFinalized();
-        checkNameUnique(domRelation.getFullName());
-        relations.put(domRelation.getFullName(), domRelation);
+	checkNotFinalized();
+	checkNameUnique(domRelation.getFullName());
+	relations.put(domRelation.getFullName(), domRelation);
     }
 
     public void addExternalEntity(URL sourceFile, String name) {
-        addExternalEntity(sourceFile, name, name);
+	addExternalEntity(sourceFile, name, name);
     }
 
     public void addExternalEntity(URL sourceFile, String name, String aliasName) {
-        if (aliasName == null) {
-            aliasName = name;
-        }
-        checkNotFinalized();
-        checkNameUnique(name);
-        checkNameUnique(aliasName);
-        DomainExternalEntity ent = new DomainExternalEntity(sourceFile, name);
-        external.put(aliasName, ent);
-        if (! aliasName.equals(name)) {
-            external.put(name, ent);
-        }
+	if (aliasName == null) {
+	    aliasName = name;
+	}
+	checkNotFinalized();
+	DomainExternalEntity ent = new DomainExternalEntity(sourceFile, name);
+	external.put(aliasName, ent);
+	if (!aliasName.equals(name)) {
+	    external.put(name, ent);
+	}
     }
 
     public Iterator<DomainClass> getClasses() {
-        return classes.values().iterator();
+	return classes.values().iterator();
     }
 
     public Collection<DomainClass> getDomainClasses() {
-        return classes.values();
+	return classes.values();
     }
 
     public Iterator<DomainRelation> getRelations() {
-        return relations.values().iterator();
+	return relations.values().iterator();
     }
 
     public Collection<DomainRelation> getDomainRelations() {
-        return relations.values();
+	return relations.values();
     }
 
     public void newValueType(String domainName, String fullName) {
-        ValueType valueType = new PlainValueType(fullName);
-        newValueType(domainName, valueType);
+	ValueType valueType = new PlainValueType(fullName);
+	newValueType(domainName, valueType);
     }
 
     public void newValueType(String domainName, ValueType valueType) {
-        if (domainName == null) {
-            domainName = valueType.getFullname();
-        }
-        valueType.getBaseType().setDomainName(domainName);
-        valueTypes.put(domainName, valueType);
+	if (domainName == null) {
+	    domainName = valueType.getFullname();
+	}
+	valueType.getBaseType().setDomainName(domainName);
+	valueTypes.put(domainName, valueType);
     }
 
     public void newEnumType(String domainName, String fullName) {
-        if (domainName == null) {
-            domainName = fullName;
-        }
-        valueTypes.put(domainName, new EnumValueType(domainName, fullName));
+	if (domainName == null) {
+	    domainName = fullName;
+	}
+	valueTypes.put(domainName, new EnumValueType(domainName, fullName));
     }
 
     public ValueType findValueType(String name) {
-        return valueTypes.get(name);
+	return valueTypes.get(name);
     }
 
     public boolean isEnumType(String valueTypeName) {
-        ValueType vt = findValueType(valueTypeName);
-        return ((vt != null) && vt.isEnum());
+	ValueType vt = findValueType(valueTypeName);
+	return ((vt != null) && vt.isEnum());
     }
 
     public void finalizeDomain() {
-        // go through each of the relations and add their slots to the corresponding classes...
-        for (DomainRelation rel : relations.values()) {
-            List<Role> roles = rel.getRoles();
-            int numRoles = roles.size();
-            if (numRoles != 2) {
-                if (numRoles > 2) {
-                    throw new RuntimeException("Can't handle with more than two roles yet!");
-                }
-            }
+	finalizeDomain(false);
+    }
 
-            Role r0 = roles.get(0);
-            Role r1 = roles.get(1);
-            r0.getType().addRoleSlot(r1);
-            r1.getType().addRoleSlot(r0);
-        }
+    public void finalizeDomain(boolean checkForMissingExternals) {
+	// go through each of the relations and add their slots to the
+	// corresponding classes...
+	for (DomainRelation rel : relations.values()) {
+	    List<Role> roles = rel.getRoles();
+	    int numRoles = roles.size();
+	    if (numRoles != 2) {
+		if (numRoles > 2) {
+		    throw new RuntimeException("Can't handle with more than two roles yet!");
+		}
+	    }
 
-        checkForRepeatedSlots();
+	    Role r0 = roles.get(0);
+	    Role r1 = roles.get(1);
+	    r0.getType().addRoleSlot(r1);
+	    r1.getType().addRoleSlot(r0);
+	}
 
-        finalized = true;
+	checkForRepeatedSlots();
+
+	if (checkForMissingExternals) {
+	    for (String externalName : external.keySet()) {
+		if (!externalName.equals(DomainModel.AbstractDomainObjectClassName) && !classes.containsKey(externalName)) {
+		    throw new RuntimeException(externalName
+			    + " was defined as an external entity but there is no concrete definition of it!");
+		}
+	    }
+	}
+	finalized = true;
     }
 
     protected void checkForRepeatedSlots() {
-        for (DomainClass domClass : classes.values()) {
-            DomainEntity superDomClass = domClass.getSuperclass();
-            if (superDomClass != null) {
-                for (Slot slot : domClass.getSlotsList()) {
-                    if (superDomClass.findSlot(slot.getName()) != null) {
-                        System.err.printf("WARNING: Slot named '%s' in class '%s' already exists in a superclass\n", 
-                                          slot.getName(), 
-                                          domClass.getName());
-                    }
-                    if (superDomClass.findRoleSlot(slot.getName()) != null) {
-                        System.err.printf("WARNING: Slot named '%s' in class '%s' already exists in a superclass as role slot\n", 
-                                          slot.getName(), 
-                                          domClass.getName());
-                    }
-                }
+	for (DomainClass domClass : classes.values()) {
+	    DomainEntity superDomClass = domClass.getSuperclass();
+	    if (superDomClass != null) {
+		for (Slot slot : domClass.getSlotsList()) {
+		    if (superDomClass.findSlot(slot.getName()) != null) {
+			System.err.printf("WARNING: Slot named '%s' in class '%s' already exists in a superclass\n", slot
+				.getName(), domClass.getName());
+		    }
+		    if (superDomClass.findRoleSlot(slot.getName()) != null) {
+			System.err.printf("WARNING: Slot named '%s' in class '%s' already exists in a superclass as role slot\n",
+				slot.getName(), domClass.getName());
+		    }
+		}
 
-                for (Role role : domClass.getRoleSlotsList()) {
-                    if (superDomClass.findSlot(role.getName()) != null) {
-                        System.err.printf("WARNING: Role slot named '%s' in class '%s' already exists in a superclass as a slot\n", 
-                                          role.getName(), 
-                                          domClass.getName());
-                    }
-                    
-                    if (superDomClass.findRoleSlot(role.getName()) != null) {
-                        System.err.printf("WARNING: Role slot named '%s' in class '%s' already exists in a superclass as role slot\n", 
-                                          role.getName(), 
-                                          domClass.getName());
-                    }
-                }
-            }
-        }
+		for (Role role : domClass.getRoleSlotsList()) {
+		    if (superDomClass.findSlot(role.getName()) != null) {
+			System.err.printf(
+				"WARNING: Role slot named '%s' in class '%s' already exists in a superclass as a slot\n", role
+					.getName(), domClass.getName());
+		    }
+
+		    if (superDomClass.findRoleSlot(role.getName()) != null) {
+			System.err.printf(
+				"WARNING: Role slot named '%s' in class '%s' already exists in a superclass as role slot\n", role
+					.getName(), domClass.getName());
+		    }
+		}
+	    }
+	}
     }
 
     public String toString() {
-        return "{ classes = " + classes + ", relations = " + relations + " }";
+	return "{ classes = " + classes + ", relations = " + relations + " }";
     }
 
-
     private void checkNotFinalized() {
-        if (finalized) {
-            throw new RuntimeException("Cannot change Domain after finalization");
-        }
+	if (finalized) {
+	    throw new RuntimeException("Cannot change Domain after finalization");
+	}
     }
 
     private void checkNameUnique(String name) {
-        if (external.containsKey(name) || classes.containsKey(name) || relations.containsKey(name)) {
-            throw new RuntimeException("Duplicate name: " + name);
-        }
+	if (classes.containsKey(name) || relations.containsKey(name)) {
+	    throw new RuntimeException("Duplicate name: " + name);
+	}
     }
 }

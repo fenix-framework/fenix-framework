@@ -44,7 +44,7 @@ public class MetadataManager {
 	    }
 
 	    // first, get the domain model
-	    this.domainModel = DML.getDomainModelForURLs(config.getDomainModelClass(), domainModelURLs);
+	    this.domainModel = DML.getDomainModelForURLs(config.getDomainModelClass(), domainModelURLs, true);
 
 	    // create the OJB's MetadataManager, but use the correct
 	    // OJB.properties file
