@@ -17,7 +17,7 @@ public class Main {
 
         addNewPeople(args);
 
-        greatAll();
+        greetAll();
     }
 
     @Atomic
@@ -29,7 +29,7 @@ public class Main {
     }
 
     @Atomic
-    private static void greatAll() {
+    private static void greetAll() {
         HelloWorldApplication app = FenixFramework.getRoot();
         app.sayHello();
     }
