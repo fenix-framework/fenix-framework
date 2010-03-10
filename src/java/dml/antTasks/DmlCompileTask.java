@@ -16,6 +16,9 @@ import dml.DomainModel;
 
 public class DmlCompileTask extends Task {
 
+    private static final String defaultDomainModelClassName = "pt.ist.fenixframework.pstm.dml.FenixDomainModel";
+    private static final String defaultCodeGeneratorClassName = "pt.ist.fenixframework.pstm.dml.FenixCodeGeneratorOneBoxPerObject";
+
     private boolean generateFinals = false;
     private String destDirectoryBase = null;
     private String destDirectory = null;
@@ -96,7 +99,7 @@ public class DmlCompileTask extends Task {
     public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
 	String generatorClassName = getGeneratorClassName();
 	if (generatorClassName == null) {
-	    return null;
+	    generatorClassName = defaultCodeGeneratorClassName;
 	}
 	return (Class<? extends CodeGenerator>) Class.forName(generatorClassName);
     }
@@ -104,7 +107,7 @@ public class DmlCompileTask extends Task {
     public Class<? extends DomainModel> getDomainModelClass() throws ClassNotFoundException {
 	String domainModelClassName = getDomainModelClassName();
 	if (domainModelClassName == null) {
-	    return null;
+	    domainModelClassName = defaultDomainModelClassName;
 	}
 	return (Class<? extends DomainModel>) Class.forName(domainModelClassName);
     }

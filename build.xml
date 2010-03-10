@@ -18,11 +18,6 @@
 	<property name="domain.file" value="fenix-framework.dml" />
 	<property name="code.generation.include.pattern" value="pt/ist/fenixframework/pstm/dml/" />
 
-	<property name="fenix.framework.domainModelClass" value="pt.ist.fenixframework.pstm.dml.FenixDomainModel" />
-
-	<!-- the name of the class that should be used to generate code from the DML -->
-	<property name="fenix.framework.codeGenerator" value="pt.ist.fenixframework.pstm.dml.FenixCodeGeneratorOneBoxPerObject" />
-
 	<path id="class.path.ref">
 		<fileset dir="${lib.dir}">
 			<include name="*.jar" />
@@ -106,7 +101,7 @@
 				<dirset dir="${build.dir.classes}" />
 			</classpath>
 		</taskdef>
-		<dml-postCompile domainModelClassName="${fenix.framework.domainModelClass}" dir="${build.dir.classes}">
+		<dml-postCompile dir="${build.dir.classes}">
 			<fileset dir="${src.dir}/dml">
 				<include name="*.dml" />
 			</fileset>
@@ -131,7 +126,7 @@
 				<fileset dir="${lib.dir}" includes="*.jar" />
 			</classpath>
 		</taskdef>
-		<domain-generator destDirectory="${java.src.dir}" destDirectoryBase="${src.gen}" domainModelClassName="${fenix.framework.domainModelClass}" generatorClassName="${fenix.framework.codeGenerator}">
+		<domain-generator destDirectory="${java.src.dir}" destDirectoryBase="${src.gen}">
 			<fileset dir="${src.dir}/dml/">
 				<include name="*.dml" />
 			</fileset>
