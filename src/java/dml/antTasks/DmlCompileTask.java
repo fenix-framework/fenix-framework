@@ -119,32 +119,45 @@ public class DmlCompileTask extends Task {
 	CompilerArgs compArgs = null;
 
 	List<String> domainSpecFileNames = new ArrayList<String>();
+	File destDirectoryBaseFile = getDestDirectoryBaseFile();
+	long latestBuildTime = destDirectoryBaseFile.lastModified();
+
+	boolean shouldCompile = false;
 
 	for (FileSet fileset : filesets) {
 	    if (fileset.getDir().exists()) {
 		DirectoryScanner scanner = fileset.getDirectoryScanner(getProject());
 		String[] includedFiles = scanner.getIncludedFiles();
 		for (String includedFile : includedFiles) {
-		    System.out.println("Including DML File: " + includedFile);
-		    domainSpecFileNames.add(fileset.getDir().getAbsolutePath() + "/" + includedFile);
+		    String filePath = fileset.getDir().getAbsolutePath() + "/" + includedFile;
+		    File file = new File(filePath);
+		    boolean isModified = file.lastModified() > latestBuildTime;
+		    System.out.println(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
+		    domainSpecFileNames.add(filePath);
+		    shouldCompile = shouldCompile || isModified;
 		}
 	    }
 	}
 
-	System.out.println("Using model: " + getDomainModelClassName());
-	System.out.println("Using generator: " + getGeneratorClassName());
-	try {
-	    compArgs = new CompilerArgs(getDestDirectoryFile(), getDestDirectoryBaseFile(), getPackageName(), isGenerateFinals(),
-		    getCodeGeneratorClass(), getDomainModelClass(), domainSpecFileNames);
+	if (shouldCompile) {
+	    try {
+		destDirectoryBaseFile.setLastModified(System.currentTimeMillis());
+		System.out.println("Using model: " + getDomainModelClass().getName());
+		System.out.println("Using generator: " + getCodeGeneratorClass().getName());
 
-	    DomainModel model = DmlCompiler.getDomainModel(compArgs);
+		compArgs = new CompilerArgs(getDestDirectoryFile(), destDirectoryBaseFile, getPackageName(), isGenerateFinals(),
+			getCodeGeneratorClass(), getDomainModelClass(), domainSpecFileNames);
 
-	    CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class)
-		    .newInstance(compArgs, model);
-	    generator.generateCode();
-	} catch (Exception e) {
-	    throw new BuildException(e);
+		DomainModel model = DmlCompiler.getDomainModel(compArgs);
+
+		CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class)
+			.newInstance(compArgs, model);
+		generator.generateCode();
+	    } catch (Exception e) {
+		throw new BuildException(e);
+	    }
+	} else {
+	    System.out.println("All dml files are up to date skipping generation");
 	}
-
     }
 }
