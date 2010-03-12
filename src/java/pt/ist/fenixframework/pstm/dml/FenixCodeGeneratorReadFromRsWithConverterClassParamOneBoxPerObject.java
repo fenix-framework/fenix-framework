@@ -1,24 +1,25 @@
-package dml;
+package pt.ist.fenixframework.pstm.dml;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import pt.ist.fenixframework.pstm.dml.FenixCodeGenerator;
-import pt.utl.ist.fenix.tools.util.FileUtils;
+import dml.CompilerArgs;
+import dml.DomainModel;
 
-public class FenixCodeGeneratorReadFromRsWithConverterClassParam extends FenixCodeGenerator {
+public class FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject extends FenixCodeGeneratorOneBoxPerObject {
 
     private static final Map<String, File> packageMapper = new HashMap<String, File>();
 
-    public FenixCodeGeneratorReadFromRsWithConverterClassParam(final CompilerArgs compilerArgs, final DomainModel domainModel) {
+    public FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject(final CompilerArgs compilerArgs, final DomainModel domainModel) {
 	super(compilerArgs, domainModel);
 	InputStream inputStream;
 	try {
 	    inputStream = getClass().getResourceAsStream("/.dmlProjectPackageMapper");
-	    final String contents = FileUtils.readFile(inputStream);
+	    final String contents = read(new InputStreamReader(inputStream));
 	    for (final String line : contents.split("\n")) {
 		final int sindex = line.indexOf(' ');
 		final String packageName = line.substring(0, sindex);
@@ -29,6 +30,18 @@ public class FenixCodeGeneratorReadFromRsWithConverterClassParam extends FenixCo
 		packageMapper.put(packageName, file);
 	    }
 	} catch (IOException e) {
+	}
+    }
+
+    public static String read(final InputStreamReader fileReader) throws IOException {
+	try {
+	    char[] buffer = new char[4096];
+	    final StringBuilder fileContents = new StringBuilder();
+	    for (int n = 0; (n = fileReader.read(buffer)) != -1; fileContents.append(buffer, 0, n))
+		;
+	    return fileContents.toString();
+	} finally {
+	    fileReader.close();
 	}
     }
 

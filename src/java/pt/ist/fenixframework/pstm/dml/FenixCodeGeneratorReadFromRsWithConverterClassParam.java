@@ -1,24 +1,25 @@
-package dml;
+package pt.ist.fenixframework.pstm.dml;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import pt.ist.fenixframework.pstm.dml.FenixCodeGeneratorOneBoxPerObject;
-import pt.utl.ist.fenix.tools.util.FileUtils;
+import dml.CompilerArgs;
+import dml.DomainModel;
 
-public class FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject extends FenixCodeGeneratorOneBoxPerObject {
+public class FenixCodeGeneratorReadFromRsWithConverterClassParam extends FenixCodeGenerator {
 
     private static final Map<String, File> packageMapper = new HashMap<String, File>();
 
-    public FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject(final CompilerArgs compilerArgs, final DomainModel domainModel) {
+    public FenixCodeGeneratorReadFromRsWithConverterClassParam(final CompilerArgs compilerArgs, final DomainModel domainModel) {
 	super(compilerArgs, domainModel);
 	InputStream inputStream;
 	try {
 	    inputStream = getClass().getResourceAsStream("/.dmlProjectPackageMapper");
-	    final String contents = FileUtils.readFile(inputStream);
+	    final String contents = FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject.read(new InputStreamReader(inputStream));
 	    for (final String line : contents.split("\n")) {
 		final int sindex = line.indexOf(' ');
 		final String packageName = line.substring(0, sindex);
