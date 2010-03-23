@@ -24,13 +24,17 @@ public class FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject 
 		final int sindex = line.indexOf(' ');
 		final String packageName = line.substring(0, sindex);
 		final String packageDir = packageName.replace('.', File.separatorChar);
-		final String srcDir = line.substring(sindex + 1);
+		final String srcDir = postProcessSrcDir(line.substring(sindex + 1));
 		final String domainSrcDir = srcDir + File.separatorChar + packageDir;
 		final File file = new File(domainSrcDir);
 		packageMapper.put(packageName, file);
 	    }
 	} catch (IOException e) {
 	}
+    }
+
+    protected String postProcessSrcDir(final String srcDir) {
+	return srcDir;
     }
 
     public static String read(final InputStreamReader fileReader) throws IOException {
