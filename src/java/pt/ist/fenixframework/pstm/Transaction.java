@@ -10,41 +10,41 @@ public abstract class Transaction extends jvstm.Transaction {
     private final static FenixCache cache = new FenixCache();
 
     static {
-        DomainClassInfo.initializeClassInfos();
+	DomainClassInfo.initializeClassInfos();
 
 	jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
-		public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
-		    return new TopLevelTransaction(record);
-		}
+	    public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+		return new TopLevelTransaction(record);
+	    }
 
-                public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
-		    return new ReadOnlyTopLevelTransaction(record);
-                }
-	    });
+	    public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+		return new ReadOnlyTopLevelTransaction(record);
+	    }
+	});
 
-        // initialize transaction system
-        int maxTx = TransactionChangeLogs.initializeTransactionSystem();
-        if (maxTx >= 0) {
-            System.out.println("Setting the last committed TX number to " + maxTx);
-            mostRecentRecord = new jvstm.ActiveTransactionsRecord(maxTx, null);
-        } else {
-            throw new Error("Couldn't determine the last transaction number");
-        }
+	// initialize transaction system
+	int maxTx = TransactionChangeLogs.initializeTransactionSystem();
+	if (maxTx >= 0) {
+	    System.out.println("Setting the last committed TX number to " + maxTx);
+	    mostRecentRecord = new jvstm.ActiveTransactionsRecord(maxTx, null);
+	} else {
+	    throw new Error("Couldn't determine the last transaction number");
+	}
     }
 
     static jvstm.ActiveTransactionsRecord getActiveRecordForNewTransaction() {
-        return mostRecentRecord.getRecordForNewTransaction();
+	return mostRecentRecord.getRecordForNewTransaction();
     }
 
     private Transaction() {
- 	// this is never to be used!!!
- 	super(0);
+	// this is never to be used!!!
+	super(0);
     }
 
     private static final ThreadLocal<Boolean> DEFAULT_READ_ONLY = new ThreadLocal<Boolean>() {
-         protected Boolean initialValue() {
-             return Boolean.FALSE;
-         }
+	protected Boolean initialValue() {
+	    return Boolean.FALSE;
+	}
     };
 
     public static boolean getDefaultReadOnly() {
@@ -55,15 +55,13 @@ public abstract class Transaction extends jvstm.Transaction {
 	DEFAULT_READ_ONLY.set(readOnly ? Boolean.TRUE : Boolean.FALSE);
     }
 
-
     public static jvstm.Transaction begin() {
-        return Transaction.begin(getDefaultReadOnly());
+	return Transaction.begin(getDefaultReadOnly());
     }
 
     public static jvstm.Transaction begin(boolean readOnly) {
 	return jvstm.Transaction.begin(readOnly);
     }
-
 
     // This method is here just as a quick solution for providing a
     // way to create read-only transactions that do not open a
@@ -72,20 +70,21 @@ public abstract class Transaction extends jvstm.Transaction {
     // that the call to the Transaction.begin(...) method may receive
     // an argument specifying the kind of transaction that we want.
     public static jvstm.Transaction beginReadOnlyPossiblyInThePast(long maxMillisInThePast) {
-        // use normal ReadOnlyTopLevelTransaction if no dbConnection was made recently
-        if (! TopLevelTransaction.lastDbConnectionWithin(maxMillisInThePast)) {
-            return begin(true);
-        }
+	// use normal ReadOnlyTopLevelTransaction if no dbConnection was made
+	// recently
+	if (!TopLevelTransaction.lastDbConnectionWithin(maxMillisInThePast)) {
+	    return begin(true);
+	}
 
-        jvstm.Transaction parent = current.get();
-        if (parent != null) {
-            throw new Error("This kind of transactions cannot be nested");
-        }
+	jvstm.Transaction parent = current.get();
+	if (parent != null) {
+	    throw new Error("This kind of transactions cannot be nested");
+	}
 
-        jvstm.ActiveTransactionsRecord activeRecord = mostRecentRecord.getRecordForNewTransaction();
-        jvstm.Transaction tx = new ReadOnlyTopLevelTransactionPossiblyInThePast(activeRecord);
-        tx.start();
-        return tx;
+	jvstm.ActiveTransactionsRecord activeRecord = mostRecentRecord.getRecordForNewTransaction();
+	jvstm.Transaction tx = new ReadOnlyTopLevelTransactionPossiblyInThePast(activeRecord);
+	tx.start();
+	return tx;
     }
 
     public static void forceFinish() {
@@ -93,20 +92,21 @@ public abstract class Transaction extends jvstm.Transaction {
 	    try {
 		commit();
 	    } catch (Throwable t) {
-		System.out.println("Aborting from Transaction.forceFinish(). If being called from CloseTransactionFilter it will leave an open transaction.");
+		System.out
+			.println("Aborting from Transaction.forceFinish(). If being called from CloseTransactionFilter it will leave an open transaction.");
 		abort();
 	    }
 	}
     }
 
     public static void abort() {
-        STATISTICS.incAborts();
+	STATISTICS.incAborts();
 
-        jvstm.Transaction.abort();
+	jvstm.Transaction.abort();
     }
-    
+
     public static FenixTransaction currentFenixTransaction() {
-	return (FenixTransaction)current();
+	return (FenixTransaction) current();
     }
 
     protected static DBChanges currentDBChanges() {
@@ -114,12 +114,12 @@ public abstract class Transaction extends jvstm.Transaction {
     }
 
     public static DomainObject readDomainObject(String classname, Integer oid) {
-        return (oid == null) ? null : currentFenixTransaction().readDomainObject(classname, oid);
+	return (oid == null) ? null : currentFenixTransaction().readDomainObject(classname, oid);
     }
 
     @Deprecated
     public static <T extends DomainObject> T getObjectForOID(long oid) {
-        return AbstractDomainObject.<T>fromOID(oid);
+	return AbstractDomainObject.<T> fromOID(oid);
     }
 
     public static void logAttrChange(DomainObject obj, String attrName) {
@@ -128,7 +128,7 @@ public abstract class Transaction extends jvstm.Transaction {
 
     public static void storeNewObject(DomainObject obj) {
 	currentDBChanges().storeNewObject(obj);
-        ((jvstm.cps.ConsistentTransaction)current()).registerNewObject(obj);
+	((jvstm.cps.ConsistentTransaction) current()).registerNewObject(obj);
     }
 
     public static void storeObject(DomainObject obj, String attrName) {
@@ -139,11 +139,13 @@ public abstract class Transaction extends jvstm.Transaction {
 	currentDBChanges().deleteObject(obj);
     }
 
-    public static void addRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2) {
+    public static void addRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2,
+	    String colNameOnObj2) {
 	currentDBChanges().addRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2);
     }
 
-    public static void removeRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2) {
+    public static void removeRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2,
+	    String colNameOnObj2) {
 	currentDBChanges().removeRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2);
     }
 
@@ -151,32 +153,26 @@ public abstract class Transaction extends jvstm.Transaction {
 	return currentFenixTransaction().getOJBBroker();
     }
 
-
-    // This method is temporary.  It will be used only to remove the dependencies 
-    // on OJB from the remaining code.  After that, it should either be removed 
+    // This method is temporary. It will be used only to remove the dependencies
+    // on OJB from the remaining code. After that, it should either be removed
     // or replaced by something else
     public static java.sql.Connection getCurrentJdbcConnection() {
-        try {
-            return getOJBBroker()
-                .serviceConnectionManager()
-                .getConnection();
-        } catch (org.apache.ojb.broker.accesslayer.LookupException le) {
-            throw new Error("Couldn't find a JDBC connection");
-        }
+	try {
+	    return getOJBBroker().serviceConnectionManager().getConnection();
+	} catch (org.apache.ojb.broker.accesslayer.LookupException le) {
+	    throw new Error("Couldn't find a JDBC connection");
+	}
     }
 
-    // This method is temporary.  It will be used only to remove the dependencies 
-    // on OJB from the remaining code.  After that, it should either be removed 
+    // This method is temporary. It will be used only to remove the dependencies
+    // on OJB from the remaining code. After that, it should either be removed
     // or replaced by something else
     public static java.sql.Connection getNewJdbcConnection() {
-        try {
-            return PersistenceBrokerFactory
-                .defaultPersistenceBroker()
-                .serviceConnectionManager()
-                .getConnection();
-        } catch (org.apache.ojb.broker.accesslayer.LookupException le) {
-            throw new Error("Couldn't find a JDBC connection");
-        }
+	try {
+	    return PersistenceBrokerFactory.defaultPersistenceBroker().serviceConnectionManager().getConnection();
+	} catch (org.apache.ojb.broker.accesslayer.LookupException le) {
+	    throw new Error("Couldn't find a JDBC connection");
+	}
     }
 
     public static FenixCache getCache() {
@@ -184,27 +180,31 @@ public abstract class Transaction extends jvstm.Transaction {
     }
 
     public static void withTransaction(jvstm.TransactionalCommand command) {
-        withTransaction(false, command);
+	withTransaction(false, command);
     }
 
     public static void withTransaction(boolean readOnly, jvstm.TransactionalCommand command) {
-        while (true) {
-            Transaction.begin(readOnly);
-            boolean txFinished = false;
-            try {
-                command.doIt();
-                Transaction.commit();
-                txFinished = true;
-                return;
-            } catch (jvstm.CommitException ce) {
-                System.out.println("Restarting TX because of a conflict");
-                Transaction.abort();
-                txFinished = true;
-            } finally {
-                if (! txFinished) {
-                    Transaction.abort();
-                }
-            }
-        }
+	while (true) {
+	    Transaction.begin(readOnly);
+	    boolean txFinished = false;
+	    try {
+		command.doIt();
+		Transaction.commit();
+		txFinished = true;
+		return;
+	    } catch (jvstm.CommitException ce) {
+		System.out.println("Restarting TX because of a conflict");
+		Transaction.abort();
+		txFinished = true;
+	    } catch (AbstractDomainObject.UnableToDetermineIdException unableToDetermineIdException) {
+		System.out.println("Restaring TX: unable to determine id");
+		Transaction.abort();
+		txFinished = true;
+	    } finally {
+		if (!txFinished) {
+		    Transaction.abort();
+		}
+	    }
+	}
     }
 }
