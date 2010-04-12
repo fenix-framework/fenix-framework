@@ -114,8 +114,8 @@ public class PostCompileTask extends Task {
 	    cmd.createArgument().setValue(domainModelClassName);
 
 	}
-	cmd.createArgument().setValue("-d");
 	for (String file : dmlFiles) {
+	    cmd.createArgument().setValue("-d");
 	    cmd.createArgument().setValue(file);
 	}
 
