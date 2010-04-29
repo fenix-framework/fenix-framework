@@ -200,7 +200,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     }
 
     @Override
-    public Transaction makeNestedTransaction() {
+    public Transaction makeNestedTransaction(boolean readOnly) {
 	throw new Error("Nested transactions not supported yet...");
     }
 

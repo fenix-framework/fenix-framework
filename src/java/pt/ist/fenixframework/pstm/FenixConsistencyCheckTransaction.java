@@ -25,7 +25,7 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction
     }
 
     @Override
-    public Transaction makeNestedTransaction() {
+    public Transaction makeNestedTransaction(boolean readOnly) {
         throw new Error("Nested transactions not supported yet...");
     }
 

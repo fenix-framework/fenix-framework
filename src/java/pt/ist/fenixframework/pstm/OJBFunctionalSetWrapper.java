@@ -1,5 +1,7 @@
 package pt.ist.fenixframework.pstm;
 
+import dml.runtime.FunctionalSet;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 

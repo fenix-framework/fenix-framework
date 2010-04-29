@@ -7,6 +7,7 @@ import java.util.Set;
 
 import jvstm.PerTxBox;
 import pt.ist.fenixframework.DomainObject;
+import dml.runtime.FunctionalSet;
 import dml.runtime.Relation;
 
 public class RelationList<E1,E2> extends AbstractList<E2> implements VersionedSubject,Set<E2>,dml.runtime.RelationBaseSet<E2> {
@@ -166,16 +167,18 @@ public class RelationList<E1,E2> extends AbstractList<E2> implements VersionedSu
     }
 
     public Iterator<E2> iterator() {
-	return new RelationListIterator<E2>();
+	return new RelationListIterator<E2>(this);
     }
 
-    private class RelationListIterator<X> implements Iterator<X> {
+    private static class RelationListIterator<X> implements Iterator<X> {
+        private RelationList<?,X> list;
 	private Iterator<X> iter;
 	private boolean canRemove = false;
 	private X previous = null;
 
-	RelationListIterator() {
-	    this.iter = RelationList.this.elementSet().iterator();
+	RelationListIterator(RelationList<?,X> list) {
+            this.list = list;
+	    this.iter = list.elementSet().iterator();
 	}
 
 	public boolean hasNext() {
@@ -194,7 +197,7 @@ public class RelationList<E1,E2> extends AbstractList<E2> implements VersionedSu
 		throw new IllegalStateException();
 	    } else {
 		canRemove = false;
-		RelationList.this.remove(previous);
+		list.remove(previous);
 	    }
 	}
     }
