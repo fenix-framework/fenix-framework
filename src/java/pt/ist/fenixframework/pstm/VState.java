@@ -1,24 +1,25 @@
 package pt.ist.fenixframework.pstm;
 
 import jvstm.VBoxBody;
+import pt.ist.fenixframework.DomainObject;
 
 class VState extends PrimitiveBox {
 
-    VState() {
-        super();
+    VState(DomainObject ownerObj, String slotName) {
+        super(ownerObj, slotName);
     }
 
-    VState(VBoxBody body) {
-	super(body);
+    VState(DomainObject ownerObj, String slotName, VBoxBody body) {
+	super(ownerObj, slotName, body);
     }
 
-    public static VState makeNew(boolean allocateOnly) {
+    public static VState makeNew(DomainObject ownerObj, String slotName, boolean allocateOnly) {
         if (allocateOnly) {
             // when a box is allocated, it is safe 
             // to say that the version number is 0
-            return new VState(makeNewBody(VBox.notLoadedValue(), 0, null));
+            return new VState(ownerObj, slotName, makeNewBody(VBox.notLoadedValue(), 0, null));
         } else {
-            return new VState();
+            return new VState(ownerObj, slotName);
         }
     }
 

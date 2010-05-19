@@ -1,5 +1,7 @@
 package pt.ist.fenixframework.pstm;
 
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,13 +19,18 @@ import org.apache.ojb.broker.PersistenceBrokerFactory;
 import dml.DomainClass;
 import dml.DomainModel;
 
-public class DomainClassInfo {
+import pt.ist.fenixframework.pstm.repository.DbUtil;
+
+public class DomainClassInfo implements Serializable {
 
     private static final Logger logger = Logger.getLogger(DomainClassInfo.class);
     private volatile static Map<Class, DomainClassInfo> classInfoMap;
     private volatile static DomainClassInfo[] classInfoById;
+    private volatile static long serverOidBase;
 
-    static void initializeClassInfos() {
+    static void initializeClassInfos(int serverId) {
+        serverOidBase = (long)serverId << 48;  // the server id provides de 16 most significant bits of the OID
+
 	PersistenceBroker broker = null;
 	ResultSet rs = null;
 	Statement stmt = null;
@@ -50,7 +57,7 @@ public class DomainClassInfo {
 		    String classname = rs.getString(1);
 		    int cid = rs.getInt(2);
 
-		    DomainClassInfo classInfo = new DomainClassInfo(findClass(classname), cid);
+		    DomainClassInfo classInfo = new DomainClassInfo(classname, cid);
 
 		    maxId = Math.max(maxId, cid);
 		    addNewInfo(map, array, classInfo);
@@ -181,13 +188,135 @@ public class DomainClassInfo {
 	return mapIdToClass(mapOidToClassId(oid));
     }
 
+    public static long getNextOidFor(Class objClass) throws Exception {
+        int nextKey;
+        DomainClassInfo info = classInfoMap.get(objClass);
+
+        synchronized(info) {
+            int lastKey = info.getLastKey();
+            if (lastKey == UNKNOWN_KEY) {  // not yet initialized from the DB
+                lastKey = initLastKeyFor(info);
+            }
+
+            nextKey = lastKey + 1;
+            info.setLastKey(nextKey);
+        }
+        
+//         System.out.print("Server(" + (int)(serverOidBase >> 48) + ")");
+//         System.out.print(", Class(" + info.classId + ")");
+//         System.out.print(", Object(" + nextKey + ")");
+//         System.out.println(": " + serverOidBase + " + " + ((long)info.classId << 32) + " + "
+//                            + nextKey + " = " + (serverOidBase + ((long)info.classId << 32) + nextKey));
+
+        // build and return OID
+	if ((PersistentRoot.class == objClass) && (nextKey == 1)) {
+	    // this first PersistentRoot instance is special and always takes a known value
+	    return 1L;
+	} else {
+	    return serverOidBase + ((long)info.classId << 32) + nextKey;
+	}
+    }
+
+    /* Invocations to this method should be synchronized in the <code>info</code> argument */
+    private static int initLastKeyFor(DomainClassInfo info) throws Exception {
+	long baseRange = serverOidBase + ((long)info.classId << 32);
+  	long maxId = getMaxIdForClass(info.domainClass.getName(), baseRange, baseRange + 0xFFFFFFFFL);
+	return (int)maxId; // the lower 32 bit are the object's relative id.
+    }
+
+    public static long getMaxIdForClass(String className, long lowestId, long highestId) throws Exception {
+        PersistenceBroker broker = null;
+        Statement stmt = null;
+        
+        try {
+            broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+            broker.beginTransaction();
+            
+            Connection conn = broker.serviceConnectionManager().getConnection();
+            stmt = conn.createStatement();
+
+            StringBuilder sqlStmtText = new StringBuilder();
+            sqlStmtText.append("SELECT MAX(OID) FROM ");
+	    DomainClass domainClass = MetadataManager.getDomainModel().findClass(className);
+	    sqlStmtText.append(OJBMetadataGenerator.getExpectedTableName(domainClass));
+	    sqlStmtText.append(" WHERE OID > ");
+	    sqlStmtText.append(lowestId);
+            sqlStmtText.append(" AND OID <= ");
+	    sqlStmtText.append(highestId);
+            sqlStmtText.append(";");
+
+            ResultSet rs = stmt.executeQuery(sqlStmtText.toString());
+            broker.commitTransaction();
+
+	    rs.first();
+	    return rs.getLong(1); // getLong() will return 0 in case there is no line matching the query
+        } finally {
+            if (broker != null) {
+                if (broker.isInTransaction()) {
+                    broker.abortTransaction();
+                }
+                broker.close();
+            }
+            if (stmt != null) {
+        	try {
+		    stmt.close();
+		} catch (SQLException e) {
+		    // nothing can be done now.
+		}
+            }
+        }
+    }
+
+    private static final int UNKNOWN_KEY = 0;
+
     // the non-static part starts here
 
-    public final Class domainClass;
+    public final String domainClassName;
+    public final transient Class domainClass;
     public final int classId;
+    /** The maximum object key used for objects of this class in this server */
+    private transient int lastKey = UNKNOWN_KEY;
 
     public DomainClassInfo(Class domainClass, int classId) {
+	this(domainClass.getName(), domainClass, classId);
+    }
+
+    public DomainClassInfo(String domainClassName, int classId) {
+	this(domainClassName, findClass(domainClassName), classId);
+    }
+
+    public DomainClassInfo(String domainClassName, Class domainClass, int classId) {
+	this.domainClassName = domainClassName;
 	this.domainClass = domainClass;
 	this.classId = classId;
+    }
+
+    protected int getLastKey() {
+        return this.lastKey;
+    }
+
+    protected void setLastKey(int lastKey) {
+        this.lastKey = lastKey;
+    }
+
+    // serialization code
+    protected Object writeReplace() throws ObjectStreamException {
+	return new SerializedForm(this);
+    }
+
+    private static class SerializedForm implements Serializable {
+  	private static final long serialVersionUID = 1L;
+	
+	private String className;
+	private int classId;
+
+	SerializedForm(DomainClassInfo obj) {
+	    this.className = obj.domainClassName;
+	    this.classId = obj.classId;
+	}
+
+	Object readResolve() throws ObjectStreamException, ClassNotFoundException {
+	    return new DomainClassInfo(this.className, this.classId);
+	}
     }
 }

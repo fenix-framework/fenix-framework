@@ -15,8 +15,12 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     protected DomainClass currentClass;
 
+    // used by the value-type generator
+    protected FenixValueTypeSerializationGenerator valueTypeGenerator;
+
     public FenixCodeGeneratorOneBoxPerObject(CompilerArgs compArgs, DomainModel domainModel) {
 	super(compArgs, domainModel);
+	this.valueTypeGenerator = new FenixValueTypeSerializationGenerator(compArgs, domainModel);
     }
 
     @Override
@@ -146,14 +150,12 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	onNewline(out);
 	// all the slots
 	for (Slot slot : domClass.getSlotsList()) {
-	    printWords(out, "private", slot.getTypeName(), slot.getName());
-	    println(out, ";");
+	    generateSlotDeclaration(out, slot.getTypeName(), slot.getName());
 	}
 
 	for (Role role : domClass.getRoleSlotsList()) {
 	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
-		printWords(out, "private", getTypeFullName(role.getType()), role.getName());
-		println(out, ";");
+		generateSlotDeclaration(out, getTypeFullName(role.getType()), role.getName());
 	    }
 	}
 
@@ -174,8 +176,139 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	    }
 	}
 	endMethodBody(out);
-
+	generateSerializationCode(domClass, out);
 	closeBlock(out);
+    }
+
+    /* Override the main generation method to create an additional generation instance.  It will
+     * generate the class for value-type serialization.
+     */
+    @Override
+    public void generateCode() {
+	this.valueTypeGenerator.generateCode();
+	super.generateCode();
+    }
+
+    protected void generateSerializationCode(DomainClass domClass, PrintWriter out) {
+	newline(out);
+	println(out, "// serialization code");
+	generateWriteReplace(out);
+	
+	newline(out);
+	print(out, "protected static class SerializedForm extends ");
+	String superclassName = getEntityFullName(domClass.getSuperclass());
+	printWords(out, (superclassName == null) ? getDomainClassRoot() : superclassName);
+	print(out, ".DO_State.SerializedForm");
+
+	newBlock(out);
+	
+	onNewline(out);
+	println(out, "private static final long serialVersionUID = 1L;");
+
+	// all the slots to serialize
+	newline(out);
+	for (Slot slot : domClass.getSlotsList()) {
+	    ValueType vt = slot.getSlotType();
+ 	    if (vt.isBuiltin() || vt.isEnum()) { // declare the same type
+		generateSlotDeclaration(out, slot.getTypeName(), slot.getName());
+ 	    } else {
+		generateSlotDeclaration(out, this.valueTypeGenerator.makeSerializationValueTypeName(vt), slot.getName());
+ 	    }
+	}
+	for (Role role : domClass.getRoleSlotsList()) {
+	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+		generateSlotDeclaration(out, getTypeFullName(role.getType()), role.getName());
+	    }
+	}
+
+	generateSerializedFormConstructor(domClass, out);
+	generateSerializedFormReadResolve(domClass, out);
+	generateSerializedFormFillInState(domClass, out);
+	closeBlock(out);
+    }
+
+    protected void generateWriteReplace(PrintWriter out) {
+	printMethod(out, "protected", "Object", "writeReplace");
+ 	print(out, " throws java.io.ObjectStreamException");
+	startMethodBody(out);
+	print(out, "return new SerializedForm(this);");
+	endMethodBody(out);
+    }
+
+    protected void generateSerializedFormConstructor(DomainClass domClass, PrintWriter out) {
+	newline(out);
+	printMethod(out, "protected", "", "SerializedForm", makeArg("DO_State", "obj"));
+        startMethodBody(out);
+	print(out, "super(obj);");
+
+	onNewline(out);
+	// copy values to all the slots
+	for (Slot slot : domClass.getSlotsList()) {
+	    generateSlotSerializedForm(slot, out);
+	}
+	for (Role role : domClass.getRoleSlotsList()) {
+	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+		printWords(out, "this." + role.getName(), "=", "obj." + role.getName());
+		println(out, ";");
+	    }
+	}
+	endMethodBody(out);
+    }
+
+    protected void generateSlotSerializedForm(Slot slot, PrintWriter out) {
+	// value types have to be externalized.  others are simply copied
+	ValueType vt = slot.getSlotType();
+	printWords(out, "this." + slot.getName(), "=");
+	if (vt.isBuiltin() || vt.isEnum()) {
+	    printWords(out, "obj." + slot.getName());
+	} else {
+	    printWords(out, "pt.ist.fenixframework.ValueTypeSerializationGenerator."
+		       + this.valueTypeGenerator.SERIALIZATION_METHOD_PREFIX
+		       + this.valueTypeGenerator.makeSafeValueTypeName(vt));
+	    print(out, "(obj." + slot.getName() + ")");
+	}
+	println(out, ";");
+    }
+
+    protected void generateSerializedFormReadResolve(DomainClass domClass, PrintWriter out) {
+	newline(out);
+	printMethod(out, "", "Object", "readResolve");
+ 	print(out, " throws java.io.ObjectStreamException");
+	startMethodBody(out);
+	println(out, "DO_State newState = new DO_State();");
+	println(out, "fillInState(newState);");
+	print(out, "return newState;");
+	endMethodBody(out);
+    }
+
+    protected void generateSerializedFormFillInState(DomainClass domClass, PrintWriter out) {
+	newline(out);
+	printMethod(out, "protected", "void", "fillInState", makeArg("pt.ist.fenixframework.pstm.OneBoxDomainObject.DO_State", "obj"));
+	startMethodBody(out);
+	println(out, "super.fillInState(obj);");
+	println(out, "DO_State state = (DO_State)obj;");
+
+	// value types have to be internalized.  others are simply copied
+	for (Slot slot : domClass.getSlotsList()) {
+	    ValueType vt = slot.getSlotType();
+	    printWords(out, "state." + slot.getName(), "=");
+	    if (vt.isBuiltin() || vt.isEnum()) {
+		printWords(out, "this." + slot.getName());
+	    } else {
+		printWords(out, "pt.ist.fenixframework.ValueTypeSerializationGenerator."
+			   + this.valueTypeGenerator.DESERIALIZATION_METHOD_PREFIX
+			   + this.valueTypeGenerator.makeSafeValueTypeName(vt));
+		print(out, "(this." + slot.getName() + ")");
+	    }
+	    println(out, ";");
+	}
+	for (Role role : domClass.getRoleSlotsList()) {
+	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+		printWords(out, "state." + role.getName(), "=", "this." + role.getName());
+		println(out, ";");
+	    }
+	}
+	endMethodBody(out);
     }
 
     protected void generateMakeNewStateMethod(PrintWriter out) {

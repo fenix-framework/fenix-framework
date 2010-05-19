@@ -2,6 +2,8 @@ package pt.ist.fenixframework.pstm;
 
 import jvstm.VBoxBody;
 
+import pt.ist.fenixframework.DomainObject;
+
 import org.apache.ojb.broker.Identity;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
@@ -9,12 +11,12 @@ import org.apache.ojb.broker.metadata.FieldDescriptor;
 
 class PrimitiveBox<E> extends VBox<E> {
 
-    PrimitiveBox() {
-        super();
+    PrimitiveBox(DomainObject ownerObj, String slotName) {
+        super(ownerObj, slotName);
     }
 
-    PrimitiveBox(VBoxBody<E> body) {
-	super(body);
+    PrimitiveBox(DomainObject ownerObj, String slotName, VBoxBody<E> body) {
+	super(ownerObj, slotName, body);
     }
 
     protected void doReload(Object obj, String attr) {

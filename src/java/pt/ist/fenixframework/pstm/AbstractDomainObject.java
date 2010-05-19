@@ -28,6 +28,7 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	// Ensure that this object gets an idInternal
 	// jcachopo: This should be changed in the future...
 	ensureIdInternal();
+	// ensureOid();
 	Transaction.storeNewObject(this);
     }
 
@@ -44,6 +45,23 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
     private Integer get$idInternal() {
 	return getIdInternal();
     }
+
+    protected void ensureOid() {
+	try {
+            // find successive ids until one is available
+            while (true) {
+		this.oid = DomainClassInfo.getNextOidFor(this.getClass());
+                Object cached = Transaction.getCache().cache(this);
+                if (cached == this) {
+                    // break the loop once we got this instance cached
+                    return;
+                }
+            }
+	} catch (Exception e) {
+	    throw new UnableToDetermineIdException(e);
+	}
+    }
+
 
     protected void ensureIdInternal() {
 	try {

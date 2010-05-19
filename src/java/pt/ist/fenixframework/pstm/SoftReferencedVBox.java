@@ -2,20 +2,22 @@ package pt.ist.fenixframework.pstm;
 
 import jvstm.VBoxBody;
 
+import pt.ist.fenixframework.DomainObject;
+
 // This version of the VBox exists only because the special needs of
 // a RelationList which holds a SoftReference to its VBox.
 // For further explanations see the comment on the class SpecialBody at the end of this file
 class SoftReferencedVBox<E> extends ReferenceBox<E> {
-    public SoftReferencedVBox() {
-        super();
+    public SoftReferencedVBox(DomainObject ownerObj, String slotName) {
+        super(ownerObj, slotName);
     }
 
-    public SoftReferencedVBox(E initial) {
-	super(initial);
+    public SoftReferencedVBox(DomainObject ownerObj, String slotName, E initial) {
+	super(ownerObj, slotName, initial);
     }
 
-    protected SoftReferencedVBox(VBoxBody<E> body) {
-	super(body);
+    protected SoftReferencedVBox(DomainObject ownerObj, String slotName, VBoxBody<E> body) {
+	super(ownerObj, slotName, body);
     }
 
     @Override
@@ -26,13 +28,13 @@ class SoftReferencedVBox<E> extends ReferenceBox<E> {
         return newBody;
     }
 
-    public static <T> VBox<T> makeNew(boolean allocateOnly) {
+    public static <T> VBox<T> makeNew(DomainObject ownerObj, String slotName, boolean allocateOnly) {
         if (allocateOnly) {
             // when a box is allocated, it is safe 
             // to say that the version number is 0
-            return new SoftReferencedVBox<T>(makeNewBody((T)NOT_LOADED_VALUE, 0, null));
+            return new SoftReferencedVBox<T>(ownerObj, slotName, makeNewBody((T)NOT_LOADED_VALUE, 0, null));
         } else {
-            return new SoftReferencedVBox<T>();
+            return new SoftReferencedVBox<T>(ownerObj, slotName);
         }
     }
 

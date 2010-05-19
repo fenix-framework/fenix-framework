@@ -6,20 +6,38 @@ import pt.ist.fenixframework.DomainObject;
 public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runtime.FenixVBox<E> {
     static final Object NOT_LOADED_VALUE = new Object();
 
+    //initialized in the constructor
+    private final DomainObject ownerObj;
+    private final String slotName;
+
     public static <T> T notLoadedValue() {
         return (T)NOT_LOADED_VALUE;
     }
 
-    public VBox() {
+    public VBox(DomainObject ownerObj, String slotName) {
         super();
+	this.ownerObj = ownerObj;
+	this.slotName = slotName;
     }
 
-    public VBox(E initial) {
+    public VBox(DomainObject ownerObj, String slotName, E initial) {
 	super(initial);
+	this.ownerObj = ownerObj;
+	this.slotName = slotName;
     }
 
-    protected VBox(VBoxBody<E> body) {
+    protected VBox(DomainObject ownerObj, String slotName, VBoxBody<E> body) {
 	super(body);
+	this.ownerObj = ownerObj;
+	this.slotName = slotName;
+    }
+
+    public DomainObject getOwnerObject() {
+	return this.ownerObj;
+    }
+
+    public String getSlotName() {
+	return this.slotName;
     }
 
     public E get(Object obj, String attrName) {
@@ -94,22 +112,22 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runti
 	throw new Error("Can't reload a simple VBox.  Use a PrimitiveBox or a ReferenceBox instead.");
     }
 
-    public static <T> VBox<T> makeNew(boolean allocateOnly, boolean isReference) {
+    public static <T> VBox<T> makeNew(DomainObject ownerObj, String slotName, boolean allocateOnly, boolean isReference) {
 	if (isReference) {
 	    if (allocateOnly) {
                 // when a box is allocated, it is safe 
                 // to say that the version number is 0
-		return new ReferenceBox<T>(makeNewBody((T)NOT_LOADED_VALUE, 0, null));
+		return new ReferenceBox<T>(ownerObj, slotName, makeNewBody((T)NOT_LOADED_VALUE, 0, null));
 	    } else {
-		return new ReferenceBox<T>();
+		return new ReferenceBox<T>(ownerObj, slotName);
 	    }
 	} else {
 	    if (allocateOnly) {
                 // when a box is allocated, it is safe 
                 // to say that the version number is 0
-		return new PrimitiveBox<T>(makeNewBody((T)NOT_LOADED_VALUE, 0, null));
+		return new PrimitiveBox<T>(ownerObj, slotName, makeNewBody((T)NOT_LOADED_VALUE, 0, null));
 	    } else {
-		return new PrimitiveBox<T>();
+		return new PrimitiveBox<T>(ownerObj, slotName);
 	    }
 	}
     }

@@ -26,7 +26,7 @@ public class OJBFunctionalSetWrapper implements ManageableCollection {
 	};
 
 
-    private FunctionalSet elements = FunctionalSet.EMPTY;
+    private FunctionalSet elements = DOFunctionalSet.EMPTY;
 
     public OJBFunctionalSetWrapper() {
     }

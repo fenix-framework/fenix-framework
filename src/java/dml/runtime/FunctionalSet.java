@@ -8,10 +8,10 @@ import jvstm.util.Cons;
 public class FunctionalSet<E> {
     public static final FunctionalSet EMPTY = new FunctionalSet(0, Cons.empty());
 
-    private final int size;
-    private final Cons<E> elems;
+    protected final int size;
+    protected final Cons<E> elems;
     
-    private FunctionalSet(int size, Cons<E> elems) {
+    protected FunctionalSet(int size, Cons<E> elems) {
         this.size = size;
         this.elems = elems;
     }
@@ -33,7 +33,7 @@ public class FunctionalSet<E> {
     }
 
     public FunctionalSet<E> addUnique(E obj) {
-        return new FunctionalSet<E>(size + 1, elems.cons(obj));
+        return makeFunctionalSet(size + 1, elems.cons(obj));
     }
 
     public FunctionalSet<E> add(E obj) {
@@ -53,7 +53,7 @@ public class FunctionalSet<E> {
     }
     
     private FunctionalSet<E> removeExisting(Object obj) {
-        return new FunctionalSet<E>(size - 1, elems.removeFirst(obj));
+        return makeFunctionalSet(size - 1, elems.removeFirst(obj));
     }
 
     public boolean contains(Object obj) {
@@ -62,5 +62,9 @@ public class FunctionalSet<E> {
 
     public Iterator<E> iterator() {
         return elems.iterator();
+    }
+
+    protected FunctionalSet<E> makeFunctionalSet(int size, Cons<E> elems) {
+	return new FunctionalSet<E>(size, elems);
     }
 }

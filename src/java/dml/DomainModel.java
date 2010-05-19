@@ -117,6 +117,10 @@ public class DomainModel {
 	valueTypes.put(domainName, new EnumValueType(domainName, fullName));
     }
 
+    public Collection<ValueType> getAllValueTypes() {
+        return valueTypes.values();
+    }
+
     public ValueType findValueType(String name) {
 	return valueTypes.get(name);
     }

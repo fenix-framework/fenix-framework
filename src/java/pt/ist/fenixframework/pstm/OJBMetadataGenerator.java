@@ -114,7 +114,7 @@ public class OJBMetadataGenerator {
 	}
     }
 
-    private static String getExpectedTableName(final DomainClass domainClass) {
+    protected static String getExpectedTableName(final DomainClass domainClass) {
 	// Shameless hack to make OJB map to the special framework tables
 	if (domainClass.getFullName().startsWith(FRAMEWORK_PACKAGE)) {
 	    return "FF$" + getTableName(domainClass.getName());

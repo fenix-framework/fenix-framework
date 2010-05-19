@@ -23,7 +23,7 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     protected static final String RESULT_SET_READER_CLASS = "pt.ist.fenixframework.pstm.ResultSetReader";
 
-    protected static final String IMPORTS_COMMA_SEPARATED = "pt.ist.fenixframework.pstm.VBox,pt.ist.fenixframework.pstm.RelationList,pt.ist.fenixframework.pstm.OJBFunctionalSetWrapper";
+    protected static final String IMPORTS_COMMA_SEPARATED = "pt.ist.fenixframework.pstm.VBox,pt.ist.fenixframework.pstm.RelationList,pt.ist.fenixframework.pstm.OJBFunctionalSetWrapper,pt.ist.fenixframework.ValueTypeSerializationGenerator.*";
     protected static final String DOMAIN_CLASS_ROOT = "pt.ist.fenixframework.pstm.AbstractDomainObject";
     protected static final String DIRECT_RELATION_TYPE_CLASS = "pt.ist.fenixframework.pstm.LoggingRelation";
     protected static final String TRANSACTION_CLASS = "pt.ist.fenixframework.pstm.Transaction";
@@ -205,12 +205,12 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     @Override
     protected String getNewSlotExpression(Slot slot) {
-	return "VBox.makeNew(allocateOnly, false)";
+        return "VBox.makeNew(this, \"" + slot.getName() + "\", allocateOnly, false)";
     }
 
     @Override
     protected String getNewRoleOneSlotExpression(Role role) {
-	return "VBox.makeNew(allocateOnly, false)";
+        return "VBox.makeNew(this, \"" + role.getName() + "\", allocateOnly, false)";
     }
 
     @Override
@@ -644,4 +644,8 @@ public class FenixCodeGenerator extends CodeGenerator {
 	print(out, "\")");
     }
 
+    protected void generateSlotDeclaration(PrintWriter out, String type, String name) {
+	printWords(out, "private", type, name);
+	println(out, ";");
+    }
 }

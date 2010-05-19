@@ -2,22 +2,24 @@ package pt.ist.fenixframework.pstm;
 
 import jvstm.VBoxBody;
 
+import pt.ist.fenixframework.DomainObject;
+
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerException;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 
 class ReferenceBox<E> extends VBox<E> {
 
-    ReferenceBox() {
-        super();
+    ReferenceBox(DomainObject ownerObj, String slotName) {
+        super(ownerObj, slotName);
     }
 
-    ReferenceBox(VBoxBody<E> body) {
-	super(body);
+    ReferenceBox(DomainObject ownerObj, String slotName, VBoxBody<E> body) {
+	super(ownerObj, slotName, body);
     }
 
-    public ReferenceBox(E value) {
-        super(value);
+    public ReferenceBox(DomainObject ownerObj, String slotName, E value) {
+	super(ownerObj, slotName, value);
     }
 
     protected void doReload(Object obj, String attr) {

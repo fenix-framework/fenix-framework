@@ -10,7 +10,28 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Externalization {
+    private static class NullClass implements Serializable {
+	private static final long serialVersionUID = 1L;
+    }
+    private static final NullClass NULL_OBJECT = new NullClass();
 
+    public static byte[] externalizeObject(Object obj) {
+	if (obj == null) {
+	    return externalizeSerializable(NULL_OBJECT);
+	} else if (!(obj instanceof Serializable)) {
+	    throw new UnsupportedOperationException(obj.getClass().getName());
+	}
+	return externalizeSerializable((Serializable)obj);
+    }
+
+    public static <T> T internalizeObject(byte[] bytes) {
+	Object obj = internalizeSerializable(bytes);
+	if (obj instanceof NullClass) {
+	    return null;
+	} else {
+	    return (T)obj;
+	}
+    }
 
     public static byte[] externalizeSerializable(Serializable obj) {
         return externalizeSerializable(obj, false);

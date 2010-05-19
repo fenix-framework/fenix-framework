@@ -10,7 +10,7 @@ public abstract class Transaction extends jvstm.Transaction {
     private final static FenixCache cache = new FenixCache();
 
     static {
-	DomainClassInfo.initializeClassInfos();
+	DomainClassInfo.initializeClassInfos(0);
 
 	jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
 	    public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
