@@ -153,6 +153,7 @@ public class FenixValueTypeSerializationGenerator extends FenixCodeGenerator {
 	}
 	print(out, "return ");
 	generateCheckNullable(vt);
+        print(out, "(" + vt.getFullname() + ")");
 	print(out, internalizationMethodName + "(");
 
 	boolean firstArg = true;
