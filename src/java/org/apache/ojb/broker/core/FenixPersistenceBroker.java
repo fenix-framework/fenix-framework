@@ -4,6 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.LinkedList;
 
 import org.apache.ojb.broker.Identity;
 import org.apache.ojb.broker.ManageableCollection;
@@ -164,12 +166,13 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
 
 
         ChainingIterator chainingIter = new ChainingIterator();
+        List<String> tablesRead = new LinkedList<String>();
 
         // BRJ: add base class iterator
         if (!cld.isInterface())
         {
-
             chainingIter.addIterator(factory.createRsIterator(query, cld, this));
+            tablesRead.add(cld.getFullTableName());
         }
 
         Iterator extents = getDescriptorRepository().getAllConcreteSubclassDescriptors(cld).iterator();
@@ -178,13 +181,25 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
             ClassDescriptor extCld = (ClassDescriptor) extents.next();
 
             // read same table only once
-            if (chainingIter.containsIteratorForTable(extCld.getFullTableName()))
+
+            // JC: the following (original) test did not work when the
+            // previously added iterator was empty (something that is
+            // tested when the iterator is added to the chaining
+            // iterator), because in that case the iterator added is
+            // simply ignored.  So, the following test will return
+            // false and, thus, make repeated queries to the same
+            // table when all the classes are mapped to the same
+            // table.  Instead, we keep the table names used so far in
+            // the tablesRead list and check it here.
+            //if (chainingIter.containsIteratorForTable(extCld.getFullTableName()))
+            if (tablesRead.contains(extCld.getFullTableName()))
             {
             }
             else
             {
                 // add the iterator to the chaining iterator.
                 chainingIter.addIterator(factory.createRsIterator(query, extCld, this));
+                tablesRead.add(extCld.getFullTableName());
             }
         }
 
