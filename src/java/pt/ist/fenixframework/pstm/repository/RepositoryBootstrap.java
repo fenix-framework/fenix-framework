@@ -83,8 +83,8 @@ public class RepositoryBootstrap {
 			}
 		    }
 		    if (newInfrastructureCreated || config.getUpdateRepositoryStructureIfNeeded()) {
-			final String updates = SQLUpdateGenerator.generateInMem(MetadataManager.getDomainModel(), connection,
-				null);
+			final String updates = SQLUpdateGenerator.generateSqlUpdates(MetadataManager.getDomainModel(),
+				connection, null, false);
 			executeSqlInstructions(connection, updates);
 		    }
 		}
