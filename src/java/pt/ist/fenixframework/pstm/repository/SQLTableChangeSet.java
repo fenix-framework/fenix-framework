@@ -18,6 +18,8 @@ import pt.ist.fenixframework.pstm.repository.SQLTableInfo.Column;
 import dml.Role;
 
 public class SQLTableChangeSet {
+    private static final String DEFAULT_CHARSET = "utf8";
+
     private final SQLTableInfo table;
 
     private final Map<String, Column> fields = new HashMap<String, Column>();
@@ -97,7 +99,7 @@ public class SQLTableChangeSet {
 	    updates.append(StringUtils.join(definitions, ", "));
 	    if (!table.exists) {
 		updates.append(") type=InnoDB, character set ");
-		updates.append(tableCharset);
+		updates.append(tableCharset != null ? tableCharset : DEFAULT_CHARSET);
 	    }
 	    updates.append(";\n");
 	    return updates.toString();
