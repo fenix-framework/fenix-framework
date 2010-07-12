@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.accesslayer.LookupException;
@@ -23,6 +24,7 @@ import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.FenixFrameworkPlugin;
 import pt.ist.fenixframework.pstm.repository.database.DatabaseDescriptorFactory;
 import dml.DomainModel;
 import dml.DomainRelation;
@@ -30,7 +32,7 @@ import dml.Role;
 
 public class SQLUpdateGenerator {
     public static String generateSqlUpdates(final String[] dmls, final String db, final String dbUser, final String dbPass,
-	    String charset, boolean genDrops) throws SQLException, LookupException {
+	    final FenixFrameworkPlugin[] frameworkPlugins, String charset, boolean genDrops) throws SQLException, LookupException {
 	FenixFramework.initialize(new Config() {
 	    {
 		createRepositoryStructureIfNotExists = false;
@@ -38,6 +40,7 @@ public class SQLUpdateGenerator {
 		dbAlias = db;
 		dbUsername = dbUser;
 		dbPassword = dbPass;
+		plugins = frameworkPlugins;
 	    }
 	});
 	final PersistenceBroker persistenceBroker = PersistenceBrokerFactory.defaultPersistenceBroker();
@@ -144,6 +147,27 @@ public class SQLUpdateGenerator {
 	return args[index];
     }
 
+    public static FenixFrameworkPlugin[] getPluginArray(String plugins) {
+	if (StringUtils.isEmpty(plugins)) {
+	    return new FenixFrameworkPlugin[0];
+	}
+	String[] classNames = plugins.split("\\s*,\\s*");
+
+	FenixFrameworkPlugin[] pluginArray = new FenixFrameworkPlugin[classNames.length];
+	for (int i = 0; i < classNames.length; i++) {
+	    try {
+		pluginArray[i] = (FenixFrameworkPlugin) Class.forName(classNames[i].trim()).newInstance();
+	    } catch (InstantiationException e) {
+		throw new Error(e);
+	    } catch (IllegalAccessException e) {
+		throw new Error(e);
+	    } catch (ClassNotFoundException e) {
+		throw new Error(e);
+	    }
+	}
+	return pluginArray;
+    }
+
     public static void main(String[] args) throws IOException, LookupException, SQLException {
 	int nextArg = 0;
 	String tableCharset = null;
@@ -162,11 +186,13 @@ public class SQLUpdateGenerator {
 	final String dbAliasArg = getArg(args, nextArg++);
 	final String dbUserArg = getArg(args, nextArg++);
 	final String dbPassArg = getArg(args, nextArg++);
+	final String plugins = getArg(args, nextArg++);
 
 	// all the remaining args are DML files
 	final String[] domainModelFiles = Arrays.copyOfRange(args, nextArg, args.length);
 
-	String updates = generateSqlUpdates(domainModelFiles, dbAliasArg, dbUserArg, dbPassArg, tableCharset, genDrops);
+	String updates = generateSqlUpdates(domainModelFiles, dbAliasArg, dbUserArg, dbPassArg, getPluginArray(plugins),
+		tableCharset, genDrops);
 	final File file = new File("etc/database_operations/updates.sql");
 	if (file.exists()) {
 	    updates = FileUtils.readFileToString(file) + "\n\n\n" + "-- Inserted at " + new DateTime() + "\n\n" + updates;
