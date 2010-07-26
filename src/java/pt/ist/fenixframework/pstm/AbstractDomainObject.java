@@ -230,6 +230,9 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
     }
 
     protected void doCheckDisconnectedAction(java.util.List<String> relationList) {
+	for(String relation : relationList) {
+	    System.out.println("Relation not disconnected" + relation);
+	}
     }
 
     @Override

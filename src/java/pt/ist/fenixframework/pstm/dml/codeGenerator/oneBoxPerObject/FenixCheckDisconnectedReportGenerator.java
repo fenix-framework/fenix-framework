@@ -12,10 +12,6 @@ import dml.Role;
 
 public class FenixCheckDisconnectedReportGenerator extends FenixCodeGeneratorOneBoxPerObject {
 
-    private static final String f(String format, Object... args) {
-	return String.format(format, args);
-    }
-
     public FenixCheckDisconnectedReportGenerator(CompilerArgs compArgs, DomainModel domainModel) {
 	super(compArgs, domainModel);
     }
@@ -53,7 +49,7 @@ public class FenixCheckDisconnectedReportGenerator extends FenixCodeGeneratorOne
 		    print(out, "hasAny");
 		}
 		print(out, capitalize(role.getName()));
-		println(out, f("()) connectedRelationList.add(\"%s\"); ", role.getName()));
+		println(out, String.format("()) connectedRelationList.add(\"%s\"); ", role.getName()));
 	    }
 	}
 
