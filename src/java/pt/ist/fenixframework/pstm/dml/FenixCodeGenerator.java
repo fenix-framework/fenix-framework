@@ -205,12 +205,12 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     @Override
     protected String getNewSlotExpression(Slot slot) {
-        return "VBox.makeNew(this, \"" + slot.getName() + "\", allocateOnly, false)";
+	return "VBox.makeNew(this, \"" + slot.getName() + "\", allocateOnly, false)";
     }
 
     @Override
     protected String getNewRoleOneSlotExpression(Role role) {
-        return "VBox.makeNew(this, \"" + role.getName() + "\", allocateOnly, false)";
+	return "VBox.makeNew(this, \"" + role.getName() + "\", allocateOnly, false)";
     }
 
     @Override
@@ -262,6 +262,9 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     @Override
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
+	print(out, "pt.ist.fenixframework.pstm.DataAccessPatterns.noteGetAccess(this, \"");
+	print(out, slotName);
+	println(out, "\");");
 	print(out, "return ");
 	generateGetSlotExpression(slotName, out);
 	print(out, ";");

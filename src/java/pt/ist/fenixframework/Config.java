@@ -172,6 +172,13 @@ public class Config {
     protected boolean collectDataAccessPatterns = false;
 
     /**
+     * This <strong>optional</strong> parameter indicates where the framework
+     * will store the collected information about the data-access patterns of
+     * the application. Must end with a path separator character.
+     */
+    protected String collectDataAccessPatternsPath = "";
+
+    /**
      * This <strong>optional</strong> parameter indicates whether the framework
      * should throw an exception when a DomainObject that is still connected to
      * other objects is trying to be deleted or rather delete it.
@@ -299,4 +306,9 @@ public class Config {
     public FenixFrameworkPlugin[] getPlugins() {
 	return plugins;
     }
+
+    public String getCollectDataAccessPatternsPath() {
+	return collectDataAccessPatternsPath;
+    }
+
 }
