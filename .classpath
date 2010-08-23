@@ -7,7 +7,6 @@
 	<classpathentry kind="lib" path="lib/antlr.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-dbcp.jar"/>
-	<classpathentry kind="lib" path="lib/commons-pool.jar"/>
 	<classpathentry kind="lib" path="lib/db-ojb-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart.jar"/>
 	<classpathentry kind="lib" path="lib/jvstm.jar"/>
@@ -21,5 +20,7 @@
 	<classpathentry kind="lib" path="lib/commons-io-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang-2.4.jar"/>
 	<classpathentry kind="lib" path="lib/ant.jar"/>
+	<classpathentry kind="lib" path="lib/asm-tree-3.0.jar"/>
+	<classpathentry kind="lib" path="lib/commons-pool-1.5.4.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
