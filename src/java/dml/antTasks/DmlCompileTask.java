@@ -27,6 +27,15 @@ public class DmlCompileTask extends Task {
     private String generatorClassName;
     private String domainModelClassName;
     private String classPathRef;
+    private String hasRun = DmlCompileTask.class.getName() + ".run";
+
+    public String getHasRun() {
+	return hasRun;
+    }
+
+    public void setHasRun(String hasRun) {
+	this.hasRun = hasRun;
+    }
 
     public String getClassPathRef() {
 	return classPathRef;
@@ -153,6 +162,7 @@ public class DmlCompileTask extends Task {
 		CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class)
 			.newInstance(compArgs, model);
 		generator.generateCode();
+		getProject().setProperty(getHasRun(), Boolean.TRUE.toString());
 	    } catch (Exception e) {
 		throw new BuildException(e);
 	    }
