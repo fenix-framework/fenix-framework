@@ -23,8 +23,8 @@ import org.apache.ojb.broker.metadata.CollectionDescriptor;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Config;
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.FenixFrameworkPlugin;
+import pt.ist.fenixframework.pstm.MetadataManager;
 import pt.ist.fenixframework.pstm.repository.database.DatabaseDescriptorFactory;
 import dml.DomainModel;
 import dml.DomainRelation;
@@ -33,9 +33,8 @@ import dml.Role;
 public class SQLUpdateGenerator {
     public static String generateSqlUpdates(final String[] dmls, final String db, final String dbUser, final String dbPass,
 	    final FenixFrameworkPlugin[] frameworkPlugins, String charset, boolean genDrops) throws SQLException, LookupException {
-	FenixFramework.initialize(new Config() {
+	MetadataManager.init(new Config() {
 	    {
-		createRepositoryStructureIfNotExists = false;
 		domainModelPaths = dmls;
 		dbAlias = db;
 		dbUsername = dbUser;
@@ -45,7 +44,7 @@ public class SQLUpdateGenerator {
 	});
 	final PersistenceBroker persistenceBroker = PersistenceBrokerFactory.defaultPersistenceBroker();
 	Connection connection = persistenceBroker.serviceConnectionManager().getConnection();
-	DomainModel model = FenixFramework.getDomainModel();
+	DomainModel model = MetadataManager.getDomainModel();
 	return generateSqlUpdates(model, connection, charset, genDrops);
     }
 
