@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project basedir="." default="compile" name="The fenix-framework hello world example">
+<project basedir="." default="compile" name="The fenix-framework bank consistency example">
   
   <property name="src.dir" location="src"/>
   <property name="src.gen.dir" location="src_gen"/>
   <property name="java.src.dir" location="${src.dir}/java"/>
   <property name="dml.src.dir" location="${src.dir}/dml"/>
   <property name="build.dir" location="classes"/>
-  <property name="domain.dml" location="${dml.src.dir}/helloworld.dml"/>
+  <property name="domain.dml" location="${dml.src.dir}/bank-consistency.dml"/>
   <property name="framework.dir" location="../../"/>
   <property name="framework.lib.dir" location="${framework.dir}/lib"/>
   <property name="framework.build.dir" location="${framework.dir}/build/classes"/>
@@ -57,10 +57,10 @@
   </target>
 
   <target name="run" depends="compile" description="runs the application">
-    <java classname="pt.ist.fenixframework.example.helloworld.Main" fork="true">
+    <java classname="pt.ist.fenixframework.example.bankconsistency.Main" fork="true">
       <classpath refid="project.class.path"/>
       <jvmarg value="-Dfile.encoding=${java.file.encoding}" />
-      <arg value="John"/>
+    	<!-- <jvmarg value="-agentlib:jdwp=transport=dt_socket,server=y,address=8000" /> -->
     </java>
   </target>
 </project>
