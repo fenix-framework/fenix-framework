@@ -40,6 +40,15 @@ public class Orders extends Orders_Base {
 	}
     }
 
+    boolean contains(Book book) {
+	for (OrderLine orderLine : this.getOrderLines()) {
+	    if (orderLine.getBook() == book) {
+		return true;
+	    }
+	}
+	return false;
+    }
+
     public final OrdersDTO getDTO() {
 	return new OrdersDTO(this);
     }

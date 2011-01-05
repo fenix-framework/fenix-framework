@@ -368,7 +368,7 @@ public class Root extends Root_Base {
 	// Now, for the more complex part of the logic: update the related books
 
 	// first, get the customers of the 10000 most recent orders
-	Set<Customer> recentCustomers = getRecentCustomers(10000);
+	Set<Customer> recentCustomers = getRecentCustomersForBook(10000, book);
 	// second, get the total amount ordered for each book that these clients ever ordered
 	Map<Book,Integer> quantities = new HashMap<Book,Integer>();
 	for (Customer customer : recentCustomers) {
@@ -404,12 +404,13 @@ public class Root extends Root_Base {
 	book.setRelatedTo5(relatedBooks.get(4));
     }
 
-    private Set<Customer> getRecentCustomers(int lastNOrders) {
+    private Set<Customer> getRecentCustomersForBook(int lastNOrders, Book book) {
 	Set<Customer> result = new HashSet<Customer>();
 
 	int pastOrderId = getNumOrderIds()-lastNOrders;
 	for (Orders order : getOrderss()) {
-	    if (order.getO_id() > pastOrderId) {
+	    if (order.getO_id() > pastOrderId
+		&& order.contains(book)) {
 		result.add(order.getCustomer());
 	    }
 	}
