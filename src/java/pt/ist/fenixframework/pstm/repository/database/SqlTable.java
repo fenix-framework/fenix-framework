@@ -163,7 +163,7 @@ public class SqlTable {
 	 *
 	 * -> thus, currently the format (encoding) in which we send strings must match the column's encoding
 	 */
-	stringBuilder.append(") type=InnoDB, character set ");
+	stringBuilder.append(") ENGINE=InnoDB, character set ");
 	stringBuilder.append(defaultCharacterSet);
 	stringBuilder.append(" ;\n\n");
     }

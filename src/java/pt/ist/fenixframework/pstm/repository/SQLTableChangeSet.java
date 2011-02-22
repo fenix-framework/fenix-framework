@@ -98,7 +98,7 @@ public class SQLTableChangeSet {
 	if (!definitions.isEmpty()) {
 	    updates.append(StringUtils.join(definitions, ", "));
 	    if (!table.exists) {
-		updates.append(") type=InnoDB, character set ");
+		updates.append(") ENGINE=InnoDB, character set ");
 		updates.append(tableCharset != null ? tableCharset : DEFAULT_CHARSET);
 	    }
 	    updates.append(";\n");

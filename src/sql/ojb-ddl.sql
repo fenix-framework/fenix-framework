@@ -7,7 +7,7 @@ CREATE TABLE OJB_DLIST (
   ID int(11) NOT NULL default '0',
   SIZE_ int(11) default NULL,
   PRIMARY KEY  (ID)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 --
 -- Table structure for table `OJB_DLIST_ENTRIES`
@@ -20,7 +20,7 @@ CREATE TABLE OJB_DLIST_ENTRIES (
   POSITION_ int(11) default NULL,
   OID_ longblob,
   PRIMARY KEY  (ID)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 --
 -- Table structure for table `OJB_DMAP`
@@ -31,7 +31,7 @@ CREATE TABLE OJB_DMAP (
   ID int(11) NOT NULL default '0',
   SIZE_ int(11) default NULL,
   PRIMARY KEY  (ID)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 --
 -- Table structure for table `OJB_DMAP_ENTRIES`
@@ -44,7 +44,7 @@ CREATE TABLE OJB_DMAP_ENTRIES (
   KEY_OID longblob,
   VALUE_OID longblob,
   PRIMARY KEY  (ID)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 --
 -- Table structure for table `OJB_DSET`
@@ -55,7 +55,7 @@ CREATE TABLE OJB_DSET (
   ID int(11) NOT NULL default '0',
   SIZE_ int(11) default NULL,
   PRIMARY KEY  (ID)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 --
 -- Table structure for table `OJB_DSET_ENTRIES`
@@ -68,7 +68,7 @@ CREATE TABLE OJB_DSET_ENTRIES (
   POSITION_ int(11) default NULL,
   OID_ longblob,
   PRIMARY KEY  (ID)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 --
 -- Table structure for table `OJB_HL_SEQ`
@@ -82,7 +82,7 @@ CREATE TABLE OJB_HL_SEQ (
   GRAB_SIZE int(11) default NULL,
   VERSION int(11) default NULL,
   PRIMARY KEY  (TABLENAME,FIELDNAME)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 --
 -- Table structure for table `OJB_LOCKENTRY`
@@ -96,7 +96,7 @@ CREATE TABLE OJB_LOCKENTRY (
   ISOLATIONLEVEL int(11) default NULL,
   LOCKTYPE int(11) default NULL,
   PRIMARY KEY  (OID_,TX_ID)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 --
 -- Table structure for table `OJB_NRM`
@@ -107,7 +107,7 @@ CREATE TABLE OJB_NRM (
   NAME varchar(250) NOT NULL default '',
   OID_ longblob,
   PRIMARY KEY  (NAME)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 --
 -- Table structure for table `OJB_SEQ`
@@ -119,4 +119,4 @@ CREATE TABLE OJB_SEQ (
   FIELDNAME varchar(70) NOT NULL default '',
   LAST_NUM int(11) default NULL,
   PRIMARY KEY  (TABLENAME,FIELDNAME)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
