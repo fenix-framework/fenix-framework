@@ -53,6 +53,7 @@
  * Changed 2003 by Jan Kiefer.
  * 
  * Changed 2008 by Joao Pereira
+ * Changed 2010 by Sergio Miguel Fernandes
  ************************************************************************/
 
 package pt.ist.fenixframework.example.tpcw.populate;
@@ -75,6 +76,7 @@ import jvstm.TransactionalCommand;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.Transaction;
 import pt.ist.fenixframework.pstm.VersionNotAvailableException;
 
@@ -113,20 +115,14 @@ class TPCW_Populate {
 
     // need to store all created objects for some persistent classes since
     // they are needed for other objects of other persistent classes
+    // we actually only store the OID to allow memory to be collected
     private static int _counter = 0; // maintains the number of previous created objects for each class
-    private static HashMap<Integer, Author> _authors =
-	new HashMap<Integer, Author>(NUM_ITEMS/2);
-    private static HashMap<Integer, Book> _books = new HashMap<Integer, Book>(NUM_ITEMS*2);
-    private static Country _countries[] = new Country[NUM_COUNTRIES];
+    private static Long [] _authors;
+    private static Long [] _books;
+    private static Long [] _countries;
+    private static Long [] _addresses;
+    private static Long [] _customers;
 
-    private static HashMap<Integer, Address> _addresses = 
-	new HashMap<Integer, Address>(NUM_ADDRESSES*2);
-
-    private static HashMap<Integer, Customer> _customers = 
-	new HashMap<Integer, Customer>(NUM_CUSTOMERS*2);
-
-    private static Root rootObject = null;
-  
     public static void main(String[] args){
  	final String paramDbUrl = "//localhost:3306/";
 	final String paramDbName = "tpcwFenix";
@@ -144,6 +140,13 @@ class TPCW_Populate {
 	NUM_ADDRESSES = 2 * NUM_CUSTOMERS;
 	NUM_AUTHORS = (int) (.25 * NUM_ITEMS);
 	NUM_ORDERS = (int) (.9 * NUM_CUSTOMERS);
+
+	_authors = new Long[NUM_ITEMS/4];
+	_books = new Long[NUM_ITEMS];
+	_countries = new Long[NUM_COUNTRIES];
+	_addresses = new Long[NUM_ADDRESSES];
+	_customers = new Long[NUM_CUSTOMERS];
+
 	System.out.println("Beginning TPCW Database population.");
     
 	rand = new Random();
@@ -200,6 +203,23 @@ class TPCW_Populate {
 	}
     }
 
+
+    private static Author getAuthorsFromTable(int idx) {
+	return AbstractDomainObject.fromOID(_authors[idx]);
+    }
+    private static Book getBookFromTable(int idx) {
+	return AbstractDomainObject.fromOID(_books[idx]);
+    }
+    private static Country getCountryFromTable(int idx) {
+	return AbstractDomainObject.fromOID(_countries[idx]);
+    }
+    private static Address getAddressFromTable(int idx) {
+	return AbstractDomainObject.fromOID(_addresses[idx]);
+    }
+    private static Customer getCustomerFromTable(int idx) {
+	return AbstractDomainObject.fromOID(_customers[idx]);
+    }
+
     private static void ensureRootObject() {
         Transaction.withTransaction(new TransactionalCommand() {
                 public void doIt() {
@@ -214,7 +234,6 @@ class TPCW_Populate {
 			root.setLoaded(true);
 		    }
 		    root.setNumCartIds(0);
-		    rootObject = root;
 		}
 	    });
     }
@@ -238,8 +257,8 @@ class TPCW_Populate {
 	    A_BIO = getRandomAString(125, 500);
 
 	    Author au = new Author(A_FNAME, A_LNAME, A_MNAME, A_DOB, A_BIO, 1 + _counter);
-	    au.setRoot(rootObject);
-	    _authors.put(_counter++, au);
+	    au.setRoot((Root)FenixFramework.getRoot());
+	    _authors[_counter++] = au.getOid();
 	}
     }
 
@@ -285,7 +304,7 @@ class TPCW_Populate {
 	Transaction.withTransaction(new TransactionalCommand() {
 		public void doIt() {
 		    createCustomerObjects(NUM_CUSTOMERS%NUMBER_OBJECTS_TRANSACTION);
-		    rootObject.setNumCustomerIds(_counter);
+		    ((Root)FenixFramework.getRoot()).setNumCustomerIds(_counter);
 		}
 	    });
 
@@ -309,7 +328,7 @@ class TPCW_Populate {
 	    C_PASSWD = C_UNAME.toLowerCase();
 	    C_LNAME = getRandomAString(8,15);
 	    C_FNAME = getRandomAString(8,15);
-	    address = _addresses.get(getRandomInt(0, NUM_ADDRESSES - 1));
+	    address = getAddressFromTable(getRandomInt(0, NUM_ADDRESSES - 1));
 	    C_PHONE = getRandomNString(9,16);
 	    C_EMAIL = C_UNAME+"@"+getRandomAString(2,9)+".com";
       
@@ -340,8 +359,8 @@ class TPCW_Populate {
 			     C_EMAIL, C_SINCE, C_LAST_LOGIN, C_LOGIN, C_EXPIRATION,
 			     C_DISCOUNT, C_BALANCE, C_YTD_PMT, C_BIRTHDATE, C_DATA,
 			     address, 1 + _counter);
-	    customer.setRoot(rootObject);
-	    _customers.put(_counter++, customer);
+	    customer.setRoot((Root)FenixFramework.getRoot());
+	    _customers[_counter++] = customer.getOid();
 	}
     }
  
@@ -393,10 +412,10 @@ class TPCW_Populate {
 	for (int i = 0; i < n; i++) {
 	    I_TITLE= getRandomAString(14,60);
 	    if(_counter < (NUM_ITEMS/4))
-		a_id = _authors.get(_counter);
+		a_id = getAuthorsFromTable(_counter);
 	    else 
-		a_id = _authors.get(getRandomInt(0, NUM_ITEMS/4 - 1));
-	
+		a_id = getAuthorsFromTable(getRandomInt(0, NUM_ITEMS/4 - 1));
+
 	    cal = getRandomDate(1930, 2000);
       
 	    I_PUB_DATE = new java.sql.Date(cal.getTime().getTime());
@@ -430,8 +449,8 @@ class TPCW_Populate {
 			       I_THUMBNAIL, I_IMAGE, I_SRP, I_COST,
 			       I_AVAIL, I_STOCK, I_ISBN, I_PAGE, I_BACKING,
 			       I_DIMENSIONS, _counter + 1, a_id);	
-	    it.setRoot(rootObject);
-	    _books.put(_counter++, it);
+	    it.setRoot((Root)FenixFramework.getRoot());
+	    _books[_counter++] = it.getOid();
 	}
       
     }
@@ -458,7 +477,7 @@ class TPCW_Populate {
   
     private static void setRelatedBooks(int n) {
 	for (int i = 0; i < n; i++) {
-	    Book book = _books.get(_counter++);
+	    Book book = getBookFromTable(_counter++);
 	    int I_RELATED1, I_RELATED2, I_RELATED3, I_RELATED4, I_RELATED5;
 
 	    I_RELATED1 = getRandomInt(1, NUM_ITEMS);
@@ -479,11 +498,11 @@ class TPCW_Populate {
 		    I_RELATED5 == I_RELATED4);
 
 	    // remeber that counter started at 0, thus subtract 1 to the index
-	    book.setRelatedTo1(_books.get(I_RELATED1-1));
-	    book.setRelatedTo2(_books.get(I_RELATED2-1));
-	    book.setRelatedTo3(_books.get(I_RELATED3-1));
-	    book.setRelatedTo4(_books.get(I_RELATED4-1));
-	    book.setRelatedTo5(_books.get(I_RELATED5-1));
+	    book.setRelatedTo1(getBookFromTable(I_RELATED1-1));
+	    book.setRelatedTo2(getBookFromTable(I_RELATED2-1));
+	    book.setRelatedTo3(getBookFromTable(I_RELATED3-1));
+	    book.setRelatedTo4(getBookFromTable(I_RELATED4-1));
+	    book.setRelatedTo5(getBookFromTable(I_RELATED5-1));
 	}
     }
 
@@ -504,7 +523,7 @@ class TPCW_Populate {
 	Transaction.withTransaction(new TransactionalCommand() {
 		public void doIt() {
 		    createAddressObjects(NUM_ADDRESSES%NUMBER_OBJECTS_TRANSACTION);
-		    rootObject.setNumAddrIds(_counter);
+		    ((Root)FenixFramework.getRoot()).setNumAddrIds(_counter);
 		}
 	    });
     }
@@ -521,11 +540,11 @@ class TPCW_Populate {
 	    ADDR_CITY    = getRandomAString(4,30);
 	    ADDR_STATE   = getRandomAString(2,20);
 	    ADDR_ZIP     = getRandomAString(5,10);
-	    country      = _countries[getRandomInt(0, NUM_COUNTRIES - 1)];
+	    country      = getCountryFromTable(getRandomInt(0, NUM_COUNTRIES - 1));
                 
 	    Address address = new Address(ADDR_STREET1, ADDR_STREET2, ADDR_CITY,
 					  ADDR_STATE, ADDR_ZIP, country, 1 + _counter);
-	    _addresses.put(_counter++, address);
+	    _addresses[_counter++] = address.getOid();
 	}
     }
 
@@ -589,8 +608,8 @@ class TPCW_Populate {
       
 	for(int i = 0; i < n ; i++){
 	    Country country = new Country(countries[i], exchanges[i], currencies[i], i);
-	    country.setRoot(rootObject);
-	    _countries[_counter++] = country;
+	    country.setRoot((Root)FenixFramework.getRoot());
+	    _countries[_counter++] = country.getOid();
 	}
     }
 
@@ -614,7 +633,7 @@ class TPCW_Populate {
 	Transaction.withTransaction(new TransactionalCommand() {
 		public void doIt() {
 		    createOrdersAndCC_XACTSObjects(NUM_ORDERS%NUMBER_OBJECTS_TRANSACTION);
-		    rootObject.setNumOrderIds(_counter);
+		    ((Root)FenixFramework.getRoot()).setNumOrderIds(_counter);
 		}
 	    });
     }
@@ -648,7 +667,7 @@ class TPCW_Populate {
     
 	for(int i = 0; i < n; i++){
 	    int num_items = getRandomInt(1,5);
-	    customer = _customers.get(getRandomInt(0, NUM_CUSTOMERS - 1));
+	    customer = getCustomerFromTable(getRandomInt(0, NUM_CUSTOMERS - 1));
 	    cal = new GregorianCalendar();
 	    cal.add(Calendar.DAY_OF_YEAR, -1*getRandomInt(1,60));
 	    O_DATE = new java.sql.Timestamp(cal.getTime().getTime());
@@ -659,17 +678,17 @@ class TPCW_Populate {
 	    cal.add(Calendar.DAY_OF_YEAR, getRandomInt(0,7));
 	    O_SHIP_DATE = new java.sql.Timestamp(cal.getTime().getTime());
       
-	    billAddress = _addresses.get(getRandomInt(0, NUM_ADDRESSES));
-	    shipAddress = _addresses.get(getRandomInt(0, NUM_ADDRESSES));
+	    billAddress = getAddressFromTable(getRandomInt(0, NUM_ADDRESSES-1));
+	    shipAddress = getAddressFromTable(getRandomInt(0, NUM_ADDRESSES-1));
 	    O_STATUS = status_types[getRandomInt(0, status_types.length - 1)];
       
 	    Orders order = new Orders(O_DATE, O_SUB_TOTAL, O_TAX, O_TOTAL,
 				      O_SHIP_TYPE, O_SHIP_DATE, O_STATUS,
 				      billAddress, shipAddress, customer, _counter + 1);
-	    order.setRoot(rootObject);
+	    order.setRoot((Root)FenixFramework.getRoot());
 
 	    for(int j = 1; j <= num_items; j++){
-		Book book = _books.get(getRandomInt(0, NUM_ITEMS - 1));
+		Book book = getBookFromTable(getRandomInt(0, NUM_ITEMS - 1));
 		int OL_QTY = getRandomInt(1, 300);
 		double OL_DISCOUNT = (double) getRandomInt(0,30)/100;
 		String OL_COMMENTS = getRandomAString(20,100);
@@ -684,7 +703,7 @@ class TPCW_Populate {
 	    cal.add(Calendar.DAY_OF_YEAR, getRandomInt(10, 730));
 	    CX_EXPIRY = new java.sql.Date(cal.getTime().getTime());
 	    //      CX_AUTH_ID = getRandomAString(15);                       // unused
-	    Country country = _countries[getRandomInt(0,91)];
+	    Country country = getCountryFromTable(getRandomInt(0,91));
 	    CCXact ccXact = new CCXact(CX_TYPE, CX_NUM, CX_NAME, CX_EXPIRY,/* CX_AUTH_ID,*/ O_TOTAL,
 				       O_SHIP_DATE, /* 1 + _counter, */order, country);
 	    _counter++;
