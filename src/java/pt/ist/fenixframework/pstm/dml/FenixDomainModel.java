@@ -60,7 +60,7 @@ public class FenixDomainModel extends DomainModel {
 	registerFenixValueType("java.lang.String", "String", "LONGVARCHAR");
 
 	// we need something binary, also
-	registerFenixValueType("byte[]", "bytearray", "LONGBLOB");
+	registerFenixValueType("byte[]", "bytearray", "BLOB");
 
 	// JodaTime types
 	registerFenixValueType("org.joda.time.DateTime", "DateTime", "TIMESTAMP");
