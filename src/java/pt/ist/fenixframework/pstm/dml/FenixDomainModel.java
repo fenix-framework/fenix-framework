@@ -1,11 +1,8 @@
 package pt.ist.fenixframework.pstm.dml;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import dml.DomainModel;
 import dml.ExternalizationElement;
@@ -63,7 +60,7 @@ public class FenixDomainModel extends DomainModel {
 	registerFenixValueType("java.lang.String", "String", "LONGVARCHAR");
 
 	// we need something binary, also
-	registerFenixValueType("byte[]", "bytearray", "BLOB");
+	registerFenixValueType("byte[]", "bytearray", "LONGBLOB");
 
 	// JodaTime types
 	registerFenixValueType("org.joda.time.DateTime", "DateTime", "TIMESTAMP");
