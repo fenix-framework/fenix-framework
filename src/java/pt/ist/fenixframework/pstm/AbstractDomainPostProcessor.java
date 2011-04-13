@@ -28,6 +28,13 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
     protected String classFullName;
     protected String domainModelClassName = FenixDomainModel.class.getName();
 
+    protected AbstractDomainPostProcessor() {
+    }
+    
+    protected AbstractDomainPostProcessor(ClassLoader parentClassLoader) {
+        super(parentClassLoader);
+    }
+    
     // --------------------------------
     // HACK!!!
     //

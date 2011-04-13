@@ -18,17 +18,26 @@ import org.objectweb.asm.Type;
 public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
     private static final String OID_INNER_CLASS_INTERNAL_NAME = Type.getInternalName(DomainObjectAllocator.OID.class);
 
-    private static final String CONSTRUCTOR_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] { Type
-	    .getType(DomainObjectAllocator.OID.class) });
-
-    public PostProcessDomainClasses(List<String> dmlFiles, String classFullName, String domainModelClassName) {
-	this.dmlFiles.addAll(dmlFiles);
-	this.classFullName = classFullName;
-	this.domainModelClassName = domainModelClassName;
-    }
+    private static final String CONSTRUCTOR_DESC = 
+        Type.getMethodDescriptor(Type.VOID_TYPE, 
+                                 new Type[] { Type.getType(DomainObjectAllocator.OID.class) });
 
     private PostProcessDomainClasses() {
+        super();
+    }
+    
+    public PostProcessDomainClasses(List<String> dmlFiles, String classFullName, String domainModelClassName) {
+        this(dmlFiles, classFullName, domainModelClassName, Thread.currentThread().getContextClassLoader());
+    }
 
+    public PostProcessDomainClasses(List<String> dmlFiles, 
+                                    String classFullName, 
+                                    String domainModelClassName, 
+                                    ClassLoader parentClassLoader) {
+        super(parentClassLoader);
+        this.dmlFiles.addAll(dmlFiles);
+        this.classFullName = classFullName;
+        this.domainModelClassName = domainModelClassName;
     }
 
     public static void main(final String args[]) {
