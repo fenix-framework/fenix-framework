@@ -13,19 +13,15 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
-
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
-import org.apache.ojb.broker.metadata.FieldDescriptor;
 import org.apache.ojb.broker.metadata.CollectionDescriptor;
+import org.apache.ojb.broker.metadata.FieldDescriptor;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.pstm.dml.FenixDomainModelWithOCC;
 import pt.ist.fenixframework.pstm.repository.database.DatabaseDescriptorFactory;
-import pt.ist.fenixframework.pstm.repository.database.SqlTable;
-
 import dml.DomainClass;
 import dml.DomainModel;
 import dml.Role;
@@ -42,13 +38,14 @@ public class CheckOids {
             // all the remaining args are DML files
 	    final String[] domainModelFiles = Arrays.copyOfRange(args, 3, args.length);
 
-	    FenixFramework.initialize(new Config() {{
+	    FenixFramework.bootStrap(new Config() {{
                 domainModelClass = FenixDomainModelWithOCC.class;
 		domainModelPaths = domainModelFiles;
 		dbAlias = dbAliasArg;
 		dbUsername = dbUserArg;
 		dbPassword = dbPassArg;
 	    }});
+	    FenixFramework.initialize();
 
             connection = PersistenceBrokerFactory.defaultPersistenceBroker().serviceConnectionManager().getConnection();
 	    checkOids(connection);

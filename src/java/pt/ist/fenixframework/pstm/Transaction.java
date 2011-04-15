@@ -1,15 +1,21 @@
 package pt.ist.fenixframework.pstm;
 
-import pt.ist.fenixframework.DomainObject;
-
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
+
+import pt.ist.fenixframework.DomainObject;
 
 public abstract class Transaction extends jvstm.Transaction {
     public final static TransactionStatistics STATISTICS = new TransactionStatistics();
     private final static FenixCache cache = new FenixCache();
 
     static {
+	try {
+	    Class.forName("pt.ist.fenixframework.FenixFrameworkInitializer");
+	} catch (final ClassNotFoundException e) {
+	    System.out.println("No application specific initialization method.");
+	}
+
 	DomainClassInfo.initializeClassInfos(0);
 
 	jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {

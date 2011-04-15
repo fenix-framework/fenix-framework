@@ -23,13 +23,14 @@ import dml.DomainModel;
 public class FenixFramework {
 
     private static final Object INIT_LOCK = new Object();
+    private static boolean bootstrapped = false;
     private static boolean initialized = false;
 
     private static Config config;
 
-    public static void initialize(Config config) {
+    public static void bootStrap(Config config) {
 	synchronized (INIT_LOCK) {
-	    if (initialized) {
+	    if (bootstrapped) {
 		throw new Error("Fenix framework already initialized");
 	    }
 
@@ -38,24 +39,32 @@ public class FenixFramework {
 	    MetadataManager.init(config);
 	    new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
 	    DataAccessPatterns.init(config);
+	    bootstrapped = true;
+	}
+    }
+
+    public static void initialize() {
+	synchronized (INIT_LOCK) {
+	    if (initialized) {
+		throw new Error("Fenix framework already initialized");
+	    }
+
 	    PersistentRoot.initRootIfNeeded(config);
 	    FenixFrameworkPlugin[] plugins = config.getPlugins();
 	    if (plugins != null) {
 		for (final FenixFrameworkPlugin plugin : plugins) {
 		    Transaction.withTransaction(new TransactionalCommand() {
-
+			
 			@Override
 			public void doIt() {
 			    plugin.initialize();
 			}
 
 		    });
-
 		}
 	    }
 	    initialized = true;
 	}
-
     }
 
     public static Config getConfig() {
