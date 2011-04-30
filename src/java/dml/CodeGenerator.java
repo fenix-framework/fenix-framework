@@ -1,7 +1,11 @@
 package dml;
 
-import java.util.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.List;
 
 public class CodeGenerator {
 
@@ -195,6 +199,14 @@ public class CodeGenerator {
         String superclassName = getEntityFullName(domClass.getSuperclass());
         printWords(out, (superclassName == null) ? getDomainClassRoot() : superclassName);
 
+        final List interfacesNames = domClass.getInterfacesNames();
+        if (interfacesNames != null && !interfacesNames.isEmpty()) {
+            printWords(out, "implements");
+            for (final Object ifsn : interfacesNames) {
+        	printWords(out, ifsn.toString());
+            }
+        }
+        
         newBlock(out);
         generateBaseClassBody(domClass, out);
         closeBlock(out);
@@ -762,47 +774,21 @@ public class CodeGenerator {
 //             return setOfChild.size();
 //         }
         // getXptoCount
-        newline(out);
-        printMethod(out, methodModifiers, "int", "get" + capitalizedSlotName + "Count");
-        startMethodBody(out);
-        print(out, "return ");
-        print(out, slotAccessExpression);
-        print(out, ".size();");
-        endMethodBody(out);
-
+        generateRoleSlotMethodsMultStarCount(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression);
         
         
 //         boolean hasAnyChild() {
 //             return (! setOfChild.isEmpty());
 //         }
         // hasAnyXpto
-        newline(out);
-        printMethod(out, methodModifiers, "boolean", "hasAny" + capitalizedSlotName);
-        startMethodBody(out);
-        print(out, "return (! ");
-        print(out, slotAccessExpression);
-        print(out, ".isEmpty());");
-        endMethodBody(out);
+        generateRoleSlotMethodsMultStarHasAnyChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression);
         
         
 //         boolean hasChild(SiteElement child) {
 //             return setOfChild.contains(child);
 //         }
         // hasXpto
-        newline(out);
-        printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
-        startMethodBody(out);
-        print(out, "return ");
-        print(out, slotAccessExpression);
-        print(out, ".");
-        print(out, (isIndexed ? "containsKey(" : "contains("));
-        print(out, slotName);
-        if (isIndexed) {
-            print(out, ".");
-            print(out, indexGetterCall);
-        }
-        print(out, ");");
-        endMethodBody(out);
+        generateRoleSlotMethodsMultStarHasChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName, isIndexed, indexGetterCall);
 
 
         if (isIndexed) {
@@ -864,13 +850,7 @@ public class CodeGenerator {
         
         // getXptoSet
         // FIXME: This deals only with the normal case of a Set (without considering ordered or indexed by)
-        newline(out);
-        printMethod(out, methodModifiers, makeGenericType("java.util.Set", typeName), "get" + capitalizedSlotName + "Set");
-        startMethodBody(out);
-        print(out, "return ");
-        print(out, getSlotExpression(slotName));
-        print(out, ";");
-        endMethodBody(out);
+        generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, slotName, typeName);
         
 //         void addChild(SiteElement child) {
 //             SiteHierarchy.add(this, child);
@@ -911,6 +891,57 @@ public class CodeGenerator {
         endMethodBody(out);
     }
 
+    protected void generateRoleSlotMethodsMultStarCount(Role role, PrintWriter out,
+	    String methodModifiers, String capitalizedSlotName, String slotAccessExpression) {
+        newline(out);
+        printMethod(out, methodModifiers, "int", "get" + capitalizedSlotName + "Count");
+        startMethodBody(out);
+        print(out, "return ");
+        print(out, slotAccessExpression);
+        print(out, ".size();");
+        endMethodBody(out);
+    }
+
+    protected void generateRoleSlotMethodsMultStarHasAnyChild(Role role, PrintWriter out,
+	    String methodModifiers, String capitalizedSlotName, String slotAccessExpression) {
+        newline(out);
+        printMethod(out, methodModifiers, "boolean", "hasAny" + capitalizedSlotName);
+        startMethodBody(out);
+        print(out, "return (! ");
+        print(out, slotAccessExpression);
+        print(out, ".isEmpty());");
+        endMethodBody(out);
+    }
+
+    protected void generateRoleSlotMethodsMultStarHasChild(Role role, PrintWriter out, String methodModifiers,
+	    String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName, boolean isIndexed,
+	    String indexGetterCall) {
+        newline(out);
+        printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
+        startMethodBody(out);
+        print(out, "return ");
+        print(out, slotAccessExpression);
+        print(out, ".");
+        print(out, (isIndexed ? "containsKey(" : "contains("));
+        print(out, slotName);
+        if (isIndexed) {
+            print(out, ".");
+            print(out, indexGetterCall);
+        }
+        print(out, ");");
+        endMethodBody(out);
+    }
+
+    protected void generateRoleSlotMethodsMultStarSet(Role role, PrintWriter out, String methodModifiers,
+	    String capitalizedSlotName, String slotAccessExpression, String slotName, String typeName) {
+        newline(out);
+        printMethod(out, methodModifiers, makeGenericType("java.util.Set", typeName), "get" + capitalizedSlotName + "Set");
+        startMethodBody(out);
+        print(out, "return ");
+        print(out, slotAccessExpression);
+        print(out, ";");
+        endMethodBody(out);
+    }
 
     protected void generateMultiplicityConsistencyPredicate(Role role, PrintWriter out) {
         String slotName = role.getName();

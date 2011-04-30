@@ -277,6 +277,15 @@ public class FenixCodeGenerator extends CodeGenerator {
 	print(out, "\")");
     }
 
+    protected void generateRelationGetter(String getterName, Role role, PrintWriter out) {
+	String paramListType = makeGenericType("java.util.List", getTypeFullName(role.getType()));
+	generateRelationGetter(role, paramListType, out);
+    }
+
+    protected void generateRelationGetter(Role role, String paramListType, PrintWriter out) {
+	generateRelationGetter("get" + capitalize(role.getName()), getSlotExpression(role.getName()), paramListType, out);
+    }
+
     protected void generateRelationGetter(String getterName, String valueToReturn, String typeName, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", typeName, getterName);
@@ -299,22 +308,25 @@ public class FenixCodeGenerator extends CodeGenerator {
     @Override
     protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
 	super.generateRoleSlotMethodsMultStar(role, out);
+	generateRoleSlotMethodsMultStarGettersAndIterators(role, out);
+    }
 
-	String paramListType = makeGenericType("java.util.List", getTypeFullName(role.getType()));
-
-	generateRelationGetter("get" + capitalize(role.getName()), getSlotExpression(role.getName()), paramListType, out);
-	// generateRelationGetter("get$" + role.getName(), "null",
-	// "OJBFunctionalSetWrapper", out);
+    protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
+	generateRelationGetter("get" + capitalize(role.getName()), role, out);
 	generateOJBSetter(role.getName(), "OJBFunctionalSetWrapper", out);
 	generateIteratorMethod(role, out);
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out) {
+	generateIteratorMethod(role, out, getSlotExpression(role.getName()));
+    }
+
+    protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {
 	newline(out);
 	printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
 		+ capitalize(role.getName()) + "Iterator");
 	startMethodBody(out);
-	printWords(out, "return", getSlotExpression(role.getName()));
+	printWords(out, "return", slotAccessExpression);
 	print(out, ".iterator();");
 	endMethodBody(out);
     }

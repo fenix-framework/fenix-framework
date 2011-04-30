@@ -6,6 +6,7 @@ import java.net.URL;
 public class DomainClass extends DomainEntity {
     private DomainEntity superclass;
     private List interfacesNames;
+
     private List<Slot> slots = new ArrayList<Slot>();
     private List<Role> roleSlots = new ArrayList<Role>();
 
@@ -34,6 +35,10 @@ public class DomainClass extends DomainEntity {
 
     public Iterator getInterfaceNamesIterator() {
         return interfacesNames.iterator();
+    }
+
+    public List getInterfacesNames() {
+        return interfacesNames;
     }
 
     public void addSlot(Slot slot) {
