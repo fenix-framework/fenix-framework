@@ -28,6 +28,11 @@ public class FenixFramework {
 
     private static Config config;
 
+    public static void initialize(Config config) {
+        bootStrap(config);
+        initialize();
+    }
+
     public static void bootStrap(Config config) {
 	synchronized (INIT_LOCK) {
 	    if (bootstrapped) {
