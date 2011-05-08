@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.concurrent.locks.Lock;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.CommitException;
@@ -60,6 +61,10 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	for (CommitListener cl : COMMIT_LISTENERS) {
 	    cl.afterCommit(tx);
 	}
+    }
+
+    public static Lock getCommitlock() {
+        return COMMIT_LOCK;
     }
 
     // The following variable is not updated atomically (with a CAS,

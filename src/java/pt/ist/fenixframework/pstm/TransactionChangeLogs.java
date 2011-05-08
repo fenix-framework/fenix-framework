@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Lock;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.VBoxBody;
@@ -26,8 +26,6 @@ import org.apache.ojb.broker.metadata.DescriptorRepository;
 import pt.ist.fenixframework.DomainObject;
 
 public class TransactionChangeLogs {
-
-    private static final ReentrantLock PROCESS_ALIEN_TX_LOCK = new ReentrantLock(true);
 
     private static class ClassInfo {
 	final ClassDescriptor classDescriptor;
@@ -183,13 +181,18 @@ public class TransactionChangeLogs {
     private static ActiveTransactionsRecord processAlienTransaction(PersistenceBroker pb, ResultSet rs, ActiveTransactionsRecord record) 
             throws SQLException {
 
-        // Acquire an exclusion lock to process the result set.
-        // Even though the processing of alien transactions could be made concurrently,
-        // there is no point in doing so, as they would be repeating their work
-        // therefore, at least for machines with a small number of processors, it 
-        // is preferable to let just one thread work its way through the alien records.
-        // Then, the concurrent threads can skip through the already processed records
-        PROCESS_ALIEN_TX_LOCK.lock();
+        // Acquire the JVSTM commit lock to process the result set, as
+        // doing so is semantically similar to commiting transactions.
+        // During the processing of an alien transaction, we may write
+        // back to boxes, as well as update the most recent committed
+        // record, so, as those things are supposed to be done one at
+        // a time, during the commit, we must ensure that we acquire
+        // the commit lock before proceeding.
+        // This may be changed in the future, when the new version of
+        // the JVSTM with a parallel commit becomes used in the
+        // fenix-framework.
+        Lock commitLock = TopLevelTransaction.getCommitlock();
+        commitLock.lock();
 
         try {
             // Here, after acquiring the lock, we know that no new transactions can start, because
@@ -259,7 +262,7 @@ public class TransactionChangeLogs {
 
             return findActiveRecordForNumber(record, txNum);
         } finally {
-            PROCESS_ALIEN_TX_LOCK.unlock();
+            commitLock.unlock();
         }
     }
     
