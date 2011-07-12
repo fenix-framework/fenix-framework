@@ -486,6 +486,10 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	return isWriteTransaction() ? getDBChanges().getModifiedObjects() : emptySet;
     }
 
+    public boolean isDeleted(Object obj) {
+	return isWriteTransaction() ? getDBChanges().isDeleted(obj) : false;
+    }
+    
     public Set<Entry> getReadSetLog() {
 	throw new Error("getReadSetLog not implemented yet");
 	// Set<Entry> entries = new HashSet<Entry>(bodiesRead.size());
