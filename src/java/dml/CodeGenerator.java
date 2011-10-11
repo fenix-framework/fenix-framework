@@ -303,7 +303,7 @@ public class CodeGenerator {
 
         // The Role slot
         String roleType = getRoleType(role);
-        printWords(out, "public", "static", roleType, getRoleHandlerName(role, false), "=", "new", roleType);
+        printWords(out, "public", "final", "static", roleType, getRoleHandlerName(role, false), "=", "new", roleType);
         print(out, "(");
         print(out, getRoleArgs(role));
         print(out, ")");
@@ -386,7 +386,7 @@ public class CodeGenerator {
 
         boolean isDirectRelation = (role.isFirstRole() || (otherRole.getName() == null));
 
-        print(out, "public static ");
+        print(out, isDirectRelation ? "public final static " : "public static ");
         print(out, isDirectRelation ? directRelationType : "dml.runtime.Relation");
         print(out, genericType);
         print(out, " ");
