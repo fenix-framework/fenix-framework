@@ -70,28 +70,44 @@
 	</target>
 
 	<target name="compile-dml" depends="generateParsers">
-		<javac srcdir="${dml.src.dir}:${build.dir.javagen}" destdir="${build.dir.classes}" extdirs="${lib.dir}" target="1.6" debug="on">
-			<classpath refid="class.path.ref" />
-		</javac>
+          <javac srcdir="${dml.src.dir}:${build.dir.javagen}" 
+                 destdir="${build.dir.classes}" 
+                 extdirs="${lib.dir}" 
+                 includeantruntime="false"
+                 target="1.6" 
+                 debug="on">
+            <classpath refid="class.path.ref" />
+          </javac>
 	</target>
 
 	<target name="compile-code-generator" depends="compile-dml" description="Compiles the code generator">
-		<mkdir dir="${build.dir}" />
-		<javac srcdir="${java.src.dir}" includes="${code.generation.include.pattern}" destdir="${build.dir.classes}" extdirs="${lib.dir}" target="1.6" debug="on" />
+          <mkdir dir="${build.dir}" />
+          <javac srcdir="${java.src.dir}" 
+                 includes="${code.generation.include.pattern}" 
+                 destdir="${build.dir.classes}" 
+                 extdirs="${lib.dir}" 
+                 includeantruntime="false"
+                 target="1.6" 
+                 debug="on" />
 	</target>
 
 	<target name="compile" depends="generate-domain" description="Compiles the fenix-framework source">
-		<javac destdir="${build.dir.classes}" extdirs="${lib.dir}" target="1.6" debug="on" excludes="/dml/**.java">
-			<src path="${java.src.dir}" />
-			<src path="${src.gen}" />
-		</javac>
-		<copy todir="${build.dir.classes}">
-			<fileset dir="${src.dir}/etc" />
-		</copy>
-		<copy todir="${build.dir.classes}">
-			<fileset dir="${src.dir}/sql" />
-		</copy>
-		<antcall target="post-compile" />
+          <javac destdir="${build.dir.classes}" 
+                 extdirs="${lib.dir}" 
+                 includeantruntime="false"
+                 target="1.6" 
+                 debug="on" 
+                 excludes="/dml/**.java">
+            <src path="${java.src.dir}" />
+            <src path="${src.gen}" />
+          </javac>
+          <copy todir="${build.dir.classes}">
+            <fileset dir="${src.dir}/etc" />
+          </copy>
+          <copy todir="${build.dir.classes}">
+            <fileset dir="${src.dir}/sql" />
+          </copy>
+          <antcall target="post-compile" />
 	</target>
 
 	<target name="post-compile" description="Bytecode Magic to inject constructors">
