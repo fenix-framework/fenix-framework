@@ -160,7 +160,11 @@ public class DomainClassInfo implements Serializable {
 	if (objClass == PersistentRoot.class) {
 	    return 0;
 	} else {
-	    return classInfoMap.get(objClass).classId;
+	    DomainClassInfo domainClassInfo = classInfoMap.get(objClass);
+	    if (domainClassInfo == null) {
+		throw new RuntimeException("Domain class not registered: " + objClass.getCanonicalName());
+	    }
+	    return domainClassInfo.classId;
 	}
     }
 
