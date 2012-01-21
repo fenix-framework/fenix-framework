@@ -1,9 +1,10 @@
 package dml;
 
 import java.util.*;
+import java.io.Serializable;
 import java.net.URL;
 
-public abstract class DomainEntity {
+public abstract class DomainEntity implements Serializable {
     private URL sourceFile;
     private String fullName;
     private String packageName = "";

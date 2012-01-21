@@ -1,7 +1,9 @@
 package dml;
 
+import java.io.Serializable;
 
-public class Role {
+
+public class Role implements Serializable{
     public static final int MULTIPLICITY_MANY = -1;
 
     private String name;

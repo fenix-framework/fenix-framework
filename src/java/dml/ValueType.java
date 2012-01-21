@@ -1,8 +1,9 @@
 package dml;
 
+import java.io.Serializable;
 import java.util.List;
 
-public interface ValueType {
+public interface ValueType extends Serializable {
     public PlainValueType getBaseType();
     public String getDomainName();
     public String getFullname();

@@ -1,9 +1,10 @@
 package dml;
 
 import java.util.*;
+import java.io.Serializable;
 import java.net.URL;
 
-public class DomainModel {
+public class DomainModel implements Serializable {
 
     public static final String AbstractDomainObjectClassName = "pt.ist.fenixframework.pstm.AbstractDomainObject";
     protected Map<String, ValueType> valueTypes = new HashMap<String, ValueType>();

@@ -1,6 +1,8 @@
 package dml;
 
-public class ExternalizationElement {
+import java.io.Serializable;
+
+public class ExternalizationElement implements Serializable {
 
     private ValueType type;
     private String methodName;

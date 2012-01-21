@@ -1,9 +1,10 @@
 package dml;
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.EnumSet;
 
-public class Slot {
+public class Slot implements Serializable {
     
     public enum Option { REQUIRED }
 
