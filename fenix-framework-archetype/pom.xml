@@ -1,0 +1,21 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>pt.ist</groupId>
+  <artifactId>fenix-framework-archetype</artifactId>
+  <version>1.1</version>
+  <packaging>jar</packaging>
+
+  <distributionManagement>
+    <repository>
+      <id>fenix-framework-releases</id>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>fenix-framework-snapshots</id>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+</project>

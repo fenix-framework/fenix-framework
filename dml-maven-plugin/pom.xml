@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>dml</groupId>
+  <artifactId>dml-maven-plugin</artifactId>
+  <version>1.1</version>
+  <packaging>maven-plugin</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <dependencies>  
+    <dependency>
+      <groupId>pt.ist</groupId>
+      <artifactId>dml-fenix</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>3.0</version>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <id>fenix-ashes-maven-repository</id>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>fenix-framework-releases</id>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>fenix-framework-snapshots</id>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+</project>
