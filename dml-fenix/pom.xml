@@ -7,7 +7,7 @@
 
   <groupId>pt.ist</groupId>
   <artifactId>dml-fenix</artifactId>
-  <version>1.1</version>
+  <version>1.0</version>
   <name>dml-fenix</name>
 
   <properties>
@@ -23,8 +23,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.3.2</version>
         <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
+          <source>1.6</source>
+          <target>1.6</target>
         </configuration>
       </plugin>
       
@@ -35,22 +35,22 @@
     <dependency>
       <groupId>dml</groupId>
       <artifactId>dml</artifactId>
-      <version>1.1</version>
+      <version>1.0</version>
     </dependency>
 	  <dependency>
 	    <groupId>ojb</groupId>
 	    <artifactId>db-ojb</artifactId>
-	    <version>1.0.3</version>
+	    <version>1.0.0</version>
 	  </dependency>
 	  <dependency>
 	    <groupId>mysql</groupId>
 	    <artifactId>mysql-connector-java</artifactId>
-	    <version>5.1.13</version>
+	    <version>5.1.5</version>
 	  </dependency>
 	  <dependency>
 	    <groupId>joda-time</groupId>
 	    <artifactId>joda-time</artifactId>
-	    <version>1.6.1</version>
+	    <version>1.5.2</version>
 	  </dependency>
   </dependencies>
 

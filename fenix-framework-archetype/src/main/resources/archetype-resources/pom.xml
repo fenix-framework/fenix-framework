@@ -15,7 +15,7 @@
       <plugin>
         <groupId>dml</groupId>
         <artifactId>dml-maven-plugin</artifactId>
-        <version>1.1</version>
+        <version>1.0</version>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -44,7 +44,7 @@
           <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>dml-fenix</artifactId>
-            <version>1.1</version>
+            <version>1.0</version>
           </dependency>
         </dependencies>
       </plugin>      
@@ -96,23 +96,35 @@
   </build>
 
   <dependencies>
+	<dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>1.5.2</version>
+    </dependency>
     <dependency>
       <groupId>dml</groupId>
       <artifactId>dml-maven-plugin</artifactId>
-      <version>1.1</version>
+      <version>1.0</version>
     </dependency>
     <dependency>
       <groupId>pt.ist</groupId>
       <artifactId>fenix-framework-core</artifactId>
-      <version>1.1</version>
+      <version>1.0</version>
     </dependency>
   </dependencies>
 
   <repositories>
     <repository>
-      <id>Fenix Ashes all repositories</id>
-      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-test-rep</url>
+      <id>fenix-ashes-maven-repository</id>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
     </repository>
   </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>fenix-ashes-maven-repository</id>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
+    </pluginRepository>
+  </pluginRepositories>
 
 </project>
