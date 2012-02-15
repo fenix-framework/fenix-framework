@@ -1,0 +1,76 @@
+package pt.ist.fenixframework.example.bankconsistency;
+
+class BankConsistencyApplication;
+
+class Client {
+  String name;
+}
+
+class ClientInfo {
+  String idNumber;
+}
+
+class Account {
+  String description;
+  Boolean closed;
+  int balance;
+}
+
+class Company {
+  String companyName;
+}
+
+
+
+
+
+relation ClientClientInfo {
+  Client playsRole client;
+  ClientInfo playsRole clientInfo;
+}
+
+relation ClientAccounts {
+  Client playsRole client;
+  Account playsRole accounts {
+    multiplicity *;
+  }
+}
+
+relation ClientsCompanies {
+  Client playsRole clients {
+    multiplicity *;
+  }
+  Company playsRole companies {
+    multiplicity *;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+relation ApplicationClients {
+  BankConsistencyApplication playsRole application;
+  Client playsRole clients {
+    multiplicity *;
+  }
+}
+
+relation ApplicationAccounts {
+  BankConsistencyApplication playsRole application;
+  Account playsRole accounts {
+    multiplicity *;
+  }
+}
+
+relation ApplicationCompanies {
+  BankConsistencyApplication playsRole application;
+  Company playsRole companies {
+    multiplicity *;
+  }
+}
