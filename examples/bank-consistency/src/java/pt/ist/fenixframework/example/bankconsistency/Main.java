@@ -27,7 +27,7 @@ public class Main {
 
 	    // createDOsInconsistent();
 
-	    // makeDomainInconsistent();
+	    //makeDomainInconsistent();
 
 	    // createConsistentDOThatMakesOtherDOsInconsistent();
 
@@ -61,6 +61,7 @@ public class Main {
 	Account accountGordon = new Account();
 	accountGordon.setBalance(70);
 	accountGordon.setClosed(false);
+	accountGordon.setDescription("blah");
 	clientGordon.addAccounts(accountGordon);
 	clientGordon.getAccounts().size();
 
@@ -92,11 +93,19 @@ public class Main {
     private static void makeDomainInconsistent() {
 	BankConsistencyApplication app = BankConsistencyApplication.getInstance();
 	for (Client client : app.getClients()) {
+	    if (client.getName().equals("Gordon")) {
+		for (Account account : client.getAccounts()) {
+		    account.setDescription(null);
+		}
+	    }
+	}
+
+	for (Client client : app.getClients()) {
 	    if (client.getName().equals("Bill")) {
 		for (Account account : client.getAccounts()) {
 		    String description = account.getDescription();
 		    if (description != null && description.equals("negative account")) {
-			account.close();
+			//account.close();
 		    }
 		}
 	    }
