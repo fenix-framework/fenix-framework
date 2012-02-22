@@ -2,9 +2,9 @@ package ${package};
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
-import ${package}.domain.${rootClassname};
+import ${package}.${rootClassname};
 
-public class Bootstrap {
+public class ${bootstrapClassname} {
 
   public static void init() {
     try {
