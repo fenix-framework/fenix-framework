@@ -7,15 +7,19 @@
   <version>${version}</version>
   <packaging>jar</packaging>
 
-  <name>A fenix-framework project</name>
-  <url>http://www.myorganization.org</url>
+  <name>${artifactId}</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
 
   <build>
     <plugins>
       <plugin>
         <groupId>dml</groupId>
         <artifactId>dml-maven-plugin</artifactId>
-        <version>1.0</version>
+        <version>[1.0,2.0)</version>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -104,12 +108,12 @@
     <dependency>
       <groupId>dml</groupId>
       <artifactId>dml-maven-plugin</artifactId>
-      <version>1.0</version>
+      <version>[1.0,2.0)</version>
     </dependency>
     <dependency>
       <groupId>pt.ist</groupId>
       <artifactId>fenix-framework-core</artifactId>
-      <version>1.0</version>
+      <version>[1.0,2.0)</version>
     </dependency>
   </dependencies>
 
