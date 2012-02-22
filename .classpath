@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry kind="src" path="fenix-framework-core/src/main/java"/>
+	<classpathentry kind="src" path="examples/bank-consistency/src_gen"/>
+	<classpathentry kind="src" path="dml/src/main/java"/>
+	<classpathentry kind="src" path="examples/bank-consistency/src/java"/>
+	<classpathentry kind="src" path="dml-fenix/src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/antlr.jar"/>
-	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
-	<classpathentry kind="lib" path="lib/commons-dbcp.jar"/>
-	<classpathentry kind="lib" path="lib/db-ojb-1.0.0.jar"/>
-	<classpathentry kind="lib" path="lib/jfreechart.jar"/>
-	<classpathentry kind="lib" path="lib/jvstm.jar"/>
-	<classpathentry kind="lib" path="lib/log4j-1.2.8.jar"/>
-	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.5-bin.jar"/>
-	<classpathentry kind="lib" path="lib/xercesImpl.jar"/>
-	<classpathentry kind="lib" path="lib/asm-3.0.jar"/>
-	<classpathentry kind="lib" path="lib/asm-commons-3.0.jar"/>
-	<classpathentry kind="lib" path="lib/joda-time-1.5.2.jar"/>
-	<classpathentry kind="lib" path="lib/dap-framework.jar"/>
-	<classpathentry kind="lib" path="lib/commons-io-1.4.jar"/>
-	<classpathentry kind="lib" path="lib/commons-lang-2.4.jar"/>
-	<classpathentry kind="lib" path="lib/ant.jar"/>
-	<classpathentry kind="lib" path="lib/asm-tree-3.0.jar"/>
-	<classpathentry kind="lib" path="lib/commons-pool-1.5.4.jar"/>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/ant/ant/1.8.2/ant-1.8.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/ant/ant-launcher/1.8.2/ant-launcher-1.8.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/antlr/antlr/2.7.7/antlr-2.7.7.jar"/>
+	<classpathentry kind="var" path="M2_REPO/asm/asm/3.0/asm-3.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/asm/asm-commons/3.0/asm-commons-3.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/asm/asm-tree/3.0/asm-tree-3.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-io/1.4/commons-io-1.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.4/commons-lang-2.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-pool/commons-pool/1.5.4/commons-pool-1.5.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/pt/ist/dap-framework/1.0/dap-framework-1.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/ojb/db-ojb/1.0.0/db-ojb-1.0.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/jfree/jfreechart/0.9.18/jfreechart-0.9.18.jar"/>
+	<classpathentry kind="var" path="M2_REPO/joda-time/joda-time/1.5.2/joda-time-1.5.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/jvstm/jvstm-fenix/1.0/jvstm-fenix-1.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.8/log4j-1.2.8.jar"/>
+	<classpathentry kind="var" path="M2_REPO/mysql/mysql-connector-java/5.1.5/mysql-connector-java-5.1.5.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

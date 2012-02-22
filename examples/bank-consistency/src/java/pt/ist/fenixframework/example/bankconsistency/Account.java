@@ -52,6 +52,11 @@ public class Account extends Account_Base {
     }
 
     @ConsistencyPredicate
+    public boolean checkHasDescription() {
+	return getDescription() != null && !getDescription().isEmpty();
+    }
+
+    @ConsistencyPredicate
     public boolean checkClosedAccountHasNoMoney() {
 	return (!isClosed() || getBalance() == 0);
     }
