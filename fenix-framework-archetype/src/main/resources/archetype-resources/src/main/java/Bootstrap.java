@@ -4,7 +4,7 @@ import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
 import ${package}.${rootClassname};
 
-public class ${bootstrapClassname} {
+public class Bootstrap {
 
   public static void init() {
     try {
