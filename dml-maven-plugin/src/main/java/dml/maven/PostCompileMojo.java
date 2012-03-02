@@ -1,27 +1,10 @@
 package dml.maven;
 
-/*
- * Copyright 2001-2005 The Apache Software Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 
-import org.apache.tools.ant.Project;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import java.io.File;
@@ -43,7 +26,9 @@ import jvstm.ProcessAtomicAnnotations;
  * Goal which injects the constructors into the bytecode of the DML compiled classes
  *
  * @goal post-compile
+ *
  * @requiresDependencyResolution runtime
+ *
  * @phase process-classes
  */
 public class PostCompileMojo extends AbstractMojo {
@@ -104,7 +89,7 @@ public class PostCompileMojo extends AbstractMojo {
         }
 
     } catch(MalformedURLException e) {
-      System.out.println("Error: Malformed URL");
+      getLog().error("Error: Malformed URL");
     }
 
     List<String> dmlFiles = new ArrayList<String>();
@@ -120,7 +105,7 @@ public class PostCompileMojo extends AbstractMojo {
     for (String includedFile : includedFiles) {
       String filePath = this.dmlDirectoryFile.getAbsolutePath() + "/" + includedFile;       
       if(this.verbose) {
-        System.out.println("Using: "+includedFile+"\nClass Full Name: "+this.classFullName+"\nDomain Model Class Name: "+this.domainModelClassName+"\nClasses Directory: "+this.classesDirectory);
+        getLog().info("Using: "+includedFile+"\nClass Full Name: "+this.classFullName+"\nDomain Model Class Name: "+this.domainModelClassName+"\nClasses Directory: "+this.classesDirectory);
       }
       dmlFiles.add(filePath);
     }

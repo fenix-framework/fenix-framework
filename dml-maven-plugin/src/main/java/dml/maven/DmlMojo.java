@@ -1,58 +1,44 @@
 package dml.maven;
 
-/*
- * Copyright 2001-2005 The Apache Software Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-
+import org.apache.maven.project.MavenProject;
 import dml.CodeGenerator;
 import dml.CompilerArgs;
 import dml.DmlCompiler;
 import dml.DomainModel;
-
 import org.codehaus.plexus.util.DirectoryScanner;
-
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
 import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Goal which compiles the DML files
+ * Generate base classes from the DML files
  *
  * @goal generate-domain
  * 
- * @phase process-sources
+ * @phase generate-sources
  *
  * @requiresDependencyResolution runtime
  */
 public class DmlMojo extends AbstractMojo {
-	
-	/**
-	 * File Source Directory
-	 * @parameter expression="${generate-domain.src}" default-value="src/main/dml"
-	 */
-	private File srcDirectoryFile;
+
+  /**
+   * Maven Project
+   * @parameter default-value="${project}"
+   */
+  private MavenProject mavenProject;
+
+  /**
+   * File Source Directory
+   * @parameter expression="${generate-domain.src}" default-value="${basedir}/src/main/dml"
+   */
+  private File srcDirectoryFile;
 	
   /**
    * File Destination Directory
-   * @parameter expression="${generate-domain.dest}" default-value="src/main/java"
+   * @parameter expression="${generate-domain.dest}" default-value="${basedir}/src/main/java"
    */
   private File destDirectoryFile;
 
@@ -84,16 +70,16 @@ public class DmlMojo extends AbstractMojo {
    * Generate Finals Flag
    * @parameter expression="${generate-domain.generateFinals}" default-value="false"
    */
-  private Boolean generateFinals;
+  private boolean generateFinals;
 
   /**
    * Verbose Mode Flag
    * @parameter expression="${generate-domain.verbose}" default-value="false"
    */
-  private Boolean verbose;
+  private boolean verbose;
 
   public void execute() throws MojoExecutionException {
-	
+		
     CompilerArgs compArgs = null;
     List<String> domainSpecFileNames = new ArrayList<String>();
     long latestBuildTime = destDirectoryBaseFile.lastModified();
@@ -107,13 +93,18 @@ public class DmlMojo extends AbstractMojo {
     
     boolean shouldCompile = false;
 
+    Resource resource = new Resource();
+    resource.setDirectory(this.srcDirectoryFile.getAbsolutePath());
+    resource.addInclude("*.dml");
+    mavenProject.addResource(resource);
+    
     String[] includedFiles = scanner.getIncludedFiles();
     for (String includedFile : includedFiles) {
       String filePath = this.srcDirectoryFile.getAbsolutePath() + "/" + includedFile;
       File file = new File(filePath);
       boolean isModified = file.lastModified() > latestBuildTime;
       if(this.verbose==false) {
-        System.out.println(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
+        getLog().info(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
       }
       domainSpecFileNames.add(filePath);
       shouldCompile = shouldCompile || isModified;
@@ -127,8 +118,8 @@ public class DmlMojo extends AbstractMojo {
       try {
            destDirectoryBaseFile.setLastModified(System.currentTimeMillis());
            if(this.verbose) {
-             System.out.println("Using model: " + getDomainModelClass().getName());
-             System.out.println("Using generator: " + getCodeGeneratorClass().getName());
+             getLog().info("Using model: " + getDomainModelClass().getName());
+             getLog().info("Using generator: " + getCodeGeneratorClass().getName());
            }
            
            compArgs = new CompilerArgs(this.destDirectoryFile, this.destDirectoryBaseFile, this.packageName, this.generateFinals, getCodeGeneratorClass(), getDomainModelClass(), domainSpecFileNames);
@@ -137,24 +128,24 @@ public class DmlMojo extends AbstractMojo {
 
            CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class).newInstance(compArgs, model);
            generator.generateCode();
+		   mavenProject.addCompileSourceRoot(destDirectoryBaseFile.getAbsolutePath());
          } catch (Exception e) {
            e.printStackTrace();
            throw new MojoExecutionException(e,"Erro", "erro");
          }
        } else {
          if(this.verbose) {
-           System.out.println("All dml files are up to date. Skipping generation...");
+           getLog().info("All dml files are up to date. Skipping generation...");
          }
        }
      }
 
-     public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
-      return (Class<? extends CodeGenerator>)Class.forName(this.codeGeneratorClassName);
-     }
+  public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
+    return (Class<? extends CodeGenerator>)Class.forName(this.codeGeneratorClassName);
+  }
 
-     public Class<? extends DomainModel> getDomainModelClass() throws ClassNotFoundException {
-      return (Class<? extends DomainModel>) Class.forName(this.domainModelClassName);
-   
+  public Class<? extends DomainModel> getDomainModelClass() throws ClassNotFoundException {
+    return (Class<? extends DomainModel>) Class.forName(this.domainModelClassName);
   }
 
 }
