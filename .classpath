@@ -23,5 +23,5 @@
 	<classpathentry kind="var" path="M2_REPO/jvstm/jvstm-fenix/1.0/jvstm-fenix-1.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.8/log4j-1.2.8.jar"/>
 	<classpathentry kind="var" path="M2_REPO/mysql/mysql-connector-java/5.1.5/mysql-connector-java-5.1.5.jar"/>
-	<classpathentry kind="output" path="output"/>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
