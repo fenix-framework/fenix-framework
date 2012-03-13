@@ -14,98 +14,47 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
+	<organization>
+		<name>Departamento de Sistemas de Informação (DSI) do Instituto Superior Técnico</name>
+	  <url>http://fenix-ashes.ist.utl.pt</url>
+	</organization>
+
+	<licenses>
+	  <license>
+	    <name>GNU Lesser General Public License (GNU LGPL) v3</name>
+	    <url>http://www.gnu.org/licenses/lgpl.txt</url>
+	    <distribution>repo</distribution>
+	    <comments>A business-friendly OSS license</comments>
+	  </license>
+	</licenses>
+
   <build>
     <plugins>
-	<plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-compiler-plugin</artifactId>
-	    <version>2.0.2</version>
-	    <configuration>
+	
+			<plugin>
+	    	<groupId>org.apache.maven.plugins</groupId>
+	    	<artifactId>maven-compiler-plugin</artifactId>
+	    	<version>2.0.2</version>
+	    	<configuration>
 	        <source>1.6</source>
 	        <target>1.6</target>
-	    </configuration>
-	</plugin>
-      
+	    	</configuration>
+			</plugin>
+
       <plugin>
         <groupId>dml</groupId>
         <artifactId>dml-maven-plugin</artifactId>
         <version>1.0</version>
-        <extensions>true</extensions>
         <executions>
           <execution>
-            <id>generate-domain</id>
-            <phase>generate-sources</phase>
             <goals>
               <goal>generate-domain</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>post-compile</id>
-            <phase>process-classes</phase>
-            <goals>
               <goal>post-compile</goal>
             </goals>
-            <configuration>
-              <archive>
-                <manifest>
-                  <addClasspath>true</addClasspath>
-                </manifest>
-              </archive>
-            </configuration>
-          </execution>
-        </executions>
-        <dependencies>
-	  <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>dml-fenix</artifactId>
-            <version>1.0</version>
-          </dependency>
-	</dependencies>
-      </plugin>
-      
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.5</version>
-        <executions>
-          <execution>
-            <id>add-source</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-source</goal>
-            </goals>
-          <configuration>
-          <sources>
-            <source>target/generated-sources</source>
-          </sources>
-          </configuration>
           </execution>
         </executions>
       </plugin>
 
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.4.3</version>
-        <executions>
-          <execution>
-            <id>copy-resources</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>target/classes</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>src/main/dml</directory>
-                  <filtering>true</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      
     </plugins>
   </build>
   

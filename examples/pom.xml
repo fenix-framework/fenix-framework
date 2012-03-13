@@ -10,12 +10,25 @@
   <version>1.0</version>
   <packaging>pom</packaging>
   <name>fenix-framework-examples</name>
-  <url>http://fenix-ashes.ist.utl.pt</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
+
+	<organization>
+		<name>Departamento de Sistemas de Informação (DSI) do Instituto Superior Técnico</name>
+	  <url>http://fenix-ashes.ist.utl.pt</url>
+	</organization>
+
+	<licenses>
+	  <license>
+	    <name>GNU Lesser General Public License (GNU LGPL) v3</name>
+	    <url>http://www.gnu.org/licenses/lgpl.txt</url>
+	    <distribution>repo</distribution>
+	    <comments>A business-friendly OSS license</comments>
+	  </license>
+	</licenses>
 
   <modules>
     <module>hello-world</module>
