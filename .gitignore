@@ -1,3 +1,5 @@
+.settings
+.classpath
 */target/*
 examples/*/classes/*
 examples/*/src_gen/*
