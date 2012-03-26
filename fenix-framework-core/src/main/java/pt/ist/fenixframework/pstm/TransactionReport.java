@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.TreeSet;
 
+import javax.imageio.ImageIO;
+
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.jfree.chart.ChartFactory;
@@ -20,11 +22,6 @@ import org.joda.time.DateTime;
 import org.joda.time.YearMonthDay;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import sun.awt.image.codec.JPEGImageEncoderImpl;
-
-import com.sun.image.codec.jpeg.ImageFormatException;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
 
 public class TransactionReport implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -111,7 +108,7 @@ public class TransactionReport implements Serializable {
 	}
     }
 
-    public byte[] getChart() throws ImageFormatException, IOException {
+    public byte[] getChart() throws IOException {
 	// final PlotOrientation plotOrientation = PlotOrientation.VERTICAL;
 	// final JFreeChart jfreeChart = ChartFactory.createLineChart("Title",
 	// "categoryAxisLabel", "valueAxisLabel", dataset, plotOrientation,
@@ -119,8 +116,7 @@ public class TransactionReport implements Serializable {
 	final JFreeChart jfreeChart = ChartFactory.createTimeSeriesChart("", "", "", dataset, true, true, true);
 	final BufferedImage bufferedImage = jfreeChart.createBufferedImage(1000, 500);
 	final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-	final JPEGImageEncoder imageEncoder = new JPEGImageEncoderImpl(outputStream);
-	imageEncoder.encode(bufferedImage);
+	ImageIO.write(bufferedImage, "jpg", outputStream);
 	bufferedImage.flush();
 	outputStream.close();
 	return outputStream.toByteArray();
