@@ -6,17 +6,13 @@ import java.net.URL;
 public class DomainClass extends DomainEntity {
     private DomainEntity superclass;
     private List interfacesNames;
-    
-    boolean belongsToOtherModule = false;
 
     private List<Slot> slots = new ArrayList<Slot>();
     private List<Role> roleSlots = new ArrayList<Role>();
 
     public DomainClass(URL sourceFile, String fullName, DomainEntity superclass, List interfacesNames) {
         super(sourceFile, fullName);
-        if(sourceFile.toExternalForm().startsWith("jar:file")) {
-            belongsToOtherModule = true;
-        }
+
         this.superclass = superclass;
 
         if (interfacesNames == null) {

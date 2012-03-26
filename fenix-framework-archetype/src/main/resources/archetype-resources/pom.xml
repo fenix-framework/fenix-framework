@@ -6,6 +6,7 @@
   <artifactId>${artifactId}</artifactId>
   <version>${version}</version>
   <packaging>jar</packaging>
+
   <name>${artifactId}</name>
 
   <properties>
@@ -21,8 +22,14 @@
         <version>1.0</version>
         <executions>
           <execution>
+            <id>generate-domain</id>
             <goals>
               <goal>generate-domain</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>post-compile</id>
+            <goals>
               <goal>post-compile</goal>
             </goals>
           </execution>
