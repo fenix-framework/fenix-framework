@@ -22,14 +22,8 @@
         <version>1.0</version>
         <executions>
           <execution>
-            <id>generate-domain</id>
             <goals>
               <goal>generate-domain</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>post-compile</id>
-            <goals>
               <goal>post-compile</goal>
             </goals>
           </execution>
@@ -39,6 +33,12 @@
   </build>
 
   <dependencies>
+	  <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>pt.ist</groupId>
       <artifactId>fenix-framework-core</artifactId>
