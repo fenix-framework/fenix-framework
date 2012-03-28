@@ -547,11 +547,11 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     protected void generateCheckDisconnected(DomainClass domClass, PrintWriter out) {
 	newline(out);
-	printMethod(out, "protected", "boolean", "checkDisconnected");
+	printMethod(out, "protected", "void", "checkDisconnected");
 	startMethodBody(out);
 
 	if (domClass.hasSuperclass()) {
-	    println(out, "if (! super.checkDisconnected()) return false;");
+	    println(out, "super.checkDisconnected();");
 	}
 
 	Iterator<Role> roleSlotsIter = domClass.getRoleSlots();
@@ -568,11 +568,10 @@ public class FenixCodeGenerator extends CodeGenerator {
 		    print(out, "hasAny");
 		}
 		print(out, capitalize(role.getName()));
-		println(out, "()) return false;");
+		println(out, "()) handleAttemptToDeleteConnectedObject();");
 	    }
 	}
 
-	println(out, "return true;");
 	endMethodBody(out);
     }
 
