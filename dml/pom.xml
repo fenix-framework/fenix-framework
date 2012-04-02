@@ -7,12 +7,13 @@
 
   <groupId>dml</groupId>
   <artifactId>dml</artifactId>
-  <version>1.0</version>
-  <name>dml</name>
+  <name>Domain Model Language</name>
+  <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<jvstm.version>1.0</jvstm.version>
   </properties>
 
   <build>
@@ -52,7 +53,7 @@
     <dependency>
       <groupId>jvstm</groupId>
       <artifactId>jvstm-fenix</artifactId>
-      <version>1.0</version>
+      <version>${jvstm.version}</version>
     </dependency>
     <dependency>
       <groupId>pt.ist</groupId>

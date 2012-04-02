@@ -7,12 +7,13 @@
 
   <groupId>pt.ist</groupId>
   <artifactId>dml-fenix</artifactId>
-  <version>1.0</version>
   <name>dml-fenix</name>
+  <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<dml.version>1.0-SNAPSHOT</dml.version>
   </properties>
 
   <build>
@@ -35,7 +36,7 @@
     <dependency>
       <groupId>dml</groupId>
       <artifactId>dml</artifactId>
-      <version>1.0</version>
+      <version>${dml.version}</version>
     </dependency>
 	  <dependency>
 	    <groupId>ojb</groupId>

@@ -7,19 +7,20 @@
   <name>dml-maven-plugin</name>
   <groupId>dml</groupId>
   <artifactId>dml-maven-plugin</artifactId>
-  <version>1.0</version>
   <packaging>maven-plugin</packaging>
+  <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<dml.fenix.version>1.0-SNAPSHOT</dml.fenix.version>
   </properties>
 
   <dependencies>  
     <dependency>
       <groupId>pt.ist</groupId>
       <artifactId>dml-fenix</artifactId>
-      <version>1.0</version>
+      <version>${dml.fenix.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
