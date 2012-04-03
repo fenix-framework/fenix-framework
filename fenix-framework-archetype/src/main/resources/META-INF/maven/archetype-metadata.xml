@@ -9,6 +9,8 @@
     <requiredProperty key="version">
       <defaultValue>1.0</defaultValue>
     </requiredProperty>
+    <requiredProperty key="dmlMavenPluginVersion"/>
+    <requiredProperty key="fenixFrameworkVersion"/>
   </requiredProperties>
   <fileSets>
     <fileSet filtered="true" packaged="true">
