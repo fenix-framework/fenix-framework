@@ -1,6 +1,7 @@
 package dml;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,10 +21,14 @@ public class ConverterClassAwareDmlCompiler {
 		    dmlFilenames.add(file.getCanonicalPath()); 
 		} 
 	    } 
-	    Collections.sort(dmlFilenames); 
-	    baseArgs = new String[c - 3 + dmlFilenames.size()]; 
+	    Collections.sort(dmlFilenames);
+            List<URL> pluginDmlUrlList = PluginDmlUrlLoader.getPluginDmlUrlList();
+	    baseArgs = new String[c - 3 + dmlFilenames.size()+pluginDmlUrlList.size()]; 
 	    System.arraycopy(args, 0, baseArgs, 0, offset); 
-	    int i = offset; 
+	    int i = offset;
+            for(URL pluginDmlUrl : pluginDmlUrlList) {
+                baseArgs[i++] = pluginDmlUrl.toExternalForm();
+            }
 	    for (final String dmlFilename : dmlFilenames) { 
 		baseArgs[i++] = dmlFilename; 
 	    } 

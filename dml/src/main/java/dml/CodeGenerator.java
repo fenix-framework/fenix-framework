@@ -126,7 +126,11 @@ public class CodeGenerator {
                             generateBaseClass(domClass, out);
                         }
                     });
-                
+
+        //No need to generate non-base classes since they are already defined in the jar
+        if(domClass.getSourceFile().toExternalForm().startsWith("jar:file"))
+            return;
+        
         File leafClassFile = new File(getDirectoryFor(packageName), domClass.getName() + ".java");
         if (! leafClassFile.exists()) {
             writeToFile(leafClassFile,

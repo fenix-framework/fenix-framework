@@ -1,23 +1,17 @@
 package pt.ist.fenixframework.pstm;
 
+import dml.DomainClass;
+import dml.DomainModel;
+import dml.PluginDmlUrlLoader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-
+import java.util.*;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
-
-import dml.DomainClass;
-import dml.DomainModel;
-
 import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
 
 public abstract class AbstractDomainPostProcessor extends ClassLoader implements Opcodes {
@@ -61,7 +55,10 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
 			}
 		    }
 		    Collections.sort(urls);
-		    for (final String url : urls) {
+		    for(URL pluginDmlUrl : PluginDmlUrlLoader.getPluginDmlUrlList()) {
+                        dmlFiles.add(pluginDmlUrl.toExternalForm());
+                    }
+                    for (final String url : urls) {
 			dmlFiles.add(url);
 		    }
 		} else {

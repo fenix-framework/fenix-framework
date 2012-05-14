@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
   <modelVersion>4.0.0</modelVersion>
-  <name>dml-maven-plugin</name>
+  <name>DML Maven Plugin</name>
   <groupId>dml</groupId>
   <artifactId>dml-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>

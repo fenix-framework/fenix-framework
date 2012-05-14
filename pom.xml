@@ -9,7 +9,7 @@
   <artifactId>fenix-framework</artifactId>
   <version>1.0</version>
   <packaging>pom</packaging>
-  <name>fenix-framework</name>
+  <name>Fenix Framework</name>
   <url>http://fenix-ashes.ist.utl.pt</url>
 
   <properties>

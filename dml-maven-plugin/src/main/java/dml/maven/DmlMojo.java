@@ -1,17 +1,17 @@
 package dml.maven;
 
-import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 import dml.CodeGenerator;
 import dml.CompilerArgs;
 import dml.DmlCompiler;
 import dml.DomainModel;
-import org.codehaus.plexus.util.DirectoryScanner;
 import java.io.File;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.DirectoryScanner;
 
 /**
  * Generate base classes from the DML files
@@ -44,7 +44,7 @@ public class DmlMojo extends AbstractMojo {
 
   /**
    * Base File Destination Directory
-   * @parameter expression="${generate-domain.destBase}" default-value="${project.build.directory}/generated-sources"
+   * @parameter expression="${generate-domain.destBase}" default-value="${project.build.directory}/generated-sources/dml-maven-plugin"
    */
   private File destDirectoryBaseFile;
 
@@ -98,6 +98,9 @@ public class DmlMojo extends AbstractMojo {
     resource.addInclude("*.dml");
     mavenProject.addResource(resource);
     
+    List<String> dmlFileList = DmlMojoUtils.readDmlFilePathsFromArtifact(getLog(), mavenProject.getArtifacts());
+    domainSpecFileNames.addAll(dmlFileList);
+    
     String[] includedFiles = scanner.getIncludedFiles();
     for (String includedFile : includedFiles) {
       String filePath = this.srcDirectoryFile.getAbsolutePath() + "/" + includedFile;
@@ -130,8 +133,7 @@ public class DmlMojo extends AbstractMojo {
            generator.generateCode();
 		   mavenProject.addCompileSourceRoot(destDirectoryBaseFile.getAbsolutePath());
          } catch (Exception e) {
-           e.printStackTrace();
-           throw new MojoExecutionException(e,"Erro", "erro");
+             getLog().error(e);
          }
        } else {
          if(this.verbose) {

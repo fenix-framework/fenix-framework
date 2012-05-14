@@ -4,16 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
 import java.util.List;
-
 import jvstm.ProcessAtomicAnnotations;
-
-import org.objectweb.asm.ClassAdapter;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 
 public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
     private static final String OID_INNER_CLASS_INTERNAL_NAME = Type.getInternalName(DomainObjectAllocator.OID.class);
@@ -56,7 +48,10 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 
     protected void finishedProcessingClass(URL classURL, byte[] classBytecode) {
 	super.finishedProcessingClass(classURL, classBytecode);
-
+        //No need to post-process classes that are already post-processed
+        if(classURL.toExternalForm().startsWith("jar:file")) {
+            return;
+        }
 	try {
 	    FileOutputStream fos = new FileOutputStream(new File(classURL.toURI()));
 	    fos.write(classBytecode);

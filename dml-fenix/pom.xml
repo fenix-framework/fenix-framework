@@ -7,7 +7,7 @@
 
   <groupId>pt.ist</groupId>
   <artifactId>dml-fenix</artifactId>
-  <name>dml-fenix</name>
+  <name>DML Fenix</name>
   <version>1.0-SNAPSHOT</version>
 
   <properties>

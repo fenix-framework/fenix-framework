@@ -51,7 +51,11 @@ public class DmlCompiler {
 	ArrayList<URL> urls = new ArrayList<URL>();
 	for (String filename : dmlFiles) {
 	    try {
-		urls.add(new File(filename).toURI().toURL());
+                if(filename.startsWith("jar:file")) {
+                    urls.add(new URL(filename));
+                } else {
+                    urls.add(new File(filename).toURI().toURL());
+                }
 	    } catch (MalformedURLException mue) {
 		System.err.println("Cannot convert " + filename + " into an URL.  Ignoring it...");
 	    }
