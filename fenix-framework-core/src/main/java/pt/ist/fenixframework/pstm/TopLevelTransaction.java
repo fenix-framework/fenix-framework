@@ -3,10 +3,10 @@ package pt.ist.fenixframework.pstm;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.concurrent.locks.Lock;
 
 import jvstm.ActiveTransactionsRecord;
@@ -17,18 +17,15 @@ import jvstm.cps.ConsistencyCheckTransaction;
 import jvstm.cps.ConsistentTopLevelTransaction;
 import jvstm.cps.DependenceRecord;
 import jvstm.util.Cons;
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.TxIntrospector;
-import pt.ist.fenixframework.TxIntrospector.Entry;
-import pt.ist.fenixframework.TxIntrospector.RelationChangelog;
 
-import pt.ist.fenixframework.pstm.DBChanges.AttrChangeLog;
-
+import org.apache.log4j.Logger;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.accesslayer.LookupException;
 
-import org.apache.log4j.Logger;
+import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.TxIntrospector;
+import pt.ist.fenixframework.pstm.DBChanges.AttrChangeLog;
 
 public class TopLevelTransaction extends ConsistentTopLevelTransaction implements FenixTransaction, TxIntrospector {
 
@@ -64,27 +61,25 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     }
 
     public static Lock getCommitlock() {
-        return COMMIT_LOCK;
+	return COMMIT_LOCK;
     }
 
     // The following variable is not updated atomically (with a CAS,
     // or something similar), because the accuracy of its value is not
-    // critical.  It may happen that a starting transaction puts a
+    // critical. It may happen that a starting transaction puts a
     // lower value into this variable, when racing to update it, but
     // that means that a new transaction may open a new dbConnection
     // when it was not needed, but that is OK.
     protected volatile static long lastDbConnectionTimestamp = 0;
 
     static boolean lastDbConnectionWithin(long millis) {
-        return (System.currentTimeMillis() - lastDbConnectionTimestamp) < millis;
+	return (System.currentTimeMillis() - lastDbConnectionTimestamp) < millis;
     }
 
     // Each TopLevelTx has its DBChanges
     // If this slot is changed to null, it is an indication that the
     // transaction does not allow more changes
     private DBChanges dbChanges = null;
-
-    private ServiceInfo serviceInfo = ServiceInfo.getCurrentServiceInfo();
 
     private PersistenceBroker broker;
 
@@ -120,11 +115,11 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	// first, get a new broker that will give access to the DB connection
 	this.broker = PersistenceBrokerFactory.defaultPersistenceBroker();
 
-        // update the lastDbConnectionTimestamp with the current time
-        long now = System.currentTimeMillis();
-        if (now > lastDbConnectionTimestamp) {
-            lastDbConnectionTimestamp = now;
-        }
+	// update the lastDbConnectionTimestamp with the current time
+	long now = System.currentTimeMillis();
+	if (now > lastDbConnectionTimestamp) {
+	    lastDbConnectionTimestamp = now;
+	}
 
 	// open a connection to the database and set this tx number to the
 	// number that
@@ -191,14 +186,17 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	this.dbChanges = new DBChanges();
     }
 
+    @Override
     public PersistenceBroker getOJBBroker() {
 	return broker;
     }
 
+    @Override
     public DomainObject readDomainObject(String classname, int oid) {
 	return TransactionChangeLogs.readDomainObject(broker, classname, oid);
     }
 
+    @Override
     public void setReadOnly() {
 	// a null dbChanges indicates a read-only tx
 	this.dbChanges = null;
@@ -216,18 +214,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	    // sqle.printStackTrace();
 	    throw new Error("Error while updating from FF$TX_CHANGE_LOGS: Cannot proceed: " + sqle.getMessage(), sqle);
 	}
-    }
-
-    public void logServiceInfo() {
-	System.out.println("Transaction " + this + " created for service: " + serviceInfo.serviceName + ", username = "
-		+ serviceInfo.username
-	// + ", args = " + serviceInfo.getArgumentsAsString()
-		);
-	// System.out.println("Currently executing:");
-	// StackTraceElement[] txStack = getThread().getStackTrace();
-	// for (int i = 0; (i < txStack.length) && (i < 5); i++) {
-	// System.out.println("-----> " + txStack[i]);
-	// }
     }
 
     @Override
@@ -296,6 +282,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	}
     }
 
+    @Override
     public <T> T getBoxValue(VBox<T> vbox, Object obj, String attr) {
 	numBoxReads++;
 	T value = getLocalValue(vbox);
@@ -308,8 +295,10 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 		synchronized (body) {
 		    if (body.value == VBox.NOT_LOADED_VALUE) {
 			vbox.reload(obj, attr);
-			// after the reload, the same body should have a new value
-			// if not, then something gone wrong and its better to abort
+			// after the reload, the same body should have a new
+			// value
+			// if not, then something gone wrong and its better to
+			// abort
 			if (body.value == VBox.NOT_LOADED_VALUE) {
 			    System.out.println("Couldn't load the attribute " + attr + " for class " + obj.getClass());
 			    throw new VersionNotAvailableException();
@@ -328,6 +317,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	return (value == NULL_VALUE) ? null : value;
     }
 
+    @Override
     public boolean isBoxValueLoaded(VBox vbox) {
 	Object localValue = getLocalValue(vbox);
 
@@ -343,6 +333,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	return (body.value != VBox.NOT_LOADED_VALUE);
     }
 
+    @Override
     public DBChanges getDBChanges() {
 	if (dbChanges == null) {
 	    // if it is null, it means that the transaction is a read-only
@@ -353,6 +344,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	}
     }
 
+    @Override
     public boolean isWriteTransaction() {
 	return ((dbChanges != null) && dbChanges.needsWrite()) || super.isWriteTransaction();
     }
@@ -476,11 +468,13 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
     // implement the TxIntrospector interface
 
+    @Override
     public Set<DomainObject> getNewObjects() {
 	Set<DomainObject> emptySet = Collections.emptySet();
 	return isWriteTransaction() ? getDBChanges().getNewObjects() : emptySet;
     }
 
+    @Override
     public Set<DomainObject> getModifiedObjects() {
 	Set<DomainObject> emptySet = Collections.emptySet();
 	return isWriteTransaction() ? getDBChanges().getModifiedObjects() : emptySet;
@@ -489,7 +483,8 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     public boolean isDeleted(Object obj) {
 	return isWriteTransaction() ? getDBChanges().isDeleted(obj) : false;
     }
-    
+
+    @Override
     public Set<Entry> getReadSetLog() {
 	throw new Error("getReadSetLog not implemented yet");
 	// Set<Entry> entries = new HashSet<Entry>(bodiesRead.size());
@@ -501,6 +496,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	// return entries;
     }
 
+    @Override
     public Set<Entry> getWriteSetLog() {
 	Set<AttrChangeLog> attrChangeLogs = getDBChanges().getAttrChangeLogs();
 	Set<Entry> entries = new HashSet<Entry>(attrChangeLogs.size());
@@ -520,10 +516,12 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
     private HashMap<RelationTupleChange, RelationTupleChange> relationTupleChanges = null;
 
+    @Override
     public void logRelationAdd(String relationName, DomainObject o1, DomainObject o2) {
 	logRelationTuple(relationName, o1, o2, false);
     }
 
+    @Override
     public void logRelationRemove(String relationName, DomainObject o1, DomainObject o2) {
 	logRelationTuple(relationName, o1, o2, true);
     }
@@ -537,6 +535,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	relationTupleChanges.put(log, log);
     }
 
+    @Override
     public Set<RelationChangelog> getRelationsChangelog() {
 	Set<RelationChangelog> entries = new HashSet<RelationChangelog>();
 
@@ -562,10 +561,12 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 	    this.remove = remove;
 	}
 
+	@Override
 	public int hashCode() {
 	    return relationName.hashCode() + obj1.hashCode() + obj2.hashCode();
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 	    if ((obj != null) && (obj.getClass() == this.getClass())) {
 		RelationTupleChange other = (RelationTupleChange) obj;
