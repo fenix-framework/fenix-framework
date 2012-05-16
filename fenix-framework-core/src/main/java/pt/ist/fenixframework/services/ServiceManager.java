@@ -21,10 +21,6 @@ public class ServiceManager {
 
     private static ThreadLocal<Boolean> isInServiceVar = new ThreadLocal<Boolean>();
 
-    static {
-	isInServiceVar.set(Boolean.FALSE);
-    }
-
     /**
      * Invoker for services implemented in static methods.
      * 
@@ -103,7 +99,7 @@ public class ServiceManager {
     }
 
     public static boolean isInsideService() {
-	return isInServiceVar.get();
+	return isInServiceVar.get() != null;
     }
 
     public static void enterService() {
@@ -111,7 +107,7 @@ public class ServiceManager {
     }
 
     public static void exitService() {
-	isInServiceVar.set(Boolean.FALSE);
+	isInServiceVar.remove();
     }
 
     public static void initServiceInvocation(final String serviceName) {
