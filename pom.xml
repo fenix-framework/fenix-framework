@@ -23,6 +23,7 @@
     <module>dml-maven-plugin</module>
     <module>fenix-framework-core</module>
     <module>fenix-framework-archetype</module>
+    <module>fenix-framework-project</module>
   </modules>
 
 </project>

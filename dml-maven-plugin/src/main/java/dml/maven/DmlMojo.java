@@ -5,13 +5,24 @@ import dml.CompilerArgs;
 import dml.DmlCompiler;
 import dml.DomainModel;
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.StringUtils;
+import pt.ist.fenixframework.artifact.FenixFrameworkArtifact;
+import pt.ist.fenixframework.project.DmlFile;
+import pt.ist.fenixframework.project.FenixFrameworkProject;
+import pt.ist.fenixframework.project.exception.FenixFrameworkProjectException;
 
 /**
  * Generate base classes from the DML files
@@ -77,6 +88,12 @@ public class DmlMojo extends AbstractMojo {
    * @parameter expression="${generate-domain.verbose}" default-value="false"
    */
   private boolean verbose;
+  
+  /**
+   * Generate Project Properties Flag
+   * @parameter expression="${generate-domain.generateProjectProperties}" default-value="false"
+   */
+  private boolean generateProjectProperties;
 
   public void execute() throws MojoExecutionException {
 		
@@ -95,12 +112,15 @@ public class DmlMojo extends AbstractMojo {
 
     Resource resource = new Resource();
     resource.setDirectory(this.srcDirectoryFile.getAbsolutePath());
-    resource.addInclude("*.dml");
+    resource.addInclude("**/*.dml");
     mavenProject.addResource(resource);
     
-    List<String> dmlFileList = DmlMojoUtils.readDmlFilePathsFromArtifact(getLog(), mavenProject.getArtifacts());
-    domainSpecFileNames.addAll(dmlFileList);
+    List<String> externalDmlFileNames = DmlMojoUtils.readDmlFilePathsFromArtifact(getLog(), mavenProject.getArtifacts());
+    domainSpecFileNames.addAll(externalDmlFileNames);
     
+    List<String> projectDmlFileNames = new ArrayList<String>();
+    List<String> classPathDmlFilesNames = new ArrayList<String>();
+
     String[] includedFiles = scanner.getIncludedFiles();
     for (String includedFile : includedFiles) {
       String filePath = this.srcDirectoryFile.getAbsolutePath() + "/" + includedFile;
@@ -109,8 +129,21 @@ public class DmlMojo extends AbstractMojo {
       if(this.verbose==false) {
         getLog().info(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
       }
-      domainSpecFileNames.add(filePath);
+      classPathDmlFilesNames.add(StringUtils.difference(srcDirectoryFile.getAbsolutePath(), filePath));
+      projectDmlFileNames.add(filePath);
       shouldCompile = shouldCompile || isModified;
+    }
+    
+    domainSpecFileNames.addAll(projectDmlFileNames);
+
+    if(generateProjectProperties) {
+            try {
+                List<String> dependencyArtifacts = DmlMojoUtils.getDependencyArtifacts(mavenProject, getLog());
+                Properties properties = FenixFrameworkArtifact.generateProperties(mavenProject.getArtifactId(), classPathDmlFilesNames, dependencyArtifacts);
+                ProjectPropertiesGenerator.create(new File(mavenProject.getBuild().getOutputDirectory()+"/"+mavenProject.getArtifactId()+"/project.properties"), properties);
+            } catch (IOException ex) {
+                Logger.getLogger(DmlMojo.class.getName()).log(Level.SEVERE, null, ex);
+            }
     }
 
     shouldCompile=true;

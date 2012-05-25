@@ -6,6 +6,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import pt.ist.fenixframework.artifact.FenixFrameworkArtifact;
 
 public class DmlMojoUtils {
     
@@ -30,5 +32,28 @@ public class DmlMojoUtils {
         }
         Collections.reverse(dmlFilePaths);
         return dmlFilePaths;
+    }
+
+    public static List<String> getDependencyArtifacts(MavenProject mavenProject, Log log) {
+        List<String> dependencyArtifacts = new ArrayList<String>();
+        for(Artifact artifact : mavenProject.getDependencyArtifacts()) {
+           if(artifact.getType().equals("pom") || (artifact.getGroupId().equals("pt.ist") && artifact.getArtifactId().equals("fenix-framework-core"))) {
+                continue; //ignoring pom projects and the fenix-framework-core project
+            }
+            String absolutePath = artifact.getFile().getAbsolutePath();
+            try {
+               JarFile jarFile = new JarFile(absolutePath);
+               for(Enumeration<JarEntry> enumeration = jarFile.entries(); enumeration.hasMoreElements();) {
+                   JarEntry jarEntry = enumeration.nextElement();
+                   if(jarEntry.getName().endsWith(".dml")) {
+                       dependencyArtifacts.add(artifact.getArtifactId());
+                   }
+               }
+            } catch(IOException e) {
+                log.error(e);
+            }
+        }
+        Collections.reverse(dependencyArtifacts);
+        return dependencyArtifacts;
     }
 }

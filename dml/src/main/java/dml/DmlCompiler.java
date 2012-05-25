@@ -13,6 +13,8 @@ import java.util.List;
 
 import antlr.ANTLRException;
 import antlr.collections.AST;
+import pt.ist.fenixframework.project.FenixFrameworkProject;
+import pt.ist.fenixframework.project.exception.FenixFrameworkProjectException;
 
 public class DmlCompiler {
 
@@ -26,7 +28,7 @@ public class DmlCompiler {
 
 	generator.generateCode();
     }
-
+    
     public static DomainModel getDomainModel(CompilerArgs compArgs) throws ANTLRException {
 	return getDomainModel(compArgs.domainModelClass, compArgs.domainSpecFilenames);
     }
