@@ -8,9 +8,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
-
 import jvstm.ProcessAtomicAnnotations;
-
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -74,7 +72,11 @@ public class PostCompileMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-
+        if (mavenProject.getArtifact().getType().equals("pom")) {
+            getLog().info("Cannot post process domain for pom projects");
+            return;
+        }
+        
 	List<String> classpathElements = null;
 	try {
 	    classpathElements = this.mavenProject.getCompileClasspathElements();
@@ -94,28 +96,33 @@ public class PostCompileMojo extends AbstractMojo {
 	}
 
 	List<String> dmlFiles = new ArrayList<String>();
-
-	DirectoryScanner scanner = new DirectoryScanner();
-	scanner.setBasedir(this.dmlDirectoryFile);
-
-	String[] includes = { "**\\*.dml" };
-	scanner.setIncludes(includes);
-	scanner.scan();
-
 	List<String> dmlFileList = DmlMojoUtils.readDmlFilePathsFromArtifact(getLog(), mavenProject.getArtifacts());
 	dmlFiles.addAll(dmlFileList);
+        
+        if (dmlDirectoryFile.exists()) {
+            DirectoryScanner scanner = new DirectoryScanner();
+            scanner.setBasedir(this.dmlDirectoryFile);
 
-	String[] includedFiles = scanner.getIncludedFiles();
-	for (String includedFile : includedFiles) {
-	    String filePath = this.dmlDirectoryFile.getAbsolutePath() + "/" + includedFile;
-	    if (this.verbose) {
-		getLog().info(
-			"Using: " + includedFile + "\nClass Full Name: " + this.classFullName + "\nDomain Model Class Name: "
-				+ this.domainModelClassName + "\nClasses Directory: " + this.classesDirectory);
-	    }
-	    dmlFiles.add(filePath);
-	}
+            String[] includes = { "**\\*.dml" };
+            scanner.setIncludes(includes);
+            scanner.scan();
 
+            String[] includedFiles = scanner.getIncludedFiles();
+            for (String includedFile : includedFiles) {
+                String filePath = this.dmlDirectoryFile.getAbsolutePath() + "/" + includedFile;
+                if (this.verbose) {
+                    getLog().info(
+                            "Using: " + includedFile + "\nClass Full Name: " + this.classFullName + "\nDomain Model Class Name: "
+                                    + this.domainModelClassName + "\nClasses Directory: " + this.classesDirectory);
+                }
+                dmlFiles.add(filePath);
+            }
+        }
+        if(dmlFiles.isEmpty()) {
+           getLog().info("No dml files found to post process domain");
+           return;
+        }
+        
 	URLClassLoader loader = new URLClassLoader(classesURL, Thread.currentThread().getContextClassLoader());
 
 	Class[] argsConstructor = new Class[] { List.class, this.classFullName.getClass(), this.domainModelClassName.getClass(),

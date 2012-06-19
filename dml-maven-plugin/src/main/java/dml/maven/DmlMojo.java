@@ -28,7 +28,7 @@ import pt.ist.fenixframework.project.exception.FenixFrameworkProjectException;
  * Generate base classes from the DML files
  *
  * @goal generate-domain
- * 
+ *
  * @phase generate-sources
  *
  * @requiresDependencyResolution runtime
@@ -96,91 +96,101 @@ public class DmlMojo extends AbstractMojo {
   private boolean generateProjectProperties;
 
   public void execute() throws MojoExecutionException {
-		
-    CompilerArgs compArgs = null;
-    List<String> domainSpecFileNames = new ArrayList<String>();
-    long latestBuildTime = destDirectoryBaseFile.lastModified();
+        if (mavenProject.getArtifact().getType().equals("pom")) {
+            getLog().info("Cannot generate domain for pom projects");
+            return;
+        }
 
-    DirectoryScanner scanner = new DirectoryScanner();
-    scanner.setBasedir(this.srcDirectoryFile);
-    
-    String[] includes = {"**\\*.dml"};
-    scanner.setIncludes(includes);
-    scanner.scan();
-    
-    boolean shouldCompile = false;
+        CompilerArgs compArgs = null;
+        List<String> domainSpecFileNames = new ArrayList<String>();
+        long latestBuildTime = destDirectoryBaseFile.lastModified();
 
-    Resource resource = new Resource();
-    resource.setDirectory(this.srcDirectoryFile.getAbsolutePath());
-    resource.addInclude("**/*.dml");
-    mavenProject.addResource(resource);
-    
-    List<String> externalDmlFileNames = DmlMojoUtils.readDmlFilePathsFromArtifact(getLog(), mavenProject.getArtifacts());
-    domainSpecFileNames.addAll(externalDmlFileNames);
-    
-    List<String> projectDmlFileNames = new ArrayList<String>();
-    List<String> classPathDmlFilesNames = new ArrayList<String>();
+        List<String> dmlFileList = DmlMojoUtils.readDmlFilePathsFromArtifact(getLog(), mavenProject.getArtifacts());
+        domainSpecFileNames.addAll(dmlFileList);
+        boolean shouldCompile = false;
 
-    String[] includedFiles = scanner.getIncludedFiles();
-    for (String includedFile : includedFiles) {
-      String filePath = this.srcDirectoryFile.getAbsolutePath() + "/" + includedFile;
-      File file = new File(filePath);
-      boolean isModified = file.lastModified() > latestBuildTime;
-      if(this.verbose==false) {
-        getLog().info(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
-      }
-      classPathDmlFilesNames.add(StringUtils.difference(srcDirectoryFile.getAbsolutePath(), filePath));
-      projectDmlFileNames.add(filePath);
-      shouldCompile = shouldCompile || isModified;
-    }
-    
-    domainSpecFileNames.addAll(projectDmlFileNames);
+        List<String> classPathDmlFilesNames = new ArrayList<String>();
+        
+        if (srcDirectoryFile.exists()) {
 
-    if(generateProjectProperties) {
-            try {
-                List<String> dependencyArtifacts = DmlMojoUtils.getDependencyArtifacts(mavenProject, getLog());
-                Properties properties = FenixFrameworkArtifact.generateProperties(mavenProject.getArtifactId(), classPathDmlFilesNames, dependencyArtifacts);
-                ProjectPropertiesGenerator.create(new File(mavenProject.getBuild().getOutputDirectory()+"/"+mavenProject.getArtifactId()+"/project.properties"), properties);
-            } catch (IOException ex) {
-                Logger.getLogger(DmlMojo.class.getName()).log(Level.SEVERE, null, ex);
+
+            DirectoryScanner scanner = new DirectoryScanner();
+            scanner.setBasedir(this.srcDirectoryFile);
+
+            String[] includes = {"**\\*.dml"};
+            scanner.setIncludes(includes);
+            scanner.scan();
+
+
+            Resource resource = new Resource();
+            resource.setDirectory(this.srcDirectoryFile.getAbsolutePath());
+            resource.addInclude("*.dml");
+            mavenProject.addResource(resource);
+
+
+
+            String[] includedFiles = scanner.getIncludedFiles();
+            for (String includedFile : includedFiles) {
+                String filePath = this.srcDirectoryFile.getAbsolutePath() + "/" + includedFile;
+                File file = new File(filePath);
+                boolean isModified = file.lastModified() > latestBuildTime;
+                if (this.verbose == false) {
+                    getLog().info(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
+                }
+                classPathDmlFilesNames.add(StringUtils.difference(srcDirectoryFile.getAbsolutePath(), filePath));
+                domainSpecFileNames.add(filePath);
+                shouldCompile = shouldCompile || isModified;
             }
+        }
+
+	if(generateProjectProperties) {
+		try {
+                	List<String> dependencyArtifacts = DmlMojoUtils.getDependencyArtifacts(mavenProject, getLog());
+                	Properties properties = FenixFrameworkArtifact.generateProperties(mavenProject.getArtifactId(), classPathDmlFilesNames, dependencyArtifacts);
+                	ProjectPropertiesGenerator.create(new File(mavenProject.getBuild().getOutputDirectory()+"/"+mavenProject.getArtifactId()+"/project.properties"), properties);
+            	} catch (IOException ex) {
+                	Logger.getLogger(DmlMojo.class.getName()).log(Level.SEVERE, null, ex);
+            	}
+    	}
+
+        if(domainSpecFileNames.isEmpty()) {
+           getLog().info("No dml files found to generate domain");
+           return;
+        }
+        shouldCompile = true;
+        if (this.packageName == null) {
+            packageName = "";
+        }
+        if (shouldCompile) {
+            try {
+                destDirectoryBaseFile.setLastModified(System.currentTimeMillis());
+                if (this.verbose) {
+                    getLog().info("Using model: " + getDomainModelClass().getName());
+                    getLog().info("Using generator: " + getCodeGeneratorClass().getName());
+                }
+
+                compArgs = new CompilerArgs(this.destDirectoryFile, this.destDirectoryBaseFile, this.packageName, this.generateFinals, getCodeGeneratorClass(), getDomainModelClass(), domainSpecFileNames);
+
+                DomainModel model = DmlCompiler.getDomainModel(compArgs);
+
+                CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class).newInstance(compArgs, model);
+                generator.generateCode();
+                mavenProject.addCompileSourceRoot(destDirectoryBaseFile.getAbsolutePath());
+            } catch (Exception e) {
+                getLog().error(e);
+            }
+        } else {
+            if (this.verbose) {
+                getLog().info("All dml files are up to date. Skipping generation...");
+            }
+        }
     }
 
-    shouldCompile=true;
-    if(this.packageName==null) {
-      packageName="";
+    public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
+        return (Class<? extends CodeGenerator>) Class.forName(this.codeGeneratorClassName);
     }
-    if (shouldCompile) {
-      try {
-           destDirectoryBaseFile.setLastModified(System.currentTimeMillis());
-           if(this.verbose) {
-             getLog().info("Using model: " + getDomainModelClass().getName());
-             getLog().info("Using generator: " + getCodeGeneratorClass().getName());
-           }
-           
-           compArgs = new CompilerArgs(this.destDirectoryFile, this.destDirectoryBaseFile, this.packageName, this.generateFinals, getCodeGeneratorClass(), getDomainModelClass(), domainSpecFileNames);
 
-           DomainModel model = DmlCompiler.getDomainModel(compArgs);
-
-           CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class).newInstance(compArgs, model);
-           generator.generateCode();
-		   mavenProject.addCompileSourceRoot(destDirectoryBaseFile.getAbsolutePath());
-         } catch (Exception e) {
-             getLog().error(e);
-         }
-       } else {
-         if(this.verbose) {
-           getLog().info("All dml files are up to date. Skipping generation...");
-         }
-       }
-     }
-
-  public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
-    return (Class<? extends CodeGenerator>)Class.forName(this.codeGeneratorClassName);
-  }
-
-  public Class<? extends DomainModel> getDomainModelClass() throws ClassNotFoundException {
-    return (Class<? extends DomainModel>) Class.forName(this.domainModelClassName);
-  }
-
+    public Class<? extends DomainModel> getDomainModelClass() throws ClassNotFoundException {
+        return (Class<? extends DomainModel>) Class.forName(this.domainModelClassName);
+    }
 }
