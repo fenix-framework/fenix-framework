@@ -1,5 +1,5 @@
 header {
-    package pt.ist.fenixframework.core.dml;
+    package pt.ist.fenixframework.dml;
 }
 
 
