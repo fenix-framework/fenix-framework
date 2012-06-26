@@ -220,7 +220,6 @@ public class PojoCodeGenerator implements CodeGenerator {
 
 
     protected void generateBaseClassBody(DomainClass domClass, PrintWriter out) {
-        /*
         generateStaticSlots(domClass, out);
         newline(out);
 
@@ -245,13 +244,10 @@ public class PojoCodeGenerator implements CodeGenerator {
         // roles methods
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
 
-        // generate slot consistency predicates
-        generateSlotConsistencyPredicates(domClass, out);
-        */
+        // // generate slot consistency predicates
+        // generateSlotConsistencyPredicates(domClass, out);
     }
 
-
-    /*
     protected void generateBaseClassConstructorsBody(DomainClass domClass, PrintWriter out) {
 	print(out, "super();");
     }
@@ -262,13 +258,11 @@ public class PojoCodeGenerator implements CodeGenerator {
         }
     }
 
-
     protected void generateSlot(Slot slot, PrintWriter out) {
         onNewline(out);
-        printWords(out, "private", getBoxType(slot), slot.getName());
+        printWords(out, "private", slot.getTypeName(), slot.getName());
         print(out, ";");
     }
-
 
     protected PrimitiveToWrapperEntry findWrapperEntry(String type) {
 	for (PrimitiveToWrapperEntry entry : primitiveToWrapperTypes) {
@@ -318,7 +312,13 @@ public class PojoCodeGenerator implements CodeGenerator {
         print(out, getRoleArgs(role));
         print(out, ")");
         newBlock(out);
-        generateRoleClassGetter(role, otherRole, out);
+
+        boolean multOne = (role.getMultiplicityUpper() == 1);
+        if (multOne) {
+            generateStaticRoleSlotsMultOne(role, otherRole, out);
+        } else {
+            generateStaticRoleSlotsMultStar(role, otherRole, out);
+        }
         
         // the getInverseRole method
         String inverseRoleType = makeGenericType("pt.ist.fenixframework.dml.runtime.Role",
@@ -340,13 +340,25 @@ public class PojoCodeGenerator implements CodeGenerator {
         println(out, ";");
     }
 
-    protected void generateRoleClassGetter(Role role, Role otherRole, PrintWriter out) {
-        boolean multOne = (role.getMultiplicityUpper() == 1);
+    protected void generateStaticRoleSlotsMultOne(Role role, Role otherRole, PrintWriter out) {
+        printMethod(out, "public", getTypeFullName(role.getType()), "getValue", makeArg(getTypeFullName(otherRole.getType()), "o1"));
+        startMethodBody(out);
+        printWords(out, "return", "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + ";");
+        endMethodBody(out);
 
+        printMethod(out, "public", "void",  "setValue",
+                    makeArg(getTypeFullName(otherRole.getType()), "o1"),
+                    makeArg(getTypeFullName(role.getType()), "o2"));
+        startMethodBody(out);
+        printWords(out, "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + " = o2;");
+        endMethodBody(out);
+    }
+
+    protected void generateStaticRoleSlotsMultStar(Role role, Role otherRole, PrintWriter out) {
         print(out, "public ");
-        print(out, makeGenericType((multOne ? getBoxBaseType() : "pt.ist.fenixframework.dml.runtime.RelationBaseSet"), getTypeFullName(role.getType())));
+        print(out, makeGenericType("pt.ist.fenixframework.dml.runtime.RelationBaseSet", getTypeFullName(role.getType())));
         print(out, " ");
-        print(out, multOne ? "getBox(" : "getSet(");
+        print(out, "getSet(");
         print(out, getTypeFullName(otherRole.getType()));
         print(out, " o1)");
         startMethodBody(out);
@@ -488,39 +500,39 @@ public class PojoCodeGenerator implements CodeGenerator {
         return "pt.ist.fenixframework.dml.runtime.RelationAwareSet";
     }
 
-    protected String getBoxBaseType() {
-        return "jvstm.VBox";
-    }
+//     protected String getBoxBaseType() {
+//         return "jvstm.VBox";
+//     }
     
-    protected String getBoxType(String elemType) {
-        return makeGenericType(getBoxBaseType(), elemType);
-    }
+//     protected String getBoxType(String elemType) {
+//         return makeGenericType(getBoxBaseType(), elemType);
+//     }
 
-    protected String getBoxType(Slot slot) {
-        return getBoxType(getReferenceType(slot.getTypeName()));
-    }
+//     protected String getBoxType(Slot slot) {
+//         return getBoxType(getReferenceType(slot.getTypeName()));
+//     }
 
-    protected String getBoxType(Role role) {
-        return getBoxType(getTypeFullName(role.getType()));
-    }
+//     protected String getBoxType(Role role) {
+//         return getBoxType(getTypeFullName(role.getType()));
+//     }
 
     protected void generateRoleSlot(Role role, PrintWriter out) {
         onNewline(out);
         if (role.getMultiplicityUpper() == 1) {
-            printWords(out, "private", getBoxType(role), role.getName());
+            printWords(out, "private", getTypeFullName(role.getType()), role.getName());
         } else {
             printWords(out, "private", getRelationAwareTypeFor(role), role.getName());
         }
         println(out, ";");
     }
 
-    protected String getNewSlotExpression(Slot slot) {
-        return "new " + getBoxType(slot) + "()";
-    }
+//     protected String getNewSlotExpression(Slot slot) {
+//         return "new " + getBoxType(slot) + "()";
+//     }
 
-    protected String getNewRoleOneSlotExpression(Role role) {
-        return "new " + getBoxType(role) + "()";
-    }
+//     protected String getNewRoleOneSlotExpression(Role role) {
+//         return "new " + getBoxType(role) + "()";
+//     }
 
     protected String getNewRoleStarSlotExpression(Role role) {
         StringBuilder buf = new StringBuilder();
@@ -557,9 +569,9 @@ public class PojoCodeGenerator implements CodeGenerator {
         printMethod(out, "private", "void", "initInstance", makeArg("boolean", "allocateOnly"));
         startMethodBody(out);
 
-        for (Slot slot : domClass.getSlotsList()) {
-            generateInitSlot(slot, out);
-        }
+        // for (Slot slot : domClass.getSlotsList()) {
+        //     generateInitSlot(slot, out);
+        // }
 
         for (Role role : domClass.getRoleSlotsList()) {
             if (role.getName() != null) {
@@ -576,37 +588,35 @@ public class PojoCodeGenerator implements CodeGenerator {
         closeBlock(out);
     }
 
-    protected void generateInitSlot(Slot slot, PrintWriter out) {
-        onNewline(out);
-        printWords(out, slot.getName());
-        print(out, " = ");
-        print(out, getNewSlotExpression(slot));
-        print(out, ";");
+//     protected void generateInitSlot(Slot slot, PrintWriter out) {
+//         onNewline(out);
+//         printWords(out, slot.getName());
+//         print(out, " = ");
+//         print(out, getNewSlotExpression(slot));
+//         print(out, ";");
 
-        // initialize primitive slots with their default value
-        generateInitializePrimitiveIfNeeded(slot, out);
-    }
+//         // initialize primitive slots with their default value
+//         generateInitializePrimitiveIfNeeded(slot, out);
+//     }
 
-    protected void generateInitializePrimitiveIfNeeded(Slot slot, PrintWriter out) {
-	PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(slot.getTypeName());
-	if (wrapperEntry != null) { // then it is a primitive type
-	    onNewline(out);
-	    print(out, "if (!allocateOnly) this.");
-	    print(out, slot.getName() + ".put(this, \"" + slot.getName() + "\", ");
-	    println(out, wrapperEntry.defaultPrimitiveValue + ");");
-	}
-    }
+//     protected void generateInitializePrimitiveIfNeeded(Slot slot, PrintWriter out) {
+// 	PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(slot.getTypeName());
+// 	if (wrapperEntry != null) { // then it is a primitive type
+// 	    onNewline(out);
+// 	    print(out, "if (!allocateOnly) this.");
+// 	    print(out, slot.getName() + ".put(this, \"" + slot.getName() + "\", ");
+// 	    println(out, wrapperEntry.defaultPrimitiveValue + ");");
+// 	}
+//     }
 
     protected void generateInitRoleSlot(Role role, PrintWriter out) {
-        onNewline(out);
-        print(out, role.getName());
-        print(out, " = ");
-        if (role.getMultiplicityUpper() == 1) {
-            print(out, getNewRoleOneSlotExpression(role));
-        } else {
+        if (role.getMultiplicityUpper() != 1) {
+            onNewline(out);
+            print(out, role.getName());
+            print(out, " = ");
             print(out, getNewRoleStarSlotExpression(role));
+            print(out, ";");
         }
-        print(out, ";");
     }
 
     protected void generateSlotsAccessors(Iterator slotsIter, PrintWriter out) {
@@ -637,8 +647,7 @@ public class PojoCodeGenerator implements CodeGenerator {
     }
 
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
-        printWords(out, "return", getSlotExpression(slotName));
-        print(out, ".get();");
+        printWords(out, "return", getSlotExpression(slotName) + ";");
     }
 
 
@@ -646,9 +655,9 @@ public class PojoCodeGenerator implements CodeGenerator {
         generateSetter("public", "set" + capitalize(slotName), slotName, typeName, out);
     }
 
-    protected void generateInternalSetter(String visibility, String setterName, String slotName, String typeName, PrintWriter out) {
-        generateSetter(visibility, setterName, slotName, typeName, out);
-    }
+//     protected void generateInternalSetter(String visibility, String setterName, String slotName, String typeName, PrintWriter out) {
+//         generateSetter(visibility, setterName, slotName, typeName, out);
+//     }
 
     protected void generateSetter(String visibility, String setterName, String slotName, String typeName, PrintWriter out) {
         newline(out);
@@ -665,10 +674,7 @@ public class PojoCodeGenerator implements CodeGenerator {
     }
 
     protected void generateSetterBody(String setterName, String slotName, String typeName, PrintWriter out) {
-        print(out, getSlotExpression(slotName));
-        print(out, ".put(");
-        print(out, slotName);
-        print(out, ");");
+        printWords(out, getSlotExpression(slotName), "=", slotName + ";");
     }
 
     protected void generateRoleSlotsMethods(Iterator roleSlotsIter, PrintWriter out) {
@@ -687,9 +693,9 @@ public class PojoCodeGenerator implements CodeGenerator {
             generateRoleSlotMethodsMultStar(role, out);
         }
 
-        if (role.needsMultiplicityChecks()) {
-            generateMultiplicityConsistencyPredicate(role, out);
-        }
+        // if (role.needsMultiplicityChecks()) {
+        //     generateMultiplicityConsistencyPredicate(role, out);
+        // }
     }
 
 
@@ -953,70 +959,70 @@ public class PojoCodeGenerator implements CodeGenerator {
         endMethodBody(out);
     }
 
-    protected void generateMultiplicityConsistencyPredicate(Role role, PrintWriter out) {
-        String slotName = role.getName();
-        String slotAccessExpression = getSlotExpression(slotName);
-        String capitalizedSlotName = capitalize(slotName);
+//     protected void generateMultiplicityConsistencyPredicate(Role role, PrintWriter out) {
+//         String slotName = role.getName();
+//         String slotAccessExpression = getSlotExpression(slotName);
+//         String capitalizedSlotName = capitalize(slotName);
 
-        newline(out);
-        println(out, "@jvstm.cps.ConsistencyPredicate");
-        printMethod(out, "public final", "boolean", "checkMultiplicityOf" + capitalizedSlotName);
-        startMethodBody(out);
+//         newline(out);
+//         println(out, "@jvstm.cps.ConsistencyPredicate");
+//         printMethod(out, "public final", "boolean", "checkMultiplicityOf" + capitalizedSlotName);
+//         startMethodBody(out);
 
-        int lower = role.getMultiplicityLower();
-        int upper = role.getMultiplicityUpper();
+//         int lower = role.getMultiplicityLower();
+//         int upper = role.getMultiplicityUpper();
 
-        if (lower > 0) {
-            print(out, "if (");
-            if (upper == 1) {
-                print(out, "! has");
-                print(out, capitalizedSlotName);
-                print(out, "()");
-            } else {
-                print(out, slotAccessExpression);
-                print(out, ".size() < " + lower);
-            }
-            println(out, ") return false;");
-        }
+//         if (lower > 0) {
+//             print(out, "if (");
+//             if (upper == 1) {
+//                 print(out, "! has");
+//                 print(out, capitalizedSlotName);
+//                 print(out, "()");
+//             } else {
+//                 print(out, slotAccessExpression);
+//                 print(out, ".size() < " + lower);
+//             }
+//             println(out, ") return false;");
+//         }
 
-        if ((upper > 1) && (upper != Role.MULTIPLICITY_MANY)) {
-            print(out, "if (");
-            print(out, slotAccessExpression);
-            print(out, ".size() > " + upper);
-            println(out, ") return false;");
-        }
+//         if ((upper > 1) && (upper != Role.MULTIPLICITY_MANY)) {
+//             print(out, "if (");
+//             print(out, slotAccessExpression);
+//             print(out, ".size() > " + upper);
+//             println(out, ") return false;");
+//         }
 
-        print(out, "return true;");
-        endMethodBody(out);
-    }
+//         print(out, "return true;");
+//         endMethodBody(out);
+//     }
 
-    protected void generateSlotConsistencyPredicates(DomainClass domClass, PrintWriter out) {
-        if (domClass.hasSlotWithOption(Slot.Option.REQUIRED)) {
-            generateRequiredConsistencyPredicate(domClass, out);
-        }
-    }
+//     protected void generateSlotConsistencyPredicates(DomainClass domClass, PrintWriter out) {
+//         if (domClass.hasSlotWithOption(Slot.Option.REQUIRED)) {
+//             generateRequiredConsistencyPredicate(domClass, out);
+//         }
+//     }
 
-    protected void generateRequiredConsistencyPredicate(DomainClass domClass, PrintWriter out) {
-        newline(out);
-        println(out, "@jvstm.cps.ConsistencyPredicate");
-        printMethod(out, "private", "boolean", "checkRequiredSlots");
-        startMethodBody(out);
+//     protected void generateRequiredConsistencyPredicate(DomainClass domClass, PrintWriter out) {
+//         newline(out);
+//         println(out, "@jvstm.cps.ConsistencyPredicate");
+//         printMethod(out, "private", "boolean", "checkRequiredSlots");
+//         startMethodBody(out);
 
-        for (Slot slot : domClass.getSlotsList()) {
-            if (slot.hasOption(Slot.Option.REQUIRED)) {
-                String slotName = slot.getName();
+//         for (Slot slot : domClass.getSlotsList()) {
+//             if (slot.hasOption(Slot.Option.REQUIRED)) {
+//                 String slotName = slot.getName();
 
-                print(out, "pt.ist.fenixframework.dml.runtime.ConsistencyChecks.checkRequired(this, \"");
-                print(out, slotName);
-                print(out, "\", get");
-                print(out, capitalize(slotName));
-                println(out, "());");
-            }
-        }
+//                 print(out, "pt.ist.fenixframework.dml.runtime.ConsistencyChecks.checkRequired(this, \"");
+//                 print(out, slotName);
+//                 print(out, "\", get");
+//                 print(out, capitalize(slotName));
+//                 println(out, "());");
+//             }
+//         }
 
-        print(out, "return true;");
-        endMethodBody(out);
-    }
+//         print(out, "return true;");
+//         endMethodBody(out);
+//     }
 
     public static String makeGenericType(String baseType, String... argTypes) {
         StringBuilder buf = new StringBuilder();
@@ -1036,7 +1042,7 @@ public class PojoCodeGenerator implements CodeGenerator {
 
         return buf.toString();
     }
-    */
+
     protected void printMethod(PrintWriter out, String mods, String type, String name, String... args) {
         printWords(out, mods, type, name);
 
