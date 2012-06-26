@@ -1,28 +1,28 @@
 package dml;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CompilerArgs {
     boolean generateFinals = false;
     File destDirectoryBase = null;
     File destDirectory = null;
     String packageName = "";
-    List<String> domainSpecFilenames = new ArrayList<String>();
+    List<URL> dmls = new ArrayList<URL>();
     Class<? extends CodeGenerator> generatorClass = CodeGenerator.class;
     Class<? extends DomainModel> domainModelClass = DomainModel.class;
 
     public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
-	    Class<? extends CodeGenerator> generatorClass, Class<? extends DomainModel> domainModelClass,
-	    List<String> domainSpecFilenames) {
-
+	    Class<? extends CodeGenerator> generatorClass, Class<? extends DomainModel> domainModelClass, List<URL> dmls) {
 	this.destDirectory = destDirectory;
 	this.destDirectoryBase = destDirectoryBase;
 	this.packageName = packageName;
 	this.generateFinals = generateFinals;
 	this.generatorClass = generatorClass != null ? generatorClass : CodeGenerator.class;
 	this.domainModelClass = domainModelClass != null ? domainModelClass : DomainModel.class;
-	this.domainSpecFilenames.addAll(domainSpecFilenames);
+	this.dmls.addAll(dmls);
 	checkArguments();
     }
 
@@ -38,7 +38,7 @@ public class CompilerArgs {
 	if (!destDirectory.isDirectory()) {
 	    error(destDirectory.toString() + " is not a readable directory");
 	}
-	if (domainSpecFilenames.isEmpty()) {
+	if (dmls.isEmpty()) {
 	    error("no domainSpec files given");
 	}
     }
@@ -52,7 +52,7 @@ public class CompilerArgs {
 		processingOptions = (newNum != num);
 		num = newNum;
 	    } else {
-		domainSpecFilenames.add(args[num]);
+		dmls.add(new File(args[num]).toURI().toURL());
 		num++;
 	    }
 	}

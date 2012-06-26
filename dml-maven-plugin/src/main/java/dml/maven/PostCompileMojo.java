@@ -3,17 +3,19 @@ package dml.maven;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+
 import jvstm.ProcessAtomicAnnotations;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.DirectoryScanner;
+
+import pt.ist.fenixframework.artifact.FenixFrameworkArtifact;
+import pt.ist.fenixframework.project.DmlFile;
 
 /**
  * Goal which injects the constructors into the bytecode of the DML compiled
@@ -72,63 +74,26 @@ public class PostCompileMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        if (mavenProject.getArtifact().getType().equals("pom")) {
-            getLog().info("Cannot post process domain for pom projects");
-            return;
-        }
-        
-	List<String> classpathElements = null;
-	try {
-	    classpathElements = this.mavenProject.getCompileClasspathElements();
-	} catch (DependencyResolutionRequiredException e) {
-	    getLog().error(e);
+	if (mavenProject.getArtifact().getType().equals("pom")) {
+	    getLog().info("Cannot post process domain for pom projects");
+	    return;
 	}
 
-	URL[] classesURL = new URL[classpathElements.size()];
-	int i = 0;
-
-	for (String path : classpathElements) {
-	    try {
-		classesURL[i++] = new File(path).toURI().toURL();
-	    } catch (MalformedURLException e) {
-		getLog().error(e);
+	try {
+	    URLClassLoader loader = DmlMojoUtils.augmentClassLoader(getLog(), mavenProject);
+	    List<URL> dmlFiles = new ArrayList<URL>();
+	    for (DmlFile dmlFile : FenixFrameworkArtifact.fromName(mavenProject.getArtifactId()).getFullDmlSortedList()) {
+		dmlFiles.add(dmlFile.getUrl());
 	    }
-	}
 
-	List<String> dmlFiles = new ArrayList<String>();
-	List<String> dmlFileList = DmlMojoUtils.readDmlFilePathsFromArtifact(getLog(), mavenProject.getArtifacts());
-	dmlFiles.addAll(dmlFileList);
-        
-        if (dmlDirectoryFile.exists()) {
-            DirectoryScanner scanner = new DirectoryScanner();
-            scanner.setBasedir(this.dmlDirectoryFile);
+	    if (dmlFiles.isEmpty()) {
+		getLog().info("No dml files found to post process domain");
+		return;
+	    }
 
-            String[] includes = { "**\\*.dml" };
-            scanner.setIncludes(includes);
-            scanner.scan();
-
-            String[] includedFiles = scanner.getIncludedFiles();
-            for (String includedFile : includedFiles) {
-                String filePath = this.dmlDirectoryFile.getAbsolutePath() + "/" + includedFile;
-                if (this.verbose) {
-                    getLog().info(
-                            "Using: " + includedFile + "\nClass Full Name: " + this.classFullName + "\nDomain Model Class Name: "
-                                    + this.domainModelClassName + "\nClasses Directory: " + this.classesDirectory);
-                }
-                dmlFiles.add(filePath);
-            }
-        }
-        if(dmlFiles.isEmpty()) {
-           getLog().info("No dml files found to post process domain");
-           return;
-        }
-        
-	URLClassLoader loader = new URLClassLoader(classesURL, Thread.currentThread().getContextClassLoader());
-
-	Class[] argsConstructor = new Class[] { List.class, this.classFullName.getClass(), this.domainModelClassName.getClass(),
-		ClassLoader.class };
-	Object[] args = new Object[] { dmlFiles, this.classFullName, this.domainModelClassName, loader };
-	try {
+	    Class[] argsConstructor = new Class[] { List.class, this.classFullName.getClass(),
+		    this.domainModelClassName.getClass(), ClassLoader.class };
+	    Object[] args = new Object[] { dmlFiles, this.classFullName, this.domainModelClassName, loader };
 	    Class postProcessDomainClassesClass = loader.loadClass("pt.ist.fenixframework.pstm.PostProcessDomainClasses");
 	    Class transactionClass = loader.loadClass("pt.ist.fenixframework.pstm.Transaction");
 

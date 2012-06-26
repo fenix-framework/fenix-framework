@@ -2,37 +2,43 @@ package pt.ist.fenixframework.pstm;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+
 import jvstm.ProcessAtomicAnnotations;
-import org.objectweb.asm.*;
+
+import org.objectweb.asm.ClassAdapter;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
     private static final String OID_INNER_CLASS_INTERNAL_NAME = Type.getInternalName(DomainObjectAllocator.OID.class);
 
-    private static final String CONSTRUCTOR_DESC = 
-        Type.getMethodDescriptor(Type.VOID_TYPE, 
-                                 new Type[] { Type.getType(DomainObjectAllocator.OID.class) });
+    private static final String CONSTRUCTOR_DESC = Type.getMethodDescriptor(Type.VOID_TYPE,
+	    new Type[] { Type.getType(DomainObjectAllocator.OID.class) });
 
     private PostProcessDomainClasses() {
-        super();
-    }
-    
-    public PostProcessDomainClasses(List<String> dmlFiles, String classFullName, String domainModelClassName) {
-        this(dmlFiles, classFullName, domainModelClassName, Thread.currentThread().getContextClassLoader());
+	super();
     }
 
-    public PostProcessDomainClasses(List<String> dmlFiles, 
-                                    String classFullName, 
-                                    String domainModelClassName, 
-                                    ClassLoader parentClassLoader) {
-        super(parentClassLoader);
-        this.dmlFiles.addAll(dmlFiles);
-        this.classFullName = classFullName;
-        this.domainModelClassName = domainModelClassName;
+    public PostProcessDomainClasses(List<URL> dmlFiles, String classFullName, String domainModelClassName) {
+	this(dmlFiles, classFullName, domainModelClassName, Thread.currentThread().getContextClassLoader());
     }
 
-    public static void main(final String args[]) {
+    public PostProcessDomainClasses(List<URL> dmlFiles, String classFullName, String domainModelClassName,
+	    ClassLoader parentClassLoader) {
+	super(parentClassLoader);
+	this.dmlFiles.addAll(dmlFiles);
+	this.classFullName = classFullName;
+	this.domainModelClassName = domainModelClassName;
+    }
+
+    public static void main(final String args[]) throws MalformedURLException {
 	PostProcessDomainClasses loader = new PostProcessDomainClasses();
 	loader.processArgs(args);
 	loader.start();
@@ -42,16 +48,18 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 	processor.start();
     }
 
+    @Override
     protected ClassVisitor makeNewClassVisitor(ClassWriter cw) {
 	return new AddOJBConstructorClassAdapter(cw);
     }
 
+    @Override
     protected void finishedProcessingClass(URL classURL, byte[] classBytecode) {
 	super.finishedProcessingClass(classURL, classBytecode);
-        //No need to post-process classes that are already post-processed
-        if(classURL.toExternalForm().startsWith("jar:file")) {
-            return;
-        }
+	// No need to post-process classes that are already post-processed
+	if (classURL.toExternalForm().startsWith("jar:file")) {
+	    return;
+	}
 	try {
 	    FileOutputStream fos = new FileOutputStream(new File(classURL.toURI()));
 	    fos.write(classBytecode);
@@ -72,6 +80,7 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 	    super(cv);
 	}
 
+	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 	    this.classDesc = name;
 	    this.superDesc = superName;
@@ -87,6 +96,7 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 	    super.visitInnerClass(name, outerName, innerName, access);
 	}
 
+	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
 	    if (warnOnFiels && ((access & ACC_STATIC) == 0)) {
 		System.err.println(classDesc + ": field not declared on base class -> " + name);
@@ -94,6 +104,7 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 	    return super.visitField(access, name, desc, signature, value);
 	}
 
+	@Override
 	public void visitEnd() {
 	    if (!foundConstructor) {
 		// force it
@@ -109,6 +120,7 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 	    }
 	}
 
+	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 	    MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 
