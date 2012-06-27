@@ -29,11 +29,13 @@ public class FenixFramework {
     private static Config config;
 
     public static void initialize(Config config) {
+        //smf: UM SO INITIALIZE QUE TEM UMA FACTORY
+
         bootStrap(config);
         initialize();
     }
 
-    public static void bootStrap(Config config) {
+    private static void bootStrap(Config config) {
 	synchronized (INIT_LOCK) {
 	    if (bootstrapped) {
 		throw new Error("Fenix framework already initialized");
@@ -48,13 +50,14 @@ public class FenixFramework {
 	}
     }
 
-    public static void initialize() {
+    private static void initialize() {
 	synchronized (INIT_LOCK) {
 	    if (initialized) {
 		throw new Error("Fenix framework already initialized");
 	    }
 
 	    // PersistentRoot.initRootIfNeeded(config);
+
 	    // FenixFrameworkPlugin[] plugins = config.getPlugins();
 	    // if (plugins != null) {
 	    //     for (final FenixFrameworkPlugin plugin : plugins) {
