@@ -2,7 +2,6 @@ package ${package};
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
-import ${package}.${rootClassname};
 
 public class Bootstrap {
 
@@ -13,7 +12,7 @@ public class Bootstrap {
         dbAlias = "//localhost:3306/${dbName}";
         dbUsername = "${dbUsername}";
         dbPassword = "";
-        rootClass = ${rootClassname}.class;
+        rootClass = ${package}.${rootClassname}.class;
       }});
     } catch(Error e) {
       
