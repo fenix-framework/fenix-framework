@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pt.ist.fenixframework.dml.DomainModel;
+import pt.ist.fenixframework.core.ConfigurationExtension;
+import pt.ist.fenixframework.core.CoreConfigurationExtension;
 
 /**
  * <p> An instance of the <code>Config</code> class bundles together the initialization parameters
@@ -21,9 +23,9 @@ import pt.ist.fenixframework.dml.DomainModel;
  *
  * <p> Additional configuration parameters may be added by subclassing this class.  During the
  * invocation of <code>FenixFramework.initialize(Config)</code>, the
- * <code>ConfigurationManager.initialize(Config)</code> method is invoked on the
- * <code>ConfigurationManager</code> instance given in the <code>Config</code> (if none is provided,
- * the <code>DefaultConfigurationManager</code> is used).  This enables extensions to the
+ * <code>ConfigurationExtension.initialize(Config)</code> method is invoked on the
+ * <code>configurationExtensionClass</code> instance given in the <code>Config</code> (if none is
+ * provided, the <code>CoreConfigurationExtension</code> is used).  This enables extensions to the
  * fenix-framework-core to add configuration parameters and to initialize themselves.
  * 
  * <p> To create an instance of this class with the proper values for its parameters, programmers should
@@ -37,6 +39,7 @@ import pt.ist.fenixframework.dml.DomainModel;
  *     {
  * 	this.appName = &quot;MyAppName&quot;;
  * 	this.domainModelURLs = Config.resourceToURL(&quot;path/to/domain.dml&quot;);
+ * 	this.configurationExtensionClass = pt.ist.fenixframework.core.CoreConfigurationExtension.class;
  *     }
  * };
  * 
@@ -87,6 +90,16 @@ public class Config {
     protected URL[] domainModelURLs = null;
 
     /**
+     * This <strong>optional</strong> parameter specifies the configuration extension to use in the
+     * initialization of the backend-specific parameters.  The default value is
+     * <code>CoreConfigurationExtension.class</code>.
+     */
+    protected Class<? extends ConfigurationExtension> configurationExtensionClass = CoreConfigurationExtension.class;
+    /* The following field is set during config initialization by instantiating the
+     * configurationExtensionClass. */
+    private ConfigurationExtension configurationExtension;
+
+    /**
      * This <strong>optional</strong> parameter specifies a name for the
      * application that will be used by the framework in the statistical logs
      * performed during the application execution. The default value for this
@@ -124,7 +137,7 @@ public class Config {
      */
     protected boolean errorfIfDeletingObjectNotDisconnected = false;
 
-    private static void checkRequired(Object obj, String fieldName) {
+    static void checkRequired(Object obj, String fieldName) {
 	if (obj == null) {
 	    missingRequired(fieldName);
 	}
@@ -133,13 +146,31 @@ public class Config {
     private static void missingRequired(String fieldName) {
 	throw new Error("The required field '" + fieldName + "' was not specified in the FenixFramework config.");
     }
-
-    public void checkConfig() {
+    
+    /**
+     * Subclasses of this class can overwrite this method, but they should specifically call
+     * <code>super()</code> to check the superclass's configuration.
+     */
+    protected void checkConfig() {
 	if ((domainModelURLs == null) || (domainModelURLs.length == 0)) {
 	    missingRequired("domainModelURLs");
 	}
 
-	// checkRequired(domainModelClass, "domainModelClass");
+	checkRequired(configurationExtensionClass, "configurationExtensionClass");
+    }
+    
+    /**
+     * This method is invoked by the <code>FenixFramework.initialize(Config)</code>
+     */
+    protected void initialize() {
+        checkConfig();
+
+        try {
+            configurationExtension = configurationExtensionClass.newInstance();
+            configurationExtension.initialize(this);
+        } catch (Exception e) {
+            throw new Error("Could not instantiante a ConfigurationExtension '" + configurationExtensionClass + "'. ", e);
+        }
     }
 
     public URL[] getDomainModelURLs() {
