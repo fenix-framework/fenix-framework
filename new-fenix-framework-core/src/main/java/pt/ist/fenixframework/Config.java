@@ -37,9 +37,8 @@ import pt.ist.fenixframework.core.CoreConfigurationExtension;
  * 
  * Config config = new Config() {
  *     {
- * 	this.appName = &quot;MyAppName&quot;;
  * 	this.domainModelURLs = Config.resourceToURL(&quot;path/to/domain.dml&quot;);
- * 	this.configurationExtensionClass = pt.ist.fenixframework.core.CoreConfigurationExtension.class;
+ * 	this.appName = &quot;MyAppName&quot;; // this is optional
  *     }
  * };
  * 
@@ -137,7 +136,7 @@ public class Config {
      */
     protected boolean errorfIfDeletingObjectNotDisconnected = false;
 
-    static void checkRequired(Object obj, String fieldName) {
+    private static void checkRequired(Object obj, String fieldName) {
 	if (obj == null) {
 	    missingRequired(fieldName);
 	}
@@ -197,6 +196,10 @@ public class Config {
 	return appName;
     }
 
+    public ConfigurationExtension getConfigExtension() {
+        return configurationExtension;
+    }
+
     public boolean isErrorIfChangingDeletedObject() {
 	return errorIfChangingDeletedObject;
     }
@@ -213,7 +216,7 @@ public class Config {
 	return collectDataAccessPatternsPath;
     }
 
-    // UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - BEGIN
+    /* UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - BEGIN */
 
     // REGARDING RESOURCES
 
@@ -266,5 +269,5 @@ public class Config {
         return urls;
     }
 
-    // UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - END
+    /* UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - END */
 }

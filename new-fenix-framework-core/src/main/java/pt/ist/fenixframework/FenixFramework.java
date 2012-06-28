@@ -1,12 +1,14 @@
 package pt.ist.fenixframework;
 
+import java.io.Serializable;
+
 // import jvstm.TransactionalCommand;
 // import pt.ist.fenixframework.pstm.DataAccessPatterns;
 // import pt.ist.fenixframework.pstm.MetadataManager;
 // import pt.ist.fenixframework.core.PersistentRoot;
 // import pt.ist.fenixframework.pstm.Transaction;
 // import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
-import pt.ist.fenixframework.core.Repository;
+// import pt.ist.fenixframework.core.Repository;
 import pt.ist.fenixframework.dml.DomainModel;
 
 /**
@@ -29,9 +31,21 @@ public class FenixFramework {
 
     private static Config config;
 
-    private static TransactionManager transactionManager = null;
-    private static Repository repository = null;
+    /**
+     * @return whether the <code>FenixFramework.initialize</code> method has already been invoked
+     */
+    public static boolean isInitialized() {
+	synchronized (INIT_LOCK) {
+            return initialized;
+        }
+    }
 
+    /** This method initializes the FenixFramework.  It must be the first method to be called, and
+     * it should be invoked only once.  It needs to be called before starting to access any
+     * Transactions/DomainObjects, etc.
+     *
+     * @param config The configuration that will be used by this instance of the framework.
+     */
     public static void initialize(Config config) {
 	synchronized (INIT_LOCK) {
 	    if (initialized) {
@@ -43,7 +57,7 @@ public class FenixFramework {
 
             // Because, the Config is an open extension point, we need to ensure the bare minimum,
             // e.g. a tx manager, an abstract domain object model, and a repository manager.
-            ensureConfigExtensionRequirements();
+            // ensureConfigExtensionRequirements();
 
 	    // MetadataManager.init(config);
 	    // new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
@@ -55,37 +69,52 @@ public class FenixFramework {
         // initialize();
     }
 
-    // ensure that the minimum required components were setup
-    private static void ensureConfigExtensionRequirements() {
-        Config.checkRequired(transactionManager, "transactionManager");
-        Config.checkRequired(repository, "repository");
-    }
+    // // ensure that the minimum required components were setup
+    // private static void ensureConfigExtensionRequirements() {
+    //     Config.checkRequired(transactionManager, "transactionManager");
+    //     Config.checkRequired(repository, "repository");
+    // }
 
-    public static void setTransactionManager(TransactionManager value) {
-        // This method should only be invoked within FenixFramework.initialize(), but the
-        // synchronized goes to ensure it.  Better safe than sorry.
-        synchronized(INIT_LOCK) {
-            if (transactionManager != null) {
-                throw new Error("The 'transactionManager' is already set");
-            }
-            transactionManager = value;
-        }
-    }
+    // /** This method is public to allow other Fenix Framework extensions to invoke it, but it should
+    //  * not be invoked by the programmer/user of this framework. */
+    // public static void setTransactionManager(TransactionManager value) {
+    //     // This method should only be invoked within FenixFramework.initialize(), but the
+    //     // synchronized goes to ensure it.  Better safe than sorry.
+    //     synchronized(INIT_LOCK) {
+    //         if (transactionManager != null) {
+    //             throw new Error("The 'transactionManager' is already set");
+    //         }
+    //         transactionManager = value;
+    //     }
+    // }
     
-    public static void setRepository(Repository value) {
-        // This method should only be invoked within FenixFramework.initialize(), but the
-        // synchronized goes to ensure it.  Better safe than sorry.
-        synchronized(INIT_LOCK) {
-            if (repository != null) {
-                throw new Error("The 'repository' is already set");
-            }
-            repository = value;
-        }
-    }
+    // /** This method is public to allow other Fenix Framework extensions to invoke it, but it should
+    //  * not be invoked by the programmer/user of this framework. */
+    // public static void setRepository(Repository value) {
+    //     // This method should only be invoked within FenixFramework.initialize(), but the
+    //     // synchronized goes to ensure it.  Better safe than sorry.
+    //     synchronized(INIT_LOCK) {
+    //         if (repository != null) {
+    //             throw new Error("The 'repository' is already set");
+    //         }
+    //         repository = value;
+    //     }
+    // }
+
+    // /** This method is public to allow other Fenix Framework extensions to invoke it, but it should
+    //  * not be invoked by the programmer/user of this framework. */
+    // public static void setAbstractDomainObjectClass(Class<? implements DomainObject> value) {
+    //     // This method should only be invoked within FenixFramework.initialize(), but the
+    //     // synchronized goes to ensure it.  Better safe than sorry.
+    //     synchronized(INIT_LOCK) {
+    //         if (abstractDomainObjectClass != null) {
+    //             throw new Error("The 'abstractDomainObjectClass' is already set");
+    //         }
+    //         abstractDomainObjectClass = value;
+    //     }
+    // }
     
-
-
-
+    
     // private static void bootStrap(Config config) {
     //     synchronized (INIT_LOCK) {
     //         if (bootstrapped) {
@@ -127,8 +156,16 @@ public class FenixFramework {
     //     }
     // }
 
+    // private static ConfigurationExtension getConfigExtension() {
+    //     return getConfig().getConfigExtension();
+    // }
+
     public static Config getConfig() {
 	return config;
+    }
+
+    public static TransactionManager getTransactionManager() {
+        return getConfig().getConfigExtension().getTransactionManager();
     }
 
     // public static DomainModel getDomainModel() {
@@ -138,4 +175,9 @@ public class FenixFramework {
     // public static <T extends DomainObject> T getRoot() {
     //     return (T) PersistentRoot.getRoot();
     // }
+
+
+    public static <T extends DomainObject> T getDomainObject(Serializable externalId) {
+        return getConfig().getConfigExtension().getDomainObject(externalId);
+    }
 }
