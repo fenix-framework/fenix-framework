@@ -6,7 +6,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.core.ConfigurationExtension;
 import pt.ist.fenixframework.core.CoreConfigurationExtension;
 

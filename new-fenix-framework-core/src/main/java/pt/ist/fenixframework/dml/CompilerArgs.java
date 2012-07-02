@@ -48,11 +48,6 @@ import pt.ist.fenixframework.Config;
  *   <td> The code generator to use.  Default: <code>PojoCodeGenerator.class</code>.</td>
  * </tr>
  *
- * <tr><td><code>Class&lt;? extends DomainModel&gt;</code></td>
- *   <td><code>domainModelClass</code></td>
- *   <td> The Domain model to use.  Default: <code>DomainModel.class</code>.</td>
- * </tr>
- *
  * </ul>
  */
 public class CompilerArgs {
@@ -63,7 +58,6 @@ public class CompilerArgs {
     List<URL> localDomainSpecs = new ArrayList<URL>();
     List<URL> externalDomainSpecs = new ArrayList<URL>();
     Class<? extends CodeGenerator> generatorClass = PojoCodeGenerator.class;
-    Class<? extends DomainModel> domainModelClass = DomainModel.class;
 
     /*
      * This is not part of the API
@@ -75,16 +69,14 @@ public class CompilerArgs {
 
 
     public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
-	    Class<? extends CodeGenerator> generatorClass, Class<? extends DomainModel> domainModelClass,
-                        List<String> localDomainSpecFilenames, List<String> externalDomainSpecFilenames) {
+	    Class<? extends CodeGenerator> generatorClass, List<String> localDomainSpecFilenames,
+                        List<String> externalDomainSpecFilenames) {
 
 	this.destDirectory = destDirectory;
 	this.destDirectoryBase = destDirectoryBase;
 	this.packageName = packageName;
 	this.generateFinals = generateFinals;
 	this.generatorClass = generatorClass != null ? generatorClass : PojoCodeGenerator.class;
-        //smf: remove domain model parameterization???
-	this.domainModelClass = domainModelClass != null ? domainModelClass : DomainModel.class;
 	this.localDomainSpecs.addAll(convertFilenamesToURLs(localDomainSpecFilenames));
 	this.externalDomainSpecs.addAll(convertFilenamesToURLs(externalDomainSpecFilenames));
 	checkArguments();
@@ -125,7 +117,7 @@ public class CompilerArgs {
 	    packageName = getNextArgument(args, pos);
 	    return pos + 2;
 	} else if (args[pos].equals("-f")) {
-	    error("option -f no longer exists (use -generator and -domainModelClass instead)");
+	    error("option -f no longer exists (consider -generator instead)");
 	} else if (args[pos].equals("-gf")) {
 	    generateFinals = true;
 	    return pos + 1;
@@ -133,8 +125,7 @@ public class CompilerArgs {
 	    generatorClass = (Class<? extends CodeGenerator>) Class.forName(getNextArgument(args, pos));
 	    return pos + 2;
 	} else if (args[pos].equals("-domainModelClass")) {
-	    domainModelClass = (Class<? extends DomainModel>) Class.forName(getNextArgument(args, pos));
-	    return pos + 2;
+	    error("option -domainModelClass no longer exists");
 	} else if (args[pos].equals("-localDmlSpec")) {
             // switch default to local
             addToLocalDomainSpecs = true;
@@ -189,10 +180,6 @@ public class CompilerArgs {
 
     public Class<? extends CodeGenerator> getCodeGenerator() {
 	return generatorClass;
-    }
-
-    public Class<? extends DomainModel> getDomainModelClass() {
-        return domainModelClass;
     }
 
     public List<URL> getLocalDomainSpecs() {

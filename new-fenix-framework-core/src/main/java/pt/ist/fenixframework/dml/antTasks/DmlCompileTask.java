@@ -17,7 +17,6 @@ import pt.ist.fenixframework.dml.DomainModel;
 
 public class DmlCompileTask extends Task {
 
-    private static final Class<DomainModel> defaultDomainModelClass = DomainModel.class;
     private static final Class<? extends CodeGenerator> defaultCodeGeneratorClass = PojoCodeGenerator.class;
 
     private boolean generateFinals = false;
@@ -26,13 +25,11 @@ public class DmlCompileTask extends Task {
     private String packageName = "";
     private final List<FileSet> filesets = new ArrayList<FileSet>();
     private String generatorClassName;
-    private String domainModelClassName;
     private String classPathRef;
     private String hasRun = DmlCompileTask.class.getName() + ".run";
 
-    // these two are defined when first requested (see the getters)
+    // this is defined when first requested (see the getter)
     private Class<? extends CodeGenerator> codeGeneratorClass;
-    private Class<? extends DomainModel> domainModelClass;
 
     public String getHasRun() {
 	return hasRun;
@@ -94,14 +91,6 @@ public class DmlCompileTask extends Task {
 	this.generatorClassName = generatorClassName;
     }
 
-    public String getDomainModelClassName() {
-	return domainModelClassName;
-    }
-
-    public void setDomainModelClassName(String domainModelClassName) {
-	this.domainModelClassName = domainModelClassName;
-    }
-
     public File getDestDirectoryFile() {
 	return (this.destDirectory == null) ? null : new File(destDirectory);
     }
@@ -120,18 +109,6 @@ public class DmlCompileTask extends Task {
             }
         }
         return codeGeneratorClass;
-    }
-
-    public Class<? extends DomainModel> getDomainModelClass() throws ClassNotFoundException {
-        if (domainModelClass == null) {
-            String domainModelClassName = getDomainModelClassName();
-            if (domainModelClassName == null) {
-                domainModelClass = defaultDomainModelClass;
-            } else {
-                domainModelClass = (Class<? extends DomainModel>) Class.forName(domainModelClassName);
-            }
-        }
-        return domainModelClass;
     }
 
     @Override
@@ -164,12 +141,10 @@ public class DmlCompileTask extends Task {
 	if (shouldCompile) {
 	    try {
 		destDirectoryBaseFile.setLastModified(System.currentTimeMillis());
-		System.out.println("Using model: " + getDomainModelClass().getName());
 		System.out.println("Using generator: " + getCodeGeneratorClass().getName());
 
 		compArgs = new CompilerArgs(getDestDirectoryFile(), destDirectoryBaseFile, getPackageName(), isGenerateFinals(),
-                                            getCodeGeneratorClass(), getDomainModelClass(), localDomainSpecFileNames,
-                                            new ArrayList<String>());
+                                            getCodeGeneratorClass(), localDomainSpecFileNames, new ArrayList<String>());
 
 		DomainModel model = DmlCompiler.getDomainModel(compArgs);
 
