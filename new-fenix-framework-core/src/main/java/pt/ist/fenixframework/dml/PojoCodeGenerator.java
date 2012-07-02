@@ -85,7 +85,7 @@ public class PojoCodeGenerator implements CodeGenerator {
     }
 
     @Override
-	public void generateCode() {
+    public void generateCode() {
         generateClasses(getDomainModel().getClasses());
     }
 
@@ -112,7 +112,7 @@ public class PojoCodeGenerator implements CodeGenerator {
         }
     }
 
-    protected void generateClasses(Iterator classesIter) {
+    protected void generateClasses(Iterator<DomainClass> classesIter) {
         while (classesIter.hasNext()) {
             generateOneClass((DomainClass) classesIter.next());
         }
@@ -129,8 +129,8 @@ public class PojoCodeGenerator implements CodeGenerator {
                         }
                     });
 
-        //No need to generate non-base classes since they are already defined in the jar
-        if(domClass.getSourceFile().toExternalForm().startsWith("jar:file"))
+        // don't generate non-base classes for an external definition.
+        if (compArgs.isExternalDefinition(domClass.getSourceFile()))
             return;
         
         File leafClassFile = new File(getDirectoryFor(packageName), domClass.getName() + ".java");

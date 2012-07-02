@@ -34,15 +34,28 @@ public class DmlCompiler {
 
 	generator.generateCode();
     }
-    
-    public static DomainModel getDomainModel(CompilerArgs compArgs) throws ANTLRException {
-	return getDomainModel(compArgs.getDomainModelClass(), compArgs.getDomainSpecFilenames());
+
+    public static DomainModel getDomainModel(URL[] localDmlFiles, URL[] externalDmlFiles) throws ANTLRException {
+        List<URL> dmlSpecs = Arrays.asList(localDmlFiles);
+        dmlSpecs.addAll(Arrays.asList(externalDmlFiles));
+
+        return getDomainModelForURLs(DomainModel.class, dmlSpecs, false);
     }
 
+
+    public static DomainModel getDomainModel(CompilerArgs compArgs) throws ANTLRException {
+        List<URL> dmlSpecs = new ArrayList<URL>(compArgs.getLocalDomainSpecs());
+        dmlSpecs.addAll(compArgs.getExternalDomainSpecs());
+
+	return getDomainModelForURLs(DomainModel.class, dmlSpecs, false);
+    }
+
+    @Deprecated
     public static DomainModel getDomainModel(Class<? extends DomainModel> modelClass, String[] dmlFiles) throws ANTLRException {
 	return getDomainModel(modelClass, Arrays.asList(dmlFiles));
     }
 
+    @Deprecated
     public static DomainModel getDomainModel(Class<? extends DomainModel> modelClass, List<String> dmlFiles)
 	    throws ANTLRException {
 	ArrayList<URL> urls = new ArrayList<URL>();
@@ -61,14 +74,15 @@ public class DmlCompiler {
 	return getDomainModelForURLs(modelClass, urls);
     }
 
+    @Deprecated
     public static DomainModel getDomainModelForURLs(Class<? extends DomainModel> modelClass, List<URL> dmlFilesURLs)
 	    throws ANTLRException {
-
 	return getDomainModelForURLs(modelClass, dmlFilesURLs, false);
     }
 
     public static DomainModel getDomainModelForURLs(Class<? extends DomainModel> modelClass, List<URL> dmlFilesURLs,
-	    boolean checkForMissingExternals) throws ANTLRException {
+                                                    boolean checkForMissingExternals)
+        throws ANTLRException {
 	DmlTreeParser walker = new DmlTreeParser();
 	DomainModel model = null;
 

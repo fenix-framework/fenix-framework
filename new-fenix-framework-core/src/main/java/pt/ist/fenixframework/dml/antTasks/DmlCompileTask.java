@@ -140,7 +140,7 @@ public class DmlCompileTask extends Task {
 
 	CompilerArgs compArgs = null;
 
-	List<String> domainSpecFileNames = new ArrayList<String>();
+	List<String> localDomainSpecFileNames = new ArrayList<String>();
 	File destDirectoryBaseFile = getDestDirectoryBaseFile();
 	long latestBuildTime = destDirectoryBaseFile.lastModified();
 
@@ -155,7 +155,7 @@ public class DmlCompileTask extends Task {
 		    File file = new File(filePath);
 		    boolean isModified = file.lastModified() > latestBuildTime;
 		    System.out.println(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
-		    domainSpecFileNames.add(filePath);
+		    localDomainSpecFileNames.add(filePath);
 		    shouldCompile = shouldCompile || isModified;
 		}
 	    }
@@ -168,7 +168,8 @@ public class DmlCompileTask extends Task {
 		System.out.println("Using generator: " + getCodeGeneratorClass().getName());
 
 		compArgs = new CompilerArgs(getDestDirectoryFile(), destDirectoryBaseFile, getPackageName(), isGenerateFinals(),
-			getCodeGeneratorClass(), getDomainModelClass(), domainSpecFileNames);
+                                            getCodeGeneratorClass(), getDomainModelClass(), localDomainSpecFileNames,
+                                            new ArrayList<String>());
 
 		DomainModel model = DmlCompiler.getDomainModel(compArgs);
 
