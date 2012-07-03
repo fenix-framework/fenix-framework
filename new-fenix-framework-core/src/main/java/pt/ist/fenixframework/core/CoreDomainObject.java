@@ -1,38 +1,94 @@
 package pt.ist.fenixframework.core;
 
+// import java.io.ObjectStreamException;
+// import java.io.Serializable;
+// import java.lang.reflect.Field;
+// import java.sql.ResultSet;
+// import java.sql.SQLException;
+
+// import org.apache.ojb.broker.PersistenceBroker;
+// import org.apache.ojb.broker.metadata.ClassDescriptor;
+
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.FenixFramework;
 
-/** This is the top-level class for every DomainObject. Each backend should provide a subclass of
- * this class, which provides a specific implementation of both
- * <code>DomainObject.getExternalId()</code> and <code>getOid()</code>.
- */
-public abstract class AbstractDomainObject implements DomainObject {
-    /** The implementation of this method is backend-specific.  It should be used within the *
-    framework, whereas the <code>DomainObject.getExternalId()</code> should be used by the user of
-    the * framework. */
-    public abstract Object getOid();
+public class CoreDomainObject extends AbstractDomainObject {
+    // this should be final, but the ensureIdInternal method prevents it
+    private long oid;
 
-    // protected AbstractDomainObject() {
-    //     super();
-    //     //smf: should we force this here with an abstract ensureOid()?
-    //     // ensureOid();
+    // public class UnableToDetermineIdException extends RuntimeException {
+    //     public UnableToDetermineIdException(Throwable cause) {
+    //         super("Unable to determine id Exception", cause);
+    //     }
     // }
 
-    //smf: ???????
+    protected CoreDomainObject() {
+	super();
+	ensureOid();
+    }
+
     // protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
     //     // this constructor exists only as part of the allocate-instance
     //     // protocol
     //     this.oid = oid.oid;
     // }
 
-    @Override
-    public final int hashCode() {
-	return super.hashCode();
+    public final Integer getIdInternal() {
+	return (int) (this.oid & 0x7FFFFFFF);
     }
 
+    private Integer get$idInternal() {
+	return getIdInternal();
+    }
+
+    protected void ensureOid() {
+    //     try {
+    //         // find successive ids until one is available
+    //         while (true) {
+    //     	this.oid = DomainClassInfo.getNextOidFor(this.getClass());
+    //             Object cached = FenixFramework.getCache().cache(this);
+    //             if (cached == this) {
+    //                 // break the loop once we got this instance cached
+    //                 return;
+    //             }
+    //         }
+    //     } catch (Exception e) {
+    //         throw new UnableToDetermineIdException(e);
+    //     }
+    }
+
+
+    // protected void ensureIdInternal() {
+    //     try {
+    //         PersistenceBroker broker = Transaction.getOJBBroker();
+    //         Class myClass = this.getClass();
+    //         ClassDescriptor cld = broker.getClassDescriptor(myClass);
+
+    //         long cid = ((long) DomainClassInfo.mapClassToId(myClass) << 32);
+
+    //         // find successive ids until one is available
+    //         while (true) {
+    //     	Integer id = (Integer) broker.serviceSequenceManager().getUniqueValue(cld.getFieldDescriptorByName("idInternal"));
+    //     	this.oid = cid + id;
+    //     	Object cached = Transaction.getCache().cache(this);
+    //     	if (cached == this) {
+    //     	    // break the loop once we got this instance cached
+    //     	    return;
+    //     	}
+    //         }
+    //     } catch (Exception e) {
+    //         throw new UnableToDetermineIdException(e);
+    //     }
+    // }
+
     @Override
-    public final boolean equals(Object obj) {
-	return super.equals(obj);
+    public Long getOid() {
+	return oid;
+    }
+
+    /* Within the backend there is no need to use getOid, which pays the price of autoboxing. */
+    long getlOidInternal() {
+        return oid;
     }
 
     public static <T extends DomainObject> T fromOid(long oid) {
@@ -146,13 +202,20 @@ public abstract class AbstractDomainObject implements DomainObject {
     //     }
     // }
 
-    // public static <T extends DomainObject> T fromExternalId(String extId) {
-    //     if (extId == null) {
-    //         return null;
-    //     } else {
-    //         return AbstractDomainObject.<T> fromOID(Long.valueOf(extId));
-    //     }
-    // }
+    @Override
+    public final String getExternalId() {
+	return String.valueOf(getOid());
+    }
+
+    /*
+    public static <T extends DomainObject> T fromExternalId(String extId) {
+	if (extId == null) {
+	    return null;
+	} else {
+	    return AbstractDomainObject.<T> fromOID(Long.valueOf(extId));
+	}
+    }
+    */
 
     // protected void doCheckDisconnectedAction(java.util.List<String> relationList) {
     //     for(String relation : relationList) {

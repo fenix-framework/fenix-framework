@@ -40,7 +40,7 @@ public class CoreConfigurationExtension implements ConfigurationExtension {
             throw new RuntimeException("The externalId in the CoreConfigurationExtension must be of type Long. Got: "
                                        + externalId.getClass());
         }
-        return AbstractDomainObject.fromOid((Long)externalId);
+        return CoreDomainObject.fromOid((Long)externalId);
     }
 
     public Repository getRepository() {

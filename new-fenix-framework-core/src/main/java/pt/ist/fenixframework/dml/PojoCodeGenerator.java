@@ -71,7 +71,7 @@ public class PojoCodeGenerator implements CodeGenerator {
     protected String getEntityFullName(DomainEntity domEntity) {
         if (domEntity == null) {
             return null;
-        } else {        
+        } else {
             return domEntity.getFullName(getPackageName());
         }
     }
@@ -81,7 +81,7 @@ public class PojoCodeGenerator implements CodeGenerator {
     }
 
     protected String getDomainClassRoot() {
-        return "java.lang.Object";
+        return "pt.ist.fenixframework.core.CoreDomainObject";
     }
 
     @Override

@@ -68,52 +68,6 @@ public class FenixFramework {
         // bootStrap(config);
         // initialize();
     }
-
-    // // ensure that the minimum required components were setup
-    // private static void ensureConfigExtensionRequirements() {
-    //     Config.checkRequired(transactionManager, "transactionManager");
-    //     Config.checkRequired(repository, "repository");
-    // }
-
-    // /** This method is public to allow other Fenix Framework extensions to invoke it, but it should
-    //  * not be invoked by the programmer/user of this framework. */
-    // public static void setTransactionManager(TransactionManager value) {
-    //     // This method should only be invoked within FenixFramework.initialize(), but the
-    //     // synchronized goes to ensure it.  Better safe than sorry.
-    //     synchronized(INIT_LOCK) {
-    //         if (transactionManager != null) {
-    //             throw new Error("The 'transactionManager' is already set");
-    //         }
-    //         transactionManager = value;
-    //     }
-    // }
-    
-    // /** This method is public to allow other Fenix Framework extensions to invoke it, but it should
-    //  * not be invoked by the programmer/user of this framework. */
-    // public static void setRepository(Repository value) {
-    //     // This method should only be invoked within FenixFramework.initialize(), but the
-    //     // synchronized goes to ensure it.  Better safe than sorry.
-    //     synchronized(INIT_LOCK) {
-    //         if (repository != null) {
-    //             throw new Error("The 'repository' is already set");
-    //         }
-    //         repository = value;
-    //     }
-    // }
-
-    // /** This method is public to allow other Fenix Framework extensions to invoke it, but it should
-    //  * not be invoked by the programmer/user of this framework. */
-    // public static void setAbstractDomainObjectClass(Class<? implements DomainObject> value) {
-    //     // This method should only be invoked within FenixFramework.initialize(), but the
-    //     // synchronized goes to ensure it.  Better safe than sorry.
-    //     synchronized(INIT_LOCK) {
-    //         if (abstractDomainObjectClass != null) {
-    //             throw new Error("The 'abstractDomainObjectClass' is already set");
-    //         }
-    //         abstractDomainObjectClass = value;
-    //     }
-    // }
-    
     
     // private static void bootStrap(Config config) {
     //     synchronized (INIT_LOCK) {
