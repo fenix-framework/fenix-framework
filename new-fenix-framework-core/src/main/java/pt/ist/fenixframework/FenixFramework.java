@@ -1,7 +1,5 @@
 package pt.ist.fenixframework;
 
-import java.io.Serializable;
-
 // import jvstm.TransactionalCommand;
 // import pt.ist.fenixframework.pstm.DataAccessPatterns;
 // import pt.ist.fenixframework.pstm.MetadataManager;
@@ -10,6 +8,7 @@ import java.io.Serializable;
 // import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
 // import pt.ist.fenixframework.core.Repository;
 import pt.ist.fenixframework.dml.DomainModel;
+import pt.ist.fenixframework.core.DefaultConfig;
 
 /**
  * This class provides a method to initialize the entire Fenix Framework. To do
@@ -52,16 +51,11 @@ public class FenixFramework {
 		throw new Error("Fenix framework already initialized");
 	    }
 
-	    FenixFramework.config = ((config != null) ? config : new Config());
-            config.initialize();
+	    FenixFramework.config = ((config != null) ? config
+                                     : new DefaultConfig() {{ this.domainModelURLs = Config.resourceToURL("empty.dml"); }});
+            FenixFramework.config.initialize();
 
-            // Because, the Config is an open extension point, we need to ensure the bare minimum,
-            // e.g. a tx manager, an abstract domain object model, and a repository manager.
-            // ensureConfigExtensionRequirements();
-
-	    // MetadataManager.init(config);
-	    // new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
-	    // DataAccessPatterns.init(config);
+	    // DataAccessPatterns.init(FenixFramework.config);
 	    initialized = true;
 	}
 
@@ -110,16 +104,15 @@ public class FenixFramework {
     //     }
     // }
 
-    // private static ConfigurationExtension getConfigExtension() {
-    //     return getConfig().getConfigExtension();
-    // }
-
     public static Config getConfig() {
+        if (config == null) {
+            throw new ConfigError(ConfigError.MISSING_CONFIG);
+        }
 	return config;
     }
 
     public static TransactionManager getTransactionManager() {
-        return getConfig().getConfigExtension().getTransactionManager();
+        return getConfig().getTransactionManager();
     }
 
     // public static DomainModel getDomainModel() {
@@ -131,7 +124,7 @@ public class FenixFramework {
     // }
 
 
-    public static <T extends DomainObject> T getDomainObject(Serializable externalId) {
-        return getConfig().getConfigExtension().getDomainObject(externalId);
+    public static <T extends DomainObject> T getDomainObject(String externalId) {
+        return getConfig().getDomainObject(externalId);
     }
 }
