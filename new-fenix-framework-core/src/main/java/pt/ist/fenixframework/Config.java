@@ -1,14 +1,21 @@
 package pt.ist.fenixframework;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Set;
+import java.util.Properties;
 
 import pt.ist.fenixframework.core.Repository;
+import pt.ist.fenixframework.dml.PojoCodeGenerator;
 
 /**
  * <p> An instance of the <code>Config</code> class bundles together the initialization parameters
- * used by the Fenix Framework. Therefore, before initializing the framework (via the call to the
+ * used by the Fenix Framework.
+ *
+ * Therefore, before initializing the framework (via the call to the
  * {@link FenixFramework#initialize(Config)} method), the programmer should create an instance of
  * <code>Config</code> with the correct values for each of the parameters.</p>
  * 
@@ -18,7 +25,7 @@ import pt.ist.fenixframework.core.Repository;
  * specified by the programmer before calling the <code>FenixFramework.initialize</code> method.
  *
  * <p> Additional configuration parameters may be added by subclassing this class.  Subclasses of
- * config can override the {@link init()} method.  Typically, their own <code>init()</code> should
+ * config can override the {@link #init()} method.  Typically, their own <code>init()</code> should
  * also call <code>super.init()</code>if an hierarchy of configs is used.
  * 
  * <p> To create an instance of this class with the proper values for its parameters, programmers
@@ -71,10 +78,16 @@ import pt.ist.fenixframework.core.Repository;
  * it for, whether it is optional or required, and in the former case, what is
  * its default value.
  * 
+ * @see pt.ist.fenixframework.FenixFramework
  * @see pt.ist.fenixframework.core.DefaultConfig
  * 
  */
 public abstract class Config {
+
+    static final String PROPERTY_CONFIG_CLASS = "config.class";
+    static final String DEFAULT_CONFIG_CLASS_NAME = "pt.ist.fenixframework.core.DefaultConfig";
+    // the suffix of the method that sets a property from a String property
+    static final String SETTER_FROM_STRING = "FromString";
 
     /**
      * This <strong>required</strong> parameter specifies the <code>URL[]</code> to each file
@@ -115,6 +128,103 @@ public abstract class Config {
         checkConfig();
     }
 
+    // set each property via reflection, ignoring the config.class property, which was used to
+    // define which config instance to create
+    final void populate(Properties props) {
+        for (String propName : props.stringPropertyNames()) {
+            if (PROPERTY_CONFIG_CLASS.equals(propName)) { continue; }
+            String value = props.getProperty(propName);
+            setProperty(propName, value);
+        }
+    }
+
+    final void setProperty(String propName, String value) {
+        // first check if it really exists
+        Field field = getField(this.getClass(), propName);
+
+        // note that the OR lazy evaluation is used on purpose!
+        boolean success = attemptSetPropertyUsingMethod(getSetterFor(this.getClass(), propName + SETTER_FROM_STRING), value)
+            || attemptSetPropertyUsingField(field, value);
+
+        if (! success) {
+            throw new ConfigError(ConfigError.COULD_NOT_SET_PROPERTY, propName);
+        }
+    }
+
+    private Field getField(Class<? extends Config> clazz, String fieldName) {
+        try {
+            return clazz.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            // climb the hierarchy, but only up to Config class
+            Class<?> superclass = clazz.getSuperclass();
+            if (Config.class.isAssignableFrom(superclass)) {
+                return getField((Class<? extends Config>)superclass, fieldName);
+            } else {
+                throw new ConfigError(ConfigError.UNKNOWN_PROPERTY, e);
+            }
+        }
+    }
+
+    private boolean attemptSetPropertyUsingMethod(Method setter, String value) {
+        if (setter == null) return false;
+        
+        setter.setAccessible(true);
+        try {
+            setter.invoke(this, value);
+        } catch (Exception e) {
+            throw new ConfigError(e);
+        }
+        return true;
+    }
+
+    private boolean attemptSetPropertyUsingField(Field field, String value) {
+        field.setAccessible(true);
+        try {
+            field.set(this, value);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    private Method getSetterFor(Class<? extends Config> clazz, String setterName) {
+        try {
+            return clazz.getDeclaredMethod(setterName, new Class[]{String.class});
+        } catch (NoSuchMethodException e) {
+            // climb the hierarchy, but only up to Config class
+            Class<?> superclass = clazz.getSuperclass();
+            if (Config.class.isAssignableFrom(superclass)) {
+                return getSetterFor((Class<? extends Config>)superclass, setterName);
+            } else {
+                return null;
+            }
+        }
+    }
+
+    private void appNameFromString(String value) {
+        this.appName = value;
+        // TO DO: also run the code to process <appName>/project.properties and thus fill the domainModelURLs
+    }
+
+    private void domainModelURLsFromString(String value) {
+        String[] tokens = value.split("\\s*,\\s*");
+        URL[] urls = new URL[tokens.length];
+
+        for (int i = 0; i < tokens.length; i++) {
+            // try URL from resource
+            urls[i] = internalResourceToURL(tokens[i]);
+            if (urls[i] != null) { continue; }
+
+            // try URL from filename
+            urls[i] = internalFilenameToURL(tokens[i]);
+            if (urls[i] != null) { continue; }
+
+            // failed to get the URL
+            throw new Error("FenixFramework config error: cannot find DML '" + tokens[i] + "'");
+        }
+        domainModelURLs = urls;
+    }
+
     public URL[] getDomainModelURLs() {
 	return domainModelURLs;
     }
@@ -128,6 +238,7 @@ public abstract class Config {
 	return appName;
     }
 
+
     protected static void missingRequired(String fieldName) {
 	throw new ConfigError(ConfigError.MISSING_REQUIRED_FIELD, "'" + fieldName + "'");
     }
@@ -137,11 +248,7 @@ public abstract class Config {
     // REGARDING RESOURCES
 
     private static URL internalResourceToURL(String resource) {
-        URL url = Thread.currentThread().getContextClassLoader().getResource(resource);
-        if (url == null) {
-            throw new Error("FenixFramework config error: cannot find DML for resource '" + resource + "'");
-        }
-        return url;
+        return Thread.currentThread().getContextClassLoader().getResource(resource);
     }
 
     public static URL[] resourceToURL(String resource) {
@@ -152,6 +259,9 @@ public abstract class Config {
         final URL[] urls = new URL[resources.length];
         for (int i = 0; i < resources.length; i++) {
             urls[i] = internalResourceToURL(resources[i]);
+            if (urls[i] == null) {
+                throw new Error("FenixFramework config error: cannot find DML for resource '" + resources[i] + "'");
+            }
         }
         return urls;
     }
@@ -159,18 +269,16 @@ public abstract class Config {
     // REGARDING FILENAMES
 
     private static URL internalFilenameToURL(String filename) {
-        URL url = null;
         try {
             File file = new File(filename);
             if (!file.exists()) {
-                throw new Error("FenixFramework config error: cannot find DML for file'" + filename + "'");
+                return null;
             }
 
-            url = file.toURI().toURL();
+            return file.toURI().toURL();
         } catch (MalformedURLException mue) {
-            throw new Error("FenixFramework config error: cannot find DML for file'" + filename + "'");
+            return null;
         }
-        return url;
     }
 
     public static URL[] filenameToURL(String filename) {
@@ -181,6 +289,9 @@ public abstract class Config {
         final URL[] urls = new URL[filenames.length];
         for (int i = 0; i < filenames.length; i++) {
             urls[i] = internalFilenameToURL(filenames[i]);
+            if (urls[i] == null) {
+                throw new Error("FenixFramework config error: cannot find DML for file'" + filenames[i] + "'");
+            }
         }
         return urls;
     }
