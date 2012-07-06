@@ -1,6 +1,8 @@
 package dml.antTasks;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,25 +129,29 @@ public class DmlCompileTask extends Task {
 
 	CompilerArgs compArgs = null;
 
-	List<String> domainSpecFileNames = new ArrayList<String>();
+	List<URL> domainSpecFileNames = new ArrayList<URL>();
 	File destDirectoryBaseFile = getDestDirectoryBaseFile();
 	long latestBuildTime = destDirectoryBaseFile.lastModified();
 
 	boolean shouldCompile = false;
 
-	for (FileSet fileset : filesets) {
-	    if (fileset.getDir().exists()) {
-		DirectoryScanner scanner = fileset.getDirectoryScanner(getProject());
-		String[] includedFiles = scanner.getIncludedFiles();
-		for (String includedFile : includedFiles) {
-		    String filePath = fileset.getDir().getAbsolutePath() + "/" + includedFile;
-		    File file = new File(filePath);
-		    boolean isModified = file.lastModified() > latestBuildTime;
-		    System.out.println(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
-		    domainSpecFileNames.add(filePath);
-		    shouldCompile = shouldCompile || isModified;
+	try {
+	    for (FileSet fileset : filesets) {
+		if (fileset.getDir().exists()) {
+		    DirectoryScanner scanner = fileset.getDirectoryScanner(getProject());
+		    String[] includedFiles = scanner.getIncludedFiles();
+		    for (String includedFile : includedFiles) {
+			String filePath = fileset.getDir().getAbsolutePath() + "/" + includedFile;
+			File file = new File(filePath);
+			boolean isModified = file.lastModified() > latestBuildTime;
+			System.out.println(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
+			domainSpecFileNames.add(file.toURI().toURL());
+			shouldCompile = shouldCompile || isModified;
+		    }
 		}
 	    }
+	} catch (MalformedURLException e) {
+	    throw new BuildException(e);
 	}
 
 	if (shouldCompile) {

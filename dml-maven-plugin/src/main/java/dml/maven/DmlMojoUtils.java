@@ -2,59 +2,71 @@ package dml.maven;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.jar.JarEntry;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.jar.JarFile;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+
 import pt.ist.fenixframework.artifact.FenixFrameworkArtifact;
+import pt.ist.fenixframework.project.DmlFile;
+import pt.ist.fenixframework.project.exception.FenixFrameworkProjectException;
 
 public class DmlMojoUtils {
+    public static FenixFrameworkArtifact getArtifact(MavenProject project, File srcDirectoryFile, List<URL> dmlFiles)
+	    throws IOException, FenixFrameworkProjectException, MalformedURLException {
+	List<FenixFrameworkArtifact> dependencies = new ArrayList<FenixFrameworkArtifact>();
 
-    public static List<String> readDmlFilePathsFromArtifact(Log log, Set<Artifact> artifactSet) {
-        List<String> dmlFilePaths = new ArrayList<String>();
-        for (Artifact artifact : artifactSet) {
-            if (artifact.getType().equals("pom") || (artifact.getGroupId().equals("pt.ist") && artifact.getArtifactId().equals("fenix-framework-core"))) {
-                continue; //ignoring pom projects and the fenix-framework-core project
-            }
-            String absolutePath = artifact.getFile().getAbsolutePath();
-            try {
-                JarFile jarFile = new JarFile(absolutePath);
-                for (Enumeration<JarEntry> enumeration = jarFile.entries(); enumeration.hasMoreElements();) {
-                    JarEntry jarEntry = enumeration.nextElement();
-                    if (jarEntry.getName().endsWith(".dml")) {
-                        dmlFilePaths.add("jar:file:" + absolutePath + "!/" + jarEntry.getName());
-                    }
-                }
-            } catch (IOException e) {
-                log.error(e);
-            }
-        }
-        Collections.reverse(dmlFilePaths);
-        return dmlFilePaths;
+	for (Artifact artifact : project.getDependencyArtifacts()) {
+	    String absolutePath = artifact.getFile().getAbsolutePath();
+	    JarFile jarFile = new JarFile(absolutePath);
+	    if (jarFile.getJarEntry(artifact.getArtifactId() + "/project.properties") != null) {
+		dependencies.add(FenixFrameworkArtifact.fromName(artifact.getArtifactId()));
+	    }
+	}
+
+	List<DmlFile> dmls = new ArrayList<DmlFile>();
+
+	for (URL url : dmlFiles) {
+	    URL srcFolder = srcDirectoryFile.toURI().toURL();
+	    if (url.toExternalForm().contains(srcFolder.toExternalForm())) {
+		dmls.add(new DmlFile(url, StringUtils.removeStart(url.toExternalForm(), srcFolder.toExternalForm())));
+	    } else {
+		dmls.add(new DmlFile(url, null));
+	    }
+	}
+	return new FenixFrameworkArtifact(project.getArtifactId(), dmls, dependencies);
     }
 
-    public static List<String> getDependencyArtifacts(MavenProject mavenProject, Log log) {
-        List<String> dependencyArtifacts = new ArrayList<String>();
-        for(Artifact artifact : mavenProject.getDependencyArtifacts()) {
-           if(artifact.getType().equals("pom") || (artifact.getGroupId().equals("pt.ist") && artifact.getArtifactId().equals("fenix-framework-core"))) {
-                continue; //ignoring pom projects and the fenix-framework-core project
-            }
-            String absolutePath = artifact.getFile().getAbsolutePath();
-            try {
-               JarFile jarFile = new JarFile(absolutePath);
-               for(Enumeration<JarEntry> enumeration = jarFile.entries(); enumeration.hasMoreElements();) {
-                   JarEntry jarEntry = enumeration.nextElement();
-                   if(jarEntry.getName().endsWith(".dml")) {
-                       dependencyArtifacts.add(artifact.getArtifactId());
-                   }
-               }
-            } catch(IOException e) {
-                log.error(e);
-            }
-        }
-        Collections.reverse(dependencyArtifacts);
-        return dependencyArtifacts;
+    public static URLClassLoader augmentClassLoader(Log log, MavenProject project) {
+	List<String> classpathElements = null;
+	try {
+	    classpathElements = project.getCompileClasspathElements();
+	} catch (DependencyResolutionRequiredException e) {
+	    log.error(e);
+	}
+
+	URL[] classesURL = new URL[classpathElements.size()];
+	int i = 0;
+
+	for (String path : classpathElements) {
+	    try {
+		classesURL[i++] = new File(path).toURI().toURL();
+	    } catch (MalformedURLException e) {
+		log.error(e);
+	    }
+	}
+
+	URLClassLoader loader = new URLClassLoader(classesURL, Thread.currentThread().getContextClassLoader());
+	Thread.currentThread().setContextClassLoader(loader);
+	return loader;
     }
+
 }

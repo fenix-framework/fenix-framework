@@ -1,21 +1,28 @@
 package pt.ist.fenixframework.pstm;
 
-import dml.DomainClass;
-import dml.DomainModel;
-import dml.PluginDmlUrlLoader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
+
 import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
+import dml.DomainClass;
+import dml.DomainModel;
+import dml.PluginDmlUrlLoader;
 
 public abstract class AbstractDomainPostProcessor extends ClassLoader implements Opcodes {
-    protected ArrayList<String> dmlFiles = new ArrayList<String>();
+    protected ArrayList<URL> dmlFiles = new ArrayList<URL>();
     private HashSet<String> loadedClasses = new HashSet<String>();
 
     private DomainModel domainModel;
@@ -24,20 +31,20 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
 
     protected AbstractDomainPostProcessor() {
     }
-    
+
     protected AbstractDomainPostProcessor(ClassLoader parentClassLoader) {
-        super(parentClassLoader);
+	super(parentClassLoader);
     }
-    
+
     // --------------------------------
     // HACK!!!
     //
     // All this command line processing is copied&pasted from
     // src_tools/pt/utl/ist/analysis/ClassFilesVisitor
-    // 
+    //
     // I should refactor this soon!
 
-    public void processArgs(String[] args) {
+    public void processArgs(String[] args) throws MalformedURLException {
 	int i = 0;
 	while (i < args.length) {
 	    if ("-d".equals(args[i])) {
@@ -55,14 +62,14 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
 			}
 		    }
 		    Collections.sort(urls);
-		    for(URL pluginDmlUrl : PluginDmlUrlLoader.getPluginDmlUrlList()) {
-                        dmlFiles.add(pluginDmlUrl.toExternalForm());
-                    }
-                    for (final String url : urls) {
-			dmlFiles.add(url);
+		    for (URL pluginDmlUrl : PluginDmlUrlLoader.getPluginDmlUrlList()) {
+			dmlFiles.add(pluginDmlUrl);
+		    }
+		    for (final String url : urls) {
+			dmlFiles.add(new File(url).toURI().toURL());
 		    }
 		} else {
-		    dmlFiles.add(arg);
+		    dmlFiles.add(new File(arg).toURI().toURL());
 		}
 		consumeArg(args, i);
 		i += 2;
@@ -102,7 +109,7 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
 		throw new Error("No DML files specified");
 	    } else {
 		try {
-		    domainModel = DML.getDomainModel(getDomainModelClass(), dmlFiles.toArray(new String[dmlFiles.size()]));
+		    domainModel = DML.getDomainModelForURLs(getDomainModelClass(), dmlFiles);
 		} catch (antlr.ANTLRException ae) {
 		    System.err.println("Error parsing the DML files, leaving the domain empty");
 		}
@@ -145,6 +152,7 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
 	// do nothing by default
     }
 
+    @Override
     protected synchronized Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
 	if ((!belongsToDomainModel(name)) || loadedClasses.contains(name)) {
 	    return super.loadClass(name, resolve);
