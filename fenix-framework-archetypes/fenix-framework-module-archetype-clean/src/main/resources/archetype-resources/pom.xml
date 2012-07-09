@@ -12,8 +12,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<dml.maven.plugin.version>${dmlMavenPluginVersion}</dml.maven.plugin.version>
-		<fenix.framework.version>${fenixFrameworkVersion}</fenix.framework.version>
+    <dml.maven.plugin.version>${dmlMavenPluginVersion}</dml.maven.plugin.version>
+    <fenix.framework.core.version>${fenixFrameworkVersion}</fenix.framework.core.version>
   </properties>
 
   <build>
@@ -27,24 +27,37 @@
             <goals>
               <goal>generate-domain</goal>
               <goal>post-compile</goal>
+              <goal>test-generate-domain</goal>
+              <goal>test-post-compile</goal>
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <excludes>
+             <exclude>**/*_Base*</exclude>
+             <exclude>pt/ist/fenixframework/ValueTypeSerializationGenerator*</exclude>
+          </excludes>
+        </configuration>
       </plugin>
     </plugins>
   </build>
 
   <dependencies>
-	  <dependency>
+    <dependency>
+      <groupId>pt.ist</groupId>
+      <artifactId>fenix-framework-core</artifactId>
+      <version>${fenix.framework.core.version}</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>3.8.1</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>pt.ist</groupId>
-      <artifactId>fenix-framework-core</artifactId>
-      <version>${fenix.framework.version}</version>
     </dependency>
   </dependencies>
 

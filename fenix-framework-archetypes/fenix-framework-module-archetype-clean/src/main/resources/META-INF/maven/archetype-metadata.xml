@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archetype-descriptor name="fenix-framework-archetype">
+<archetype-descriptor name="fenix-framework-module-archetype-clean">
   <requiredProperties>
-    <requiredProperty key="rootClassname"/>
-    <requiredProperty key="dbUsername"/>
-    <requiredProperty key="dbName">
-      <defaultValue>${artifactId}</defaultValue>
-    </requiredProperty>
-    <requiredProperty key="version">
-      <defaultValue>1.0</defaultValue>
-    </requiredProperty>
     <requiredProperty key="dmlMavenPluginVersion"/>
     <requiredProperty key="fenixFrameworkVersion"/>
   </requiredProperties>
@@ -21,6 +13,12 @@
     </fileSet>
     <fileSet filtered="true" packaged="false">
       <directory>src/main/dml</directory>
+      <includes>
+        <include>**/*.dml</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" packaged="false">
+      <directory>src/test/dml</directory>
       <includes>
         <include>**/*.dml</include>
       </includes>

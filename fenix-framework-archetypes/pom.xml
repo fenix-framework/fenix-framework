@@ -6,10 +6,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>pt.ist</groupId>
-  <artifactId>fenix-framework</artifactId>
+  <artifactId>fenix-framework-archetypes</artifactId>
   <version>1.0</version>
   <packaging>pom</packaging>
-  <name>Fenix Framework</name>
+  <name>Fenix Framework Archetypes</name>
   <url>http://fenix-ashes.ist.utl.pt</url>
 
   <properties>
@@ -18,8 +18,8 @@
   </properties>
 
   <modules>
-    <module>new-fenix-framework-core</module>
-    <module>fenix-framework-archetypes</module>
+    <module>fenix-framework-module-archetype-clean</module>
+    <module>fenix-framework-webapp-archetype-clean</module>
   </modules>
 
 </project>
