@@ -13,6 +13,7 @@ import java.util.List;
 
 import pt.ist.fenixframework.dml.CodeGenerator;
 import pt.ist.fenixframework.dml.CompilerArgs;
+import pt.ist.fenixframework.dml.DmlCompilerException;
 import pt.ist.fenixframework.dml.DmlLexer;
 import pt.ist.fenixframework.dml.DmlParser;
 import pt.ist.fenixframework.dml.DmlTreeParser;
@@ -24,73 +25,96 @@ import antlr.collections.AST;
 
 public class DmlCompiler {
 
-    public static void main(String[] args) throws Exception {
+    /** Runs the DML compiler
+     *
+     * This is the main entry point for running the DML compiler, from the command line.  This
+     * method will create the {@link CompilerArgs} from the command line parameters, and then invoke
+     * {@DmlCompiler#compile}.
+     *
+     * @param args All the compiler's parameters
+     * @return The {@link DomainModel}
+     *
+     * @see CompilerArgs
+     */
+    public static void main(String[] args) throws DmlCompilerException {
 	CompilerArgs compArgs = new CompilerArgs(args);
-
-	DomainModel model = getDomainModel(compArgs);
-
-	CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class).newInstance(
-		compArgs, model);
-
-	generator.generateCode();
+        compile(compArgs);
     }
 
-    public static DomainModel getDomainModel(URL[] localDmlFiles, URL[] externalDmlFiles) throws ANTLRException {
-        List<URL> dmlSpecs = Arrays.asList(localDmlFiles);
-        dmlSpecs.addAll(Arrays.asList(externalDmlFiles));
-
-        return getDomainModelForURLs(DomainModel.class, dmlSpecs, false);
+    /** Runs the DML compiler
+     *
+     * This is the main entry point for, programmatically, running the DML compiler.  The compiler
+     * will first create the domain model, and then run the code generator.
+     *
+     * @param CompilerArgs All the compiler's parameters
+     * @return The {@link DomainModel}
+     *
+     * @see CompilerArgs
+     */
+    public static DomainModel compile (CompilerArgs compArgs) throws DmlCompilerException {
+        try {
+            DomainModel model = getDomainModel(compArgs);
+            CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class,
+                                                                                 DomainModel.class).newInstance(compArgs, model);
+            generator.generateCode();
+            return model;
+        } catch (Exception e) {
+            throw new DmlCompilerException(e);
+        }
     }
 
+    // @Deprecated
+    // public static DomainModel getDomainModel(URL[] localDmlFiles, URL[] externalDmlFiles) throws ANTLRException {
+    //     List<URL> dmlSpecs = Arrays.asList(localDmlFiles);
+    //     dmlSpecs.addAll(Arrays.asList(externalDmlFiles));
 
-    public static DomainModel getDomainModel(CompilerArgs compArgs) throws ANTLRException {
+    //     return getDomainModel(dmlSpecs, false);
+    // }
+
+
+    public static DomainModel getDomainModel(CompilerArgs compArgs) throws DmlCompilerException {
         List<URL> dmlSpecs = new ArrayList<URL>(compArgs.getLocalDomainSpecs());
         dmlSpecs.addAll(compArgs.getExternalDomainSpecs());
 
-	return getDomainModelForURLs(DomainModel.class, dmlSpecs, false);
+	return getDomainModel(dmlSpecs, false);
     }
 
-    @Deprecated
-    public static DomainModel getDomainModel(Class<? extends DomainModel> modelClass, String[] dmlFiles) throws ANTLRException {
-	return getDomainModel(modelClass, Arrays.asList(dmlFiles));
+    // public static DomainModel getDomainModel(String[] dmlFiles) throws ANTLRException {
+    //     return getDomainModel(Arrays.asList(dmlFiles));
+    // }
+
+    // public static DomainModel getDomainModel(List<String> dmlFiles)
+    //         throws ANTLRException {
+    //     ArrayList<URL> urls = new ArrayList<URL>();
+    //     for (String filename : dmlFiles) {
+    //         try {
+    //             if(filename.startsWith("jar:file")) {
+    //                 urls.add(new URL(filename));
+    //             } else {
+    //                 urls.add(new File(filename).toURI().toURL());
+    //             }
+    //         } catch (MalformedURLException mue) {
+    //     	System.err.println("Cannot convert " + filename + " into an URL.  Ignoring it...");
+    //         }
+    //     }
+
+    //     return getDomainModel(urls);
+    // }
+
+    public static DomainModel getDomainModel(List<URL> dmlFilesURLs) throws DmlCompilerException {
+	return getDomainModel(dmlFilesURLs, false);
     }
 
-    @Deprecated
-    public static DomainModel getDomainModel(Class<? extends DomainModel> modelClass, List<String> dmlFiles)
-	    throws ANTLRException {
-	ArrayList<URL> urls = new ArrayList<URL>();
-	for (String filename : dmlFiles) {
-	    try {
-                if(filename.startsWith("jar:file")) {
-                    urls.add(new URL(filename));
-                } else {
-                    urls.add(new File(filename).toURI().toURL());
-                }
-	    } catch (MalformedURLException mue) {
-		System.err.println("Cannot convert " + filename + " into an URL.  Ignoring it...");
-	    }
-	}
-
-	return getDomainModelForURLs(modelClass, urls);
-    }
-
-    @Deprecated
-    public static DomainModel getDomainModelForURLs(Class<? extends DomainModel> modelClass, List<URL> dmlFilesURLs)
-	    throws ANTLRException {
-	return getDomainModelForURLs(modelClass, dmlFilesURLs, false);
-    }
-
-    public static DomainModel getDomainModelForURLs(Class<? extends DomainModel> modelClass, List<URL> dmlFilesURLs,
-                                                    boolean checkForMissingExternals)
-        throws ANTLRException {
+    public static DomainModel getDomainModel(List<URL> dmlFilesURLs, boolean checkForMissingExternals)
+        throws DmlCompilerException {
 	DmlTreeParser walker = new DmlTreeParser();
-	DomainModel model = null;
+	DomainModel model = new DomainModel();
 
-	try {
-	    model = modelClass.newInstance();
-	} catch (Exception exc) {
-	    throw new Error("Could not create an instance of the domain model class", exc);
-	}
+	// try {
+	//     model = modelClass.newInstance();
+	// } catch (Exception exc) {
+	//     throw new Error("Could not create an instance of the domain model class", exc);
+	// }
 
 	for (URL dmlFileURL : dmlFilesURLs) {
 	    InputStream urlStream = null;
@@ -110,6 +134,8 @@ public class DmlCompiler {
 
 		walker.domainDefinitions(t, model, dmlFileURL);
 		// System.out.println("Model = " + model);
+	    } catch (ANTLRException e) {
+                throw new DmlCompilerException(e);
 	    } catch (IOException ioe) {
 		System.err.println("Cannot read " + dmlFileURL + ".  Ignoring it...");
 		// System.exit(3);

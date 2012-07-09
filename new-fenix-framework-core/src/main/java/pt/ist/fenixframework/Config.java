@@ -201,7 +201,7 @@ public abstract class Config {
         }
     }
 
-    private void appNameFromString(String value) {
+    protected void appNameFromString(String value) {
         this.appName = value;
         // TO DO: also run the code to process <appName>/project.properties and thus fill the domainModelURLs
     }

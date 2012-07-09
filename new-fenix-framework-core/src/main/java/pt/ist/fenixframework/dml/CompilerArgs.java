@@ -68,23 +68,34 @@ public class CompilerArgs {
     private boolean addToLocalDomainSpecs = true; 
 
 
+    // public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
+    //         Class<? extends CodeGenerator> generatorClass, List<String> localDomainSpecFilenames,
+    //                     List<String> externalDomainSpecFilenames/*, String s*/) {
+    //     CompilerArgs(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass,
+    //          convertFilenamesToURLs(localDomainSpecFilenames), convertFilenamesToURLs(externalDomainSpecFilenames));
+    // }
+
     public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
-	    Class<? extends CodeGenerator> generatorClass, List<String> localDomainSpecFilenames,
-                        List<String> externalDomainSpecFilenames) {
+	    Class<? extends CodeGenerator> generatorClass, List<URL> localDomainSpecs,
+                        List<URL> externalDomainSpecs) {
 
 	this.destDirectory = destDirectory;
 	this.destDirectoryBase = destDirectoryBase;
 	this.packageName = packageName;
 	this.generateFinals = generateFinals;
 	this.generatorClass = generatorClass != null ? generatorClass : PojoCodeGenerator.class;
-	this.localDomainSpecs.addAll(convertFilenamesToURLs(localDomainSpecFilenames));
-	this.externalDomainSpecs.addAll(convertFilenamesToURLs(externalDomainSpecFilenames));
+	if (localDomainSpecs != null) { this.localDomainSpecs.addAll(localDomainSpecs); }
+        if (externalDomainSpecs != null) {this.externalDomainSpecs.addAll(externalDomainSpecs); }
 	checkArguments();
     }
 
-    public CompilerArgs(String[] args) throws Exception {
-	processCommandLineArgs(args);
-	checkArguments();
+    public CompilerArgs(String[] args) throws DmlCompilerException {
+        try {
+            processCommandLineArgs(args);
+            checkArguments();
+        } catch (Exception e) {
+            throw new DmlCompilerException(e);
+        }
     }
 
     void checkArguments() {
@@ -170,14 +181,6 @@ public class CompilerArgs {
 	System.exit(1);
     }
 
-    protected List<URL> convertFilenamesToURLs(List<String> filenames) {
-        return Arrays.asList(Config.filenamesToURL(filenames.toArray(new String[filenames.size()])));
-    }
-
-    protected URL convertFilenameToURL(String filename) {
-        return Config.filenameToURL(filename)[0];
-    }
-
     public Class<? extends CodeGenerator> getCodeGenerator() {
 	return generatorClass;
     }
@@ -192,5 +195,15 @@ public class CompilerArgs {
 
     public boolean isExternalDefinition(URL domainSpec) {
         return this.externalDomainSpecs.contains(domainSpec);
+    }
+
+    // static
+
+    public static List<URL> convertFilenamesToURLs(List<String> filenames) {
+        return Arrays.asList(Config.filenamesToURL(filenames.toArray(new String[filenames.size()])));
+    }
+
+    public static URL convertFilenameToURL(String filename) {
+        return Config.filenameToURL(filename)[0];
     }
 }

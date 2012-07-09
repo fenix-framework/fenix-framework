@@ -1,4 +1,4 @@
-package dml.maven;
+package pt.ist.fenixframework.dml.maven;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,20 +15,20 @@ import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
-import pt.ist.fenixframework.artifact.FenixFrameworkArtifact;
-import pt.ist.fenixframework.project.DmlFile;
-import pt.ist.fenixframework.project.exception.FenixFrameworkProjectException;
+import pt.ist.fenixframework.core.DmlFile;
+import pt.ist.fenixframework.core.Project;
+import pt.ist.fenixframework.core.exception.ProjectException;
 
 public class DmlMojoUtils {
-    public static FenixFrameworkArtifact getArtifact(MavenProject project, File srcDirectoryFile, List<URL> dmlFiles)
-	    throws IOException, FenixFrameworkProjectException, MalformedURLException {
-	List<FenixFrameworkArtifact> dependencies = new ArrayList<FenixFrameworkArtifact>();
+    public static Project getProject(MavenProject project, File srcDirectoryFile, List<URL> dmlFiles)
+	    throws IOException, ProjectException, MalformedURLException {
+	List<Project> dependencies = new ArrayList<Project>();
 
 	for (Artifact artifact : project.getDependencyArtifacts()) {
 	    String absolutePath = artifact.getFile().getAbsolutePath();
 	    JarFile jarFile = new JarFile(absolutePath);
 	    if (jarFile.getJarEntry(artifact.getArtifactId() + "/project.properties") != null) {
-		dependencies.add(FenixFrameworkArtifact.fromName(artifact.getArtifactId()));
+		dependencies.add(Project.fromName(artifact.getArtifactId()));
 	    }
 	}
 
@@ -42,7 +42,7 @@ public class DmlMojoUtils {
 		dmls.add(new DmlFile(url, null));
 	    }
 	}
-	return new FenixFrameworkArtifact(project.getArtifactId(), dmls, dependencies);
+	return new Project(project.getArtifactId(), dmls, dependencies);
     }
 
     public static URLClassLoader augmentClassLoader(Log log, MavenProject project) {

@@ -1,9 +1,5 @@
-package dml.maven;
+package pt.ist.fenixframework.dml.maven;
 
-import dml.CodeGenerator;
-import dml.CompilerArgs;
-import dml.DmlCompiler;
-import dml.DomainModel;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -19,14 +15,17 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
-import pt.ist.fenixframework.artifact.FenixFrameworkArtifact;
-import pt.ist.fenixframework.project.DmlFile;
+
+import pt.ist.fenixframework.DmlCompiler;
+import pt.ist.fenixframework.dml.CodeGenerator;
+import pt.ist.fenixframework.dml.CompilerArgs;
+import pt.ist.fenixframework.core.DmlFile;
+import pt.ist.fenixframework.core.Project;
 
 public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
     protected abstract MavenProject getMavenProject();
     protected abstract String getCodeGeneratorClassName();
-    protected abstract String getDomainModelClassName();
     protected abstract File getDmlSourceDirectory();
     protected abstract File getGeneratedSourcesDirectory();
     protected abstract File getSourcesDirectory();
@@ -80,14 +79,14 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	}
 
 	try {
-	    FenixFrameworkArtifact artifact = DmlMojoUtils.getArtifact(getMavenProject(), getDmlSourceDirectory(), dmlFiles);
+	    Project project = DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(), dmlFiles);
 
 	    List<URL> dmls = new ArrayList<URL>();
-	    for (DmlFile dmlFile : artifact.getFullDmlSortedList()) {
+	    for (DmlFile dmlFile : project.getFullDmlSortedList()) {
 		dmls.add(dmlFile.getUrl());
 	    }
 
-	    artifact.generateProjectProperties(getOutputDirectoryPath());
+	    project.generateProjectProperties(getOutputDirectoryPath());
 
 	    if (dmls.isEmpty()) {
 		getLog().info("No dml files found to generate domain");
@@ -98,17 +97,13 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 getSourcesDirectory().mkdirs();
 		getSourcesDirectory().setLastModified(System.currentTimeMillis());
 		if (verbose()) {
-		    getLog().info("Using model: " + getDomainModelClass().getName());
 		    getLog().info("Using generator: " + getCodeGeneratorClass().getName());
 		}
 
 		compArgs = new CompilerArgs(getSourcesDirectory(), getGeneratedSourcesDirectory(), getPackageName(),
-			generateFinals(), getCodeGeneratorClass(), getDomainModelClass(), dmls);
+                                            generateFinals(), getCodeGeneratorClass(), dmls, new ArrayList<URL>());
 
-		DomainModel model = DmlCompiler.getDomainModel(compArgs);
-		CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class)
-			.newInstance(compArgs, model);
-		generator.generateCode();
+                DmlCompiler.compile(compArgs);
 	    } else {
 		if (verbose()) {
 		    getLog().info("All dml files are up to date. Skipping generation...");
@@ -121,9 +116,5 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
     public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
         return (Class<? extends CodeGenerator>) Class.forName(getCodeGeneratorClassName());
-    }
-
-    public Class<? extends DomainModel> getDomainModelClass() throws ClassNotFoundException {
-        return (Class<? extends DomainModel>) Class.forName(getDomainModelClassName());
     }
 }

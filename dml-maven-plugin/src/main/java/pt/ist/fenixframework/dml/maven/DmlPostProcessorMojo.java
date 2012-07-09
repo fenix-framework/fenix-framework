@@ -1,4 +1,4 @@
-package dml.maven;
+package pt.ist.fenixframework.dml.maven;
 
 import java.io.File;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -8,12 +8,12 @@ import org.apache.maven.project.MavenProject;
  * Goal which injects the constructors into the bytecode of the DML compiled
  * classes
  *
- * @goal test-post-compile
- * @phase process-test-classes
- * @requiresDependencyResolution test
+ * @goal post-compile
+ * @phase process-classes
+ * @requiresDependencyResolution runtime
  * @threadSafe
  */
-public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
+public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Maven Project
@@ -21,10 +21,11 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      */
     private MavenProject mavenProject;
 
+
     /**
      * File Source Directory
      *
-     * @parameter default-value="${basedir}/src/test/dml"
+     * @parameter default-value="${basedir}/src/main/dml"
      * @readonly
      * @required
      */
@@ -33,7 +34,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
     /**
      * Classes Directory
      *
-     * @parameter default-value="${project.build.testOutputDirectory}"
+     * @parameter default-value="${project.build.outputDirectory}"
      * @readonly
      * @required
      */
@@ -49,7 +50,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
     /**
      * Code Generator Class Name
      * @parameter expression="${generate-domain.codeGeneratorClassName}"
-     *            default-value="pt.ist.fenixframework.pstm.dml.FenixCodeGeneratorOneBoxPerObject"
+     *            default-value="pt.ist.fenixframework.dml.PojoCodeGenerator"
      */
     private String codeGeneratorClassName;
 

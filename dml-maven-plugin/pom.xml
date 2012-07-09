@@ -5,7 +5,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <name>DML Maven Plugin</name>
-  <groupId>dml</groupId>
+  <groupId>pt.ist</groupId>
   <artifactId>dml-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
   <version>1.0-SNAPSHOT</version>
@@ -13,15 +13,15 @@
   <properties>
 	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	<dml.fenix.version>1.0-SNAPSHOT</dml.fenix.version>
+	<!-- <dml.fenix.version>1.0-SNAPSHOT</dml.fenix.version> -->
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>pt.ist</groupId>
-      <artifactId>dml-fenix</artifactId>
-      <version>${dml.fenix.version}</version>
-    </dependency>
+    <!-- <dependency> -->
+    <!--   <groupId>pt.ist</groupId> -->
+    <!--   <artifactId>dml-fenix</artifactId> -->
+    <!--   <version>${dml.fenix.version}</version> -->
+    <!-- </dependency> -->
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
@@ -39,7 +39,7 @@
     </dependency>
     <dependency>
       <groupId>pt.ist</groupId>
-      <artifactId>fenix-framework-project</artifactId>
+      <artifactId>fenix-framework-core</artifactId>
       <version>1.0-SNAPSHOT</version>
       <type>jar</type>
     </dependency>

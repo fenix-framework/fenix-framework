@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.dml.antTasks;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +14,6 @@ import pt.ist.fenixframework.DmlCompiler;
 import pt.ist.fenixframework.dml.CodeGenerator;
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.PojoCodeGenerator;
-import pt.ist.fenixframework.dml.DomainModel;
 
 public class DmlCompileTask extends Task {
 
@@ -144,13 +144,11 @@ public class DmlCompileTask extends Task {
 		System.out.println("Using generator: " + getCodeGeneratorClass().getName());
 
 		compArgs = new CompilerArgs(getDestDirectoryFile(), destDirectoryBaseFile, getPackageName(), isGenerateFinals(),
-                                            getCodeGeneratorClass(), localDomainSpecFileNames, new ArrayList<String>());
+                                            getCodeGeneratorClass(),
+                                            CompilerArgs.convertFilenamesToURLs(localDomainSpecFileNames), new ArrayList<URL>());
 
-		DomainModel model = DmlCompiler.getDomainModel(compArgs);
+		DmlCompiler.compile(compArgs);
 
-		CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class)
-			.newInstance(compArgs, model);
-		generator.generateCode();
 		getProject().setProperty(getHasRun(), Boolean.TRUE.toString());
 	    } catch (Exception e) {
 		throw new BuildException(e);
