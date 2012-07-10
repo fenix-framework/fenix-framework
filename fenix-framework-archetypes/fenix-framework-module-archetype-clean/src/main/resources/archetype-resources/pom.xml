@@ -12,8 +12,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <dml.maven.plugin.version>${dmlMavenPluginVersion}</dml.maven.plugin.version>
-    <fenix.framework.core.version>${fenixFrameworkVersion}</fenix.framework.core.version>
   </properties>
 
   <build>
@@ -21,14 +19,12 @@
       <plugin>
         <groupId>dml</groupId>
         <artifactId>dml-maven-plugin</artifactId>
-        <version>${dml.maven.plugin.version}</version>
+        <version>${dmlMavenPluginVersion}</version>
         <executions>
           <execution>
             <goals>
               <goal>generate-domain</goal>
               <goal>post-compile</goal>
-              <goal>test-generate-domain</goal>
-              <goal>test-post-compile</goal>
             </goals>
           </execution>
         </executions>
@@ -51,7 +47,7 @@
     <dependency>
       <groupId>pt.ist</groupId>
       <artifactId>fenix-framework-core</artifactId>
-      <version>${fenix.framework.core.version}</version>
+      <version>${fenixFrameworkCoreVersion}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -64,14 +60,14 @@
   <repositories>
     <repository>
       <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
+      <url>https://fenix-ashes.ist.utl.pt/maven-repository</url>
     </repository>
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
       <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
+      <url>https://fenix-ashes.ist.utl.pt/maven-repository</url>
     </pluginRepository>
   </pluginRepositories>
 

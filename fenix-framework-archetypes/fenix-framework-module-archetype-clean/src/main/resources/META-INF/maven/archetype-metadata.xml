@@ -2,7 +2,7 @@
 <archetype-descriptor name="fenix-framework-module-archetype-clean">
   <requiredProperties>
     <requiredProperty key="dmlMavenPluginVersion"/>
-    <requiredProperty key="fenixFrameworkVersion"/>
+    <requiredProperty key="fenixFrameworkCoreVersion"/>
   </requiredProperties>
   <fileSets>
     <fileSet filtered="true" packaged="true">

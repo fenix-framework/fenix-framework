@@ -19,6 +19,7 @@
 
   <modules>
     <module>new-fenix-framework-core</module>
+    <module>dml-maven-plugin</module>
     <module>fenix-framework-archetypes</module>
   </modules>
 

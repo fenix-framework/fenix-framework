@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archetype-descriptor name="fenix-framework-webapp-archetype-clean">
+<archetype-descriptor name="fenix-framework-application-archetype-clean">
   <requiredProperties>
-    <requiredProperty key="servletName">
-        <defaultValue>MyServlet</defaultValue>
-    </requiredProperty>
-    <requiredProperty key="servletClassName">
-        <defaultValue>MyServletApplication</defaultValue>
-    </requiredProperty>
     <requiredProperty key="dmlMavenPluginVersion"/>
     <requiredProperty key="fenixFrameworkCoreVersion"/>
     <requiredProperty key="backEndGroupId">
@@ -37,18 +31,6 @@
       <directory>src/test/dml</directory>
       <includes>
         <include>**/*.dml</include>
-      </includes>
-    </fileSet>
-    <fileSet filtered="true" packaged="false">
-      <directory>src/main/resources</directory>
-      <includes>
-        <include>**/*.properties</include>
-      </includes>
-    </fileSet>
-    <fileSet filtered="true" packaged="false">
-      <directory>src/main/webapp/WEB-INF</directory>
-      <includes>
-        <include>**/*.xml</include>
       </includes>
     </fileSet>
   </fileSets>

@@ -19,6 +19,7 @@
 
   <modules>
     <module>fenix-framework-module-archetype-clean</module>
+    <module>fenix-framework-application-archetype-clean</module>
     <module>fenix-framework-webapp-archetype-clean</module>
   </modules>
 
