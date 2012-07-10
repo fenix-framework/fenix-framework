@@ -40,13 +40,6 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
     private File classesDirectory;
 
     /**
-     * Domain Model Class Name
-     * @parameter expression="${generate-domain.domainModelClassName}"
-     *            default-value="pt.ist.fenixframework.pstm.dml.FenixDomainModel"
-     */
-    private String domainModelClassName;
-
-    /**
      * Code Generator Class Name
      * @parameter expression="${generate-domain.codeGeneratorClassName}"
      *            default-value="pt.ist.fenixframework.dml.PojoCodeGenerator"
@@ -78,11 +71,6 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
     @Override
     protected String getCodeGeneratorClassName() {
         return codeGeneratorClassName;
-    }
-
-    @Override
-    protected String getDomainModelClassName() {
-        return domainModelClassName;
     }
 
     @Override

@@ -23,7 +23,6 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
     protected abstract File getDmlSourceDirectory();
     protected abstract File getClassesDirectory();
     protected abstract String getCodeGeneratorClassName();
-    protected abstract String getDomainModelClassName();
     protected abstract boolean verbose();
 
     @Override
@@ -46,8 +45,8 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 	    }
 
 	    Class[] argsConstructor = new Class[] { List.class, getCodeGeneratorClassName().getClass(),
-		    getDomainModelClassName().getClass(), ClassLoader.class };
-	    Object[] args = new Object[] { dmlFiles, getCodeGeneratorClassName(), getDomainModelClassName(), loader };
+                                                    ClassLoader.class };
+	    Object[] args = new Object[] { dmlFiles, getCodeGeneratorClassName(), loader };
 	    Class postProcessDomainClassesClass = loader.loadClass("pt.ist.fenixframework.core.PostProcessDomainClasses");
 	    // Class transactionClass = loader.loadClass("pt.ist.fenixframework.pstm.Transaction");
 
@@ -62,9 +61,10 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 	    //         new String[] { "." });
 	    // atomicAnnotationsProcessor.start();
 
-	    Class<?> serviceInjector = loader.loadClass("pt.ist.fenixframework.services.ServiceAnnotationInjector");
-	    Method injector = serviceInjector.getMethod("inject", File.class, ClassLoader.class);
-	    injector.invoke(null, this.getClassesDirectory(), loader);
+            // Removed service annotation for now, postponed for later discussion
+	    // Class<?> serviceInjector = loader.loadClass("pt.ist.fenixframework.services.ServiceAnnotationInjector");
+	    // Method injector = serviceInjector.getMethod("inject", File.class, ClassLoader.class);
+	    // injector.invoke(null, this.getClassesDirectory(), loader);
 	} catch (Exception e) {
 	    getLog().error(e);
 	}
