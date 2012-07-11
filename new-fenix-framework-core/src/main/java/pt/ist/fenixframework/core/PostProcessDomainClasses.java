@@ -8,7 +8,6 @@ import java.util.List;
 
 // import jvstm.ProcessAtomicAnnotations;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -67,7 +66,7 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 	}
     }
 
-    class AddOJBConstructorClassAdapter extends ClassAdapter implements Opcodes {
+    class AddOJBConstructorClassAdapter extends ClassVisitor {
 	private String classDesc = null;
 	private String superDesc = null;
 	private boolean foundConstructor = false;
@@ -75,7 +74,7 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 	private boolean warnOnFiels = false;
 
 	public AddOJBConstructorClassAdapter(ClassVisitor cv) {
-	    super(cv);
+	    super(Opcodes.ASM4, cv);
 	}
 
 	@Override
