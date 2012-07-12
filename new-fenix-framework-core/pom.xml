@@ -28,6 +28,7 @@
         </configuration>
       </plugin>
       
+      <!-- Run ANTLR before compiling -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>antlr-maven-plugin</artifactId>
@@ -44,7 +45,27 @@
           </execution>
         </executions>
       </plugin>
-      
+
+      <!-- Generate the AtomicInstance class immediatly after compiling -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>pt.ist.fenixframework.atomic.GenerateAtomicInstance</mainClass>
+          <arguments>
+            <argument>${project.build.outputDirectory}</argument>
+          </arguments>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   

@@ -2,6 +2,7 @@ package pt.ist.fenixframework.core;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionalCommand;
 import pt.ist.fenixframework.TransactionManager;
 
@@ -16,7 +17,10 @@ public class DefaultConfig extends Config {
 
     static class NoOpTransactionManager implements TransactionManager {
         public void begin() {}
+        public void begin(boolean readOnly) {}
         public void commit() {}
+        public Transaction getTransaction() { return null; }
+        public void rollback() {}
         public void withTransaction(TransactionalCommand command) {
             command.doIt();
         }

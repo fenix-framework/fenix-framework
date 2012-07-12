@@ -9,13 +9,18 @@ public interface TransactionManager {
     public void commit();
 
     // public int getStatus();
-    // public Transaction getTransaction();
+    public Transaction getTransaction();
     // public void resume(Transaction tobj);
-    // public void rollback();
+    public void rollback();
     // public void setRollbackOnly();
     // public void setTransactionTimeout(int seconds);
     // public Transaction suspend();
 
     /* Transactionally execute a command. */
     public void withTransaction(TransactionalCommand command);
+
+
+    // non-JTA API
+    public void begin(boolean readOnly);
+    
 }

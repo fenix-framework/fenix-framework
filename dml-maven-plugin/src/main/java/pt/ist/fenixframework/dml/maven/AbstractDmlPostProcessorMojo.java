@@ -8,14 +8,14 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
-// import jvstm.ProcessAtomicAnnotations;
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
-import pt.ist.fenixframework.core.Project;
+import pt.ist.fenixframework.atomic.ProcessAtomicAnnotations;
 import pt.ist.fenixframework.core.DmlFile;
+import pt.ist.fenixframework.core.PostProcessDomainClasses;
+import pt.ist.fenixframework.core.Project;
 
 public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 
@@ -44,23 +44,11 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 		return;
 	    }
 
-	    Class[] argsConstructor = new Class[] { List.class, getCodeGeneratorClassName().getClass(),
-                                                    ClassLoader.class };
-	    Object[] args = new Object[] { dmlFiles, getCodeGeneratorClassName(), loader };
-	    Class postProcessDomainClassesClass = loader.loadClass("pt.ist.fenixframework.core.PostProcessDomainClasses");
-	    // Class transactionClass = loader.loadClass("pt.ist.fenixframework.pstm.Transaction");
+            PostProcessDomainClasses postProcessor = new PostProcessDomainClasses(dmlFiles, getCodeGeneratorClassName(), loader);
+            postProcessor.start();
 
-	    Constructor processDomainClassesConstructor = postProcessDomainClassesClass.getConstructor(argsConstructor);
-	    Object postProcessor = processDomainClassesConstructor.newInstance(args);
-
-	    Object[] nullArgs = new Object[] {};
-	    Method m = postProcessDomainClassesClass.getMethod("start", new Class[] {});
-	    m.invoke(postProcessor, nullArgs);
-
-	    // ProcessAtomicAnnotations atomicAnnotationsProcessor = new ProcessAtomicAnnotations(transactionClass,
-	    //         new String[] { "." });
-	    // atomicAnnotationsProcessor.start();
-
+            ProcessAtomicAnnotations.processFile(this.getClassesDirectory());
+            
             // Removed service annotation for now, postponed for later discussion
 	    // Class<?> serviceInjector = loader.loadClass("pt.ist.fenixframework.services.ServiceAnnotationInjector");
 	    // Method injector = serviceInjector.getMethod("inject", File.class, ClassLoader.class);
