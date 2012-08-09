@@ -6,8 +6,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>pt.ist</groupId>
-    <artifactId>fenix-framework-core</artifactId>
-    <name>Fenix Framework Core</name>
+    <artifactId>fenix-framework-dml-compiler</artifactId>
+    <name>Fenix Framework DML Compiler</name>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -27,42 +27,44 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-
-            <!-- Process dml file class immediately before compiling -->
+            
+            <!-- Run ANTLR before compiling -->
             <plugin>
-                <groupId>pt.ist</groupId>
-                <artifactId>dml-maven-plugin</artifactId>
-                <version>1.0-SNAPSHOT</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>pt.ist</groupId>
-                        <artifactId>fenix-framework-core-code-generator</artifactId>
-                        <version>1.0-SNAPSHOT</version>
-                    </dependency>
-                </dependencies>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>antlr-maven-plugin</artifactId>
+                <version>2.2</version>
                 <configuration>
-                    <codeGeneratorClassName>pt.ist.fenixframework.dml.CoreCodeGenerator</codeGeneratorClassName>
+                    <grammars>dml.g,dml.tree.g</grammars>
                 </configuration>
                 <executions>
                     <execution>
+                        <phase>generate-sources</phase>
+                        <!-- <phase>process-resources</phase> -->
                         <goals>
-                            <goal>generate-domain</goal>
-                            <goal>post-compile</goal>
+                            <goal>generate</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- setup jar maker not to include *_Base and ValueTypeSerializationGenerator -->
+            <!-- Generate the AtomicInstance class immediatly after compiling -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
-                    <excludes>
-                        <exclude>**/*_Base*</exclude>
-                        <exclude>pt/ist/fenixframework/ValueTypeSerializationGenerator*</exclude>
-                    </excludes>
+                    <mainClass>pt.ist.fenixframework.atomic.GenerateAtomicInstance</mainClass>
+                    <arguments>
+                        <argument>${project.build.outputDirectory}</argument>
+                    </arguments>
                 </configuration>
             </plugin>
 
@@ -70,33 +72,38 @@
     </build>
     
     <dependencies>
-        <!-- <dependency> -->
-        <!--   <groupId>pt.ist</groupId> -->
-        <!--   <artifactId>dap-framework</artifactId> -->
-        <!--   <version>1.0</version> -->
-        <!-- </dependency> -->
         <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-dml-compiler</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-debug-all</artifactId>
+            <version>4.0</version>
         </dependency>
-        <!-- <dependency> -->
-        <!--     <groupId>pt.ist</groupId> -->
-        <!--     <artifactId>fenix-framework-project</artifactId> -->
-        <!--     <version>1.0-SNAPSHOT</version> -->
-        <!-- </dependency> -->
+
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.8.2</version>
+        </dependency>
         <!-- <dependency> -->
         <!--   <groupId>org.apache.commons</groupId> -->
         <!--   <artifactId>commons-io</artifactId> -->
         <!--   <version>1.4</version> -->
         <!-- </dependency> -->
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>antlr</groupId>
+            <artifactId>antlr</artifactId>
+            <version>2.7.7</version>
+        </dependency>
         <!-- <dependency> -->
-        <!--   <groupId>commons-lang</groupId> -->
-        <!--   <artifactId>commons-lang</artifactId> -->
-        <!--   <version>2.6</version> -->
-        <!--   <type>jar</type> -->
+        <!--   <groupId>joda-time</groupId> -->
+        <!--   <artifactId>joda-time</artifactId> -->
+        <!--   <version>1.5.2</version> -->
         <!-- </dependency> -->
-
         <!-- <dependency> -->
         <!--   <groupId>jfree</groupId> -->
         <!--   <artifactId>jfreechart</artifactId> -->

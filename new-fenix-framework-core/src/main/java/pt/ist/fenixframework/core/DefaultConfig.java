@@ -2,6 +2,7 @@ package pt.ist.fenixframework.core;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionalCommand;
 import pt.ist.fenixframework.TransactionManager;
@@ -13,7 +14,30 @@ import pt.ist.fenixframework.TransactionManager;
  *
  */
 public class DefaultConfig extends Config {
-    static class NoOpRepository implements Repository { }
+    static class DefaultBackEnd implements BackEnd {
+        protected final TransactionManager transactionManager;
+
+        public DefaultBackEnd() {
+            this.transactionManager = new NoOpTransactionManager();
+        }
+
+        @Override
+        public DomainRoot getDomainRoot() {
+            return CoreDomainObject.fromOid(1L);
+        }
+
+        @Override
+        public <T extends DomainObject> T getDomainObject(String externalId) {
+            return CoreDomainObject.fromOid(Long.parseLong(externalId));
+        }
+
+
+        @Override
+        public TransactionManager getTransactionManager() {
+            return this.transactionManager;
+        }
+
+    }
 
     static class NoOpTransactionManager implements TransactionManager {
         public void begin() {}
@@ -26,30 +50,18 @@ public class DefaultConfig extends Config {
         }
     }
 
-    protected final Repository repository;
-    protected final TransactionManager transactionManager;
+    protected final BackEnd backEnd;
 
     public DefaultConfig() {
-        this.repository = new NoOpRepository();
-        this.transactionManager = new NoOpTransactionManager();
+        this.backEnd = new DefaultBackEnd();
     }
 
     @Override
     protected void init() { }
 
     @Override
-    protected <T extends DomainObject> T getDomainObject(String externalId) {
-        return CoreDomainObject.fromOid(Long.parseLong(externalId));
-    }
-
-    @Override
-    protected Repository getRepository() {
-        return this.repository;
-    }
-
-    @Override
-    protected TransactionManager getTransactionManager() {
-        return this.transactionManager;
+    protected BackEnd getBackEnd() {
+        return this.backEnd;
     }
 
 

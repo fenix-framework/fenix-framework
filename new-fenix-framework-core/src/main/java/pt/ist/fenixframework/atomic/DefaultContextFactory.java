@@ -10,5 +10,4 @@ public final class DefaultContextFactory extends ContextFactory {
         if (atomic.speculativeReadOnly()) return DefaultAtomicContext.READ_ONLY;
         return DefaultAtomicContext.READ_WRITE;
     }
-
 }

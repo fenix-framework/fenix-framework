@@ -2,34 +2,39 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
+    
     <modelVersion>4.0.0</modelVersion>
-    <name>DML Maven Plugin</name>
+
     <groupId>pt.ist</groupId>
-    <artifactId>dml-maven-plugin</artifactId>
-    <packaging>maven-plugin</packaging>
+    <artifactId>fenix-framework-core-code-generator</artifactId>
+    <name>Fenix Framework Core Code Generator</name>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
+    <build>
+        <plugins>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+    
     <dependencies>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-core</artifactId>
-            <version>3.0.3</version>
-        </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-dml-compiler</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <!-- <type>jar</type> -->
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-project</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
@@ -38,6 +43,10 @@
         <repository>
             <id>fenix-ashes-maven-repository</id>
             <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
+        </repository>
+        <repository>
+            <id>thirdparty</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/thirdparty</url>
         </repository>
     </repositories>
 
@@ -51,22 +60,5 @@
             <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
-
-
-    <build>
-        <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-
-        </plugins>
-    </build>
 
 </project>

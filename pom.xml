@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  
-  <modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>pt.ist</groupId>
-  <artifactId>fenix-framework</artifactId>
-  <version>1.0</version>
-  <packaging>pom</packaging>
-  <name>Fenix Framework</name>
-  <url>http://fenix-ashes.ist.utl.pt</url>
+    <groupId>pt.ist</groupId>
+    <artifactId>fenix-framework</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+    <name>Fenix Framework</name>
+    <url>http://fenix-ashes.ist.utl.pt</url>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
 
-  <modules>
-    <module>new-fenix-framework-core</module>
-    <module>dml-maven-plugin</module>
-    <module>fenix-framework-archetypes</module>
-  </modules>
+    <modules>
+        <module>fenix-framework-dml-compiler</module>
+        <module>fenix-framework-project</module>
+        <module>dml-maven-plugin</module>
+        <module>fenix-framework-core-code-generator</module>
+        <module>new-fenix-framework-core</module>
+        <module>fenix-framework-archetypes</module>
+    </modules>
 
 </project>

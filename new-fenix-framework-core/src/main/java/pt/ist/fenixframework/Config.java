@@ -8,8 +8,8 @@ import java.net.URL;
 import java.util.Set;
 import java.util.Properties;
 
-import pt.ist.fenixframework.core.Repository;
-import pt.ist.fenixframework.dml.PojoCodeGenerator;
+import pt.ist.fenixframework.core.BackEnd;
+import pt.ist.fenixframework.util.Converter;
 
 /**
  * <p> An instance of the <code>Config</code> class bundles together the initialization parameters
@@ -37,7 +37,7 @@ import pt.ist.fenixframework.dml.PojoCodeGenerator;
  * 
  * Config config = new DefaultConfig() { // any subclass of Config should be ok
  *     {
- * 	this.domainModelURLs = Config.resourceToURL(&quot;path/to/domain.dml&quot;);
+ * 	this.domainModelURLs = resourceToURLArray(&quot;path/to/domain.dml&quot;);
  * 	this.appName = &quot;MyAppName&quot;;
  *     }
  * };
@@ -53,13 +53,13 @@ import pt.ist.fenixframework.dml.PojoCodeGenerator;
  *
  * <ul>
  *
- * <li>{@link #resourceToURL(String)}: looks up the given resource using
+ * <li>{@link #resourceToURLArray(String)}: looks up the given resource using
  * <code>Thread.currentThread().getContextClassLoader().getResource(String)</code>;</li>
  *
- * <li>{@link #filenameToURL(String)}: looks up the given file on the local filesystem;
+ * <li>{@link #filenameToURLArray(String)}: looks up the given file on the local filesystem;
  * </li>
  *
- * <li>Methods using the plural form (e.g. {@link #resourcesToURL(String [])}) are equivalent,
+ * <li>Methods using the plural form (e.g. {@link #resourcesToURLArray(String [])}) are equivalent,
  * except that they take multiple DML file locations.</li>
  *
  * </ul>
@@ -97,10 +97,10 @@ public abstract class Config {
     protected URL[] domainModelURLs = null;
 
     /**
-     * This <strong>optional</strong> parameter specifies a name for the
-     * application that will be used by the framework in the statistical logs
-     * performed during the application execution. The default value for this
-     * parameter is <code>null</code>.
+     * This <strong>optional</strong> parameter specifies a name for the application that will be used by the framework in the
+     * statistical logs performed during the application execution. The default value for this parameter is <code>null</code>.
+     * Additionally, when using configuration by convention, this is the name used to lookup the
+     * <code>&lt;appName&gt;/project.properties</code> file.
      */
     protected String appName = null;
 
@@ -212,11 +212,11 @@ public abstract class Config {
 
         for (int i = 0; i < tokens.length; i++) {
             // try URL from resource
-            urls[i] = internalResourceToURL(tokens[i]);
+            urls[i] = Converter.resourceToURL(tokens[i]);
             if (urls[i] != null) { continue; }
 
             // try URL from filename
-            urls[i] = internalFilenameToURL(tokens[i]);
+            urls[i] = Converter.filenameToURL(tokens[i]);
             if (urls[i] != null) { continue; }
 
             // failed to get the URL
@@ -230,9 +230,7 @@ public abstract class Config {
     }
 
     protected abstract void init();
-    protected abstract <T extends DomainObject> T getDomainObject(String externalId);
-    protected abstract Repository getRepository();
-    protected abstract TransactionManager getTransactionManager();
+    protected abstract BackEnd getBackEnd();
 
     public String getAppName() {
 	return appName;
@@ -244,56 +242,26 @@ public abstract class Config {
     }
     
     /* UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - BEGIN */
+    /* code linked from pt.ist.fenixframework.util.Converter to make configuration API more straightforward */
 
     // REGARDING RESOURCES
 
-    private static URL internalResourceToURL(String resource) {
-        return Thread.currentThread().getContextClassLoader().getResource(resource);
+    public static URL[] resourceToURLArray(String resource) {
+        return Converter.resourceToURLArray(resource);
     }
 
-    public static URL[] resourceToURL(String resource) {
-        return resourcesToURL(new String[]{resource});
-    }
-
-    public static URL[] resourcesToURL(String [] resources) {
-        final URL[] urls = new URL[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            urls[i] = internalResourceToURL(resources[i]);
-            if (urls[i] == null) {
-                throw new Error("FenixFramework config error: cannot find DML for resource '" + resources[i] + "'");
-            }
-        }
-        return urls;
+    public static URL[] resourcesToURLArray(String [] resources) {
+        return Converter.resourcesToURLArray(resources);
     }
 
     // REGARDING FILENAMES
 
-    private static URL internalFilenameToURL(String filename) {
-        try {
-            File file = new File(filename);
-            if (!file.exists()) {
-                return null;
-            }
-
-            return file.toURI().toURL();
-        } catch (MalformedURLException mue) {
-            return null;
-        }
+    public static URL[] filenameToURLArray(String filename) {
+        return Converter.filenameToURLArray(filename);
     }
 
-    public static URL[] filenameToURL(String filename) {
-        return filenamesToURL(new String[]{filename});
-    }
-
-    public static URL[] filenamesToURL(String [] filenames) {
-        final URL[] urls = new URL[filenames.length];
-        for (int i = 0; i < filenames.length; i++) {
-            urls[i] = internalFilenameToURL(filenames[i]);
-            if (urls[i] == null) {
-                throw new Error("FenixFramework config error: cannot find DML for file'" + filenames[i] + "'");
-            }
-        }
-        return urls;
+    public static URL[] filenamesToURLArray(String [] filenames) {
+        return Converter.filenamesToURLArray(filenames);
     }
 
     /* UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - END */
