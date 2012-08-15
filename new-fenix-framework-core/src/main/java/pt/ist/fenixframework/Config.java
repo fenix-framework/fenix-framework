@@ -3,12 +3,19 @@ package pt.ist.fenixframework;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Set;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
 
 import pt.ist.fenixframework.core.BackEnd;
+import pt.ist.fenixframework.core.DmlFile;
+import pt.ist.fenixframework.core.Project;
+import pt.ist.fenixframework.core.exception.ProjectException;
 import pt.ist.fenixframework.util.Converter;
 
 /**
@@ -83,11 +90,12 @@ import pt.ist.fenixframework.util.Converter;
  * 
  */
 public abstract class Config {
+    private static final Logger logger = Logger.getLogger(Config.class);
 
-    static final String PROPERTY_CONFIG_CLASS = "config.class";
-    static final String DEFAULT_CONFIG_CLASS_NAME = "pt.ist.fenixframework.core.DefaultConfig";
+    protected static final String PROPERTY_CONFIG_CLASS = "config.class";
+    protected static final String DEFAULT_CONFIG_CLASS_NAME = "pt.ist.fenixframework.core.DefaultConfig";
     // the suffix of the method that sets a property from a String property
-    static final String SETTER_FROM_STRING = "FromString";
+    protected static final String SETTER_FROM_STRING = "FromString";
 
     /**
      * This <strong>required</strong> parameter specifies the <code>URL[]</code> to each file
@@ -97,10 +105,11 @@ public abstract class Config {
     protected URL[] domainModelURLs = null;
 
     /**
-     * This <strong>optional</strong> parameter specifies a name for the application that will be used by the framework in the
-     * statistical logs performed during the application execution. The default value for this parameter is <code>null</code>.
-     * Additionally, when using configuration by convention, this is the name used to lookup the
-     * <code>&lt;appName&gt;/project.properties</code> file.
+     * This <strong>optional</strong> parameter specifies a name for the application.  When using
+     * configuration by convention, this name (if set) is used to lookup the
+     * <code>&lt;appName&gt;/project.properties</code> file.  Additionally, this name will be used
+     * by the framework in the statistical logs performed during the application execution. The
+     * default value for this parameter is <code>null</code>.
      */
     protected String appName = null;
 
@@ -120,17 +129,21 @@ public abstract class Config {
 	}
     }
     
+    protected static void missingRequired(String fieldName) {
+	throw new ConfigError(ConfigError.MISSING_REQUIRED_FIELD, "'" + fieldName + "'");
+    }
+    
     /**
      * This method is invoked by the <code>FenixFramework.initialize(Config)</code>
      */
-    final void initialize() {
+    protected final void initialize() {
         init();
         checkConfig();
     }
 
     // set each property via reflection, ignoring the config.class property, which was used to
     // define which config instance to create
-    final void populate(Properties props) {
+    protected final void populate(Properties props) {
         for (String propName : props.stringPropertyNames()) {
             if (PROPERTY_CONFIG_CLASS.equals(propName)) { continue; }
             String value = props.getProperty(propName);
@@ -138,7 +151,7 @@ public abstract class Config {
         }
     }
 
-    final void setProperty(String propName, String value) {
+    protected final void setProperty(String propName, String value) {
         // first check if it really exists
         Field field = getField(this.getClass(), propName);
 
@@ -201,12 +214,45 @@ public abstract class Config {
         }
     }
 
-    protected void appNameFromString(String value) {
-        this.appName = value;
-        // TO DO: also run the code to process <appName>/project.properties and thus fill the domainModelURLs
+    private void checkForMultipleDomainModelUrlsDefinition() {
+        if (domainModelURLs != null) { // means that it was already set
+            logger.fatal(ConfigError.DUPLICATE_DEFINITION_OF_DOMAIN_MODEL_URLS);
+            throw new ConfigError(ConfigError.DUPLICATE_DEFINITION_OF_DOMAIN_MODEL_URLS);
+        }
     }
 
-    private void domainModelURLsFromString(String value) {
+
+    /**
+     * Note: Either appNameFromString or domainModelURLsFromString should be used, but not both!
+     */
+    protected void appNameFromString(String value) {
+        this.appName = value;
+        
+        try {
+            List<DmlFile> dmlFiles = Project.fromName(value).getFullDmlSortedList();
+            if (dmlFiles.size() > 0) {
+                checkForMultipleDomainModelUrlsDefinition();
+            }
+
+            domainModelURLs = new URL[dmlFiles.size()];
+            int counter = 0;
+            for (DmlFile dmlFile : dmlFiles) {
+                domainModelURLs[counter++] = dmlFile.getUrl();
+            }
+
+        } catch (IOException e) {
+            logger.warn("failed when setting appNameFromString", e);
+        } catch (ProjectException e) {
+            logger.warn("failed when setting appNameFromString", e);
+        }
+    }
+
+    /**
+     * Note: Either appNameFromString or domainModelURLsFromString should be used, but not both!
+     */
+    protected void domainModelURLsFromString(String value) {
+        checkForMultipleDomainModelUrlsDefinition();
+
         String[] tokens = value.split("\\s*,\\s*");
         URL[] urls = new URL[tokens.length];
 
@@ -225,22 +271,17 @@ public abstract class Config {
         domainModelURLs = urls;
     }
 
+    protected abstract void init();
+    protected abstract BackEnd getBackEnd();
+
     public URL[] getDomainModelURLs() {
 	return domainModelURLs;
     }
-
-    protected abstract void init();
-    protected abstract BackEnd getBackEnd();
 
     public String getAppName() {
 	return appName;
     }
 
-
-    protected static void missingRequired(String fieldName) {
-	throw new ConfigError(ConfigError.MISSING_REQUIRED_FIELD, "'" + fieldName + "'");
-    }
-    
     /* UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - BEGIN */
     /* code linked from pt.ist.fenixframework.util.Converter to make configuration API more straightforward */
 

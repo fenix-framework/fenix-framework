@@ -24,7 +24,6 @@ import antlr.ANTLRException;
 import antlr.collections.AST;
 
 public class DmlCompiler {
-
     /** Runs the DML compiler
      *
      * This is the main entry point for running the DML compiler, from the command line.  This
@@ -50,7 +49,7 @@ public class DmlCompiler {
      *
      * @see CompilerArgs
      */
-    public static DomainModel compile (CompilerArgs compArgs) throws DmlCompilerException {
+    public static DomainModel compile(CompilerArgs compArgs) throws DmlCompilerException {
         try {
             DomainModel model = getDomainModel(compArgs);
             CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class,
@@ -62,43 +61,12 @@ public class DmlCompiler {
         }
     }
 
-    // @Deprecated
-    // public static DomainModel getDomainModel(URL[] localDmlFiles, URL[] externalDmlFiles) throws ANTLRException {
-    //     List<URL> dmlSpecs = Arrays.asList(localDmlFiles);
-    //     dmlSpecs.addAll(Arrays.asList(externalDmlFiles));
-
-    //     return getDomainModel(dmlSpecs, false);
-    // }
-
-
     public static DomainModel getDomainModel(CompilerArgs compArgs) throws DmlCompilerException {
-        List<URL> dmlSpecs = new ArrayList<URL>(compArgs.getLocalDomainSpecs());
-        dmlSpecs.addAll(compArgs.getExternalDomainSpecs());
-
+        // IMPORTANT: external specs must be first.  The order is important for the DmlCompiler
+        List<URL> dmlSpecs = new ArrayList<URL>(compArgs.getExternalDomainSpecs());
+        dmlSpecs.addAll(compArgs.getLocalDomainSpecs());
 	return getDomainModel(dmlSpecs, false);
     }
-
-    // public static DomainModel getDomainModel(String[] dmlFiles) throws ANTLRException {
-    //     return getDomainModel(Arrays.asList(dmlFiles));
-    // }
-
-    // public static DomainModel getDomainModel(List<String> dmlFiles)
-    //         throws ANTLRException {
-    //     ArrayList<URL> urls = new ArrayList<URL>();
-    //     for (String filename : dmlFiles) {
-    //         try {
-    //             if(filename.startsWith("jar:file")) {
-    //                 urls.add(new URL(filename));
-    //             } else {
-    //                 urls.add(new File(filename).toURI().toURL());
-    //             }
-    //         } catch (MalformedURLException mue) {
-    //     	System.err.println("Cannot convert " + filename + " into an URL.  Ignoring it...");
-    //         }
-    //     }
-
-    //     return getDomainModel(urls);
-    // }
 
     public static DomainModel getDomainModel(List<URL> dmlFilesURLs) throws DmlCompilerException {
 	return getDomainModel(dmlFilesURLs, false);
@@ -108,12 +76,6 @@ public class DmlCompiler {
         throws DmlCompilerException {
 	DmlTreeParser walker = new DmlTreeParser();
 	DomainModel model = new DomainModel();
-
-	// try {
-	//     model = modelClass.newInstance();
-	// } catch (Exception exc) {
-	//     throw new Error("Could not create an instance of the domain model class", exc);
-	// }
 
 	for (URL dmlFileURL : dmlFilesURLs) {
 	    InputStream urlStream = null;

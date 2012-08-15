@@ -35,7 +35,7 @@ import pt.ist.fenixframework.util.Converter;
  *
  * <tr><td><code>List&lt;URL&gt;</code></td>
  *   <td><code>localDomainSpecs</code></td>
- *   <td>The list of project-local DML specifications.  The compiler will generate base classes (ant non-base classes if they do not exist) for these DML specifications.  Default: empty list.</td>
+ *   <td>The list of project-local DML specifications.  The compiler will generate base classes (and non-base classes if they do not exist) for these DML specifications.  Default: empty list.</td>
  * </tr>
  *
  * <tr><td><code>List&lt;URL&gt;</code></td>
@@ -66,14 +66,6 @@ public class CompilerArgs {
      * This value is changed by the method processOption
      */
     private boolean addToLocalDomainSpecs = true; 
-
-
-    // public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
-    //         Class<? extends CodeGenerator> generatorClass, List<String> localDomainSpecFilenames,
-    //                     List<String> externalDomainSpecFilenames/*, String s*/) {
-    //     CompilerArgs(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass,
-    //          convertFilenamesToURLs(localDomainSpecFilenames), convertFilenamesToURLs(externalDomainSpecFilenames));
-    // }
 
     public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
 	    Class<? extends CodeGenerator> generatorClass, List<URL> localDomainSpecs,

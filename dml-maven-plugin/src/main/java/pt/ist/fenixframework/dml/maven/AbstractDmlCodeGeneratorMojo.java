@@ -81,17 +81,26 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	try {
 	    Project project = DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(), dmlFiles);
 
-	    List<URL> dmls = new ArrayList<URL>();
+	    List<URL> allDmls = new ArrayList<URL>();
 	    for (DmlFile dmlFile : project.getFullDmlSortedList()) {
-		dmls.add(dmlFile.getUrl());
+		allDmls.add(dmlFile.getUrl());
 	    }
 
 	    project.generateProjectProperties(getOutputDirectoryPath());
 
-	    if (dmls.isEmpty()) {
+	    if (allDmls.isEmpty()) {
 		getLog().info("No dml files found to generate domain");
 		return;
 	    }
+
+            // Split all DML files in two sets: local and external.
+            List<URL> localDmls = new ArrayList<URL>();
+            for (DmlFile dmlFile : project.getDmls()) {
+                localDmls.add(dmlFile.getUrl());
+            }
+            List<URL> externalDmls = new ArrayList<URL>(allDmls);
+            externalDmls.removeAll(localDmls);
+            
 	    shouldCompile = true;
 	    if (shouldCompile) {
                 getSourcesDirectory().mkdirs();
@@ -101,7 +110,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 		}
 
 		compArgs = new CompilerArgs(getSourcesDirectory(), getGeneratedSourcesDirectory(), getPackageName(),
-                                            generateFinals(), getCodeGeneratorClass(), dmls, new ArrayList<URL>());
+                                            generateFinals(), getCodeGeneratorClass(), localDmls, externalDmls);
 
                 DmlCompiler.compile(compArgs);
 	    } else {

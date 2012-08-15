@@ -10,7 +10,7 @@ public class ConfigError extends Error {
         + " Explicitly initialize the FenixFramework with FenixFramework.initialize(Config)"
         + " or via convention by providing a fenix-framework.properties resource before attempting getConfig().";
 
-    public static final String MISSING_REQUIRED_FIELD = "A required field was not specified in the FenixFramework config: ";
+    public static final String MISSING_REQUIRED_FIELD = "A required configuration of the Fenix Framework was not specified: ";
 
     public static final String UNKNOWN_PROPERTY = "Unknown configuration property.";
 
@@ -18,6 +18,13 @@ public class ConfigError extends Error {
         + "(String) given, and property is not assignable from String: ";
 
     // public static final String NO_PROPERTY_SETTER = "No setter method for property.";
+
+    public static final String NOT_INITIALIZED = "The Fenix Framework hasn't been initialized yet.";
+
+    public static final String ALREADY_INITIALIZED = "Fenix Framework already initialized.";
+
+    public static final String DUPLICATE_DEFINITION_OF_DOMAIN_MODEL_URLS = "conflicting initialization of domainModelURLs already initialized elsewhere";
+
 
     public ConfigError(String message) {
 	super(message);

@@ -25,6 +25,7 @@ public class DmlMojoUtils {
 	List<Project> dependencies = new ArrayList<Project>();
 
 	for (Artifact artifact : project.getDependencyArtifacts()) {
+            if (artifact.getFile() == null) continue;
 	    String absolutePath = artifact.getFile().getAbsolutePath();
 	    JarFile jarFile = new JarFile(absolutePath);
 	    if (jarFile.getJarEntry(artifact.getArtifactId() + "/project.properties") != null) {

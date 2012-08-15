@@ -2,6 +2,7 @@ package pt.ist.fenixframework.core;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import org.apache.commons.lang.StringUtils;
 
 import pt.ist.fenixframework.core.exception.ProjectException;
 import pt.ist.fenixframework.core.exception.NoProjectNameSpecifiedException;
+import pt.ist.fenixframework.core.exception.ProjectPropertiesNotFoundException;
 
 public class Project {
     private static final Map<String, Project> projects = new HashMap<String, Project>();
@@ -131,7 +133,12 @@ public class Project {
     public static Project fromName(String projectName) throws IOException, ProjectException,
 	    MalformedURLException {
 	Properties properties = new Properties();
-	properties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(projectName + "/project.properties"));
+        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(projectName + "/project.properties");
+        if (is == null) {
+            throw new ProjectPropertiesNotFoundException(projectName);
+        }
+	properties.load(is);
+        try { is.close(); } catch (Throwable ignore) {}
 	return Project.fromProperties(properties);
     }
 
