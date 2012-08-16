@@ -3,14 +3,17 @@ package pt.ist.fenixframework;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
 
 // import pt.ist.fenixframework.pstm.DataAccessPatterns;
+import pt.ist.fenixframework.backend.mem.DefaultConfig;
 import pt.ist.fenixframework.dml.DmlCompilerException;
 import pt.ist.fenixframework.dml.DomainModel;
-import pt.ist.fenixframework.core.DefaultConfig;
 
 /**
  * <p>This is the main class for the Fenix Framework.  It is the central point for obtaining most of
@@ -47,7 +50,7 @@ import pt.ist.fenixframework.core.DefaultConfig;
  *
  * where each <code>property</code> must be the name of an existing configuration field.
  * Additionally, there is one optional property named <code>config.class</code>.  By default, the
- * config parser creates an instance of {@link pt.ist.fenixframework.core.DefaultConfig}, unless the
+ * config parser creates an instance of {@link pt.ist.fenixframework.backend.mem.DefaultConfig}, unless the
  * <code>config.class</code> is given, in which case the mentioned class' default constructor is
  * invoked to create an instance of a more specific Config instance.  The config instance is then
  * populated with each property (except with the <code>config.class</code> property), using the
@@ -96,6 +99,7 @@ public class FenixFramework {
      * can only be invoked after the framework is initialized. */
     private static DomainModel domainModel = null;
 
+    private static Logger logger = null;
     static {
         synchronized (INIT_LOCK) {
             initLoggingSystem();
@@ -104,12 +108,14 @@ public class FenixFramework {
     }
 
     private static void initLoggingSystem() {
-            InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(FENIX_FRAMEWORK_LOGGING_CONFIG);
-            if (in == null) {
-                throw new ConfigError("The file '" + FENIX_FRAMEWORK_LOGGING_CONFIG
-                                      + "' should be distributed with any packaging of the Fenix Framework");
-            }
-            PropertyConfigurator.configure(in);
+        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(FENIX_FRAMEWORK_LOGGING_CONFIG);
+        if (in == null) {
+            throw new ConfigError("The file '" + FENIX_FRAMEWORK_LOGGING_CONFIG
+                                  + "' should be distributed with any packaging of the Fenix Framework");
+        }
+        PropertyConfigurator.configure(in);
+        logger = Logger.getLogger(FenixFramework.class);
+        logger.info("Initialized logging system for Fenix Framework.");
     }
 
     /* Attempts to automatically initialize the framework by reading the
@@ -181,8 +187,20 @@ public class FenixFramework {
 
 	    FenixFramework.config = ((config != null) ? config
                                      : new DefaultConfig() {{ this.domainModelURLs = Config.resourceToURLArray("empty.dml"); }});
-            FenixFramework.config.initialize();
 
+
+            // domainModelURLs should have been set by now
+            config.checkForDomainModelURLs();
+
+            // set the domain model
+            try {
+                domainModel = DmlCompiler.getDomainModel(Arrays.asList(config.getDomainModelURLs()));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                throw new ConfigError(ex);
+            }
+
+            FenixFramework.config.initialize(domainModel);
 	    // DataAccessPatterns.init(FenixFramework.config);
 	    initialized = true;
 	}
@@ -204,29 +222,13 @@ public class FenixFramework {
      * {@link DmlCompilerException} occurs (only possible on first invocation).
      */
     public static DomainModel getDomainModel() {
-        synchronized (INIT_LOCK) {
-            if (! initialized) {
-                throw new ConfigError(ConfigError.NOT_INITIALIZED);
-            }
-            if (domainModel == null) {
-                try {
-                    domainModel = DmlCompiler.getDomainModel(Arrays.asList(config.getDomainModelURLs()));
-                } catch (DmlCompilerException ex) {
-                    ex.printStackTrace();
-                    throw new ConfigError(ex);
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
-            return domainModel;
-        }
+        return domainModel;
     }
 
     /**
-     *  Always gets a well-known singleton instance of {@link DomainRoot}.  The
-     *  intended use of this instance is to provide a single entry point to the
-     *  graph of {@link DomainObject}s.  The user of the framework may connect
-     *  (via DML) any {@link DomainObject} to this class.
+     *  Always gets a well-known singleton instance of {@link DomainRoot}.  The intended use of this
+     *  instance is to provide a single entry point to the graph of {@link DomainObject}s.  The user
+     *  of the framework may connect (via DML) any {@link DomainObject} to this class.
      */
     public static DomainRoot getDomainRoot() {
         return getConfig().getBackEnd().getDomainRoot();
@@ -235,13 +237,13 @@ public class FenixFramework {
     /**
      * Get any {@link DomainObject} given its external identifier.
      *
-     * The external identifier must have been obtained by a previous invocation
-     * of {@link DomainObject#getExternalId}.
+     * The external identifier must have been obtained by a previous invocation to {@link
+     * DomainObject#getExternalId}.  If the external identifier is tampered with (in which case a
+     * valid {@link DomainObject} cannot be found), the result of calling this method is undefined.
      *
      * @param externalId The external identifier of the domain object to get
      * @return The domain object requested
      *
-     * TODO: document what happens when domain object is not found
      */
     public static <T extends DomainObject> T getDomainObject(String externalId) {
         return getConfig().getBackEnd().getDomainObject(externalId);

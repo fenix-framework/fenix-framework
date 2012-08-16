@@ -12,10 +12,11 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import pt.ist.fenixframework.core.BackEnd;
+import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.DmlFile;
 import pt.ist.fenixframework.core.Project;
 import pt.ist.fenixframework.core.exception.ProjectException;
+import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.util.Converter;
 
 /**
@@ -29,11 +30,12 @@ import pt.ist.fenixframework.util.Converter;
  * <p> No constructor is provided for this class (other than the default constructor), because the
  * <code>Config</code> class has several parameters, some of which are optional. But, whereas
  * optional parameters do not need to be specified, the parameters that are required must be
- * specified by the programmer before calling the <code>FenixFramework.initialize</code> method.
+ * specified by the programmer before calling the {@link FenixFramework#initialize(Config)} method.
  *
  * <p> Additional configuration parameters may be added by subclassing this class.  Subclasses of
- * config can override the {@link #init()} method.  Typically, their own <code>init()</code> should
- * also call <code>super.init()</code>if an hierarchy of configs is used.
+ * config can override the {@link #init(DomainModel)} method.  Typically, their own {@link
+ * init(DomainModel)} should also call {@link super.init(DomainModel)} if an hierarchy of configs is
+ * used.
  * 
  * <p> To create an instance of this class with the proper values for its parameters, programmers
  * should generally use code like this:
@@ -86,14 +88,14 @@ import pt.ist.fenixframework.util.Converter;
  * its default value.
  * 
  * @see pt.ist.fenixframework.FenixFramework
- * @see pt.ist.fenixframework.core.DefaultConfig
+ * @see pt.ist.fenixframework.backend.mem.DefaultConfig
  * 
  */
 public abstract class Config {
     private static final Logger logger = Logger.getLogger(Config.class);
 
     protected static final String PROPERTY_CONFIG_CLASS = "config.class";
-    protected static final String DEFAULT_CONFIG_CLASS_NAME = "pt.ist.fenixframework.core.DefaultConfig";
+    protected static final String DEFAULT_CONFIG_CLASS_NAME = "pt.ist.fenixframework.backend.mem.DefaultConfig";
     // the suffix of the method that sets a property from a String property
     protected static final String SETTER_FROM_STRING = "FromString";
 
@@ -120,13 +122,20 @@ public abstract class Config {
     }
 
     /**
+     * Check if the value of <code>domainModelURLs</code> is already set.
+     */
+    protected void checkForDomainModelURLs() {
+	if ((domainModelURLs == null) || (domainModelURLs.length == 0)) {
+	    missingRequired("domainModelURLs");
+	}
+    }
+
+    /**
      * Subclasses of this class can overwrite this method, but they should specifically call
      * <code>super()</code> to check the superclass's configuration.
      */
     protected void checkConfig() {
-	if ((domainModelURLs == null) || (domainModelURLs.length == 0)) {
-	    missingRequired("domainModelURLs");
-	}
+        checkForDomainModelURLs();
     }
     
     protected static void missingRequired(String fieldName) {
@@ -134,10 +143,10 @@ public abstract class Config {
     }
     
     /**
-     * This method is invoked by the <code>FenixFramework.initialize(Config)</code>
+     * This method is invoked by the {@link FenixFramework.initialize(Config)}.
      */
-    protected final void initialize() {
-        init();
+    protected final void initialize(DomainModel domainModel) {
+        init(domainModel);
         checkConfig();
     }
 
@@ -271,7 +280,7 @@ public abstract class Config {
         domainModelURLs = urls;
     }
 
-    protected abstract void init();
+    protected abstract void init(DomainModel domainModel);
     protected abstract BackEnd getBackEnd();
 
     public URL[] getDomainModelURLs() {

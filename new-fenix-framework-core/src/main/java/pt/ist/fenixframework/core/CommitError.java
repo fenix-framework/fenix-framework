@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.core.exception;
+package pt.ist.fenixframework.core;
 
 /**
  * An instance of <code>CommitError</code> is thrown whenever it occurs a situation that prevents a

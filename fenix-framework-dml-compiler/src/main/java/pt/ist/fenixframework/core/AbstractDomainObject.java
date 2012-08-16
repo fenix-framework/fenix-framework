@@ -22,18 +22,42 @@ public abstract class AbstractDomainObject implements DomainObject {
         throw new UnsupportedOperationException("Must be redefined in concrete subclasses.");
     }
 
-    // protected AbstractDomainObject() {
-    //     super();
-    //     //smf: should we force this here with an abstract ensureOid()?
-    //     // ensureOid();
-    // }
+    /**
+     * Default, no-arg constructor.
+     *
+     * @see #ensureOid
+     */
+    protected AbstractDomainObject() {
+        super();
+        ensureOid();
+    }
+    
+    /**
+     * Set the identifier (<code>oid</code>) of the object that is being created.  This method is
+     * already invoked by the no-arg constructor.  It is only intented to be invoked from within a
+     * constructor (with the exception of {@link AbstractDomainObject(DomainObjectAllocator.OID)},
+     * which uses {@link restoreOid(Object)} instead).
+     */
+    protected abstract void ensureOid();
 
-    //smf: ???????
-    // protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
-    //     // this constructor exists only as part of the allocate-instance
-    //     // protocol
-    //     this.oid = oid.oid;
-    // }
+    /**
+     * This constructor exists only as part of the allocate-instance protocol and should never be
+     * explicitly invoked by the programmer.  Each subclass must define the {@link
+     * restoreOid(Object)} method.
+     *
+     * @see #restoreOid
+     */
+    protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
+        restoreOid(oid.oid);
+    }
+
+    /** Overrides of this method should set the <code>oid</code> of the object.  This method should
+     * only be invoked as part of the allocate-instance protocol, i.e. from within the {@link
+     * AbstractDomainObject(DomainObjectAllocator.OID)} constructor.
+     *
+     * @param oid This object's identifier
+     */
+    protected abstract void restoreOid(Object oid);
 
     @Override
     public final int hashCode() {

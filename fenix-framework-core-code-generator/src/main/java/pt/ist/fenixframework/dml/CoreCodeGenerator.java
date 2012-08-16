@@ -8,6 +8,6 @@ public class CoreCodeGenerator extends PojoCodeGenerator {
 
     @Override
     protected String getDomainClassRoot() {
-        return "pt.ist.fenixframework.core.CoreDomainObject";
+        return "pt.ist.fenixframework.backend.mem.CoreDomainObject";
     }
 }

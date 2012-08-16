@@ -4,8 +4,8 @@ import java.util.concurrent.Callable;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionManager;
-import pt.ist.fenixframework.core.exception.CommitError;
-import pt.ist.fenixframework.core.exception.WriteOnReadError;
+import pt.ist.fenixframework.core.CommitError;
+import pt.ist.fenixframework.core.WriteOnReadError;
 
 public enum DefaultAtomicContext implements AtomicContext {
 

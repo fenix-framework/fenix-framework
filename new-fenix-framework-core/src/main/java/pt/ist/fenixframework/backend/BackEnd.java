@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.core;
+package pt.ist.fenixframework.backend;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
