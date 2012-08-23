@@ -6,7 +6,6 @@ import java.net.URL;
 
 public class DomainModel implements Serializable {
 
-    public static final String AbstractDomainObjectClassName = "pt.ist.fenixframework.core.AbstractDomainObject";
     protected Map<String, ValueType> valueTypes = new HashMap<String, ValueType>();
     protected Map<String, DomainEntity> external = new HashMap<String, DomainEntity>();
     protected Map<String, DomainClass> classes = new HashMap<String, DomainClass>();
@@ -15,10 +14,11 @@ public class DomainModel implements Serializable {
 
     public DomainModel() {
 	initializeBuiltinValueTypes();
-	addExternalEntity(null, DomainModel.AbstractDomainObjectClassName);
+	initializeBuiltinEntities();
     }
 
     protected void initializeBuiltinValueTypes() {
+        // primitive types
 	newValueType("boolean", "boolean");
 	newValueType("byte", "byte");
 	newValueType("char", "char");
@@ -27,6 +27,8 @@ public class DomainModel implements Serializable {
 	newValueType("float", "float");
 	newValueType("long", "long");
 	newValueType("double", "double");
+
+        // their wrappers
 	newValueType("Boolean", "java.lang.Boolean");
 	newValueType("Byte", "java.lang.Byte");
 	newValueType("Character", "java.lang.Character");
@@ -35,7 +37,38 @@ public class DomainModel implements Serializable {
 	newValueType("Float", "java.lang.Float");
 	newValueType("Long", "java.lang.Long");
 	newValueType("Double", "java.lang.Double");
+
+        // String is, of course, essential
 	newValueType("String", "java.lang.String");
+
+	// we need something binary, also
+	newValueType("bytearray", "java.lang.String");
+
+	// JodaTime types
+	newValueType("org.joda.time.DateTime", "DateTime");
+	newValueType("org.joda.time.LocalDate", "LocalDate");
+	newValueType("org.joda.time.LocalTime", "LocalTime");
+	newValueType("org.joda.time.Partial", "Partial");
+    }
+
+    private String[][] builtinEntities = { /* { fullname, alias } */
+        { "pt.ist.fenixframework.DomainObject", "DomainObject" },
+        { "pt.ist.fenixframework.core.AbstractDomainObject", "AbstractDomainObject" }
+    };
+
+    protected void initializeBuiltinEntities() {
+        for (String[] entity : builtinEntities) {
+            addExternalEntity(null, entity[0], entity[1]);
+        }
+    }
+
+    protected boolean isBuiltinEntity(String name) {
+        for (String[] entity : builtinEntities) {
+            if (entity[0].equals(name) || entity[1].equals(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public DomainEntity findClassOrExternal(String name) {
@@ -157,7 +190,7 @@ public class DomainModel implements Serializable {
 
 	if (checkForMissingExternals) {
 	    for (String externalName : external.keySet()) {
-		if (!externalName.equals(DomainModel.AbstractDomainObjectClassName) && !classes.containsKey(externalName)) {
+		if (!isBuiltinEntity(externalName) && !classes.containsKey(externalName)) {
 		    throw new RuntimeException(externalName
 			    + " was defined as an external entity but there is no concrete definition of it!");
 		}

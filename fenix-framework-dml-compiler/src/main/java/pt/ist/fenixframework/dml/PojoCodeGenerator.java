@@ -81,9 +81,7 @@ public class PojoCodeGenerator implements CodeGenerator {
     }
 
     protected String getDomainClassRoot() {
-        // return "pt.ist.fenixframework.core.CoreDomainObject";
-        return "pt.ist.fenixframework.core.AbstractDomainObject";
-        // return "java.lang.Object";
+        return pt.ist.fenixframework.core.AbstractDomainObject.class.getName();
     }
 
     @Override

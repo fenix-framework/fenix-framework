@@ -12,6 +12,9 @@ import pt.ist.fenixframework.DomainObject;
  * the framework.  This allows for a more efficient implementation of the
  * object's internal identifier, other than the String type imposed on the
  * external identifier.
+ *
+ * Additionally, the subclass must also implement {@link ensureOid()} and {@link
+ * restoreOid(Object)}.  See their documentation for further explanation.
  */
 public abstract class AbstractDomainObject implements DomainObject {
     public Object getOid() {
@@ -34,11 +37,13 @@ public abstract class AbstractDomainObject implements DomainObject {
     
     /**
      * Set the identifier (<code>oid</code>) of the object that is being created.  This method is
-     * already invoked by the no-arg constructor.  It is only intented to be invoked from within a
+     * invoked by the no-arg constructor.  It is only intented to be invoked from within a
      * constructor (with the exception of {@link AbstractDomainObject(DomainObjectAllocator.OID)},
      * which uses {@link restoreOid(Object)} instead).
      */
-    protected abstract void ensureOid();
+    protected void ensureOid() {
+        throw new UnsupportedOperationException("Must be redefined in concrete subclasses.");
+    }
 
     /**
      * This constructor exists only as part of the allocate-instance protocol and should never be
@@ -57,7 +62,9 @@ public abstract class AbstractDomainObject implements DomainObject {
      *
      * @param oid This object's identifier
      */
-    protected abstract void restoreOid(Object oid);
+    protected void restoreOid(Object oid) {
+        throw new UnsupportedOperationException("Must be redefined in concrete subclasses.");
+    }
 
     @Override
     public final int hashCode() {

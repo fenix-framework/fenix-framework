@@ -2,6 +2,8 @@ package pt.ist.fenixframework.atomic;
 
 import java.util.concurrent.Callable;
 
+import org.apache.log4j.Logger;
+
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.core.CommitError;
@@ -14,6 +16,8 @@ public enum DefaultAtomicContext implements AtomicContext {
     READ_ONLY(false, true),
     READ_WRITE(false, false);
 
+    private static final Logger logger = Logger.getLogger(DefaultAtomicContext.class);
+
     private final boolean flattenTx;
     private final boolean tryReadOnly;
 
@@ -24,6 +28,9 @@ public enum DefaultAtomicContext implements AtomicContext {
 
     @Override
     public final <V> V doTransactionally(Callable<V> method) throws Exception {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Starting new @Atomic call from " + Thread.currentThread().getStackTrace()[2]);
+        }
         TransactionManager tm = FenixFramework.getTransactionManager();
 
         boolean inTransaction = (tm.getTransaction() != null);
