@@ -21,8 +21,8 @@
         <module>fenix-framework-dml-compiler</module>
         <module>fenix-framework-project</module>
         <module>dml-maven-plugin</module>
-        <module>fenix-framework-core-code-generator</module>
         <module>new-fenix-framework-core</module>
+        <!-- <module>fenix-framework-adt-bplustree</module> -->
         <module>fenix-framework-archetypes</module>
     </modules>
 

@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class PojoCodeGenerator implements CodeGenerator {
+public class AbstractCodeGenerator implements CodeGenerator {
 
     static class PrimitiveToWrapperEntry {
 	public final String primitiveType;
@@ -38,7 +38,7 @@ public class PojoCodeGenerator implements CodeGenerator {
     private File destDirectory;
     private File destDirectoryBase;
 
-    public PojoCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
+    public AbstractCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         this.compArgs = compArgs;
         this.domainModel = domainModel;
         this.destDirectory = getPackageDirectory(compArgs.destDirectory, compArgs.packageName);

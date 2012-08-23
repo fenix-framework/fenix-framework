@@ -45,7 +45,7 @@ import pt.ist.fenixframework.util.Converter;
  *
  * <tr><td><code>Class&lt;? extends CodeGenerator&gt;</code></td>
  *   <td><code>generatorClass</code></td>
- *   <td> The code generator to use.  Default: <code>PojoCodeGenerator.class</code>.</td>
+ *   <td> The code generator to use.  Default: <code>AbstractCodeGenerator.class</code>.</td>
  * </tr>
  *
  * </ul>
@@ -57,7 +57,7 @@ public class CompilerArgs {
     String packageName = "";
     List<URL> localDomainSpecs = new ArrayList<URL>();
     List<URL> externalDomainSpecs = new ArrayList<URL>();
-    Class<? extends CodeGenerator> generatorClass = PojoCodeGenerator.class;
+    Class<? extends CodeGenerator> generatorClass = AbstractCodeGenerator.class;
 
     /*
      * This is not part of the API
@@ -75,7 +75,7 @@ public class CompilerArgs {
 	this.destDirectoryBase = destDirectoryBase;
 	this.packageName = packageName;
 	this.generateFinals = generateFinals;
-	this.generatorClass = generatorClass != null ? generatorClass : PojoCodeGenerator.class;
+	this.generatorClass = generatorClass != null ? generatorClass : AbstractCodeGenerator.class;
 	if (localDomainSpecs != null) { this.localDomainSpecs.addAll(localDomainSpecs); }
         if (externalDomainSpecs != null) {this.externalDomainSpecs.addAll(externalDomainSpecs); }
 	checkArguments();

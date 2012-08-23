@@ -49,7 +49,7 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Code Generator Class Name
-     * @parameter expression="${generate-domain.codeGeneratorClassName}" default-value="pt.ist.fenixframework.dml.PojoCodeGenerator"
+     * @parameter expression="${generate-domain.codeGeneratorClassName}" default-value="pt.ist.fenixframework.dml.AbstractCodeGenerator"
      */
     private String codeGeneratorClassName;
 
