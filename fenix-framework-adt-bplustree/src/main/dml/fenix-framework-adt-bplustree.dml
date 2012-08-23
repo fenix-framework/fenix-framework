@@ -1,0 +1,51 @@
+/* Abstract Data Type: B+Trees */
+
+package pt.ist.fenixframework.adt.bplustree;
+
+valueType java.util.TreeMap as TreeMap {
+    externalizeWith {
+        bytearray pt.ist.fenixframework.adt.bplustree.AbstractNode.externalizeTreeMap();
+    }
+    internalizeWith pt.ist.fenixframework.adt.bplustree.AbstractNode.internalizeTreeMap();
+}
+
+class BPlusTree {}
+
+class AbstractNode {}
+
+class LeafNode extends AbstractNode {
+    // key: any OID
+    //
+    // value: any reference to a DomainObject.  We use AbstractDomainObject (which all DomainObjects
+    // also are), to allow the programmer to use getOid() instead of getExternalId() to obtain the
+    // object's identifier.  In this case, the type of the Object returned by getOid() must be a
+    // Comparable.
+    TreeMap<Comparable,pt.ist.fenixframework.core.AbstractDomainObject> entries;
+}
+
+class InnerNode extends AbstractNode {
+    // A B-Tree node contains M keys and M+1 children.  We represent the first
+    // M children aggregated with a key and add a special LAST_KEY for the
+    // M+1-th children.  This way the i-th child always contains elements
+    // whose keys are less than the i-th key.
+    // key: any OID
+    // value: a Node
+    TreeMap<Comparable,AbstractNode> subNodes;
+}
+
+relation BPlusTreeHasRootNode {
+    BPlusTree playsRole;
+    AbstractNode playsRole root;
+}
+
+relation NodeHasParent {
+    AbstractNode playsRole {
+	multiplicity *;
+    }
+    InnerNode playsRole parent;
+}
+
+relation LeafNodeHasSibling {
+    LeafNode playsRole previous;
+    LeafNode playsRole next;
+}
