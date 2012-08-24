@@ -1,5 +1,11 @@
 package pt.ist.fenixframework.core;
 
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import pt.ist.fenixframework.DomainObject;
 
 /**
@@ -13,16 +19,26 @@ import pt.ist.fenixframework.DomainObject;
  * object's internal identifier, other than the String type imposed on the
  * external identifier.
  *
- * Additionally, the subclass must also implement {@link ensureOid()} and {@link
- * restoreOid(Object)}.  See their documentation for further explanation.
+ * Additionally, the subclass must also implement {@link ensureOid()}, {@link restoreOid(Object)},
+ * {@link makeSerializedForm()}, and {@link SerializedForm#fromExternalId(String)}.  See their
+ * documentation for further explanation.
  */
 public abstract class AbstractDomainObject implements DomainObject {
-    public Object getOid() {
-        throw new UnsupportedOperationException("Must be redefined in concrete subclasses.");
+    private static final Logger logger = Logger.getLogger(AbstractDomainObject.class);
+
+    @Override
+    public String getExternalId() {
+        throw new UnsupportedOperationException("getExternalId not implemented at this level");
     }
 
-    public String getExternalId() {
-        throw new UnsupportedOperationException("Must be redefined in concrete subclasses.");
+    /**
+     * Returns an internal global representation of this object.  Although, it can be implemented
+     * simply as a call to {@link #getExternalId()}, this method enables code **within** the
+     * framework to leverage on the knowledge of the concrete identifier, thus being more efficient.
+     * <strong>This method should only be used by code internal to the framework</strong>.
+     */
+    public Object getOid() {
+        throw new UnsupportedOperationException("getOid not implemented at this level");
     }
 
     /**
@@ -42,7 +58,7 @@ public abstract class AbstractDomainObject implements DomainObject {
      * which uses {@link restoreOid(Object)} instead).
      */
     protected void ensureOid() {
-        throw new UnsupportedOperationException("Must be redefined in concrete subclasses.");
+        throw new UnsupportedOperationException("ensureOid not implemented at this level");
     }
 
     /**
@@ -63,7 +79,7 @@ public abstract class AbstractDomainObject implements DomainObject {
      * @param oid This object's identifier
      */
     protected void restoreOid(Object oid) {
-        throw new UnsupportedOperationException("Must be redefined in concrete subclasses.");
+        throw new UnsupportedOperationException("restoreOid not implemented at this level");
     }
 
     @Override
@@ -75,23 +91,6 @@ public abstract class AbstractDomainObject implements DomainObject {
     public final boolean equals(Object obj) {
 	return super.equals(obj);
     }
-
-    // public static <T extends DomainObject> T fromOid(long oid) {
-    //     return null;
-    // }
-
-    // public static <T extends DomainObject> T fromOID(long oid) {
-    //     DomainObject obj = Transaction.getCache().lookup(oid);
-
-    //     if (obj == null) {
-    //         obj = DomainObjectAllocator.allocateObject(oid);
-
-    //         // cache object and return the canonical object
-    //         obj = Transaction.getCache().cache(obj);
-    //     }
-
-    //     return (T) obj;
-    // }
 
     // VersionedSubject getSlotNamed(String attrName) {
     //     Class myClass = this.getClass();
@@ -166,26 +165,68 @@ public abstract class AbstractDomainObject implements DomainObject {
     //     return columnIndexes[columnCount].intValue();
     // }
 
-    // // serialization code
-    // protected Object writeReplace() throws ObjectStreamException {
-    //     return new SerializedForm(this);
-    // }
+    // Serialization Code
 
-    // private static class SerializedForm implements Serializable {
-    //     private static final long serialVersionUID = 1L;
+    /* This method must be in the format:
+     *
+     * protected Object writeReplace() throws ObjectStreamException;
+     *
+     * to allow subclasses to have this writeReplace action when serialization occurs.
+     */
+    protected Object writeReplace() throws ObjectStreamException {
+        if (logger.isEnabledFor(Level.TRACE)) {
+            logger.trace("Serializing " + this.getClass().getName() + ":" + this.getExternalId());
+        }
+        return makeSerializedForm();
+    }
 
-    //     // use string to allow future expansion of an OID
-    //     private final String oid;
+    /**
+     * Creates the concrete instance of SerializedForm for this DomainObject.  This method is
+     * invoked when serialization of the DomainObject occurs.  Final users of this framework should
+     * never invoke this method explicitly.  Backend developers should provide an implementation for
+     * this method in their subclasses of AbstractDomainObject.
+     *
+     * @return The corresponding SerializedForm
+     */
+    protected SerializedForm makeSerializedForm() {
+        throw new UnsupportedOperationException("makeSerializedForm not implemented at this level");
+    }
 
-    //     SerializedForm(AbstractDomainObject obj) {
-    //         this.oid = String.valueOf(obj.getOid());
-    //     }
+    protected static abstract class SerializedForm implements Serializable {
+        private static final long serialVersionUID = 1L;
 
-    //     Object readResolve() throws ObjectStreamException {
-    //         long objOid = Long.parseLong(this.oid);
-    //         return AbstractDomainObject.fromOID(objOid);
-    //     }
-    // }
+        // the external serialized form of any domain object only needs to keep its object id
+        private final String externalId;
+
+        protected SerializedForm(AbstractDomainObject obj) {
+            externalId = obj.getExternalId();
+        }
+
+        /* This method must be in the format:
+         *
+         * protected Object readResolve() throws ObjectStreamException;
+         *
+         * to allow subclasses to have this readResolve action when de-serialization occurs.
+         */
+        protected Object readResolve() throws ObjectStreamException {
+            return fromExternalId(externalId);
+        }
+
+        /**
+         * Returns a DomainObject given its externalId.  This method is invoked when
+         * de-serialization of a previously serialized DomainObject occurs.
+         *
+         * Final users of this framework should not invoke this method explicitly.  Backend
+         * developers should provide an implementation for this method in their subclasses of
+         * AbstractDomainObject.SerializedForm.
+         *
+         * @param externalId The object's external identifier
+         * @return The corresponding DomainObject
+         */
+        protected DomainObject fromExternalId(String externalId) {
+            throw new UnsupportedOperationException("fromExternalID not implemented at this level");
+        }
+    }
 
     // public static <T extends DomainObject> T fromExternalId(String extId) {
     //     if (extId == null) {

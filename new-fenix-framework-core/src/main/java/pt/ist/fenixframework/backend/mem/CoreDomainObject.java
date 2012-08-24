@@ -1,11 +1,19 @@
 package pt.ist.fenixframework.backend.mem;
 
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.core.AbstractDomainObject;
+import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.FenixCache;
 
-public class CoreDomainObject extends AbstractDomainObject {
+public class CoreDomainObject extends AbstractDomainObjectAdapter {
+    private static final Logger logger = Logger.getLogger(CoreDomainObject.class);
+
     // this should be final, but the ensureOid and restoreOid methods prevent it
     private long oid;
 
@@ -28,6 +36,8 @@ public class CoreDomainObject extends AbstractDomainObject {
         }
     }
 
+    // dealing with domain object identifiers
+
     @Override
     public Object getOid() {
 	return oid;
@@ -41,6 +51,5 @@ public class CoreDomainObject extends AbstractDomainObject {
     public static <T extends DomainObject> T fromOid(long oid) {
         return (T) FenixCache.getCache().lookup(oid);
     }
-
 }
 

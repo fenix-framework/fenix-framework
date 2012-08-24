@@ -65,7 +65,7 @@ public class LeafNode extends LeafNode_Base {
 	TreeMap<Comparable,AbstractDomainObject> localEntries = this.getEntries();
 
 	// this test is performed because we need to return a new structure in
-	// case an update occurs.  Objects inside VBoxes must be immutable.
+	// case an update occurs.  Value types must be immutable.
 	AbstractDomainObject currentValue = localEntries.get(key);
 	if (currentValue == value && localEntries.containsKey(key)) {
 	    return localEntries;
@@ -105,7 +105,7 @@ public class LeafNode extends LeafNode_Base {
 	TreeMap<Comparable,AbstractDomainObject> localEntries = this.getEntries();
 
 	// this test is performed because we need to return a new structure in
-	// case an update occurs.  Objects inside VBoxes must be immutable.
+	// case an update occurs.  Value types must be immutable.
 	if (!localEntries.containsKey(key)) {
 	    return localEntries;
 	} else {

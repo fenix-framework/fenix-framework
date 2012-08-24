@@ -1,4 +1,4 @@
-package pt.ist.fenixframework;
+package pt.ist.fenixframework.core;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -1,4 +1,4 @@
-package pt.ist.fenixframework;
+package pt.ist.fenixframework.core;
 
 public class ExternalizationException extends RuntimeException {
     public ExternalizationException() {
