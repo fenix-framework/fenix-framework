@@ -10,7 +10,26 @@ import pt.ist.fenixframework.TransactionManager;
  * implements a no-op {@link TransactionManager}.
  */
 public interface BackEnd {
+    /**
+     * @see pt.ist.fenixframework.FenixFramework#getDomainRoot()
+     */
     public DomainRoot getDomainRoot();
+
+    /**
+     * @see pt.ist.fenixframework.FenixFramework#getDomainObject(String)
+     */
     public <T extends DomainObject> T getDomainObject(String externalId);
+
+    /**
+     * @see pt.ist.fenixframework.FenixFramework#getTransactionManager()
+     */
     public TransactionManager getTransactionManager();
+
+    /**
+     * Backend-specific method to get a {@link DomainObject} given its OID.  Invocations of this
+     * method are responsible for providing a valid OID.
+     *
+     * @param oid The backend-specific identifier of the objec to get
+     */
+    public <T extends DomainObject> T fromOid(Object oid);
 }

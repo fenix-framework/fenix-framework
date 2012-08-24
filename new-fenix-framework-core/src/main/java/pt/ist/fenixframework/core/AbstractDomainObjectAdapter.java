@@ -18,6 +18,10 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 public class AbstractDomainObjectAdapter extends AbstractDomainObject {
     private static final Logger logger = Logger.getLogger(AbstractDomainObjectAdapter.class);
 
+    public static <T extends DomainObject> T fromOid(Object oid) {
+        return FenixFramework.getConfig().getBackEnd().fromOid(oid);
+    }
+
     // serialization code
 
     @Override
@@ -37,5 +41,6 @@ public class AbstractDomainObjectAdapter extends AbstractDomainObject {
             return FenixFramework.getDomainObject(externalId);
         }
     }
+
 }
 

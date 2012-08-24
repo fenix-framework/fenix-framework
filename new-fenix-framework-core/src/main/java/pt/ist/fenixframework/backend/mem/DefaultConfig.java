@@ -48,6 +48,12 @@ public class DefaultConfig extends Config {
             return this.transactionManager;
         }
 
+        @Override
+        public <T extends DomainObject> T fromOid(Object oid) {
+            return CoreDomainObject.fromOid((Long)oid);
+        }
+
+
     }
 
     static class NoOpTransactionManager implements TransactionManager {
@@ -73,7 +79,7 @@ public class DefaultConfig extends Config {
     }
 
     @Override
-    protected BackEnd getBackEnd() {
+    public BackEnd getBackEnd() {
         return this.backEnd;
     }
 }

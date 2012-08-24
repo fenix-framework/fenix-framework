@@ -281,7 +281,11 @@ public abstract class Config {
     }
 
     protected abstract void init(DomainModel domainModel);
-    protected abstract BackEnd getBackEnd();
+
+    /**
+     * Get the current {@link BackEnd} in use.
+     */
+    public abstract BackEnd getBackEnd();
 
     public URL[] getDomainModelURLs() {
 	return domainModelURLs;
