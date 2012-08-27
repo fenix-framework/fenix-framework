@@ -42,13 +42,13 @@ public class DomainModel implements Serializable {
 	newValueType("String", "java.lang.String");
 
 	// we need something binary, also
-	newValueType("bytearray", "java.lang.String");
+	newValueType("bytearray", "byte[]");
 
 	// JodaTime types
-	newValueType("org.joda.time.DateTime", "DateTime");
-	newValueType("org.joda.time.LocalDate", "LocalDate");
-	newValueType("org.joda.time.LocalTime", "LocalTime");
-	newValueType("org.joda.time.Partial", "Partial");
+	newValueType("DateTime", "org.joda.time.DateTime");
+	newValueType("LocalDate", "org.joda.time.LocalDate");
+	newValueType("LocalTime", "org.joda.time.LocalTime");
+	newValueType("Partial", "org.joda.time.Partial");
     }
 
     private String[][] builtinEntities = { /* { fullname, alias } */
