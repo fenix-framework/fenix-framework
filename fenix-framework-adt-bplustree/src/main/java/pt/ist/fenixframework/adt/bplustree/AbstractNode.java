@@ -5,9 +5,9 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.TreeMap;
 
-// import pt.ist.fenixframework.DomainObject;
-// import pt.ist.fenixframework.Externalization;
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObject;
+import pt.ist.fenixframework.core.Externalization;
 
 /** The keys comparison function should be consistent with equals. */
 public abstract class AbstractNode<T extends AbstractDomainObject> extends AbstractNode_Base implements Iterable {
@@ -62,44 +62,50 @@ public abstract class AbstractNode<T extends AbstractDomainObject> extends Abstr
     // the number of _elements_ in this node (not counting sub-nodes)
     abstract int shallowSize();
 
-    // public static byte[] externalizeTreeMap(TreeMap treeMap) {
-    //     return Externalization.externalizeObject(new TreeMapExternalization(treeMap));
-    // }
+    public static byte[] externalizeTreeMap(TreeMap treeMap) {
+        return Externalization.externalizeObject(new TreeMapExternalization(treeMap));
+    }
 
-    // public static TreeMap internalizeTreeMap(byte[] externalizedTreeMap) {
-    //     TreeMapExternalization treeMapExternalization = Externalization.internalizeObject(externalizedTreeMap);
+    public static TreeMap internalizeTreeMap(byte[] externalizedTreeMap) {
+        TreeMapExternalization treeMapExternalization = Externalization.internalizeObject(externalizedTreeMap);
 
-    //     return treeMapExternalization.toTreeMap();
-    // }
+        return treeMapExternalization.toTreeMap();
+    }
 
-    // private static class TreeMapExternalization implements Serializable {
-    //     private static final long serialVersionUID = 1L;
+    private static class TreeMapExternalization implements Serializable {
+        private static final long serialVersionUID = 1L;
 
-    //     private long[] keyOids;
-    //     private long[] valueOids;
+        private static Object NULL_OBJECT = new Object();
 
-    //     TreeMapExternalization(TreeMap treeMap) {
-    //         int size = treeMap.size();
-    //         this.keyOids = new long[size];
-    //         this.valueOids = new long[size];
+        private Comparable[] keyOids;
+        private Object[] valueOids;
+        // private byte[][] valueOids;
 
-    //         int i = 0;
-    //         for (Map.Entry entry : (java.util.Set<Map.Entry>)treeMap.entrySet()) {
-    //     	this.keyOids[i] = (Long)entry.getKey();
-    //     	Object value = entry.getValue();
-    //     	this.valueOids[i] = (value == null ? -1 : ((DomainObject)value).getOid());
-    //     	i++;
-    //         }
-    //     }
+        TreeMapExternalization(TreeMap<Comparable,? extends AbstractDomainObject> treeMap) {
+            int size = treeMap.size();
+            this.keyOids = new Comparable[size];
+            this.valueOids = new Object[size];
+            // this.valueOids = new byte[size][];
 
-    //     TreeMap toTreeMap() {
-    //         TreeMap treeMap = new TreeMap(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
+            int i = 0;
+            for (Map.Entry<Comparable,? extends AbstractDomainObject> entry : treeMap.entrySet()) {
+        	this.keyOids[i] = entry.getKey();
+        	AbstractDomainObject value = entry.getValue();
+        	this.valueOids[i] = (value == null ? NULL_OBJECT: value.getOid());
+        	// this.valueOids[i] = Externalization.externalizeObject(value);
+        	i++;
+            }
+        }
 
-    //         for (int i = 0; i < this.keyOids.length; i++) {
-    //     	long value = this.keyOids[i];
-    //     	treeMap.put(this.keyOids[i], (value == -1 ? null : AbstractDomainObject.fromOID(this.valueOids[i])));
-    //         }
-    //         return treeMap;
-    //     }
-    // }
+        TreeMap toTreeMap() {
+            TreeMap treeMap = new TreeMap(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
+
+            for (int i = 0; i < this.keyOids.length; i++) {
+        	Comparable value = this.keyOids[i];
+        	treeMap.put(value, (value == NULL_OBJECT ? null : FenixFramework.getConfig().getBackEnd().fromOid(this.valueOids[i])));
+                // treeMap.put(value, Externalization.internalizeObject(this.valueOids[i]));
+            }
+            return treeMap;
+        }
+    }
 }

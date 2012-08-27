@@ -26,10 +26,10 @@ public interface BackEnd {
     public TransactionManager getTransactionManager();
 
     /**
-     * Backend-specific method to get a {@link DomainObject} given its OID.  Invocations of this
-     * method are responsible for providing a valid OID.
+     * Backend-specific method to get a {@link DomainObject} given its OID.  Callers of this method
+     * are responsible for providing a valid OID.
      *
-     * @param oid The backend-specific identifier of the objec to get
+     * @param oid The backend-specific identifier of the object to get
      */
     public <T extends DomainObject> T fromOid(Object oid);
 }

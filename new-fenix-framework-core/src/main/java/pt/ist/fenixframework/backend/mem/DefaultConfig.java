@@ -28,8 +28,8 @@ public class DefaultConfig extends Config {
             DomainRoot root = CoreDomainObject.fromOid(1L);
             if (root == null) {
                 root = new DomainRoot(); // which automatically caches this instance, but does not
-                                         // ensure that it is the first, as concurrent request might
-                                         // create another
+                                         // ensure that it is the first, as a concurrent request
+                                         // might create another
 
                 // so we get it again from the cache before returning if
                 root = CoreDomainObject.fromOid(1L);

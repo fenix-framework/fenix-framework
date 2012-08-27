@@ -209,6 +209,9 @@ public abstract class AbstractDomainObject implements DomainObject {
          * to allow subclasses to have this readResolve action when de-serialization occurs.
          */
         protected Object readResolve() throws ObjectStreamException {
+            if (logger.isEnabledFor(Level.TRACE)) {
+                logger.trace("Deserializing " + this.externalId);
+            }
             return fromExternalId(externalId);
         }
 
