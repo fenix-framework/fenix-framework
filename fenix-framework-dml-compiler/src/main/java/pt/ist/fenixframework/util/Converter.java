@@ -22,7 +22,7 @@ public class Converter {
         for (int i = 0; i < resources.length; i++) {
             urls[i] = resourceToURL(resources[i]);
             if (urls[i] == null) {
-                throw new Error("FenixFramework config error: cannot find DML for resource '" + resources[i] + "'");
+                throw new RuntimeException("cannot find DML for resource '" + resources[i] + "'");
             }
         }
         return urls;
@@ -52,7 +52,7 @@ public class Converter {
         for (int i = 0; i < filenames.length; i++) {
             urls[i] = filenameToURL(filenames[i]);
             if (urls[i] == null) {
-                throw new Error("FenixFramework config error: cannot find DML for file'" + filenames[i] + "'");
+                throw new RuntimeException("cannot find DML for file'" + filenames[i] + "'");
             }
         }
         return urls;
