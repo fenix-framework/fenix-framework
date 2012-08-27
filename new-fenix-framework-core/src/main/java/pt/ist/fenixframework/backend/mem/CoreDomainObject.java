@@ -39,7 +39,7 @@ public class CoreDomainObject extends AbstractDomainObjectAdapter {
     // dealing with domain object identifiers
 
     @Override
-    public Object getOid() {
+    public Long getOid() {
 	return oid;
     }
 
