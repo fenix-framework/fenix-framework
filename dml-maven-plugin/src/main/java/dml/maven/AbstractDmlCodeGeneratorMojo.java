@@ -81,7 +81,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 		    getLog().error(e);
 		}
 		boolean isModified = file.lastModified() > latestBuildTime;
-		if (verbose() == false) {
+		if (verbose()) {
 		    getLog().info(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
 		}
 		shouldCompile = shouldCompile || isModified;
@@ -108,7 +108,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 		getLog().info("No dml files found to generate domain");
 		return;
 	    }
-	    shouldCompile = true;
+
 	    if (shouldCompile) {
 		getSourcesDirectory().mkdirs();
 		getSourcesDirectory().setLastModified(System.currentTimeMillis());
