@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
-import pt.ist.fenixframework.core.FenixCache;
+import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class CoreDomainObject extends AbstractDomainObjectAdapter {
     private static final Logger logger = Logger.getLogger(CoreDomainObject.class);
@@ -28,7 +28,7 @@ public class CoreDomainObject extends AbstractDomainObjectAdapter {
         // find successive ids until one is available
         while (true) {
             this.oid = DomainClassInfo.getNextOidFor(this.getClass());
-            Object cached = FenixCache.getCache().cache(this);
+            Object cached = SharedIdentityMap.getCache().cache(this);
             if (cached == this) {
                 // break the loop once we got this instance cached
                 return;
@@ -49,7 +49,7 @@ public class CoreDomainObject extends AbstractDomainObjectAdapter {
     }
 
     public static <T extends DomainObject> T fromOid(long oid) {
-        return (T) FenixCache.getCache().lookup(oid);
+        return (T) SharedIdentityMap.getCache().lookup(oid);
     }
 }
 

@@ -7,21 +7,22 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class FenixCache {
-    private final static FenixCache instance = new FenixCache();
+public class SharedIdentityMap implements IdentityMap {
+    private final static SharedIdentityMap instance = new SharedIdentityMap();
 
     private static final ReferenceQueue<AbstractDomainObject> refQueue = new ReferenceQueue<AbstractDomainObject>();
 
     private ConcurrentHashMap<Object,CacheEntry> cache;
 
-    public FenixCache() {
+    public SharedIdentityMap() {
 	this.cache = new ConcurrentHashMap<Object,CacheEntry>();
     }
 
-    public static FenixCache getCache() {
+    public static SharedIdentityMap getCache() {
         return instance;
     }
 
+    @Override
     public AbstractDomainObject cache(AbstractDomainObject obj) {
 	processQueue();
 	Object key = obj.getOid();
@@ -47,6 +48,7 @@ public class FenixCache {
 	}
     }
 
+    @Override
     public AbstractDomainObject lookup(Object key) {
 	processQueue();
 	CacheEntry entry = this.cache.get(key);
