@@ -34,8 +34,8 @@ import pt.ist.fenixframework.util.Converter;
  *
  * <p> Additional configuration parameters may be added by subclassing this class.  Subclasses of
  * config can override the {@link #init(DomainModel)} method.  Typically, their own {@link
- * init(DomainModel)} should also call {@link super.init(DomainModel)} if an hierarchy of configs is
- * used.
+ * #init(DomainModel)} should also call {@link super#init(DomainModel)} if an hierarchy of configs
+ * is used.
  * 
  * <p> To create an instance of this class with the proper values for its parameters, programmers
  * should generally use code like this:
@@ -143,7 +143,7 @@ public abstract class Config {
     }
     
     /**
-     * This method is invoked by the {@link FenixFramework.initialize(Config)}.
+     * This method is invoked by the {@link FenixFramework#initialize(Config)}.
      */
     protected final void initialize(DomainModel domainModel) {
         init(domainModel);

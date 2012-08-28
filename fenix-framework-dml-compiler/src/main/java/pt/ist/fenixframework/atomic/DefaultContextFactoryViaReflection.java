@@ -6,9 +6,9 @@ import pt.ist.fenixframework.Atomic;
 
 /**
  * This DefaultContextFactoryViaReflection tries to find, via reflection, a class named {@link
- * pt.ist.fenixframework.atomic.DefaultContextFactory}.  If it fails, it throws an Error, indicating such condition.  If it
- * succeeds, it delegates to the {@link pt.ist.fenixframework.atomic.DefaultContextFactory} the creation of the {@link
- * AtomicContext}.
+ * pt.ist.fenixframework.atomic.DefaultContextFactory}.  If it fails, it throws an Error, indicating
+ * such condition.  If it succeeds, it delegates to the {@link
+ * pt.ist.fenixframework.atomic.DefaultContextFactory} the creation of the {@link AtomicContext}.
  */
 public final class DefaultContextFactoryViaReflection extends ContextFactory {
 

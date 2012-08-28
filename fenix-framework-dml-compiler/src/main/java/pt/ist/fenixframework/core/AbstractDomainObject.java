@@ -9,18 +9,16 @@ import org.apache.log4j.Logger;
 import pt.ist.fenixframework.DomainObject;
 
 /**
- * This is the top-level class for every DomainObject. Each backend should
- * provide a subclass of this class, with a backend-specific implementation of
- * both {@link DomainObject#getExternalId()} and {@link getOid()}.  In this
- * class, they simply throw an {@link UnsupportedOperationException}.  The
- * method {@link DomainObject#getExternalId()} should be used by the user of the
- * framework, whereas the method {@link getOid()} should be used by code within
- * the framework.  This allows for a more efficient implementation of the
- * object's internal identifier, other than the String type imposed on the
- * external identifier.
+ * This is the top-level class for every DomainObject. Each backend should provide a subclass of
+ * this class, with a backend-specific implementation of both {@link DomainObject#getExternalId()}
+ * and {@link #getOid()}.  In this class, they simply throw an {@link
+ * UnsupportedOperationException}.  The method {@link DomainObject#getExternalId()} should be used
+ * by the user of the framework, whereas the method {@link #getOid()} should be used by code within
+ * the framework.  This allows for a more efficient implementation of the object's internal
+ * identifier, other than the String type imposed on the external identifier.
  *
- * Additionally, the subclass must also implement {@link ensureOid()}, {@link restoreOid(Object)},
- * {@link makeSerializedForm()}, and {@link SerializedForm#fromExternalId(String)}.  See their
+ * Additionally, the subclass must also implement {@link #ensureOid()}, {@link #restoreOid(Object)},
+ * {@link #makeSerializedForm()}, and {@link SerializedForm#fromExternalId(String)}.  See their
  * documentation for further explanation.
  */
 public abstract class AbstractDomainObject implements DomainObject {
@@ -54,8 +52,8 @@ public abstract class AbstractDomainObject implements DomainObject {
     /**
      * Set the identifier (<code>oid</code>) of the object that is being created.  This method is
      * invoked by the no-arg constructor.  It is only intented to be invoked from within a
-     * constructor (with the exception of {@link AbstractDomainObject(DomainObjectAllocator.OID)},
-     * which uses {@link restoreOid(Object)} instead).
+     * constructor (with the exception of {@link #AbstractDomainObject(DomainObjectAllocator.OID)},
+     * which uses {@link #restoreOid(Object)} instead).
      */
     protected void ensureOid() {
         throw new UnsupportedOperationException("ensureOid not implemented at this level");
@@ -64,7 +62,7 @@ public abstract class AbstractDomainObject implements DomainObject {
     /**
      * This constructor exists only as part of the allocate-instance protocol and should never be
      * explicitly invoked by the programmer.  Each subclass must define the {@link
-     * restoreOid(Object)} method.
+     * #restoreOid(Object)} method.
      *
      * @see #restoreOid
      */
@@ -74,7 +72,7 @@ public abstract class AbstractDomainObject implements DomainObject {
 
     /** Overrides of this method should set the <code>oid</code> of the object.  This method should
      * only be invoked as part of the allocate-instance protocol, i.e. from within the {@link
-     * AbstractDomainObject(DomainObjectAllocator.OID)} constructor.
+     * #AbstractDomainObject(DomainObjectAllocator.OID)} constructor.
      *
      * @param oid This object's identifier
      */

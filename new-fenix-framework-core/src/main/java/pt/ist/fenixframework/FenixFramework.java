@@ -115,7 +115,7 @@ public class FenixFramework {
         }
         PropertyConfigurator.configure(in);
         logger = Logger.getLogger(FenixFramework.class);
-        logger.info("Initialized logging system for Fenix Framework.");
+        logger.debug("Initialized logging system for Fenix Framework.");
     }
 
     /* Attempts to automatically initialize the framework by reading the
@@ -185,6 +185,7 @@ public class FenixFramework {
 		throw new ConfigError(ConfigError.ALREADY_INITIALIZED);
 	    }
 
+            logger.debug("Initializing Fenix Framework with config.class=" + config.getClass().getName());
 	    FenixFramework.config = ((config != null) ? config
                                      : new DefaultConfig() {{ this.domainModelURLs = Config.resourceToURLArray("empty.dml"); }});
 

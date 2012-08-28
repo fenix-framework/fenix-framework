@@ -5,9 +5,9 @@ import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 
 /**
- * Each concrete back end should implement this interface.  The framework's core
- * already provides a {@link DefaultConfiguration} with a minimal back end that
- * implements a no-op {@link TransactionManager}.
+ * Each concrete back end should implement this interface.  The framework's core already provides a
+ * {@link pt.ist.fenixframework.backend.mem.DefaultConfig} with a minimal back end that implements a
+ * no-op {@link TransactionManager}.
  */
 public interface BackEnd {
     /**

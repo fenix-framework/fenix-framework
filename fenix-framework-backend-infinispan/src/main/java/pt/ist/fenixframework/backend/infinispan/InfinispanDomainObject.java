@@ -2,6 +2,7 @@ package pt.ist.fenixframework.backend.infinispan;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.UUID;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -9,7 +10,7 @@ import org.apache.log4j.Logger;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
-import pt.ist.fenixframework.core.FenixCache;
+import pt.ist.fenixframework.core.IdentityMap;
 
 public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     private static final Logger logger = Logger.getLogger(InfinispanDomainObject.class);
@@ -19,21 +20,13 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     protected void restoreOid(Object oid) {
-        // assert (oid != null);
-        // this.oid = (Long)oid;
+        assert (oid != null);
+        this.oid = (String)oid;
     }
 
     @Override
     protected void ensureOid() {
-        // // find successive ids until one is available
-        // while (true) {
-        //     this.oid = DomainClassInfo.getNextOidFor(this.getClass());
-        //     Object cached = FenixCache.getCache().cache(this);
-        //     if (cached == this) {
-        //         // break the loop once we got this instance cached
-        //         return;
-        //     }
-        // }
+        this.oid = UUID.randomUUID().toString();
     }
 
     // dealing with domain object identifiers
@@ -49,6 +42,8 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     }
 
     public static <T extends DomainObject> T fromOid(long oid) {
+        // FenixCache cache = FenixFramework.getBackEnd().getCache();
+
         // return (T) FenixCache.getCache().lookup(oid);
         throw new UnsupportedOperationException("not yet implemented");
     }
