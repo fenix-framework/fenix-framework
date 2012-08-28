@@ -51,14 +51,14 @@
   <repositories>
     <repository>
       <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
     </repository>
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
       <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
     </pluginRepository>
   </pluginRepositories>
 
