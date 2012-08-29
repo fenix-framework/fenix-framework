@@ -57,7 +57,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	CompilerArgs compArgs = null;
 	long latestBuildTime = getGeneratedSourcesDirectory().lastModified();
 
-	boolean shouldCompile = false;
+	boolean shouldCompile = getMavenProject().getArtifact().getType().trim().equalsIgnoreCase("war");
 	List<URL> dmlFiles = new ArrayList<URL>();
 	if (getDmlSourceDirectory().exists()) {
 	    DirectoryScanner scanner = new DirectoryScanner();
