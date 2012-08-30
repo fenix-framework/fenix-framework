@@ -18,7 +18,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <infinispanVersion>5.2.0-SNAPSHOT</infinispanVersion>
+        <!-- <version.infinispan>5.2.0-SNAPSHOT</version.infinispan> -->
+        <version.infinispan>5.1.6.FINAL</version.infinispan>
+        <version.jta>1.0.0.Final</version.jta>
+        <version.rhq.helpers>3.0.4</version.rhq.helpers>
+        <version.jbossjta>4.16.3.Final</version.jbossjta>
+        <version.jboss.logging>3.1.0.GA</version.jboss.logging>
     </properties>
 
     <build>
@@ -84,8 +89,33 @@
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
-            <version>${infinispanVersion}</version>
+            <version>${version.infinispan}</version>
         </dependency>
+         <dependency>
+            <groupId>org.jboss.spec.javax.transaction</groupId>
+            <artifactId>jboss-transaction-api_1.1_spec</artifactId>
+            <version>${version.jta}</version>
+         </dependency>
+         <!--
+             infinispan-core forgot rhq-pluginAnnotations dependency.  Remove
+             the following dependency when fixed. See:
+             https://issues.jboss.org/browse/ISPN-1521
+         -->
+         <dependency>
+            <groupId>org.rhq.helpers</groupId>
+            <artifactId>rhq-pluginAnnotations</artifactId>
+            <version>${version.rhq.helpers}</version>
+         </dependency>
+        <dependency>
+            <groupId>org.jboss.jbossts</groupId>
+            <artifactId>jbossjta</artifactId>
+            <version>${version.jbossjta}</version>
+        </dependency>
+         <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>${version.jboss.logging}</version>
+         </dependency>
     </dependencies>
 
     <repositories>

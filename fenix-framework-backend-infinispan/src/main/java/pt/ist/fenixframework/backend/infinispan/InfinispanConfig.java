@@ -5,9 +5,7 @@ import org.apache.log4j.Logger;
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
 import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.IdentityMap;
-import pt.ist.fenixframework.dml.DomainModel;
 
 /**
  * This is the infinispan configuration manager used by the fenix-framework-backend-infinispan
@@ -45,11 +43,19 @@ public class InfinispanConfig extends Config {
      */
     protected MapType identityMap = MapType.SHARED;
 
-    protected final BackEnd backEnd;
+    /**
+     * This <strong>required</strong> parameter specifies the location of the XML file used to
+     * configure Infinispan.  This file should be available in the application's classpath.
+     */
+    protected String ispnConfigFile = null;
+
+    protected final InfinispanBackEnd backEnd;
 
     public InfinispanConfig() {
         this.backEnd = new InfinispanBackEnd();
     }
+
+    // process this config's parameters
 
     protected void identityMapFromString(String value) {
         String cleanValue = value.trim().toUpperCase();
@@ -62,13 +68,19 @@ public class InfinispanConfig extends Config {
         }
     }
 
-    @Override
-    protected void init(DomainModel domainModel) {
-        // DomainClassInfo.initializeClassInfos(domainModel, 0);
+    public String getIspnConfigFile() {
+        return this.ispnConfigFile;
     }
 
     @Override
-    public BackEnd getBackEnd() {
+    protected void init() {
+        this.backEnd.configInfinispan(this);
+        // DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
+    }
+
+    @Override
+    public InfinispanBackEnd getBackEnd() {
         return this.backEnd;
     }
+
 }

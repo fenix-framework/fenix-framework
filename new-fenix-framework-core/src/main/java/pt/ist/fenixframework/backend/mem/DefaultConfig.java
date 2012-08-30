@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.backend.mem;
 
 import pt.ist.fenixframework.Config;
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.dml.DomainModel;
 
@@ -18,8 +19,8 @@ public class DefaultConfig extends Config {
     }
 
     @Override
-    protected void init(DomainModel domainModel) {
-        DomainClassInfo.initializeClassInfos(domainModel, 0);
+    protected void init() {
+        DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
     }
 
     @Override

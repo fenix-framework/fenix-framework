@@ -10,8 +10,8 @@ public class NoOpTransactionManager implements TransactionManager {
     public void commit() {}
     public Transaction getTransaction() { return null; }
     public void rollback() {}
-    public void withTransaction(TransactionalCommand command) {
-        command.doIt();
+    public <T> T withTransaction(TransactionalCommand<T> command) {
+        return command.doIt();
     }
 }
 

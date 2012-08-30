@@ -16,7 +16,6 @@ import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.DmlFile;
 import pt.ist.fenixframework.core.Project;
 import pt.ist.fenixframework.core.exception.ProjectException;
-import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.util.Converter;
 
 /**
@@ -33,9 +32,8 @@ import pt.ist.fenixframework.util.Converter;
  * specified by the programmer before calling the {@link FenixFramework#initialize(Config)} method.
  *
  * <p> Additional configuration parameters may be added by subclassing this class.  Subclasses of
- * config can override the {@link #init(DomainModel)} method.  Typically, their own {@link
- * #init(DomainModel)} should also call {@link super#init(DomainModel)} if an hierarchy of configs
- * is used.
+ * config can override the {@link #init()} method.  Typically, their own {@link #init()} should also
+ * call {@link super#init()} if an hierarchy of configs is used.
  * 
  * <p> To create an instance of this class with the proper values for its parameters, programmers
  * should generally use code like this:
@@ -132,7 +130,7 @@ public abstract class Config {
 
     /**
      * Subclasses of this class can overwrite this method, but they should specifically call
-     * <code>super()</code> to check the superclass's configuration.
+     * <code>super.checkConfig()</code> to check the superclass's configuration.
      */
     protected void checkConfig() {
         checkForDomainModelURLs();
@@ -145,8 +143,8 @@ public abstract class Config {
     /**
      * This method is invoked by the {@link FenixFramework#initialize(Config)}.
      */
-    protected final void initialize(DomainModel domainModel) {
-        init(domainModel);
+    protected final void initialize() {
+        init();
         checkConfig();
     }
 
@@ -280,7 +278,7 @@ public abstract class Config {
         domainModelURLs = urls;
     }
 
-    protected abstract void init(DomainModel domainModel);
+    protected abstract void init();
 
     /**
      * Get the current {@link BackEnd} in use.

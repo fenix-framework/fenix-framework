@@ -115,7 +115,7 @@ public class FenixFramework {
         }
         PropertyConfigurator.configure(in);
         logger = Logger.getLogger(FenixFramework.class);
-        logger.debug("Initialized logging system for Fenix Framework.");
+        logger.info("Initialized logging system for Fenix Framework.");
     }
 
     /* Attempts to automatically initialize the framework by reading the
@@ -123,9 +123,14 @@ public class FenixFramework {
     private static void tryAutoInit() {
         InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(FENIX_FRAMEWORK_CONFIG_RESOURCE);
         if (in == null) {
-            // failed to auto init
+            logger.info("Skipping configuration by convention.  Resource '"
+                        + FENIX_FRAMEWORK_CONFIG_RESOURCE + "' not found");
             return;
         }
+
+        logger.info("Found configuration by convention in resource '"
+                    + FENIX_FRAMEWORK_CONFIG_RESOURCE + "'.");
+
         Config config = null;
         try {
             config = createConfigFromResourceStream(in);
@@ -179,32 +184,38 @@ public class FenixFramework {
      * @param config The configuration that will be used by this instance of the
      * framework.
      */
-    public static void initialize(Config config) {
+    public static void initialize(Config newConfig) {
 	synchronized (INIT_LOCK) {
 	    if (initialized) {
 		throw new ConfigError(ConfigError.ALREADY_INITIALIZED);
 	    }
 
-            logger.debug("Initializing Fenix Framework with config.class=" + config.getClass().getName());
-	    FenixFramework.config = ((config != null) ? config
-                                     : new DefaultConfig() {{ this.domainModelURLs = Config.resourceToURLArray("empty.dml"); }});
+            if (newConfig == null) {
+                logger.warn("Initialization with a 'null' config instance."
+                            + " Will use default configuration with empty DML.  Is this correct?");
+                newConfig = new DefaultConfig() {{
+                    this.domainModelURLs = Config.resourceToURLArray("empty.dml"); }};
+            }
 
+            logger.info("Initializing Fenix Framework with config.class=" + newConfig.getClass().getName());
+	    FenixFramework.config = newConfig;
 
             // domainModelURLs should have been set by now
-            config.checkForDomainModelURLs();
+            FenixFramework.config.checkForDomainModelURLs();
 
-            // set the domain model
+            // set the domain model.  This must be done before calling FenixFramework.config.initialize()
             try {
-                domainModel = DmlCompiler.getDomainModel(Arrays.asList(config.getDomainModelURLs()));
+                domainModel = DmlCompiler.getDomainModel(Arrays.asList(FenixFramework.config.getDomainModelURLs()));
             } catch (Exception ex) {
                 ex.printStackTrace();
                 throw new ConfigError(ex);
             }
 
-            FenixFramework.config.initialize(domainModel);
+            FenixFramework.config.initialize();
 	    // DataAccessPatterns.init(FenixFramework.config);
 	    initialized = true;
 	}
+        logger.info("Initialization of Fenix Framework is complete.");
     }
     
     public static Config getConfig() {
@@ -252,5 +263,15 @@ public class FenixFramework {
 
     public static TransactionManager getTransactionManager() {
         return getConfig().getBackEnd().getTransactionManager();
+    }
+
+    /**
+     * Inform the framework components that the application intends to shutdown.  This allows for an
+     * orderly termination of any running components.  The execution of this method is also
+     * delegated on the backend-specific implementation.  After invoking this method there is no
+     * guarantee that the Fenix Framework is able to provide any more services.
+     */
+    public static void shutdown() {
+        getConfig().getBackEnd().shutdown();
     }
 }

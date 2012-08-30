@@ -16,8 +16,10 @@ public interface TransactionManager {
     // public void setTransactionTimeout(int seconds);
     // public Transaction suspend();
 
-    /* Transactionally execute a command. */
-    public void withTransaction(TransactionalCommand command);
+    /**
+     * Transactionally execute a command, possibly returning a result.
+     */
+    public <T> T withTransaction(TransactionalCommand<T> command);
 
 
     // non-JTA API

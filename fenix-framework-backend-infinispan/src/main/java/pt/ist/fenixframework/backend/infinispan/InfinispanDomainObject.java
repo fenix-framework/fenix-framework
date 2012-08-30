@@ -41,7 +41,7 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
 	return oid;
     }
 
-    public static <T extends DomainObject> T fromOid(long oid) {
+    public static <T extends DomainObject> T fromOid(String oid) {
         // FenixCache cache = FenixFramework.getBackEnd().getCache();
 
         // return (T) FenixCache.getCache().lookup(oid);

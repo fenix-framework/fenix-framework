@@ -32,4 +32,12 @@ public interface BackEnd {
      * @param oid The backend-specific identifier of the object to get
      */
     public <T extends DomainObject> T fromOid(Object oid);
+
+    /**
+     * Perform any required operations for a successful shutdown of the BackEnd.  After invoking
+     * this method there is no guarantee that the Fenix Framework is able to provide any more
+     * services.
+     */
+    public void shutdown();
+
 }

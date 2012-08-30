@@ -41,4 +41,7 @@ public class DefaultBackEnd implements BackEnd {
     public <T extends DomainObject> T fromOid(Object oid) {
         return CoreDomainObject.fromOid((Long)oid);
     }
+
+    @Override
+    public void shutdown() {}
 }
