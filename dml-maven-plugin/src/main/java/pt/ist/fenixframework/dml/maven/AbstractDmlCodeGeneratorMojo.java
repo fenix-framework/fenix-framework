@@ -23,25 +23,25 @@ import pt.ist.fenixframework.core.Project;
 
 public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
-    protected abstract MavenProject getMavenProject();
+	protected abstract MavenProject getMavenProject();
 
-    protected abstract String getCodeGeneratorClassName();
+	protected abstract String getCodeGeneratorClassName();
 
-    protected abstract File getDmlSourceDirectory();
+	protected abstract File getDmlSourceDirectory();
 
-    protected abstract File getGeneratedSourcesDirectory();
+	protected abstract File getGeneratedSourcesDirectory();
 
-    protected abstract File getSourcesDirectory();
+	protected abstract File getSourcesDirectory();
 
-    protected abstract String getOutputDirectoryPath();
+	protected abstract String getOutputDirectoryPath();
 
-    protected abstract String getPackageName();
+	protected abstract String getPackageName();
 
-    protected abstract boolean verbose();
+	protected abstract boolean verbose();
 
-    protected abstract boolean generateFinals();
+	protected abstract boolean generateFinals();
 
-    protected abstract boolean generateProjectProperties();
+	protected abstract boolean generateProjectProperties();
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -93,7 +93,9 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	}
 
 	try {
-	    Project project = DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(), dmlFiles);
+	    Project project = DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(),
+                                                      getGeneratedSourcesDirectory(), dmlFiles,
+                                                      getLog(), verbose());
 
 	    List<URL> allDmls = new ArrayList<URL>();
 	    for (DmlFile dmlFile : project.getFullDmlSortedList()) {
@@ -107,16 +109,15 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 		return;
 	    }
 
-            // Split all DML files in two sets: local and external.
-            List<URL> localDmls = new ArrayList<URL>();
-            for (DmlFile dmlFile : project.getDmls()) {
-                localDmls.add(dmlFile.getUrl());
-            }
-            List<URL> externalDmls = new ArrayList<URL>(allDmls);
-            externalDmls.removeAll(localDmls);
+	    if (project.shouldCompile() || shouldCompile) {
+                // Split all DML files in two sets: local and external.
+                List<URL> localDmls = new ArrayList<URL>();
+                for (DmlFile dmlFile : project.getDmls()) {
+                    localDmls.add(dmlFile.getUrl());
+                }
+                List<URL> externalDmls = new ArrayList<URL>(allDmls);
+                externalDmls.removeAll(localDmls);
             
-	    shouldCompile = true;
-	    if (shouldCompile) {
 		getSourcesDirectory().mkdirs();
 		getSourcesDirectory().setLastModified(System.currentTimeMillis());
 		if (verbose()) {
@@ -130,14 +131,16 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	    } else {
 		if (verbose()) {
 		    getLog().info("All dml files are up to date. Skipping generation...");
-		}
-	    }
-	} catch (Exception e) {
-	    getLog().error(e);
-	}
+                }
+            }
+        } catch (Exception e) {
+            getLog().error(e);
+        }
     }
 
-    public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
-	return (Class<? extends CodeGenerator>) Class.forName(getCodeGeneratorClassName());
-    }
+	public Class<? extends CodeGenerator> getCodeGeneratorClass()
+			throws ClassNotFoundException {
+		return (Class<? extends CodeGenerator>) Class
+				.forName(getCodeGeneratorClassName());
+	}
 }

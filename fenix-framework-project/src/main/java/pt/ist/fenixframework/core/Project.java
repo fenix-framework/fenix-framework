@@ -31,13 +31,15 @@ public class Project {
     private String name;
     private List<DmlFile> dmls;
     private List<Project> dependencies;
+    private boolean shouldCompile;
     private List<Project> depended = new ArrayList<Project>();
 
-    public Project(String name, List<DmlFile> dmls, List<Project> dependencies)
-	    throws ProjectException {
+    public Project(String name, List<DmlFile> dmls, List<Project> dependencies,
+                   boolean shouldCompile) throws ProjectException {
 	this.name = name;
 	this.dmls = dmls;
 	this.dependencies = dependencies;
+        this.shouldCompile = shouldCompile;
 	for (Project project : dependencies) {
 	    project.depended.add(this);
 	}
@@ -51,6 +53,10 @@ public class Project {
 
     public List<DmlFile> getDmls() {
 	return dmls;
+    }
+
+    public boolean shouldCompile() {
+        return shouldCompile;
     }
 
     public List<Project> getDependencyProjects() {
@@ -152,7 +158,7 @@ public class Project {
 		    dependencies.add(Project.fromName(projectName));
 		}
 	    }
-	    new Project(name, dependencyDmlFiles, dependencies);
+	    new Project(name, dependencyDmlFiles, dependencies, false);
 	}
 	return projects.get(name);
     }
