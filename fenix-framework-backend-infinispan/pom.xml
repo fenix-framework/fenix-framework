@@ -91,31 +91,37 @@
             <artifactId>infinispan-core</artifactId>
             <version>${version.infinispan}</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.jboss.spec.javax.transaction</groupId>
             <artifactId>jboss-transaction-api_1.1_spec</artifactId>
             <version>${version.jta}</version>
-         </dependency>
-         <!--
-             infinispan-core forgot rhq-pluginAnnotations dependency.  Remove
-             the following dependency when fixed. See:
-             https://issues.jboss.org/browse/ISPN-1521
-         -->
-         <dependency>
+        </dependency>
+        <!--
+            infinispan-core forgot rhq-pluginAnnotations dependency.  Remove
+            the following dependency when fixed. See:
+            https://issues.jboss.org/browse/ISPN-1521
+        -->
+        <dependency>
             <groupId>org.rhq.helpers</groupId>
             <artifactId>rhq-pluginAnnotations</artifactId>
             <version>${version.rhq.helpers}</version>
-         </dependency>
+        </dependency>
         <dependency>
             <groupId>org.jboss.jbossts</groupId>
             <artifactId>jbossjta</artifactId>
             <version>${version.jbossjta}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging-spi</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
             <version>${version.jboss.logging}</version>
-         </dependency>
+        </dependency>
     </dependencies>
 
     <repositories>
@@ -147,18 +153,18 @@
             <url>http://guice-maven.googlecode.com/svn/trunk</url>
         </repository>
         <repository>
-          <id>jboss-deprecated-repository</id>
-          <name>JBoss Deprecated Maven Repository</name>
-          <url>https://repository.jboss.org/nexus/content/repositories/deprecated/</url>
-          <layout>default</layout>
-          <releases>
-            <enabled>true</enabled>
-            <updatePolicy>never</updatePolicy>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-            <updatePolicy>never</updatePolicy>
-          </snapshots>
+            <id>jboss-deprecated-repository</id>
+            <name>JBoss Deprecated Maven Repository</name>
+            <url>https://repository.jboss.org/nexus/content/repositories/deprecated/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
         </repository>
     </repositories>
 
