@@ -12,6 +12,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<dml.maven.plugin.version>${dmlMavenPluginVersion}</dml.maven.plugin.version>
+		<fenix.framework.version>${fenixFrameworkVersion}</fenix.framework.version>
   </properties>
 
   <build>
@@ -19,7 +21,7 @@
       <plugin>
         <groupId>dml</groupId>
         <artifactId>dml-maven-plugin</artifactId>
-        <version>${dmlMavenPluginVersion}</version>
+        <version>${dml.maven.plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -33,37 +35,30 @@
   </build>
 
   <dependencies>
-    <dependency>
-      <groupId>pt.ist</groupId>
-      <artifactId>fenix-framework-core</artifactId>
-      <version>${fenixFrameworkCoreVersion}</version>
-    </dependency>
-#if(!($backEndArtifactId == "fenix-framework-core" && $backEndGroupId == "pt.ist"))
-    <dependency>
-      <groupId>${backEndGroupId}</groupId>
-      <artifactId>${backEndArtifactId}</artifactId>
-      <version>${backEndVersion}</version>
-    </dependency>
-#end
-    <dependency>
+	  <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>3.8.1</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pt.ist</groupId>
+      <artifactId>fenix-framework-core</artifactId>
+      <version>${fenix.framework.version}</version>
     </dependency>
   </dependencies>
 
   <repositories>
     <repository>
       <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/maven-repository</url>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
     </repository>
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
       <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/maven-repository</url>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
     </pluginRepository>
   </pluginRepositories>
 

@@ -1,14 +1,13 @@
 package pt.ist.fenixframework.dml.maven;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -25,19 +24,28 @@ import pt.ist.fenixframework.core.Project;
 public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
     protected abstract MavenProject getMavenProject();
+
     protected abstract String getCodeGeneratorClassName();
+
     protected abstract File getDmlSourceDirectory();
+
     protected abstract File getGeneratedSourcesDirectory();
+
     protected abstract File getSourcesDirectory();
+
     protected abstract String getOutputDirectoryPath();
 
     protected abstract String getPackageName();
+
     protected abstract boolean verbose();
+
     protected abstract boolean generateFinals();
+
     protected abstract boolean generateProjectProperties();
 
+    @Override
     public void execute() throws MojoExecutionException {
-        if (getMavenProject().getArtifact().getType().equals("pom")) {
+	if (getMavenProject().getArtifact().getType().equals("pom")) {
 	    getLog().info("Cannot generate domain for pom projects");
 	    return;
 	}
@@ -47,7 +55,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	CompilerArgs compArgs = null;
 	long latestBuildTime = getGeneratedSourcesDirectory().lastModified();
 
-	boolean shouldCompile = false;
+	boolean shouldCompile = getMavenProject().getArtifact().getType().trim().equalsIgnoreCase("war");
 	List<URL> dmlFiles = new ArrayList<URL>();
 	if (getDmlSourceDirectory().exists()) {
 	    DirectoryScanner scanner = new DirectoryScanner();
@@ -71,11 +79,17 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 		    getLog().error(e);
 		}
 		boolean isModified = file.lastModified() > latestBuildTime;
-		if (verbose() == false) {
+		if (verbose()) {
 		    getLog().info(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
 		}
 		shouldCompile = shouldCompile || isModified;
 	    }
+	    Collections.sort(dmlFiles, new Comparator<URL>() {
+                    @Override
+                    public int compare(URL o1, URL o2) {
+                        return o1.toExternalForm().compareTo(o2.toExternalForm());
+                    }
+                });
 	}
 
 	try {
@@ -103,7 +117,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
             
 	    shouldCompile = true;
 	    if (shouldCompile) {
-                getSourcesDirectory().mkdirs();
+		getSourcesDirectory().mkdirs();
 		getSourcesDirectory().setLastModified(System.currentTimeMillis());
 		if (verbose()) {
 		    getLog().info("Using generator: " + getCodeGeneratorClass().getName());
@@ -124,6 +138,6 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
     }
 
     public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
-        return (Class<? extends CodeGenerator>) Class.forName(getCodeGeneratorClassName());
+	return (Class<? extends CodeGenerator>) Class.forName(getCodeGeneratorClassName());
     }
 }

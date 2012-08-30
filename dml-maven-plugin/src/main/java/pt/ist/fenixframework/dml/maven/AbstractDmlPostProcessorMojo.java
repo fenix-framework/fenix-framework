@@ -48,11 +48,6 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
             postProcessor.start();
 
             ProcessAtomicAnnotations.processFile(this.getClassesDirectory());
-            
-            // Removed service annotation for now, postponed for later discussion
-	    // Class<?> serviceInjector = loader.loadClass("pt.ist.fenixframework.services.ServiceAnnotationInjector");
-	    // Method injector = serviceInjector.getMethod("inject", File.class, ClassLoader.class);
-	    // injector.invoke(null, this.getClassesDirectory(), loader);
 	} catch (Exception e) {
 	    getLog().error(e);
 	}
