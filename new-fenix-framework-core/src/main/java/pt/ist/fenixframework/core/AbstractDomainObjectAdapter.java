@@ -12,20 +12,11 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 
 /**
  * This class contains useful code, required by concrete {@link DomainObject}s.  Backend
- * implementations may benefit from the code in this class when proving their own implementations of
- * DomainObject.
+ * implementations may benefit from the code in this class when providing their own implementations
+ * of DomainObject.
  */
 public class AbstractDomainObjectAdapter extends AbstractDomainObject {
     private static final Logger logger = Logger.getLogger(AbstractDomainObjectAdapter.class);
-
-    // must be here because of the required constructor of the allocate instance protocol
-    protected AbstractDomainObjectAdapter() { }
-
-    // must be here to enable climbing throught the hierarchy of constructors using the special
-    // allocate instance constructor only
-    protected AbstractDomainObjectAdapter(DomainObjectAllocator.OID oid) {
-        super(oid);
-    }
 
     // serialization code
 

@@ -19,20 +19,13 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     // this should be final, but the ensureOid and restoreOid methods prevent it
     private OID oid;
 
+    // We need to have the default constructor, because we've added the allocate-instance constructor
     protected InfinispanDomainObject() {
         super();
     }
 
     protected InfinispanDomainObject(DomainObjectAllocator.OID oid) {
-        super(oid);
         this.oid = (OID)oid.oid;
-    }
-
-    @Override
-    protected void restoreOid(Comparable oid) {
-        throw new UnsupportedOperationException("disabled");
-        // assert (oid != null);
-        // this.oid = (OID)oid;
     }
 
     @Override

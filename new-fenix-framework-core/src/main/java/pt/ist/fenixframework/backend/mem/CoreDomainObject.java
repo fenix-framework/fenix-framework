@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
+import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class CoreDomainObject extends AbstractDomainObjectAdapter {
@@ -17,10 +18,8 @@ public class CoreDomainObject extends AbstractDomainObjectAdapter {
     // this should be final, but the ensureOid and restoreOid methods prevent it
     private long oid;
 
-    @Override
-    protected void restoreOid(Comparable oid) {
-        assert (oid != null);
-        this.oid = (Long)oid;
+    protected CoreDomainObject(DomainObjectAllocator.OID oid) {
+        this.oid = (Long)oid.oid;
     }
 
     @Override
