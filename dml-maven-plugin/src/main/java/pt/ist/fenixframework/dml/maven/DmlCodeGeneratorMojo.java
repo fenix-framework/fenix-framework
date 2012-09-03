@@ -9,7 +9,8 @@ import org.apache.maven.project.MavenProject;
  *
  * @goal generate-domain
  * @phase generate-sources
- * @requiresDependencyResolution runtime
+ * @configurator include-project-dependencies
+ * @requiresDependencyResolution compile+runtime
  * @threadSafe
  */
 public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
