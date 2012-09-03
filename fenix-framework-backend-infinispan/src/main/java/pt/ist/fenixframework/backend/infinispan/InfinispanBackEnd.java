@@ -17,6 +17,10 @@ import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
+import pt.ist.fenixframework.core.AbstractDomainObject;
+import pt.ist.fenixframework.core.DomainObjectAllocator;
+import pt.ist.fenixframework.core.IdentityMap;
+import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class InfinispanBackEnd implements BackEnd {
     private static final Logger logger = Logger.getLogger(InfinispanBackEnd.class);
@@ -30,26 +34,14 @@ public class InfinispanBackEnd implements BackEnd {
         this.transactionManager = new InfinispanTransactionManager();
     }
 
-    private static String ROOT_OBJECT_ID = "ROOT_OBJECT";
     @Override
     public DomainRoot getDomainRoot() {
-        DomainRoot root = InfinispanDomainObject.fromOid(ROOT_OBJECT_ID);
-        if (root == null) {
-            root = new DomainRoot(); // which automatically caches this instance, but does not
-                                     // ensure that it is the first, as a concurrent request might
-                                     // create another
-
-            // so we get it again from the cache before returning if
-            root = InfinispanDomainObject.fromOid(ROOT_OBJECT_ID);
-            assert root != null; // there must be at least one
-        }
-        return root;
+        return fromOid(OID.ROOT_OBJECT_ID);
     }
 
     @Override
     public <T extends DomainObject> T getDomainObject(String externalId) {
-        // return CoreDomainObject.fromOid(Long.parseLong(externalId));
-        throw new UnsupportedOperationException("not yet implemented");
+        return fromOid(new OID(externalId));
     }
 
     @Override
@@ -59,7 +51,18 @@ public class InfinispanBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        return InfinispanDomainObject.fromOid((String)oid);
+        OID internalId = (OID)oid;
+        IdentityMap cache = getIdentityMap();
+        AbstractDomainObject obj = cache.lookup(internalId);
+        
+	if (obj == null) {
+	    obj = DomainObjectAllocator.allocateObject(internalId.getObjClass(), internalId);
+
+	    // cache object and return the canonical object
+	    obj = cache.cache(obj);
+	}
+
+	return (T) obj;
     }
 
     /**
@@ -91,6 +94,11 @@ public class InfinispanBackEnd implements BackEnd {
             logger.debug("Infinispan initialization took " +
                          df.format(new Date(System.currentTimeMillis() - start)));
         }
+    }
+
+    protected IdentityMap getIdentityMap() {
+        //smf: Honor config and return the appropriate IM!!!
+        return SharedIdentityMap.getCache();
     }
 
 }

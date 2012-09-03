@@ -13,6 +13,7 @@ import org.apache.maven.project.MavenProject;
  *
  * @goal test-generate-domain
  * @phase generate-test-sources
+ * @configurator include-project-dependencies
  * @requiresDependencyResolution test
  * @threadSafe
  */

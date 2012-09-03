@@ -18,7 +18,7 @@ public class CoreDomainObject extends AbstractDomainObjectAdapter {
     private long oid;
 
     @Override
-    protected void restoreOid(Object oid) {
+    protected void restoreOid(Comparable oid) {
         assert (oid != null);
         this.oid = (Long)oid;
     }

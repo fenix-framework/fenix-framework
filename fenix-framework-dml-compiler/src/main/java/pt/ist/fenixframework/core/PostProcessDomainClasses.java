@@ -122,7 +122,7 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 	    MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 
 	    if ("<init>".equals(name) && CONSTRUCTOR_DESC.equals(desc)) {
-		// we process it and remove the original, if any, by returning
+                // we process it and remove the original, if any, by returning
 		// null
 		mv.visitCode();
 

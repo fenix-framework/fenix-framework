@@ -79,6 +79,15 @@ public class InfinispanConfig extends Config {
     }
 
     @Override
+    protected void checkConfig() {
+        super.checkConfig();
+        if (ispnConfigFile == null) {
+            missingRequired("ispnConfigFile");
+        }
+    }
+
+
+    @Override
     public InfinispanBackEnd getBackEnd() {
         return this.backEnd;
     }

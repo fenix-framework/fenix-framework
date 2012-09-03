@@ -75,24 +75,15 @@ public abstract class AbstractNode<T extends AbstractDomainObject> extends Abstr
     private static class TreeMapExternalization implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        private static Object NULL_OBJECT = new Object();
-
         private Comparable[] keyOids;
-        private Object[] valueOids;
-        // private byte[][] valueOids;
 
         TreeMapExternalization(TreeMap<Comparable,? extends AbstractDomainObject> treeMap) {
             int size = treeMap.size();
             this.keyOids = new Comparable[size];
-            this.valueOids = new Object[size];
-            // this.valueOids = new byte[size][];
 
             int i = 0;
             for (Map.Entry<Comparable,? extends AbstractDomainObject> entry : treeMap.entrySet()) {
         	this.keyOids[i] = entry.getKey();
-        	AbstractDomainObject value = entry.getValue();
-        	this.valueOids[i] = (value == null ? NULL_OBJECT: value.getOid());
-        	// this.valueOids[i] = Externalization.externalizeObject(value);
         	i++;
             }
         }
@@ -101,9 +92,8 @@ public abstract class AbstractNode<T extends AbstractDomainObject> extends Abstr
             TreeMap treeMap = new TreeMap(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
 
             for (int i = 0; i < this.keyOids.length; i++) {
-        	Comparable value = this.keyOids[i];
-        	treeMap.put(value, (value == NULL_OBJECT ? null : FenixFramework.getConfig().getBackEnd().fromOid(this.valueOids[i])));
-                // treeMap.put(value, Externalization.internalizeObject(this.valueOids[i]));
+        	Comparable key = this.keyOids[i];
+        	treeMap.put(key, FenixFramework.getConfig().getBackEnd().fromOid(key));
             }
             return treeMap;
         }

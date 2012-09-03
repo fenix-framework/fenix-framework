@@ -7,45 +7,52 @@ import java.util.UUID;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.FenixFramework;
+// import pt.ist.fenixframework.DomainObject;
+// import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
-import pt.ist.fenixframework.core.IdentityMap;
+import pt.ist.fenixframework.core.DomainObjectAllocator;
+// import pt.ist.fenixframework.core.IdentityMap;
 
 public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     private static final Logger logger = Logger.getLogger(InfinispanDomainObject.class);
 
     // this should be final, but the ensureOid and restoreOid methods prevent it
-    private String oid;
+    private OID oid;
+
+    protected InfinispanDomainObject() {
+        super();
+    }
+
+    protected InfinispanDomainObject(DomainObjectAllocator.OID oid) {
+        super(oid);
+        this.oid = (OID)oid.oid;
+    }
 
     @Override
-    protected void restoreOid(Object oid) {
-        assert (oid != null);
-        this.oid = (String)oid;
+    protected void restoreOid(Comparable oid) {
+        throw new UnsupportedOperationException("disabled");
+        // assert (oid != null);
+        // this.oid = (OID)oid;
     }
 
     @Override
     protected void ensureOid() {
-        this.oid = UUID.randomUUID().toString();
+        Class objClass = this.getClass();
+        String uuid = UUID.randomUUID().toString();
+        this.oid = new OID(objClass, uuid);
     }
 
     // dealing with domain object identifiers
 
     @Override
-    public String getOid() {
-	return oid;
+    public OID getOid() {
+	return this.oid;
     }
 
     @Override
     public final String getExternalId() {
-	return oid;
+	return oid.toExternalId();
     }
 
-    public static <T extends DomainObject> T fromOid(String oid) {
-        // FenixCache cache = FenixFramework.getBackEnd().getCache();
-
-        // return (T) FenixCache.getCache().lookup(oid);
-        throw new UnsupportedOperationException("not yet implemented");
-    }
 }
 

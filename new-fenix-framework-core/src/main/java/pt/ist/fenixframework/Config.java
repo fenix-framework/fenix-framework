@@ -144,8 +144,8 @@ public abstract class Config {
      * This method is invoked by the {@link FenixFramework#initialize(Config)}.
      */
     protected final void initialize() {
-        init();
         checkConfig();
+        init();
     }
 
     // set each property via reflection, ignoring the config.class property, which was used to

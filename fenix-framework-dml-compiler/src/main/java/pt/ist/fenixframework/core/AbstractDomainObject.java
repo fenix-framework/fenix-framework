@@ -17,7 +17,7 @@ import pt.ist.fenixframework.DomainObject;
  * the framework.  This allows for a more efficient implementation of the object's internal
  * identifier, other than the String type imposed on the external identifier.
  *
- * Additionally, the subclass must also implement {@link #ensureOid()}, {@link #restoreOid(Object)},
+ * Additionally, the subclass must also implement {@link #ensureOid()}, {@link #restoreOid(Comparable)},
  * {@link #makeSerializedForm()}, and {@link SerializedForm#fromExternalId(String)}.  See their
  * documentation for further explanation.
  */
@@ -35,7 +35,7 @@ public abstract class AbstractDomainObject implements DomainObject {
      * framework to leverage on the knowledge of the concrete identifier, thus being more efficient.
      * <strong>This method should only be used by code internal to the framework</strong>.
      */
-    public Object getOid() {
+    public Comparable getOid() {
         throw new UnsupportedOperationException("getOid not implemented at this level");
     }
 
@@ -46,6 +46,7 @@ public abstract class AbstractDomainObject implements DomainObject {
      */
     protected AbstractDomainObject() {
         super();
+        logger.debug("Top-level default constructor!!!");
         ensureOid();
     }
     
@@ -53,7 +54,7 @@ public abstract class AbstractDomainObject implements DomainObject {
      * Set the identifier (<code>oid</code>) of the object that is being created.  This method is
      * invoked by the no-arg constructor.  It is only intented to be invoked from within a
      * constructor (with the exception of {@link #AbstractDomainObject(DomainObjectAllocator.OID)},
-     * which uses {@link #restoreOid(Object)} instead).
+     * which uses {@link #restoreOid(Comparable)} instead).
      */
     protected void ensureOid() {
         throw new UnsupportedOperationException("ensureOid not implemented at this level");
@@ -62,12 +63,13 @@ public abstract class AbstractDomainObject implements DomainObject {
     /**
      * This constructor exists only as part of the allocate-instance protocol and should never be
      * explicitly invoked by the programmer.  Each subclass must define the {@link
-     * #restoreOid(Object)} method.
+     * #restoreOid(Comparable)} method.
      *
      * @see #restoreOid
      */
     protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
-        restoreOid(oid.oid);
+        // restoreOid(oid.oid);
+        // throw new UnsupportedOperationException("allocate instance constructor not implemented at this level");
     }
 
     /** Overrides of this method should set the <code>oid</code> of the object.  This method should
@@ -76,7 +78,7 @@ public abstract class AbstractDomainObject implements DomainObject {
      *
      * @param oid This object's identifier
      */
-    protected void restoreOid(Object oid) {
+    protected void restoreOid(Comparable oid) {
         throw new UnsupportedOperationException("restoreOid not implemented at this level");
     }
 
@@ -193,7 +195,7 @@ public abstract class AbstractDomainObject implements DomainObject {
     protected static abstract class SerializedForm implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        // the external serialized form of any domain object only needs to keep its object id
+        // the external serialized form of any domain object only needs to keep its external ID
         private final String externalId;
 
         protected SerializedForm(AbstractDomainObject obj) {

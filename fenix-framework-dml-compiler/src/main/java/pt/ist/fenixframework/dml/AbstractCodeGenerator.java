@@ -563,6 +563,15 @@ public class AbstractCodeGenerator implements CodeGenerator {
     }
 
     protected void generateInitInstance(DomainClass domClass, PrintWriter out) {
+	// generate initInstance method to be used by OJB.  This is used in the PostProcessDomainClasses. Maybe we could disable it...
+	onNewline(out);
+	newline(out);
+	printMethod(out, "private", "void", "initInstance");
+	startMethodBody(out);
+	print(out, "initInstance(true);");
+	endMethodBody(out);
+
+
         // generate initInstance method
         onNewline(out);
         newline(out);
@@ -572,6 +581,7 @@ public class AbstractCodeGenerator implements CodeGenerator {
         // for (Slot slot : domClass.getSlotsList()) {
         //     generateInitSlot(slot, out);
         // }
+        onNewline(out);
 
         for (Role role : domClass.getRoleSlotsList()) {
             if (role.getName() != null) {

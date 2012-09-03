@@ -91,13 +91,22 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
     }
 
     /** Inserts the given key-value pair and returns the (possibly new) root node */
-    public void insert(Comparable key, T value) {
+    // public void insert(Comparable key, T value) {
+    public void insert(T value) {
+        if (value == null) {
+            throw new UnsupportedOperationException("This B+Tree does not support nulls");
+        }
 	AbstractNode rootNode = this.getRoot();
-	AbstractNode resultNode = rootNode.insert(key, value);
+	AbstractNode resultNode = rootNode.insert(value.getOid(), value);
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
     }
+
+    // /** Removes the given element */
+    // public void remove(T obj) {
+    //     remove(obj.getOid());
+    // }
 
     /** Removes the element with the given key */
     public void remove(Comparable key) {
