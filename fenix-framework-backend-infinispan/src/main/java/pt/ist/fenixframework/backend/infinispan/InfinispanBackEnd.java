@@ -97,7 +97,6 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     protected IdentityMap getIdentityMap() {
-        //smf: Honor config and return the appropriate IM!!!
         return SharedIdentityMap.getCache();
     }
 
