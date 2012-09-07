@@ -302,7 +302,7 @@ public abstract class Config {
         return Converter.resourceToURLArray(resource);
     }
 
-    public static URL[] resourcesToURLArray(String [] resources) {
+    public static URL[] resourcesToURLArray(String ... resources) {
         return Converter.resourcesToURLArray(resources);
     }
 
@@ -312,7 +312,7 @@ public abstract class Config {
         return Converter.filenameToURLArray(filename);
     }
 
-    public static URL[] filenamesToURLArray(String [] filenames) {
+    public static URL[] filenamesToURLArray(String ... filenames) {
         return Converter.filenamesToURLArray(filenames);
     }
 

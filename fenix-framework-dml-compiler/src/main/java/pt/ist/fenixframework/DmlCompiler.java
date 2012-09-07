@@ -55,6 +55,7 @@ public class DmlCompiler {
             CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class,
                                                                                  DomainModel.class).newInstance(compArgs, model);
             generator.generateCode();
+            generator.generateBackEndId();
             return model;
         } catch (Exception e) {
             throw new DmlCompilerException(e);

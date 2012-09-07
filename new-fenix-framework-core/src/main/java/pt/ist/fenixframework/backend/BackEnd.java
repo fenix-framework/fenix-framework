@@ -11,6 +11,14 @@ import pt.ist.fenixframework.TransactionManager;
  */
 public interface BackEnd {
     /**
+     * Get the unique name of this BackEnd.  The String returned by this method should contain only
+     * valid characters in a filename (because it can be used for configuration by convention
+     *
+     * @see pt.ist.fenixframework.FenixFramework
+     */
+    public String getName();
+
+    /**
      * @see pt.ist.fenixframework.FenixFramework#getDomainRoot()
      */
     public DomainRoot getDomainRoot();

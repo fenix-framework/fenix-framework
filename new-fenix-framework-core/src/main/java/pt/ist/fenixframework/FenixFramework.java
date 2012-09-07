@@ -12,6 +12,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 // import pt.ist.fenixframework.pstm.DataAccessPatterns;
 import pt.ist.fenixframework.backend.mem.DefaultConfig;
+import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.dml.DmlCompilerException;
 import pt.ist.fenixframework.dml.DomainModel;
 
@@ -24,23 +25,27 @@ import pt.ist.fenixframework.dml.DomainModel;
  * 
  * <ul>
  *
- * <li>Explicitly: The programmer creates the {@link Config} instance and explicitly calls the
- * {@link FenixFramework#initialize(Config)} method.</li>
+ * <li><strong>By convention</strong>: When the FenixFramework class is loaded, its static
+ * initialization code will check for the presence of a properties file that provides the
+ * configuration information.</li>
  *
- * <li>By convention: When the FenixFramework class is loaded, its static initialization code will
- * check for the presence of the file 'fenix-framework.properties' in the classpath using
- * <code>Thread.currentThread().getContextClassLoader().getResource("fenix-framework.properties")</code>.
- * If this file is found, and contains the correct content, the framework will create the
- * appropriate Config (or subclass) instance and automatically invoke {@link
- * FenixFramework#initialize(Config)}.</li>
+ * <li><strong>Explicitly</strong>: The programmer either creates a {@link Config} or {@link
+ * MultiConfig} instance and then explicitly calls the corresponding initialization method: {@link
+ * FenixFramework#initialize(Config)} or {@link FenixFramework#initialize(MultiConfig)}.</li>
  *
  * </ul>
- * 
- * <p>The first alternative maintains the previous configuration style with compile-time checking of
- * the config's attributes. To use it, read the documentation in the {@link Config} class.
  *
- * <p>Using the second option, the syntax for the configuration file is to have each line in the
- * form:
+ * <p>Using the configuration by convention, the framework will first look up the name of the {@link
+ * pt.ist.fenixframework.backend.BackEnd} that generated the domain-specific code (this is done by
+ * instantiationg the class {@link pt.ist.fenixframework.backend.CurrentBackEndId} and by requesting
+ * {@link pt.ist.fenixframework.backend.BackEndId#getBackEndName}) and then use that name to check
+ * for the presence of the file '<code>fenix-framework-&lt;NNN&gt;.properties</code>' in the
+ * classpath using <code>Thread.currentThread().getContextClassLoader().getResource()</code> (where
+ * <code>&lt;NNN&gt;</code> is the name of the BackEnd).  If this file is found, and contains the
+ * correct content, the framework will create the appropriate Config instance and automatically
+ * invoke {@link FenixFramework#initialize(Config)}.
+ *
+ * The syntax for the configuration file is to have each line in the form:
  *
  * <blockquote>
  *
@@ -49,12 +54,12 @@ import pt.ist.fenixframework.dml.DomainModel;
  * </blockquote>
  *
  * where each <code>property</code> must be the name of an existing configuration field.
- * Additionally, there is one optional property named <code>config.class</code>.  By default, the
- * config parser creates an instance of {@link pt.ist.fenixframework.backend.mem.DefaultConfig}, unless the
- * <code>config.class</code> is given, in which case the mentioned class' default constructor is
- * invoked to create an instance of a more specific Config instance.  The config instance is then
- * populated with each property (except with the <code>config.class</code> property), using the
- * following algorithm:
+ * Additionally, there is one optional special property named <code>config.class</code>.  By
+ * default, the config parser creates an instance of (THE config indicated on
+ * |JAVA_FILE_THAT_THE_GENERATOR_WILL_MAKE|method LINK), but this property can be used to choose a
+ * different (albeit compatible) configuration class.  The config instance is then populated with
+ * each property (except with the <code>config.class</code> property), using the following
+ * algorithm:
  *
  * <ol>
  *
@@ -76,9 +81,18 @@ import pt.ist.fenixframework.dml.DomainModel;
  * String provided in the <code>value></code> using the <code>*FromString</code> method.
  * 
  * <p> After population of the config finishes with success, the {@link
- * FenixFramework#initialize(Config)} method is invoked with the created Config instance.
+ * FenixFramework#initialize(Config)} method is invoked with the created Config instance.  From this
+ * point on, the initialization process continues just as if the programmer had explicitly invoked
+ * that initialization method.
  *
- * <p>After initialization, it is possible to get an instance of the {@link DomainModel} class
+ * <p>The explicit configuration maintains the original configuration style (since Fenix Framework
+ * 1.0) with compile-time checking of the config's attributes. To use it, read the documentation in
+ * the {@link Config} class.  It also adds the possibility for the programmer to provide multiple
+ * configurations and then let the initialization process decide which to use based on the current
+ * {@link pt.ist.fenixframework.backend.BackEnd} (see {@link MultiConfig} for more details).
+ *
+ * <p>After initialization completes with success, the framework is ready to manage operations on
+ * the domain objects.  Also, it is possible to get an instance of the {@link DomainModel} class
  * representing the structure of the application's domain.
  * 
  * @see Config
@@ -86,7 +100,10 @@ import pt.ist.fenixframework.dml.DomainModel;
  */
 public class FenixFramework {
 
-    private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE = "fenix-framework.properties";
+    private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_DEFAULT = "fenix-framework.properties";
+    private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX = "fenix-framework-";
+    private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX = ".properties";
+
     private static final String FENIX_FRAMEWORK_LOGGING_CONFIG = "fenix-framework-log4j.properties";
 
     private static final Object INIT_LOCK = new Object();
@@ -103,6 +120,7 @@ public class FenixFramework {
     static {
         synchronized (INIT_LOCK) {
             initLoggingSystem();
+            logger.info("Trying auto-initialization with configuration by convention");
             tryAutoInit();
         }
     }
@@ -118,27 +136,49 @@ public class FenixFramework {
         logger.info("Initialized logging system for Fenix Framework.");
     }
 
-    /* Attempts to automatically initialize the framework by reading the
-     * configuration parameters from a resource. */
+    /**
+     * Attempts to automatically initialize the framework by reading the configuration parameters
+     * from a resource.  The name of the resource depends on the name of the current backend.  If
+     * such resource is not found, a default fenix-framework.properties will still be attempted.  If
+     * neither a backend specific nor a default properties file is found, then the auto
+     * initialization process gives up.
+     */
     private static void tryAutoInit() {
-        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(FENIX_FRAMEWORK_CONFIG_RESOURCE);
+        // look up current backend's name
+        String currentBackEndName = BackEndId.getBackEndId().getBackEndName();
+        logger.debug("CurrentBackEndName = " + currentBackEndName);
+
+        // try auto init for the given backend
+        boolean success = tryAutoInit(FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX + currentBackEndName
+                                      + FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX);
+        if (!success) {
+            // try auto init with default resource name
+            if (!tryAutoInit(FENIX_FRAMEWORK_CONFIG_RESOURCE_DEFAULT)) {
+                logger.info("Skipping configuration by convention.");
+            }
+        }
+    }
+
+    /** Attempts to automatically initialize the framework by reading the
+     * configuration parameters from a named resource. */
+    private static boolean tryAutoInit(String resourceName) {
+        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
         if (in == null) {
-            logger.info("Skipping configuration by convention.  Resource '"
-                        + FENIX_FRAMEWORK_CONFIG_RESOURCE + "' not found");
-            return;
+            logger.info("Resource '" + resourceName + "' not found");
+            return false;
         }
 
-        logger.info("Found configuration by convention in resource '"
-                    + FENIX_FRAMEWORK_CONFIG_RESOURCE + "'.");
+        logger.info("Found configuration by convention in resource '" + resourceName + "'.");
 
         Config config = null;
         try {
             config = createConfigFromResourceStream(in);
         } catch (IOException e) {
-            // failed to auto init
-            return;
+            logger.debug("Failed autio initialization with " + resourceName, e);
+            return false;
         }
         FenixFramework.initialize(config);
+        return true;
     }
 
     private static Config createConfigFromResourceStream(InputStream in) throws IOException {
@@ -148,13 +188,23 @@ public class FenixFramework {
         try { in.close(); } catch (Throwable ignore) {}
         
         // get the config instance
-        String configClassName = props.getProperty(Config.PROPERTY_CONFIG_CLASS, Config.DEFAULT_CONFIG_CLASS_NAME);
         Config config = null;
         try {
-            Class<? extends Config> configClass = (Class<? extends Config>)Class.forName(configClassName);
+            Class<? extends Config> configClass = null;
+            // first check for possible overriding in the config file
+            String configClassName = props.getProperty(Config.PROPERTY_CONFIG_CLASS);
+            if (configClassName != null) {
+                try {
+                    configClass = (Class<? extends Config>)Class.forName(configClassName);
+                } catch (ClassNotFoundException e) {
+                    // here, we could ignore and attempt the default config class, but it's best if
+                    // the programmer understands that the configuration is flawed
+                    throw new ConfigError(ConfigError.CONFIG_CLASS_NOT_FOUND, configClassName);
+                }
+            } else { // fallback to the current backend's default
+                configClass = BackEndId.getBackEndId().getDefaultConfigClass();
+            }
             config = configClass.newInstance();
-        } catch (ClassNotFoundException e) {
-            throw new ConfigError(ConfigError.CONFIG_CLASS_NOT_FOUND, configClassName);
         } catch (InstantiationException e) {
             throw new ConfigError(e);
         } catch (IllegalAccessException e) {
@@ -181,8 +231,7 @@ public class FenixFramework {
      * to be called, and it should be invoked only once.  It needs to be called
      * before starting to access any Transactions/DomainObjects, etc.
      *
-     * @param config The configuration that will be used by this instance of the
-     * framework.
+     * @param newConfig The configuration that will be used by this instance of the framework.
      */
     public static void initialize(Config newConfig) {
 	synchronized (INIT_LOCK) {
@@ -218,6 +267,18 @@ public class FenixFramework {
         logger.info("Initialization of Fenix Framework is complete.");
     }
     
+    public static void initialize(MultiConfig configs) {
+	synchronized (INIT_LOCK) {
+            // look up current backend's name
+            String currentBackEndName = BackEndId.getBackEndId().getBackEndName();
+            logger.debug("CurrentBackEndName = " + currentBackEndName);
+            // get the correct config for the current backend
+            Config config = configs.get(currentBackEndName);
+            // initialize
+            FenixFramework.initialize(config);
+        }
+    }
+
     public static Config getConfig() {
         if (config == null) {
             throw new ConfigError(ConfigError.MISSING_CONFIG);

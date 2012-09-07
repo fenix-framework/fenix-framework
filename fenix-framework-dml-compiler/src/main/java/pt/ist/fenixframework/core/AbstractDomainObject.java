@@ -68,22 +68,11 @@ public abstract class AbstractDomainObject implements DomainObject {
      * Set the identifier (<code>oid</code>) of the object that is being created.  This method is
      * invoked by the no-arg constructor.  It is only intented to be invoked from within a
      * constructor (with the exception of {@link #AbstractDomainObject(DomainObjectAllocator.OID)},
-     * which uses {@link #restoreOid(Comparable)} instead).
+     * which has its own way of restoring the object's id.
      */
     protected void ensureOid() {
         throw new UnsupportedOperationException("ensureOid not implemented at this level");
     }
-
-    // /**
-    //  * This constructor exists only as part of the allocate-instance protocol and should never be
-    //  * explicitly invoked by the programmer.  Each backend must implement this constructor, and
-    //  * decide how the OID gets restored to the object.  Note that the classes modelled in DML are
-    //  * automatically injected with this constructor, which simply delegates the operation to the
-    //  * superclass's constructor.
-    //  */
-    // protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
-    //     // empty
-    // }
 
     @Override
     public final int hashCode() {

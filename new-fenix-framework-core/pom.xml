@@ -52,6 +52,7 @@
                     <excludes>
                         <exclude>**/*_Base*</exclude>
                         <exclude>pt/ist/fenixframework/ValueTypeSerializationGenerator*</exclude>
+                        <exclude>pt/ist/fenixframework/backend/CurrentBackEndId*</exclude>
                     </excludes>
                 </configuration>
             </plugin>

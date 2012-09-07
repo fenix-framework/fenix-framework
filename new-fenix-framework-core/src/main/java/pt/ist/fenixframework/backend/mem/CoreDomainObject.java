@@ -18,6 +18,11 @@ public class CoreDomainObject extends AbstractDomainObjectAdapter {
     // this should be final, but the ensureOid and restoreOid methods prevent it
     private long oid;
 
+    // We need to have the default constructor, because we've added the allocate-instance constructor
+    protected CoreDomainObject() {
+        super();
+    }
+
     protected CoreDomainObject(DomainObjectAllocator.OID oid) {
         this.oid = (Long)oid.oid;
     }

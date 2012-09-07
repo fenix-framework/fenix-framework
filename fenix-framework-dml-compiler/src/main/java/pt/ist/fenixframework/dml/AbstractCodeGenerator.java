@@ -89,6 +89,17 @@ public class AbstractCodeGenerator implements CodeGenerator {
         generateClasses(getDomainModel().getClasses());
     }
 
+    @Override
+    public void generateBackEndId() {
+        writeToFile(new File(getBaseDirectoryFor(BACKEND_PACKAGE), CURRENT_BACKEND_ID_CLASS + ".java"),
+                    new WriteProcedure() {
+                public void doIt(PrintWriter out) {
+                    generateFilePreamble(BACKEND_PACKAGE, out);
+                    generateCurrentBackEndIdClass(CURRENT_BACKEND_ID_CLASS, out);
+                }
+            });
+    }
+
     static interface WriteProcedure {
         public void doIt(PrintWriter out);
     }
@@ -199,6 +210,52 @@ public class AbstractCodeGenerator implements CodeGenerator {
         endMethodBody(out);
     }
 
+    protected void generateCurrentBackEndIdClass(String className, PrintWriter out) {
+        printWords(out, "public", "class", className, "extends", ABSTRACT_BACKEND_ID_CLASS);
+        newBlock(out);
+        generateBackEndIdClassBody(out);
+        closeBlock(out);
+    }
+
+    protected void generateBackEndIdClassBody(PrintWriter out) {
+        newline(out);
+        printMethod(out, "public", "String", "getBackEndName");
+        startMethodBody(out);
+        printWords(out, "return", "\"" + getBackEndName() + "\";");
+        endMethodBody(out);
+
+        newline(out);
+        printMethod(out, "public", "Class<? extends pt.ist.fenixframework.Config>", "getDefaultConfigClass");
+        startMethodBody(out);
+        print(out, "try");
+        newBlock(out);
+        // onNewline(out);
+        printWords(out, "return", "(Class<? extends pt.ist.fenixframework.Config>)Class.forName(\""
+                   + getDefaultConfigClassName() + "\");");
+        closeBlock(out);
+        printWords(out, "catch", "(Exception e)");
+        newBlock(out);
+        print(out, "throw new RuntimeException(e);");
+        closeBlock(out);
+        endMethodBody(out);
+    }
+
+    /**
+     *  Get the name of the backend for which this class generates code.  This is method is used
+     *  during the execution of {@link #generateBackEndId()}.
+     */
+    protected String getBackEndName() {
+        return "N/A";
+    }
+
+    /**
+     *  Get the name of the default configuration class of the backend for which this class
+     *  generates code.  This is method is used during the execution of {@link
+     *  #generateBackEndId()}.
+     */
+    protected String getDefaultConfigClassName() {
+        return "N/A";
+    }
 
     protected void generateBaseClass(DomainClass domClass, PrintWriter out) {
         printWords(out, "public", "abstract", "class", domClass.getBaseName(), "extends");

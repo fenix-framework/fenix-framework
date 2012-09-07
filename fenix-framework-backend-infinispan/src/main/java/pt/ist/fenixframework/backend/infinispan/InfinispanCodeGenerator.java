@@ -14,4 +14,14 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
     protected String getDomainClassRoot() {
         return InfinispanDomainObject.class.getName();
     }
+
+    @Override
+    protected String getBackEndName() {
+        return InfinispanBackEnd.BACKEND_NAME;
+    }
+
+    @Override
+    protected String getDefaultConfigClassName() {
+        return InfinispanConfig.class.getName();
+    }
 }

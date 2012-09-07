@@ -86,10 +86,8 @@ public class InfinispanConfig extends Config {
         }
     }
 
-
     @Override
     public InfinispanBackEnd getBackEnd() {
         return this.backEnd;
     }
-
 }

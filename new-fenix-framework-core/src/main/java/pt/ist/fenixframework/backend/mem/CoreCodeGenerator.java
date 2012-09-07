@@ -14,4 +14,14 @@ public class CoreCodeGenerator extends AbstractCodeGenerator {
     protected String getDomainClassRoot() {
         return CoreDomainObject.class.getName();
     }
+
+    @Override
+    protected String getBackEndName() {
+        return DefaultBackEnd.BACKEND_NAME;
+    }
+
+    @Override
+    protected String getDefaultConfigClassName() {
+        return DefaultConfig.class.getName();
+    }
 }

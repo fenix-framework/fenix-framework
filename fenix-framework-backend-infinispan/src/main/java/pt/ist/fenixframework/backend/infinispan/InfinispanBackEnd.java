@@ -25,6 +25,7 @@ import pt.ist.fenixframework.core.SharedIdentityMap;
 public class InfinispanBackEnd implements BackEnd {
     private static final Logger logger = Logger.getLogger(InfinispanBackEnd.class);
 
+    public static final String BACKEND_NAME = "ispn";
     private static final String DOMAIN_CACHE_NAME = "DomainCache";
 
     protected final TransactionManager transactionManager;
@@ -32,6 +33,11 @@ public class InfinispanBackEnd implements BackEnd {
 
     public InfinispanBackEnd() {
         this.transactionManager = new InfinispanTransactionManager();
+    }
+
+    @Override
+    public String getName() {
+        return BACKEND_NAME;
     }
 
     @Override

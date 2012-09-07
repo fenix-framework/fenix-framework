@@ -6,10 +6,17 @@ import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
 
 public class DefaultBackEnd implements BackEnd {
+    public static final String BACKEND_NAME = "mem";
+
     protected final TransactionManager transactionManager;
 
     public DefaultBackEnd() {
         this.transactionManager = new NoOpTransactionManager();
+    }
+
+    @Override
+    public String getName() {
+        return BACKEND_NAME;
     }
 
     @Override
