@@ -239,6 +239,6 @@ public abstract class AbstractDomainObject implements DomainObject {
 
     @Override
     public String toString() {
-	return getClass().getName() + ":" + getExternalId();
+        return getClass().getName() + ":" + getExternalId();
     }
 }

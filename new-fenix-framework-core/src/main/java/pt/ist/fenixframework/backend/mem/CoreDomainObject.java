@@ -51,9 +51,5 @@ public class CoreDomainObject extends AbstractDomainObjectAdapter {
     public final String getExternalId() {
 	return String.valueOf(getOid());
     }
-
-    public static <T extends DomainObject> T fromOid(long oid) {
-        return (T) SharedIdentityMap.getCache().lookup(oid);
-    }
 }
 

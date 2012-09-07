@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 // import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
-// import pt.ist.fenixframework.core.IdentityMap;
+import pt.ist.fenixframework.core.IdentityMap;
 
 public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     private static final Logger logger = Logger.getLogger(InfinispanDomainObject.class);
@@ -31,8 +31,20 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     @Override
     protected void ensureOid() {
         Class objClass = this.getClass();
-        String uuid = UUID.randomUUID().toString();
-        this.oid = new OID(objClass, uuid);
+        IdentityMap idMap = InfinispanBackEnd.getInstance().getIdentityMap();
+
+        while (true) {
+            // assign new OID
+            String uuid = UUID.randomUUID().toString();
+            this.oid = new OID(objClass, uuid);
+            // cache this instance
+            Object shouldBeSame = idMap.cache(this);
+            if (shouldBeSame == this) {
+                return;
+            } else {
+                logger.warn("Another object was already cached with the same key as this new object: " + oid);
+            }
+        }
     }
 
     // dealing with domain object identifiers

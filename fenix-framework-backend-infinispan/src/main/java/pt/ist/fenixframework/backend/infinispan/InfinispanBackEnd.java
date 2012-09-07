@@ -19,6 +19,7 @@ import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
+import pt.ist.fenixframework.core.Externalization;
 import pt.ist.fenixframework.core.IdentityMap;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
@@ -28,11 +29,17 @@ public class InfinispanBackEnd implements BackEnd {
     public static final String BACKEND_NAME = "ispn";
     private static final String DOMAIN_CACHE_NAME = "DomainCache";
 
-    protected final TransactionManager transactionManager;
+    private static final InfinispanBackEnd instance = new InfinispanBackEnd();
+
+    protected final InfinispanTransactionManager transactionManager;
     protected Cache<String, Object> domainCache;
 
-    public InfinispanBackEnd() {
+    private InfinispanBackEnd() {
         this.transactionManager = new InfinispanTransactionManager();
+    }
+
+    public static InfinispanBackEnd getInstance() {
+        return instance;
     }
 
     @Override
@@ -58,10 +65,17 @@ public class InfinispanBackEnd implements BackEnd {
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
         OID internalId = (OID)oid;
+        if (logger.isEnabledFor(Level.TRACE)) {
+            logger.trace("fromOid(" + internalId.getFullId() + ")");
+        }
+        
         IdentityMap cache = getIdentityMap();
         AbstractDomainObject obj = cache.lookup(internalId);
         
 	if (obj == null) {
+            if (logger.isEnabledFor(Level.TRACE)) {
+                logger.trace("Object not found in IdentityMap: " + internalId.getFullId());
+            }
 	    obj = DomainObjectAllocator.allocateObject(internalId.getObjClass(), internalId);
 
 	    // cache object and return the canonical object
@@ -83,6 +97,12 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     protected void configInfinispan(InfinispanConfig config) {
+        setupCache(config);
+        setupTxManager(config);
+    }
+
+    
+    private void setupCache(InfinispanConfig config) {
         long start = System.currentTimeMillis();
         CacheContainer cc = null;
         try {
@@ -102,8 +122,28 @@ public class InfinispanBackEnd implements BackEnd {
         }
     }
 
+    private void setupTxManager(InfinispanConfig config) {
+        transactionManager.setDelegateTxManager(domainCache.getAdvancedCache().getTransactionManager());
+    }
+
     protected IdentityMap getIdentityMap() {
         return SharedIdentityMap.getCache();
     }
 
+    /**
+     * Store in Infinispan.  This method supports null values.  This method is used by the code
+     * generated in the Domain Objects.
+     */
+    public final void cachePut(String key, Object value) {
+        domainCache.put(key, (value != null) ? value : Externalization.NULL_OBJECT);
+    }
+
+    /**
+     * Reads from Infinispan a value with a given key.  This method is used by the code generated in
+     * the Domain Objects.
+     */
+    public final <T> T cacheGet(String key) {
+        Object obj = domainCache.get(key);
+        return (T)(obj instanceof Externalization.NullClass ? null : obj);
+    }
 }

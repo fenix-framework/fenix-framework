@@ -10,7 +10,7 @@ import java.util.List;
 
 public class AbstractCodeGenerator implements CodeGenerator {
 
-    static class PrimitiveToWrapperEntry {
+    protected static class PrimitiveToWrapperEntry {
 	public final String primitiveType;
 	public final String wrapperType;
 	public final String defaultPrimitiveValue;
@@ -155,7 +155,6 @@ public class AbstractCodeGenerator implements CodeGenerator {
                         });
         }
     }
-
 
     static File getPackageDirectory(File destDirectory, String packageName) {
         if ((packageName == null) || (packageName.equals(""))) {
@@ -376,23 +375,8 @@ public class AbstractCodeGenerator implements CodeGenerator {
         } else {
             generateStaticRoleSlotsMultStar(role, otherRole, out);
         }
-        
-        // the getInverseRole method
-        String inverseRoleType = makeGenericType("pt.ist.fenixframework.dml.runtime.Role",
-                                                 getTypeFullName(role.getType()),
-                                                 getTypeFullName(otherRole.getType()));
-        printMethod(out, "public", inverseRoleType, "getInverseRole");
-        startMethodBody(out);
-        print(out, "return ");
-        if (otherRole.getName() == null) {
-            print(out, "new ");
-            print(out, getRoleType(otherRole));
-            print(out, "(this)");
-        } else {
-            print(out, getRoleHandlerName(otherRole, true));
-        }
-        print(out, ";");
-        endMethodBody(out);
+       
+        generateRoleMethodGetInverseRole(role, otherRole, out);
         closeBlock(out, false);
         println(out, ";");
     }
@@ -419,10 +403,28 @@ public class AbstractCodeGenerator implements CodeGenerator {
         print(out, getTypeFullName(otherRole.getType()));
         print(out, " o1)");
         startMethodBody(out);
-        print(out, "return ((");
-        print(out, otherRole.getType().getBaseName());
-        print(out, ")o1).");
-        print(out, role.getName());
+        print(out, "return (" + getConcreteSetTypeDeclarationFor(role) + ")");
+        print(out, "o1.get");
+        print(out, capitalize(role.getName()));
+        print(out, "();");
+        endMethodBody(out);
+    }
+
+    protected void generateRoleMethodGetInverseRole(Role role, Role otherRole, PrintWriter out) {
+        // the getInverseRole method
+        String inverseRoleType = makeGenericType("pt.ist.fenixframework.dml.runtime.Role",
+                                                 getTypeFullName(role.getType()),
+                                                 getTypeFullName(otherRole.getType()));
+        printMethod(out, "public", inverseRoleType, "getInverseRole");
+        startMethodBody(out);
+        print(out, "return ");
+        if (otherRole.getName() == null) {
+            print(out, "new ");
+            print(out, getRoleType(otherRole));
+            print(out, "(this)");
+        } else {
+            print(out, getRoleHandlerName(otherRole, true));
+        }
         print(out, ";");
         endMethodBody(out);
     }
@@ -634,18 +636,7 @@ public class AbstractCodeGenerator implements CodeGenerator {
         newline(out);
         printMethod(out, "private", "void", "initInstance", makeArg("boolean", "allocateOnly"));
         startMethodBody(out);
-
-        // for (Slot slot : domClass.getSlotsList()) {
-        //     generateInitSlot(slot, out);
-        // }
-        onNewline(out);
-
-        for (Role role : domClass.getRoleSlotsList()) {
-            if (role.getName() != null) {
-                generateInitRoleSlot(role, out);
-            }
-        }
-        
+        generateInitInstanceBody(domClass, out);
         endMethodBody(out);
 
         // add instance initializer block that calls the initInstance method
@@ -653,6 +644,19 @@ public class AbstractCodeGenerator implements CodeGenerator {
         newBlock(out);
         print(out, "initInstance(false);");
         closeBlock(out);
+    }
+
+    protected void generateInitInstanceBody(DomainClass domClass, PrintWriter out) {
+        // for (Slot slot : domClass.getSlotsList()) {
+        //     generateInitSlot(slot, out);
+        // }
+        onNewline(out);
+        
+        for (Role role : domClass.getRoleSlotsList()) {
+            if (role.getName() != null) {
+                generateInitRoleSlot(role, out);
+            }
+        }
     }
 
 //     protected void generateInitSlot(Slot slot, PrintWriter out) {
@@ -765,6 +769,16 @@ public class AbstractCodeGenerator implements CodeGenerator {
         // }
     }
 
+    protected String getSetTypeDeclarationFor(Role role) {
+        String elemType = getTypeFullName(role.getType());
+        return makeGenericType("java.util.Set", elemType);
+    }
+
+    protected String getConcreteSetTypeDeclarationFor(Role role) {
+        String elemType = getTypeFullName(role.getType());
+        String thisType = getTypeFullName(role.getOtherRole().getType());
+        return makeGenericType(getRelationAwareBaseTypeFor(role), thisType, elemType);
+    }
 
     protected void generateRoleSlotMethodsMultOne(Role role, PrintWriter out) {
         String typeName = getTypeFullName(role.getType());
@@ -972,6 +986,48 @@ public class AbstractCodeGenerator implements CodeGenerator {
         startMethodBody(out);
         generateRelationRemoveMethodCall(role, slotName, out);
         endMethodBody(out);
+
+	generateRoleSlotMethodsMultStarGettersAndIterators(role, out);
+
+    }
+
+    protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
+	generateRelationGetter("get" + capitalize(role.getName()), role, out);
+	generateIteratorMethod(role, out);
+    }
+
+    protected void generateIteratorMethod(Role role, PrintWriter out) {
+	generateIteratorMethod(role, out, getSlotExpression(role.getName()));
+    }
+
+    protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {
+	newline(out);
+	printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
+		+ capitalize(role.getName()) + "Iterator");
+	startMethodBody(out);
+	printWords(out, "return", slotAccessExpression);
+	print(out, ".iterator();");
+	endMethodBody(out);
+    }
+
+    protected void generateRelationGetter(String getterName, Role role, PrintWriter out) {
+	String paramListType = makeGenericType("java.util.Set", getTypeFullName(role.getType()));
+	generateRelationGetter(role, paramListType, out);
+    }
+
+    protected void generateRelationGetter(Role role, String paramListType, PrintWriter out) {
+	generateRelationGetter("get" + capitalize(role.getName()), getSlotExpression(role.getName()), paramListType, out);
+    }
+
+    protected void generateRelationGetter(String getterName, String valueToReturn, String typeName, PrintWriter out) {
+	newline(out);
+	printFinalMethod(out, "public", typeName, getterName);
+
+	startMethodBody(out);
+	print(out, "return ");
+	print(out, valueToReturn);
+	print(out, ";");
+	endMethodBody(out);
     }
 
     protected void generateRoleSlotMethodsMultStarCount(Role role, PrintWriter out,

@@ -52,7 +52,7 @@ public class InfinispanConfig extends Config {
     protected final InfinispanBackEnd backEnd;
 
     public InfinispanConfig() {
-        this.backEnd = new InfinispanBackEnd();
+        this.backEnd = InfinispanBackEnd.getInstance();
     }
 
     // process this config's parameters

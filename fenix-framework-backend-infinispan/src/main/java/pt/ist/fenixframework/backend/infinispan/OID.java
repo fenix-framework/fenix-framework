@@ -12,7 +12,7 @@ import pt.ist.fenixframework.core.exception.MissingObjectException;
 /**
  *  This class provides the internal representation of an DomainObject's identifier in Infinispan.
  */
-class OID implements Comparable<OID>, Serializable {
+public class OID implements Comparable<OID>, Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(OID.class);
 
@@ -22,20 +22,20 @@ class OID implements Comparable<OID>, Serializable {
     static final OID ROOT_OBJECT_ID = new OID(DomainRoot.class, "ROOT_OBJECT");
 
     private final Class objClass;
-    private final String objId;
+    private final String fullId; // includes class name to avoid repetitive computation
 
     OID(Class objClass, String objId) {
         this.objClass = objClass;
-        this.objId = objId;
+        this.fullId = objClass.getName() + OID_SEPARATOR + objId;
     }
 
-    OID(String externalId) {
+    public /* smf: tirar o public */ OID(String externalId) {
         String[] tokens = externalId.split(OID_SEPARATOR);
         try {
             this.objClass = Class.forName(tokens[0]);
-            this.objId = tokens[1];
+            this.fullId = tokens[0] + OID_SEPARATOR + tokens[1];
         } catch (Exception e) {
-            // e.g. index out of bounds, class not found
+            // e.g. index out of bounds, class not found, etc.
             logger.error(EXTERNAL_ID_ERROR + externalId);
             throw new MissingObjectException(EXTERNAL_ID_ERROR + externalId, e);
         }
@@ -45,12 +45,12 @@ class OID implements Comparable<OID>, Serializable {
         return this.objClass;
     }
 
-    String getObjId() {
-        return this.objId;
+    public String getFullId() {
+        return this.fullId;
     }
 
     String toExternalId() {
-        return objClass.getName() + OID_SEPARATOR + objId;
+        return fullId;
     }
 
     @Override
@@ -60,23 +60,33 @@ class OID implements Comparable<OID>, Serializable {
         }
         if (o instanceof OID) {
             OID other = (OID)o;
-            return (this.objClass.equals(other.objClass)
-                    && this.objId.equals(other.objId));
+            // return (this.objClass.equals(other.objClass)
+            //         && this.fullId.equals(other.fullId));
+            return (this.fullId.equals(other.fullId));
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return objClass.hashCode() + objId.hashCode();
+        // return objClass.hashCode() + fullId.hashCode();
+        return fullId.hashCode();
     }
 
     @Override
     public int compareTo(OID other) {
-        int classes = this.objClass.getName().compareTo(other.objClass.getName());
-        if (classes != 0) {  // having different classes is enough to order them
-            return classes;
-        }
-        return this.objId.compareTo(other.objId);
+        // int classes = this.objClass.getName()compareTo(other.objClass.getName());
+        // if (classes != 0) {  // having different classes is enough to order them
+        //     return classes;
+        // }
+        // return this.objId.compareTo(other.objId);
+
+        // now that we have the fullId it's simpler
+        return this.fullId.compareTo(other.fullId);
+    }
+
+    @Override
+    public String toString() {
+        return getFullId();
     }
 }

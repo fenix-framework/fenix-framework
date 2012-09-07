@@ -10,10 +10,14 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Externalization {
-    private static class NullClass implements Serializable {
+
+    // The NullClass and the NULL_OBJECT are public so that they can be used by anyone who needs an
+    // object representation for null
+    public static class NullClass implements Serializable {
 	private static final long serialVersionUID = 1L;
     }
-    private static final NullClass NULL_OBJECT = new NullClass();
+    public static final NullClass NULL_OBJECT = new NullClass();
+
 
     public static byte[] externalizeObject(Object obj) {
 	if (obj == null) {

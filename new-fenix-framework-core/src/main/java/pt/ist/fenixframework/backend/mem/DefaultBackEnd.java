@@ -1,11 +1,16 @@
 package pt.ist.fenixframework.backend.mem;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
+import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class DefaultBackEnd implements BackEnd {
+    private static final Logger logger = Logger.getLogger(DefaultBackEnd.class);
     public static final String BACKEND_NAME = "mem";
 
     protected final TransactionManager transactionManager;
@@ -21,14 +26,14 @@ public class DefaultBackEnd implements BackEnd {
 
     @Override
     public DomainRoot getDomainRoot() {
-        DomainRoot root = CoreDomainObject.fromOid(1L);
+        DomainRoot root = fromOid(1L);
         if (root == null) {
             root = new DomainRoot(); // which automatically caches this instance, but does not
             // ensure that it is the first, as a concurrent request
             // might create another
 
             // so we get it again from the cache before returning if
-            root = CoreDomainObject.fromOid(1L);
+            root = fromOid(1L);
             assert root != null; // there must be at least one
         }
         return root;
@@ -36,7 +41,7 @@ public class DefaultBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T getDomainObject(String externalId) {
-        return CoreDomainObject.fromOid(Long.parseLong(externalId));
+        return fromOid(Long.parseLong(externalId));
     }
 
     @Override
@@ -46,7 +51,11 @@ public class DefaultBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        return CoreDomainObject.fromOid((Long)oid);
+        if (logger.isEnabledFor(Level.TRACE)) {
+            logger.trace("fromOid(" + oid + ")");
+        }
+        return (T) SharedIdentityMap.getCache().lookup(oid);
+
     }
 
     @Override

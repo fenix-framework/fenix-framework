@@ -93,10 +93,15 @@
             <version>${version.infinispan}</version>
         </dependency>
         <dependency>
-            <groupId>org.jboss.spec.javax.transaction</groupId>
-            <artifactId>jboss-transaction-api_1.1_spec</artifactId>
-            <version>${version.jta}</version>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+            <version>1.1</version>
         </dependency>
+        <!-- <dependency> -->
+        <!--     <groupId>org.jboss.spec.javax.transaction</groupId> -->
+        <!--     <artifactId>jboss-transaction-api_1.1_spec</artifactId> -->
+        <!--     <version>${version.jta}</version> -->
+        <!-- </dependency> -->
         <!--
             infinispan-core forgot rhq-pluginAnnotations dependency.  Remove
             the following dependency when fixed. See:
