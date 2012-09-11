@@ -5,7 +5,6 @@ import java.util.concurrent.Callable;
 import org.apache.log4j.Logger;
 
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.TransactionalCommand;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.core.CommitError;
 import pt.ist.fenixframework.core.WriteOnReadError;
@@ -70,11 +69,12 @@ public enum DefaultAtomicContext implements AtomicContext {
         }
         TransactionManager tm = FenixFramework.getTransactionManager();
         
-        return tm.withTransaction(new TransactionalCommand<V>() {
-                public V doIt() throws Exception {
-                    return method.call();
-                }
-            });
+        // return tm.withTransaction(new TransactionalCommand<V>() {
+        //         public V doIt() throws Exception {
+        //             return method.call();
+        //         }
+        //     });
+        return tm.withTransaction(method);
     }
 
 }

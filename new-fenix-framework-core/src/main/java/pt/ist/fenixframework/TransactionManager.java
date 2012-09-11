@@ -1,5 +1,7 @@
 package pt.ist.fenixframework;
 
+import java.util.concurrent.Callable;
+
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
@@ -67,7 +69,7 @@ public interface TransactionManager {
     /**
      * Transactionally execute a command, possibly returning a result.
      */
-    public <T> T withTransaction(TransactionalCommand<T> command);
+    public <T> T withTransaction(Callable<T> command);
 
     /**
      * Create a new transaction and associate it with the current thread.  This method can be used

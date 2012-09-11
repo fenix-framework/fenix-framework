@@ -1,5 +1,7 @@
 package pt.ist.fenixframework.backend.infinispan;
 
+import java.util.concurrent.Callable;
+
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
@@ -11,7 +13,6 @@ import org.apache.log4j.Logger;
 
 import org.infinispan.CacheException;
 
-import pt.ist.fenixframework.TransactionalCommand;
 import pt.ist.fenixframework.TransactionManager;
 
 public class InfinispanTransactionManager implements TransactionManager {
@@ -55,7 +56,7 @@ public class InfinispanTransactionManager implements TransactionManager {
     }
 
     @Override
-    public <T> T withTransaction(TransactionalCommand<T> command) {
+    public <T> T withTransaction(Callable<T> command) {
         T result = null;
         boolean txFinished = false;
         while (!txFinished) {
@@ -70,7 +71,7 @@ public class InfinispanTransactionManager implements TransactionManager {
                     logger.trace("Already inside a transaction. Not nesting.");
                 }
                 // do some work
-                result = command.doIt();
+                result = command.call();
                 if (inTopLevelTransaction) {
                     commit();
                 }

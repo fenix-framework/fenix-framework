@@ -1,7 +1,8 @@
 package pt.ist.fenixframework.backend.mem;
 
+import java.util.concurrent.Callable;
+
 import pt.ist.fenixframework.Transaction;
-import pt.ist.fenixframework.TransactionalCommand;
 import pt.ist.fenixframework.TransactionManager;
 
 public class NoOpTransactionManager implements TransactionManager {
@@ -21,9 +22,9 @@ public class NoOpTransactionManager implements TransactionManager {
     public void rollback() {}
 
     @Override
-    public <T> T withTransaction(TransactionalCommand<T> command) {
+    public <T> T withTransaction(Callable<T> command) {
         try {
-            return command.doIt();
+            return command.call();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
