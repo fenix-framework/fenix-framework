@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.SortedMap;
 
-// import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
 /** 

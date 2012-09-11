@@ -7,7 +7,6 @@ import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-// import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class LeafNode extends LeafNode_Base {

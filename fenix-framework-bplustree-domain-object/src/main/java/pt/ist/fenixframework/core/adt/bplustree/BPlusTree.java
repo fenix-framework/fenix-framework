@@ -5,31 +5,13 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 
-// import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
+/**
+ * Implementation of a B+Tree specifically optimized to store instances of {@link
+ * AbstractDomainObject}.
+ */
 public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
-    
-    // public  BPlusTree() {
-    //     super();
-    // }
-
-    // static final Comparable LAST_KEY = new Comparable() {
-    // 	    public int compareTo(Object obj) {
-    // 		if (LAST_KEY == obj) return 0;
-    // 		else return 1;
-    // 	    }
-
-    // 	    public boolean equals(Object obj) {
-    // 		return (LAST_KEY == obj);
-    // 	    }
-
-    // 	    public String toString() {
-    // 		return "LK";
-    // 	    }
-    // 	};
-
-
     /* Special last key */
     private static class ComparableLastKey implements Comparable, Serializable {
         public int compareTo(Object c) {
@@ -91,7 +73,6 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
     }
 
     /** Inserts the given key-value pair and returns the (possibly new) root node */
-    // public void insert(Comparable key, T value) {
     public void insert(T value) {
         if (value == null) {
             throw new UnsupportedOperationException("This B+Tree does not support nulls");
@@ -117,15 +98,22 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
 	}
     }
 
-    /** Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key. */
+    /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
+     * contains no mapping for the key. */
     public T get(Comparable key) {
 	return ((AbstractNode<T>)this.getRoot()).get(key);
     }
 
+    /**
+     * Return the value at the index-th position (zero-based).
+     */
     public T getIndex(int index) {
 	return ((AbstractNode<T>)this.getRoot()).getIndex(index);
     }
 
+    /**
+     * Remove and return the value at the index-th position (zero-based).
+     */
     public T removeIndex(int index) {
 	T value = getIndex(index);
 
@@ -143,7 +131,7 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
 	return this.getRoot().containsKey(key);
     }
 
-    /** Returns the number os key-value mappings in this map */
+    /** Returns the number of key-value mappings in this map */
     public int size() {
 	return this.getRoot().size();
     }
