@@ -22,7 +22,7 @@
         <module>fenix-framework-project</module>
         <module>dml-maven-plugin</module>
         <module>new-fenix-framework-core</module>
-        <module>fenix-framework-adt-bplustree</module>
+        <module>fenix-framework-bplustree-domain-object</module>
         <module>fenix-framework-backend-infinispan</module>
         <module>fenix-framework-archetypes</module>
     </modules>

@@ -33,7 +33,7 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
     @Override
     protected void generateFilePreamble(String subPackageName, PrintWriter out) {
         super.generateFilePreamble(subPackageName, out);
-        println(out, "import pt.ist.fenixframework.adt.bplustree.BPlusTree;");
+        println(out, "import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;");
         println(out, "import pt.ist.fenixframework.backend.infinispan.InfinispanBackEnd;");
         println(out, "import pt.ist.fenixframework.backend.infinispan.OID;");
         println(out, "import pt.ist.fenixframework.core.Externalization;");

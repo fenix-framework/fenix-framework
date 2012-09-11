@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>pt.ist</groupId>
-    <artifactId>fenix-framework-adt-bplustree</artifactId>
+    <artifactId>fenix-framework-bplustree-domain-object</artifactId>
     <name>Fenix Framework B+Tree</name>
     <version>2.0-SNAPSHOT</version>
 

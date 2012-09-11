@@ -7,7 +7,7 @@ import java.util.Set;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationBaseSet;
 import pt.ist.fenixframework.core.AbstractDomainObject;
-import pt.ist.fenixframework.adt.bplustree.BPlusTree;
+import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;
 
 public class RelationSet<E1 extends AbstractDomainObject,E2 extends AbstractDomainObject> extends AbstractSet<E2> implements RelationBaseSet<E2> {
     private E1 listHolder;

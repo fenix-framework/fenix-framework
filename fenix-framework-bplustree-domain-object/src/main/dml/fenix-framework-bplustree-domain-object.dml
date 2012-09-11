@@ -1,12 +1,12 @@
 /* Abstract Data Type: B+Trees */
 
-package pt.ist.fenixframework.adt.bplustree;
+package pt.ist.fenixframework.core.adt.bplustree;
 
 valueType java.util.TreeMap as TreeMap {
     externalizeWith {
-        bytearray pt.ist.fenixframework.adt.bplustree.AbstractNode.externalizeTreeMap();
+        bytearray pt.ist.fenixframework.core.adt.bplustree.AbstractNode.externalizeTreeMap();
     }
-    internalizeWith pt.ist.fenixframework.adt.bplustree.AbstractNode.internalizeTreeMap();
+    internalizeWith pt.ist.fenixframework.core.adt.bplustree.AbstractNode.internalizeTreeMap();
 }
 
 class BPlusTree {}

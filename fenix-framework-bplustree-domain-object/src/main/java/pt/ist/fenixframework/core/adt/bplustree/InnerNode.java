@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.adt.bplustree;
+package pt.ist.fenixframework.core.adt.bplustree;
 
 import java.util.Iterator;
 import java.util.Map;
