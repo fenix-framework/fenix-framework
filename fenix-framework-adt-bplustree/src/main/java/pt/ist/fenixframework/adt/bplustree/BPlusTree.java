@@ -1,18 +1,20 @@
-package pt.ist.fenixframework.core.adt.bplustree;
+package pt.ist.fenixframework.adt.bplustree;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import pt.ist.fenixframework.core.AbstractDomainObject;
-
 /**
- * Implementation of a persistence-independent B+Tree that is specifically optimized to store
- * instances of {@link AbstractDomainObject}.  This implementation is modelled in DML and can be
- * used with any backend.
+ * Implementation of a persistence-independent B+Tree.  This implementation is modelled in DML and
+ * can be used with any backend.  This B+Tree can store any value (except nulls) associated with any
+ * key as long as the following restrictions are followed: Both the key and the value need to be
+ * {@link java.io.Serializable}; the key also needs to be {@link Comparable}; and keys must
+ * comparable to each other (e.g. the same BPlusTree instance cannot simultaneously support keys of
+ * type Integer and String).
  */
-public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
+public class BPlusTree<T extends Serializable> extends BPlusTree_Base {
+    
     /* Special last key */
     private static class ComparableLastKey implements Comparable, Serializable {
         public int compareTo(Object c) {
@@ -73,13 +75,13 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
 	this.setRoot(new LeafNode());
     }
 
-    /** Inserts the given value. */
-    public void insert(T value) {
+    /** Inserts the given key-value pair, overwriting any previous entry for the same key */
+    public void insert(Comparable key, T value) {
         if (value == null) {
             throw new UnsupportedOperationException("This B+Tree does not support nulls");
         }
 	AbstractNode rootNode = this.getRoot();
-	AbstractNode resultNode = rootNode.insert(value.getOid(), value);
+	AbstractNode resultNode = rootNode.insert(key, value);
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
@@ -99,8 +101,7 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
 	}
     }
 
-    /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
-     * contains no mapping for the key. */
+    /** Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key. */
     public T get(Comparable key) {
 	return ((AbstractNode<T>)this.getRoot()).get(key);
     }
@@ -146,15 +147,15 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
     }
     
     public boolean myEquals(BPlusTree other) {
-	Iterator<AbstractDomainObject> it1 = this.iterator();
-	Iterator<AbstractDomainObject> it2 = other.iterator();
+	Iterator<T> it1 = this.iterator();
+	Iterator<T> it2 = other.iterator();
 	
 	while (it1.hasNext() && it2.hasNext()) {
-	    AbstractDomainObject o1 = it1.next();
-	    AbstractDomainObject o2 = it2.next();
+	    T o1 = it1.next();
+	    T o2 = it2.next();
 
 	    if (!((o1 == null && o2 == null) || (o1.equals(o2)))) {
-		    return false;
+                return false;
 	    }
 	}
 	return true;

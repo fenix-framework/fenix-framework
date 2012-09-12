@@ -1,0 +1,48 @@
+/* Abstract Data Type: B+Trees */
+
+package pt.ist.fenixframework.adt.bplustree;
+
+valueType java.util.TreeMap as TreeMap {
+    externalizeWith {
+        bytearray pt.ist.fenixframework.core.Externalization.externalizeObject();
+    }
+    internalizeWith pt.ist.fenixframework.core.Externalization.internalizeObject();
+}
+
+class BPlusTree {}
+
+class AbstractNode {}
+
+class LeafNode extends AbstractNode {
+    // key: any Serializable and Comparable
+    //
+    // value: any Serializable
+    TreeMap<Comparable,java.io.Serializable> entries;
+}
+
+class InnerNode extends AbstractNode {
+    // A B-Tree node contains M keys and M+1 children.  We represent the first
+    // M children aggregated with a key and add a special LAST_KEY for the
+    // M+1-th children.  This way the i-th child always contains elements
+    // whose keys are less than the i-th key.
+    // key: any Serializable and Comparable
+    // value: an AbstractNode
+    TreeMap<Comparable,AbstractNode> subNodes;
+}
+
+relation AdtBPlusTreeHasRootNode {
+    BPlusTree playsRole;
+    AbstractNode playsRole root;
+}
+
+relation AdtNodeHasParent {
+    AbstractNode playsRole {
+	multiplicity *;
+    }
+    InnerNode playsRole parent;
+}
+
+relation AdtLeafNodeHasSibling {
+    LeafNode playsRole previous;
+    LeafNode playsRole next;
+}

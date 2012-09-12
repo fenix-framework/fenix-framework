@@ -1,5 +1,8 @@
 package pt.ist.fenixframework;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -24,6 +27,8 @@ import antlr.ANTLRException;
 import antlr.collections.AST;
 
 public class DmlCompiler {
+    private static final Logger logger = Logger.getLogger(DmlCompiler.class);
+
     /** Runs the DML compiler
      *
      * This is the main entry point for running the DML compiler, from the command line.  This
@@ -75,6 +80,15 @@ public class DmlCompiler {
 
     public static DomainModel getDomainModel(List<URL> dmlFilesURLs, boolean checkForMissingExternals)
         throws DmlCompilerException {
+        if (logger.isEnabledFor(Level.TRACE)) {
+            StringBuilder message = new StringBuilder();
+            for (URL url : dmlFilesURLs) {
+                message.append(url + "  ***  ");
+            }
+
+            logger.trace("dmlFilesUrls = " + message.toString());
+        }
+
 	DmlTreeParser walker = new DmlTreeParser();
 	DomainModel model = new DomainModel();
 
