@@ -17,6 +17,18 @@ public class DomainModel implements Serializable {
 	initializeBuiltinEntities();
     }
 
+    private static String[] NON_NULLABLE_TYPES = { "boolean", "byte", "char", "short", "int", "float", "long", "double" };
+
+    public static boolean isNullableType(ValueType vt) {
+	String vtFullName = vt.getFullname();
+	for (String nonNullableType : NON_NULLABLE_TYPES) {
+	    if (nonNullableType.equals(vtFullName)) {
+		return false;
+	    }
+	}
+	return true;
+    }
+
     protected void initializeBuiltinValueTypes() {
         // primitive types
 	newValueType("boolean", "boolean");
@@ -141,6 +153,7 @@ public class DomainModel implements Serializable {
 	    domainName = valueType.getFullname();
 	}
 	valueType.getBaseType().setDomainName(domainName);
+        checkValueTypeName(domainName);
 	valueTypes.put(domainName, valueType);
     }
 
@@ -148,6 +161,7 @@ public class DomainModel implements Serializable {
 	if (domainName == null) {
 	    domainName = fullName;
 	}
+        checkValueTypeName(domainName);
 	valueTypes.put(domainName, new EnumValueType(domainName, fullName));
     }
 
@@ -239,6 +253,12 @@ public class DomainModel implements Serializable {
 	if (finalized) {
 	    throw new RuntimeException("Cannot change Domain after finalization");
 	}
+    }
+
+    private void checkValueTypeName(String name) {
+        if (valueTypes.containsKey(name)) {
+	    throw new RuntimeException("Duplicate name for value type: " + name);
+        }
     }
 
     private void checkNameUnique(String name) {

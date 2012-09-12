@@ -2,7 +2,7 @@
 
 package pt.ist.fenixframework.adt.bplustree;
 
-valueType java.util.TreeMap as TreeMap {
+valueType java.util.TreeMap as GenericTreeMap {
     externalizeWith {
         bytearray pt.ist.fenixframework.core.Externalization.externalizeObject();
     }
@@ -17,7 +17,7 @@ class LeafNode extends AbstractNode {
     // key: any Serializable and Comparable
     //
     // value: any Serializable
-    TreeMap<Comparable,java.io.Serializable> entries;
+    GenericTreeMap<Comparable,java.io.Serializable> entries;
 }
 
 class InnerNode extends AbstractNode {
@@ -27,7 +27,7 @@ class InnerNode extends AbstractNode {
     // whose keys are less than the i-th key.
     // key: any Serializable and Comparable
     // value: an AbstractNode
-    TreeMap<Comparable,AbstractNode> subNodes;
+    GenericTreeMap<Comparable,AbstractNode> subNodes;
 }
 
 relation AdtBPlusTreeHasRootNode {

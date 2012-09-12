@@ -2,7 +2,7 @@
 
 package pt.ist.fenixframework.core.adt.bplustree;
 
-valueType java.util.TreeMap as TreeMap {
+valueType java.util.TreeMap as TreeMapWithKeyOID {
     externalizeWith {
         bytearray pt.ist.fenixframework.core.adt.bplustree.AbstractNode.externalizeTreeMap();
     }
@@ -20,7 +20,7 @@ class LeafNode extends AbstractNode {
     // also are), to allow the programmer to use getOid() instead of getExternalId() to obtain the
     // object's identifier.  In this case, the type of the Object returned by getOid() must be a
     // Comparable.
-    TreeMap<Comparable,pt.ist.fenixframework.core.AbstractDomainObject> entries;
+    TreeMapWithKeyOID<Comparable,pt.ist.fenixframework.core.AbstractDomainObject> entries;
 }
 
 class InnerNode extends AbstractNode {
@@ -30,7 +30,7 @@ class InnerNode extends AbstractNode {
     // whose keys are less than the i-th key.
     // key: any OID
     // value: a Node
-    TreeMap<Comparable,AbstractNode> subNodes;
+    TreeMapWithKeyOID<Comparable,AbstractNode> subNodes;
 }
 
 relation BPlusTreeHasRootNode {

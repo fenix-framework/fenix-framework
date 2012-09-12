@@ -7,7 +7,11 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 
-
+// If the CodeGenerator gets changed from interface to an abstract class, lots of code from here can
+// probably me moved up!
+//
+// Also, this class should be renamed to something other than _Abstract_CodeGenerator. It's not
+// abstract!  And we could consider merging it with CodeGenerator.
 public class AbstractCodeGenerator implements CodeGenerator {
 
     protected static class PrimitiveToWrapperEntry {
@@ -86,6 +90,9 @@ public class AbstractCodeGenerator implements CodeGenerator {
 
     @Override
     public void generateCode() {
+    // used by the value-type generator
+        ValueTypeSerializationGenerator valueTypeGenerator = new ValueTypeSerializationGenerator(compArgs, domainModel);
+	valueTypeGenerator.generateCode();
         generateClasses(getDomainModel().getClasses());
     }
 
@@ -318,6 +325,13 @@ public class AbstractCodeGenerator implements CodeGenerator {
         onNewline(out);
         printWords(out, "private", slot.getTypeName(), slot.getName());
         print(out, ";");
+    }
+
+    // this method is similar to the previous, but there are cases when we need to use another type
+    // (different from the slot's)
+    protected void generateSlotDeclaration(PrintWriter out, String type, String name) {
+	printWords(out, "private", type, name);
+	println(out, ";");
     }
 
     protected PrimitiveToWrapperEntry findWrapperEntry(String type) {
