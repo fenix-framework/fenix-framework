@@ -61,6 +61,9 @@ public class DomainModel implements Serializable {
 	newValueType("LocalDate", "org.joda.time.LocalDate");
 	newValueType("LocalTime", "org.joda.time.LocalTime");
 	newValueType("Partial", "org.joda.time.Partial");
+
+        // also anything Serializable is acceptable
+	newValueType("Serializable", "java.io.Serializable");
     }
 
     private String[][] builtinEntities = { /* { fullname, alias } */

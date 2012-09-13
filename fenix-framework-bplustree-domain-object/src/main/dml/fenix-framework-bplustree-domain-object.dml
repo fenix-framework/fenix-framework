@@ -4,7 +4,7 @@ package pt.ist.fenixframework.core.adt.bplustree;
 
 valueType java.util.TreeMap as TreeMapWithKeyOID {
     externalizeWith {
-        bytearray pt.ist.fenixframework.core.adt.bplustree.AbstractNode.externalizeTreeMap();
+        Serializable pt.ist.fenixframework.core.adt.bplustree.AbstractNode.externalizeTreeMap();
     }
     internalizeWith pt.ist.fenixframework.core.adt.bplustree.AbstractNode.internalizeTreeMap();
 }

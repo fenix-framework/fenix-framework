@@ -61,11 +61,12 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
     // the number of _elements_ in this node (not counting sub-nodes)
     abstract int shallowSize();
 
-    // public static byte[] externalizeTreeMap(TreeMap treeMap) {
-    //     return Externalization.externalizeObject(treeMap);
-    // }
+    public static Serializable externalizeTreeMap(TreeMap treeMap) {
+        return treeMap;
+    }
 
-    // public static TreeMap internalizeTreeMap(byte[] externalizedTreeMap) {
-    //     return Externalization.internalizeObject(externalizedTreeMap);
-    // }
+    public static TreeMap internalizeTreeMap(Serializable externalizedTreeMap) {
+        return (TreeMap)externalizedTreeMap;
+    }
+
 }

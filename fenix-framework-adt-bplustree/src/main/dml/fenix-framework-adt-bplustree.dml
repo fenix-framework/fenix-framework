@@ -4,9 +4,11 @@ package pt.ist.fenixframework.adt.bplustree;
 
 valueType java.util.TreeMap as GenericTreeMap {
     externalizeWith {
-        bytearray pt.ist.fenixframework.core.Externalization.externalizeObject();
+        // bytearray pt.ist.fenixframework.core.Externalization.externalizeObject();
+        Serializable pt.ist.fenixframework.adt.bplustree.AbstractNode.externalizeTreeMap();
     }
-    internalizeWith pt.ist.fenixframework.core.Externalization.internalizeObject();
+    // internalizeWith pt.ist.fenixframework.core.Externalization.internalizeObject();
+    internalizeWith pt.ist.fenixframework.adt.bplustree.AbstractNode.internalizeTreeMap();
 }
 
 class BPlusTree {}
