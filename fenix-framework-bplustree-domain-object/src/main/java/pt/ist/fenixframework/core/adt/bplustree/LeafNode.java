@@ -1,5 +1,8 @@
 package pt.ist.fenixframework.core.adt.bplustree;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -10,6 +13,7 @@ import java.util.TreeMap;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class LeafNode extends LeafNode_Base {
+    private static final Logger logger = Logger.getLogger(LeafNode.class);
     
     public LeafNode() {
 	setEntries(new TreeMap<Comparable,AbstractDomainObject>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY));
@@ -19,10 +23,8 @@ public class LeafNode extends LeafNode_Base {
 	setEntries(entries);
     }
 
-    private TreeMap<Comparable,AbstractDomainObject> replacePreviousMap(LeafNode leafNode) {
-	TreeMap<Comparable,AbstractDomainObject> newMap = new TreeMap<Comparable,AbstractDomainObject>(leafNode.getEntries());
-	leafNode.setEntries(newMap);
-	return newMap;
+    private TreeMap<Comparable,AbstractDomainObject> duplicateMap() {
+        return new TreeMap<Comparable,AbstractDomainObject>(getEntries());
     }
 
     public AbstractNode insert(Comparable key, AbstractDomainObject value) {
@@ -61,16 +63,20 @@ public class LeafNode extends LeafNode_Base {
     }
 
     private TreeMap<Comparable,AbstractDomainObject> justInsert(Comparable key, AbstractDomainObject value) {
+        logger.trace("Getting 'entries' slot");
 	TreeMap<Comparable,AbstractDomainObject> localEntries = this.getEntries();
 
 	// this test is performed because we need to return a new structure in
 	// case an update occurs.  Value types must be immutable.
 	AbstractDomainObject currentValue = localEntries.get(key);
 	if (currentValue == value && localEntries.containsKey(key)) {
+            logger.trace("Existing key. No change required");
 	    return localEntries;
 	} else {
-	    TreeMap<Comparable,AbstractDomainObject> newMap = replacePreviousMap(this);
+            logger.trace("Will add new entry. Must duplicate 'entries'.");
+	    TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
 	    newMap.put(key, value);
+            setEntries(newMap);
 	    return newMap;
 	}
     }
@@ -108,8 +114,9 @@ public class LeafNode extends LeafNode_Base {
 	if (!localEntries.containsKey(key)) {
 	    return localEntries;
 	} else {
-	    TreeMap<Comparable,AbstractDomainObject> newMap = replacePreviousMap(this);
+	    TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
 	    newMap.remove(key);
+            setEntries(newMap);
 	    return newMap;
 	}
     }
@@ -126,14 +133,16 @@ public class LeafNode extends LeafNode_Base {
     }
 
     Map.Entry<Comparable,AbstractDomainObject> removeBiggestKeyValue() {
-	TreeMap<Comparable,AbstractDomainObject> newMap = replacePreviousMap(this);
+	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
 	Map.Entry<Comparable,AbstractDomainObject> lastEntry = newMap.pollLastEntry();
+        setEntries(newMap);
 	return lastEntry;
     }
 
     Map.Entry<Comparable,AbstractDomainObject> removeSmallestKeyValue() {
-	TreeMap<Comparable,AbstractDomainObject> newMap = replacePreviousMap(this);
+	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
 	Map.Entry<Comparable,AbstractDomainObject> firstEntry = newMap.pollFirstEntry();
+        setEntries(newMap);
 	return firstEntry;
     }
 
@@ -142,15 +151,17 @@ public class LeafNode extends LeafNode_Base {
     }
 
     void addKeyValue(Map.Entry keyValue) {
-	TreeMap<Comparable,AbstractDomainObject> newMap = replacePreviousMap(this);
+	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
 	newMap.put((Comparable)keyValue.getKey(), (AbstractDomainObject)keyValue.getValue());
+        setEntries(newMap);
     }
 
     void mergeWithLeftNode(AbstractNode leftNode, Comparable splitKey) {
 	LeafNode left = (LeafNode)leftNode; // this node does not know how to merge with another kind
 	
-	TreeMap<Comparable,AbstractDomainObject> newMap = replacePreviousMap(this);
+	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
 	newMap.putAll(left.getEntries());
+        setEntries(newMap);
 
 	LeafNode nodeBefore = left.getPrevious();
 

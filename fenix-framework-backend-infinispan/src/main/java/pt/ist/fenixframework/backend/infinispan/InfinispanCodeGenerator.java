@@ -8,8 +8,18 @@ import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
+import pt.ist.fenixframework.dml.ValueType;
+import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 
 public class InfinispanCodeGenerator extends AbstractCodeGenerator {
+
+    protected static final String VT_SERIALIZER =
+        ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +
+        ValueTypeSerializationGenerator.SERIALIZATION_METHOD_PREFIX;
+
+    protected static final String VT_DESERIALIZER =
+        ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +
+        ValueTypeSerializationGenerator.DESERIALIZATION_METHOD_PREFIX;
 
     public InfinispanCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
@@ -33,10 +43,11 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
     @Override
     protected void generateFilePreamble(String subPackageName, PrintWriter out) {
         super.generateFilePreamble(subPackageName, out);
-        println(out, "import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;");
         println(out, "import pt.ist.fenixframework.backend.infinispan.InfinispanBackEnd;");
         println(out, "import pt.ist.fenixframework.backend.infinispan.OID;");
         println(out, "import pt.ist.fenixframework.core.Externalization;");
+        println(out, "import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;");
+        println(out, "import " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ";");
         newline(out);
     }
 
@@ -108,36 +119,71 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
     }
 
     @Override
-    protected void generateSlot(Slot slot, PrintWriter out) {
-        onNewline(out);
-        printWords(out, "private", slot.getTypeName(), slot.getName());
-        print(out, ";");
+    protected void generateSlotAccessors(Slot slot, PrintWriter out) {
+        generateInfinispanGetter(slot, out);
+        generateInfinispanSetter(slot, out);
     }
 
-    @Override
-    protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
-        println(out, "Object obj = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + slotName + "\");");
+    protected void generateInfinispanGetter(Slot slot, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName()));
+        startMethodBody(out);
+        generateInfinispanGetterBody(slot, out);
+        endMethodBody(out);
+    }
 
+    protected void generateInfinispanSetter(Slot slot, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
+        startMethodBody(out);
+        generateInfinispanSetterBody(slot, out);
+        endMethodBody(out);
+    }
+
+    protected void generateInfinispanGetterBody(Slot slot, PrintWriter out) {
+        println(out, "Object obj = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + slot.getName() + "\");");
+        
         String defaultValue;
-        PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(typeName);
+        PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(slot.getTypeName());
         if (wrapperEntry != null) { // then it is a primitive type
             defaultValue = wrapperEntry.defaultPrimitiveValue;
         } else {
             defaultValue = "null";
         }
-        println(out, "if (obj == null || obj instanceof Externalization.NullClass) return " + defaultValue + ";");
-        print(out, "return (" + getReferenceType(typeName) + ")obj;");
+        println(out, "if (obj == null || obj instanceof Externalization.NullClass) { return " + defaultValue + "; }");
+
+        String returnExpression = "return (" + getReferenceType(slot.getTypeName()) + ")";
+        ValueType vt = slot.getSlotType();
+        if (vt.isBuiltin() || vt.isEnum()) {
+            returnExpression += "obj";
+        } else {
+            returnExpression += VT_DESERIALIZER +
+                ValueTypeSerializationGenerator.makeSafeValueTypeName(vt) + "((" +
+                ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +  ValueTypeSerializationGenerator.makeSerializationValueTypeName(vt) + ")obj)";
+        }
+        returnExpression += ";";
+        // print(out, "return (" + getReferenceType(slot.getTypeName()) + ")obj;");
+        print(out, returnExpression);
     }
 
-    @Override
-    protected void generateSetterBody(String setterName, String slotName, String typeName, PrintWriter out) {
+    protected void generateInfinispanSetterBody(Slot slot, PrintWriter out) {
+        String slotName = slot.getName();
         String setterExpression;
-	if (findWrapperEntry(typeName) != null) { // then it is a primitive type
+	if (findWrapperEntry(slot.getTypeName()) != null) { // then it is a primitive type
             setterExpression = slotName;
         } else {
-            setterExpression = "(" + slotName + " == null ? Externalization.NULL_OBJECT : " + slotName + ")";
+            setterExpression = "(" + slotName + " == null ? Externalization.NULL_OBJECT : ";
+            ValueType vt = slot.getSlotType();
+            if (vt.isBuiltin() || vt.isEnum()) {
+                setterExpression += slotName;
+            } else { // derived value type must be externalized
+                setterExpression += VT_SERIALIZER +
+                    ValueTypeSerializationGenerator.makeSafeValueTypeName(vt) + "(" + slotName + ")";
+            }
+            setterExpression += ")";
         }
-        print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName + "\", " + setterExpression + ");");
+        print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName
+              + "\", " + setterExpression + ");");
     }
 
     @Override
@@ -201,8 +247,8 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
         closeBlock(out, false);
         print(out, " else");
         newBlock(out);
-        println(out, "internalSet = (BPlusTree)InfinispanBackEnd.getInstance().fromOid(oid);");
-        print(out, "// no need to test for null.  The entry must exist for sure.");
+        print(out, "internalSet = (BPlusTree)InfinispanBackEnd.getInstance().fromOid(oid);");
+        // print(out, "// no need to test for null.  The entry must exist for sure.");
         closeBlock(out);
         print(out, "return new " + getRelationAwareBaseTypeFor(role) + "(this, " + getRelationSlotNameFor(role) + ", internalSet);");
         endMethodBody(out);

@@ -18,10 +18,8 @@ public class LeafNode extends LeafNode_Base {
 	setEntries(entries);
     }
 
-    private TreeMap<Comparable,Serializable> replacePreviousMap(LeafNode leafNode) {
-	TreeMap<Comparable,Serializable> newMap = new TreeMap<Comparable,Serializable>(leafNode.getEntries());
-	leafNode.setEntries(newMap);
-	return newMap;
+    private TreeMap<Comparable,Serializable> duplicateMap() {
+        return new TreeMap<Comparable,Serializable>(getEntries());
     }
 
     public AbstractNode insert(Comparable key, Serializable value) {
@@ -68,8 +66,9 @@ public class LeafNode extends LeafNode_Base {
 	if (currentValue == value && localEntries.containsKey(key)) {
 	    return localEntries;
 	} else {
-	    TreeMap<Comparable,Serializable> newMap = replacePreviousMap(this);
+	    TreeMap<Comparable,Serializable> newMap = duplicateMap();
 	    newMap.put(key, value);
+            setEntries(newMap);
 	    return newMap;
 	}
     }
@@ -107,8 +106,9 @@ public class LeafNode extends LeafNode_Base {
 	if (!localEntries.containsKey(key)) {
 	    return localEntries;
 	} else {
-	    TreeMap<Comparable,Serializable> newMap = replacePreviousMap(this);
+	    TreeMap<Comparable,Serializable> newMap = duplicateMap();
 	    newMap.remove(key);
+            setEntries(newMap);
 	    return newMap;
 	}
     }
@@ -125,14 +125,16 @@ public class LeafNode extends LeafNode_Base {
     }
 
     Map.Entry<Comparable,Serializable> removeBiggestKeyValue() {
-	TreeMap<Comparable,Serializable> newMap = replacePreviousMap(this);
+	TreeMap<Comparable,Serializable> newMap = duplicateMap();
 	Map.Entry<Comparable,Serializable> lastEntry = newMap.pollLastEntry();
+        setEntries(newMap);
 	return lastEntry;
     }
 
     Map.Entry<Comparable,Serializable> removeSmallestKeyValue() {
-	TreeMap<Comparable,Serializable> newMap = replacePreviousMap(this);
+	TreeMap<Comparable,Serializable> newMap = duplicateMap();
 	Map.Entry<Comparable,Serializable> firstEntry = newMap.pollFirstEntry();
+        setEntries(newMap);
 	return firstEntry;
     }
 
@@ -141,15 +143,17 @@ public class LeafNode extends LeafNode_Base {
     }
 
     void addKeyValue(Map.Entry keyValue) {
-	TreeMap<Comparable,Serializable> newMap = replacePreviousMap(this);
+	TreeMap<Comparable,Serializable> newMap = duplicateMap();
 	newMap.put((Comparable)keyValue.getKey(), (Serializable)keyValue.getValue());
+        setEntries(newMap);
     }
 
     void mergeWithLeftNode(AbstractNode leftNode, Comparable splitKey) {
 	LeafNode left = (LeafNode)leftNode; // this node does not know how to merge with another kind
 	
-	TreeMap<Comparable,Serializable> newMap = replacePreviousMap(this);
+	TreeMap<Comparable,Serializable> newMap = duplicateMap();
 	newMap.putAll(left.getEntries());
+        setEntries(newMap);
 
 	LeafNode nodeBefore = left.getPrevious();
 

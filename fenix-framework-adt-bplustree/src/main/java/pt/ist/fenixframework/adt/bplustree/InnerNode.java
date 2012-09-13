@@ -24,22 +24,20 @@ public class InnerNode extends InnerNode_Base {
     	newMap.put(splitKey, leftNode);
     	newMap.put(BPlusTree.LAST_KEY, rightNode);
 
-    	this.setSubNodes(newMap);
+    	setSubNodes(newMap);
     	leftNode.setParent(this);
     	rightNode.setParent(this);
     }
 
     private InnerNode(TreeMap<Comparable,AbstractNode> subNodes) {
-    	this.setSubNodes(subNodes);
+    	setSubNodes(subNodes);
     	for (AbstractNode subNode : subNodes.values()) { // smf: either don't do this or don't setParent when making new
     	    subNode.setParent(this);
     	}
     }
 
-    private TreeMap<Comparable,AbstractNode> replacePreviousMap(InnerNode node) {
-    	TreeMap<Comparable,AbstractNode> newMap = new TreeMap<Comparable,AbstractNode>(node.getSubNodes());
-    	node.setSubNodes(newMap);
-    	return newMap;
+    private TreeMap<Comparable,AbstractNode> duplicateMap() {
+    	return new TreeMap<Comparable,AbstractNode>(getSubNodes());
     }
 
     @Override
@@ -84,12 +82,13 @@ public class InnerNode extends InnerNode_Base {
     }
 
     private TreeMap<Comparable,AbstractNode> justInsert(Comparable middleKey, AbstractNode subLeftNode, AbstractNode subRightNode) {
-    	TreeMap<Comparable,AbstractNode> newMap = replacePreviousMap(this);
+    	TreeMap<Comparable,AbstractNode> newMap = duplicateMap();
 
     	// find smallest key greater than middleKey
     	Comparable keyJustAfterMiddleKey = newMap.higherKey(middleKey);
     	newMap.put(keyJustAfterMiddleKey, subRightNode); // this replaces the previous mapping
     	newMap.put(middleKey, subLeftNode); // this adds the new split
+        setSubNodes(newMap);
     	return newMap;
     }
     
@@ -118,9 +117,10 @@ public class InnerNode extends InnerNode_Base {
 
     // replaces the key for the given sub-node.  The deletedKey is expected to exist in this node
     private AbstractNode replaceDeletedKey(Comparable deletedKey, Comparable replacementKey, AbstractNode subNode) {
-    	TreeMap<Comparable,AbstractNode> newMap = replacePreviousMap(this);
+    	TreeMap<Comparable,AbstractNode> newMap = duplicateMap();
     	newMap.remove(deletedKey);
     	newMap.put(replacementKey, subNode);
+        setSubNodes(newMap);
     	return getRoot();
     }
 
@@ -204,15 +204,16 @@ public class InnerNode extends InnerNode_Base {
     private void leftLeafMerge(Map.Entry<Comparable,AbstractNode> previousEntry, Map.Entry<Comparable,AbstractNode> entry) {
     	entry.getValue().mergeWithLeftNode(previousEntry.getValue(), null);
     	// remove the superfluous node
-    	Map newMap = replacePreviousMap(this);
+    	TreeMap<Comparable,AbstractNode> newMap = duplicateMap();
     	newMap.remove(previousEntry.getKey());
+        setSubNodes(newMap);
     }
 
     void mergeWithLeftNode(AbstractNode leftNode, Comparable splitKey) {
     	InnerNode left = (InnerNode)leftNode;  // this node does not know how to merge with another kind
 
-    	TreeMap<Comparable,AbstractNode> newMap = replacePreviousMap(this);
-    	TreeMap<Comparable,AbstractNode> newLeftSubNodes = replacePreviousMap(left);
+    	TreeMap<Comparable,AbstractNode> newMap = duplicateMap();
+    	TreeMap<Comparable,AbstractNode> newLeftSubNodes = left.duplicateMap();
 
     	// change the parent of all the left sub-nodes
     	InnerNode uncle = newMap.get(BPlusTree.LAST_KEY).getParent();
@@ -228,6 +229,7 @@ public class InnerNode extends InnerNode_Base {
 
     	// merge the remaining left sub-nodes
     	newMap.putAll(newLeftSubNodes);
+        setSubNodes(newMap);
     }
 
     // Get the rightmost key-value pair from the left sub-node and move it to the given sub-node.  Update the split key
@@ -238,9 +240,10 @@ public class InnerNode extends InnerNode_Base {
     	rightEntry.getValue().addKeyValue(leftBiggestKeyValue);
 
     	// update the split key to be the key we just moved
-    	TreeMap<Comparable,AbstractNode> newMap = replacePreviousMap(this);
+    	TreeMap<Comparable,AbstractNode> newMap = duplicateMap();
     	newMap.remove(leftEntry.getKey());
     	newMap.put(leftBiggestKeyValue.getKey(), leftSubNode);
+        setSubNodes(newMap);
     }
 
     // Get the leftmost key-value pair from the right sub-node and move it to the given sub-node.  Update the split key
@@ -253,9 +256,10 @@ public class InnerNode extends InnerNode_Base {
 
     	// update the split key to be the key after the one we just moved
     	Comparable rightNextSmallestKey = rightSubNode.getSmallestKey();
-    	TreeMap<Comparable,AbstractNode> newMap = replacePreviousMap(this);
+    	TreeMap<Comparable,AbstractNode> newMap = duplicateMap();
     	newMap.remove(leftEntry.getKey());
     	newMap.put(rightNextSmallestKey, leftSubNode);
+        setSubNodes(newMap);
     }
 
     /*
@@ -308,16 +312,17 @@ public class InnerNode extends InnerNode_Base {
     	Comparable splitKey = previousEntry.getKey();
     	entry.getValue().mergeWithLeftNode(previousEntry.getValue(), splitKey);
     	// remove the superfluous node
-    	Map newMap = replacePreviousMap(this);
+    	TreeMap<Comparable,AbstractNode> newMap = duplicateMap();
     	newMap.remove(splitKey);
+        setSubNodes(newMap);
     }
 
     private void rotateLeftToRight(Map.Entry<Comparable,InnerNode> leftEntry, Map.Entry<Comparable,InnerNode> rightEntry) {
     	InnerNode leftSubNode = leftEntry.getValue();
     	InnerNode rightSubNode = rightEntry.getValue();
 
-    	TreeMap<Comparable,AbstractNode> newLeftSubNodeSubNodes = replacePreviousMap(leftSubNode);
-    	TreeMap<Comparable,AbstractNode> newRightSubNodeSubNodes = replacePreviousMap(rightSubNode);
+    	TreeMap<Comparable,AbstractNode> newLeftSubNodeSubNodes = leftSubNode.duplicateMap();
+    	TreeMap<Comparable,AbstractNode> newRightSubNodeSubNodes = rightSubNode.duplicateMap();
 	
     	Comparable leftHighestKey = newLeftSubNodeSubNodes.lowerKey(BPlusTree.LAST_KEY);
     	AbstractNode leftHighestValue = newLeftSubNodeSubNodes.get(BPlusTree.LAST_KEY);
@@ -330,18 +335,22 @@ public class InnerNode extends InnerNode_Base {
     	leftHighestValue = newLeftSubNodeSubNodes.remove(leftHighestKey);
     	newLeftSubNodeSubNodes.put(BPlusTree.LAST_KEY, leftHighestValue);
 
+        leftSubNode.setSubNodes(newLeftSubNodeSubNodes);
+        rightSubNode.setSubNodes(newRightSubNodeSubNodes);
+
     	// update the split-key to be the key we just removed from the left
-    	TreeMap<Comparable,AbstractNode> newMap = replacePreviousMap(this);
+    	TreeMap<Comparable,AbstractNode> newMap = duplicateMap();
     	newMap.remove(leftEntry.getKey());
     	newMap.put(leftHighestKey, leftSubNode);
+        setSubNodes(newMap);
     }
 
     private void rotateRightToLeft(Map.Entry<Comparable,InnerNode> leftEntry, Map.Entry<Comparable,InnerNode> rightEntry) {
     	InnerNode leftSubNode = leftEntry.getValue();
     	InnerNode rightSubNode = rightEntry.getValue();
 
-    	TreeMap<Comparable,AbstractNode> newLeftSubNodeSubNodes = replacePreviousMap(leftSubNode);
-    	TreeMap<Comparable,AbstractNode> newRightSubNodeSubNodes = replacePreviousMap(rightSubNode);
+    	TreeMap<Comparable,AbstractNode> newLeftSubNodeSubNodes = leftSubNode.duplicateMap();
+    	TreeMap<Comparable,AbstractNode> newRightSubNodeSubNodes = rightSubNode.duplicateMap();
 
     	// re-index the left highest value under the split-key, which is moved down
     	AbstractNode leftHighestValue = newLeftSubNodeSubNodes.get(BPlusTree.LAST_KEY);
@@ -355,10 +364,14 @@ public class InnerNode extends InnerNode_Base {
     	newLeftSubNodeSubNodes.put(BPlusTree.LAST_KEY, rightLowestValue);
     	rightLowestValue.setParent(leftSubNode);
 
+        leftSubNode.setSubNodes(newLeftSubNodeSubNodes);
+        rightSubNode.setSubNodes(newRightSubNodeSubNodes);
+
     	// update the split-key to be the key we just removed from the right
-    	TreeMap<Comparable,AbstractNode> newMap = replacePreviousMap(this);
+    	TreeMap<Comparable,AbstractNode> newMap = duplicateMap();
     	newMap.remove(leftEntry.getKey());
     	newMap.put(rightLowestEntry.getKey(), leftSubNode);
+        setSubNodes(newMap);
     }
 
     @Override

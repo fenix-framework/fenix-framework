@@ -10,6 +10,9 @@ import pt.ist.fenixframework.dml.runtime.Relation;
 
 public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 
+    public static final String SERIALIZER_CLASS_PACKAGE = "pt.ist.fenixframework";
+    public static final String SERIALIZER_CLASS_SIMPLE_NAME = "ValueTypeSerializer";
+    public static final String SERIALIZER_CLASS_FULL_NAME = SERIALIZER_CLASS_PACKAGE + "." + SERIALIZER_CLASS_SIMPLE_NAME;
     public static final String SERIALIZATION_METHOD_PREFIX = "serialize$";
     public static final String DESERIALIZATION_METHOD_PREFIX = "deSerialize$";
 
@@ -22,9 +25,7 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
     @Override
     public void generateCode() {
 	// create the ValueTypeSerializationGenerator before starting the "standard" generation.
- 	String packageName = "pt.ist.fenixframework";
- 	String vtGenClassname = "ValueTypeSerializer";
-	File file = new File(getBaseDirectoryFor(packageName), vtGenClassname + ".java");
+	File file = new File(getBaseDirectoryFor(SERIALIZER_CLASS_PACKAGE), SERIALIZER_CLASS_SIMPLE_NAME + ".java");
 	try {
 	    file.getParentFile().mkdirs();
 	    this.out = new PrintWriter(new FileWriter(file), true);
@@ -32,9 +33,9 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 	    throw new Error("Can't open file" + file);
 	}
 
-	generateFilePreamble(packageName, this.out);
+	generateFilePreamble(SERIALIZER_CLASS_PACKAGE, this.out);
 	newline(out);
-	printWords(out, "public", "class", "ValueTypeSerializer");
+	printWords(out, "public", "class", SERIALIZER_CLASS_SIMPLE_NAME);
 	newBlock(out);
 	generateValueTypeSerializations();
 	closeBlock(out);
@@ -108,11 +109,11 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 	}
     }
 
-    protected String makeSerializationValueTypeName(ValueType vt) {
+    public static String makeSerializationValueTypeName(ValueType vt) {
 	return "Serialized$" + makeSafeValueTypeName(vt);
     }
 
-    public String makeSafeValueTypeName(ValueType vt) {
+    public static String makeSafeValueTypeName(ValueType vt) {
 	return vt.getDomainName().replace('.', '$');
     }
 
