@@ -23,7 +23,7 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
 
     public InfinispanCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
-    }
+     }
 
     @Override
     protected String getDomainClassRoot() {
@@ -48,6 +48,7 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
         println(out, "import pt.ist.fenixframework.core.Externalization;");
         println(out, "import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;");
         println(out, "import " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ";");
+        println(out, "import static " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ".*;");
         newline(out);
     }
 
@@ -87,7 +88,8 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
         printMethod(out, "public", "void", "add",
                     makeArg(otherRoleTypeFullName, "o1"),
                     makeArg(roleTypeFullName, "o2"),
-                    makeArg(makeGenericType("pt.ist.fenixframework.dml.runtime.Relation",otherRoleTypeFullName,roleTypeFullName), "relation"));
+                    makeArg(makeGenericType("pt.ist.fenixframework.dml.runtime.Relation",
+                                            otherRoleTypeFullName,roleTypeFullName), "relation"));
         startMethodBody(out);
         print(out, "if (o1 != null)");
         newBlock(out);
@@ -151,7 +153,6 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
             defaultValue = "null";
         }
         println(out, "if (obj == null || obj instanceof Externalization.NullClass) { return " + defaultValue + "; }");
-
         String returnExpression = "return (" + getReferenceType(slot.getTypeName()) + ")";
         ValueType vt = slot.getSlotType();
         if (vt.isBuiltin() || vt.isEnum()) {
@@ -159,10 +160,10 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
         } else {
             returnExpression += VT_DESERIALIZER +
                 ValueTypeSerializationGenerator.makeSafeValueTypeName(vt) + "((" +
-                ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +  ValueTypeSerializationGenerator.makeSerializationValueTypeName(vt) + ")obj)";
+                getReferenceType(ValueTypeSerializationGenerator.getSerializedFormTypeName(vt)) +
+                ")obj)";
         }
         returnExpression += ";";
-        // print(out, "return (" + getReferenceType(slot.getTypeName()) + ")obj;");
         print(out, returnExpression);
     }
 
@@ -177,7 +178,7 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
             if (vt.isBuiltin() || vt.isEnum()) {
                 setterExpression += slotName;
             } else { // derived value type must be externalized
-                setterExpression += VT_SERIALIZER +
+                setterExpression +=  VT_SERIALIZER +
                     ValueTypeSerializationGenerator.makeSafeValueTypeName(vt) + "(" + slotName + ")";
             }
             setterExpression += ")";
@@ -199,9 +200,12 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
 
         // internal setter, which does not inform the relation
         newline(out);
-        printMethod(out, methodModifiers, "void", setterName + "$unidirectional", makeArg(typeName, slotName));
+        printMethod(out, methodModifiers, "void", setterName + "$unidirectional", makeArg(typeName,
+                                                                                          slotName));
         startMethodBody(out);
-        print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName + "\", (" + slotName + " == null ? Externalization.NULL_OBJECT : " + slotName + ".getOid()));");
+        print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName +
+              "\", (" + slotName + " == null ? Externalization.NULL_OBJECT : " + slotName +
+              ".getOid()));");
         endMethodBody(out);
     }
 

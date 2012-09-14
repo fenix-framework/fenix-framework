@@ -29,44 +29,103 @@ public class DomainModel implements Serializable {
 	return true;
     }
 
-    protected void initializeBuiltinValueTypes() {
-        // primitive types
-	newValueType("boolean", "boolean");
-	newValueType("byte", "byte");
-	newValueType("char", "char");
-	newValueType("short", "short");
-	newValueType("int", "int");
-	newValueType("float", "float");
-	newValueType("long", "long");
-	newValueType("double", "double");
-
-        // their wrappers
-	newValueType("Boolean", "java.lang.Boolean");
-	newValueType("Byte", "java.lang.Byte");
-	newValueType("Character", "java.lang.Character");
-	newValueType("Short", "java.lang.Short");
-	newValueType("Integer", "java.lang.Integer");
-	newValueType("Float", "java.lang.Float");
-	newValueType("Long", "java.lang.Long");
-	newValueType("Double", "java.lang.Double");
-
-        // String is, of course, essential
-	newValueType("String", "java.lang.String");
-
-	// we need something binary, also
-	newValueType("bytearray", "byte[]");
-
-	// JodaTime types
-	newValueType("DateTime", "org.joda.time.DateTime");
-	newValueType("LocalDate", "org.joda.time.LocalDate");
-	newValueType("LocalTime", "org.joda.time.LocalTime");
-	newValueType("Partial", "org.joda.time.Partial");
-
-        // also anything Serializable is acceptable
-	newValueType("Serializable", "java.io.Serializable");
+    public static boolean isNullableTypeFullName(String vtFullName) {
+	for (String nonNullableType : NON_NULLABLE_TYPES) {
+	    if (nonNullableType.equals(vtFullName)) {
+		return false;
+	    }
+	}
+	return true;
     }
 
-    private String[][] builtinEntities = { /* { fullname, alias } */
+    private static String[][] builtinValueTypes = { /* { fullname, alias } */
+        // primitive types
+	{ "boolean", "boolean" },
+	{ "byte", "byte" },
+	{ "char", "char" },
+	{ "short", "short" },
+	{ "int", "int" },
+	{ "float", "float" },
+	{ "long", "long" },
+	{ "double", "double" },
+
+        // their wrappers
+	{ "java.lang.Boolean", "Boolean" },
+	{ "java.lang.Byte", "Byte" },
+	{ "java.lang.Character", "Character" },
+	{ "java.lang.Short", "Short" },
+	{ "java.lang.Integer", "Integer" },
+	{ "java.lang.Float", "Float" },
+	{ "java.lang.Long", "Long" },
+	{ "java.lang.Double", "Double" },
+
+        // String is, of course, essential
+	{ "java.lang.String", "String" },
+
+	// we need something binary, also
+	{ "byte[]", "bytearray" },
+
+	// JodaTime types
+	{ "org.joda.time.DateTime", "DateTime" },
+	{ "org.joda.time.LocalDate", "LocalDate" },
+	{ "org.joda.time.LocalTime", "LocalTime" },
+	{ "org.joda.time.Partial", "Partial" },
+
+        // also anything Serializable is acceptable
+	{ "java.io.Serializable", "Serializable" }
+    };
+
+    protected void initializeBuiltinValueTypes() {
+        for (String[] valueType : builtinValueTypes) {
+            newValueType(valueType[1], valueType[0]);
+        }
+        // // primitive types
+	// newValueType("boolean", "boolean");
+	// newValueType("byte", "byte");
+	// newValueType("char", "char");
+	// newValueType("short", "short");
+	// newValueType("int", "int");
+	// newValueType("float", "float");
+	// newValueType("long", "long");
+	// newValueType("double", "double");
+
+        // // their wrappers
+	// newValueType("Boolean", "java.lang.Boolean");
+	// newValueType("Byte", "java.lang.Byte");
+	// newValueType("Character", "java.lang.Character");
+	// newValueType("Short", "java.lang.Short");
+	// newValueType("Integer", "java.lang.Integer");
+	// newValueType("Float", "java.lang.Float");
+	// newValueType("Long", "java.lang.Long");
+	// newValueType("Double", "java.lang.Double");
+
+        // // String is, of course, essential
+	// newValueType("String", "java.lang.String");
+
+	// // we need something binary, also
+	// newValueType("bytearray", "byte[]");
+
+	// // JodaTime types
+	// newValueType("DateTime", "org.joda.time.DateTime");
+	// newValueType("LocalDate", "org.joda.time.LocalDate");
+	// newValueType("LocalTime", "org.joda.time.LocalTime");
+	// newValueType("Partial", "org.joda.time.Partial");
+
+        // // also anything Serializable is acceptable
+	// newValueType("Serializable", "java.io.Serializable");
+    }
+
+    public static boolean isBuiltinValueTypeFullName(String name) {
+        for (String[] valueType : builtinValueTypes) {
+            if (valueType[0].equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private static String[][] builtinEntities = { /* { fullname, alias } */
         { "pt.ist.fenixframework.DomainObject", "DomainObject" },
         { "pt.ist.fenixframework.core.AbstractDomainObject", "AbstractDomainObject" }
     };

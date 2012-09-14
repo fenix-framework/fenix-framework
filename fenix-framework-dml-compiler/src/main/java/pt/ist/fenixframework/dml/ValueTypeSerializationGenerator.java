@@ -22,6 +22,20 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 	super(compArgs, domainModel);
     }
 
+    public static String getSerializedFormTypeName(ValueType vt) {
+        List<ExternalizationElement> extElems = vt.getExternalizationElements();
+        if (extElems.size() == 0) { // built-in type do not have externalizers
+            return vt.getFullname();
+        } else if (extElems.size() == 1) {
+            // It's just a wrapper.  So, our serialized form is the same as our component's
+            return getSerializedFormTypeName(extElems.get(0).getType());
+        } else {
+            // Alas, we need a full-blown SerializedForm for this one
+            return makeSerializationValueTypeName(vt);
+        }
+    }
+
+
     @Override
     public void generateCode() {
 	// create the ValueTypeSerializationGenerator before starting the "standard" generation.
@@ -45,8 +59,12 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 	for (ValueType vt : getDomainModel().getAllValueTypes()) {
 	    if (!(vt.isBuiltin() || vt.isEnum())) {
 		println(out, "");
-		print(out, "// VT: " + vt.getDomainName());
-		generateValueTypeSerializableForm(vt);
+		print(out, "// VT: " + vt.getDomainName() + " serializes as " + getSerializedFormTypeName(vt));
+
+                List<ExternalizationElement> extElems = vt.getExternalizationElements();
+                if (extElems.size() > 1) { // because 1-externalizer VTs unwrap and use their component's type
+                    generateValueTypeSerializableForm(vt);
+                }
 		generateValueTypeSerialization(vt);
 		generateValueTypeDeSerialization(vt);
 	    }
@@ -54,7 +72,7 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
     }
 
     protected void generateValueTypeSerializableForm(ValueType vt) {
-	newline(out);
+        onNewline(out);
 	print(out, "public static class " + makeSerializationValueTypeName(vt) + " implements java.io.Serializable");
 	newBlock(out);
 	onNewline(out);
@@ -71,7 +89,7 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 	    if (extElemVt.isBuiltin() || extElemVt.isEnum()) {
 		generateSlotDeclaration(out, extElemVt.getFullname(), makeSlotName(extElem));
 	    } else {
-		generateSlotDeclaration(out, makeSerializationValueTypeName(extElemVt),
+		generateSlotDeclaration(out, getSerializedFormTypeName(extElemVt),
 					extElem.getMethodName().replace('.', '_'));
 	    }
 	}
@@ -83,17 +101,18 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 	startMethodBody(out);
 	List<ExternalizationElement> extElems = vt.getExternalizationElements();
 	for (ExternalizationElement extElem : extElems) {
+            onNewline(out);
 	    ValueType extElemVt = extElem.getType();
 	    printWords(out, "this." + makeSlotName(extElem), "=",
 		       applyExternalizationIfRequired(applyExternalizerTo(extElem, "obj"), extElemVt));
-	    println(out, ";");
+	    print(out, ";");
 	}
 	endMethodBody(out);
     }
 
     protected String applyExternalizerTo(ExternalizationElement extElem, String expr) {
 	String extMethodName = extElem.getMethodName();
-	// parametric types require cast, so we alwys cast
+	// parametric types require cast, so we always cast
 	String cast = "(" + extElem.getType().getFullname() + ")";
 
 	return (extMethodName.contains("."))
@@ -102,10 +121,10 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
     }
 
     protected String applyExternalizationIfRequired(String expr, ValueType vt) {
-	if (!(vt.isBuiltin() || vt.isEnum())) {
-	    return SERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(vt) + "(" + expr + ")";
-	} else {
+	if ((vt.isBuiltin() || vt.isEnum())) {
 	    return expr;
+        } else {
+	    return SERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(vt) + "(" + expr + ")";
 	}
     }
 
@@ -121,21 +140,24 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 	return extElem.getMethodName().replace('.', '_');
     }
 
-    protected void generateCheckNullable(ValueType vt) {
-	if (DomainModel.isNullableType(vt)) {
-	    print(out, "(obj == null) ? null : ");
-	}
-    }
-
     protected void generateValueTypeSerialization(ValueType vt) {
 	onNewline(out);
-	printMethod(out, "public static", makeSerializationValueTypeName(vt),
+	printMethod(out, "public static", getSerializedFormTypeName(vt),
 		    SERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(vt),
 		    makeArg(vt.getFullname(), "obj"));
 	startMethodBody(out);
 	print(out, "return ");
-	generateCheckNullable(vt);
-	print(out, "new " + makeSerializationValueTypeName(vt) + "(obj);");
+	if (DomainModel.isNullableType(vt)) {
+	    print(out, "(obj == null) ? null : ");
+        }
+        if (vt.getExternalizationElements().size() == 1) {
+            ExternalizationElement extElem = vt.getExternalizationElements().get(0);
+	    ValueType extElemVt = extElem.getType();
+	    print(out, applyExternalizationIfRequired(applyExternalizerTo(extElem, "obj"), extElemVt));
+        } else {
+            print(out, "new " + makeSerializationValueTypeName(vt) + "(obj)");
+        }
+        print(out, ";");
 	endMethodBody(out);
     }
 
@@ -143,7 +165,7 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 	onNewline(out);
 	printMethod(out, "public static", vt.getFullname(),
 		    DESERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(vt),
-		    makeArg(makeSerializationValueTypeName(vt) , "obj"));
+		    makeArg(getSerializedFormTypeName(vt) , "obj"));
 	startMethodBody(out);
 	String internalizationMethodName = vt.getInternalizationMethodName();
 	if (internalizationMethodName == null) { // class constructor
@@ -152,28 +174,41 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 	    internalizationMethodName = vt.getFullname() + "." + internalizationMethodName;
 	}
 	print(out, "return ");
-	generateCheckNullable(vt);
+	if (DomainModel.isNullableTypeFullName(getSerializedFormTypeName(vt))) {
+	    print(out, "(obj == null) ? null : ");
+        }
 	print(out, "(" + vt.getFullname() + ")");
 	print(out, internalizationMethodName + "(");
 
 	boolean firstArg = true;
 	List<ExternalizationElement> extElems = vt.getExternalizationElements();
-	for (ExternalizationElement extElem : extElems) {
+        if (extElems.size() == 1) {
+            ExternalizationElement extElem = extElems.get(0);
+            ValueType extElemVt = extElem.getType();
+            if (extElemVt.isBuiltin() || extElemVt.isEnum()) {
+                print(out, "obj");
+            } else {
+                print(out, DESERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(extElemVt) + "(obj)");
+            }
+        } else {
+            for (ExternalizationElement extElem : extElems) {
 
-	    if (firstArg) {
-		firstArg = false;
-	    } else {
-		print(out, ", ");
-	    }
+                if (firstArg) {
+                    firstArg = false;
+                } else {
+                    print(out, ", ");
+                }
 
-	    ValueType extElemVt = extElem.getType();
-	    if (extElemVt.isBuiltin() || extElemVt.isEnum()) {
-		print(out, "obj." + makeSlotName(extElem));
-	    } else {
-		print(out, DESERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(extElemVt) + "(obj." +
-		      extElem.getMethodName().replace('.', '_') + ")");
-	    }
-	}
+                ValueType extElemVt = extElem.getType();
+                if (extElemVt.isBuiltin() || extElemVt.isEnum()) {
+                    print(out, "obj." + makeSlotName(extElem));
+                } else {
+                    // note that extElems.size() > 1 because of the outer if statment
+                    print(out, DESERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(extElemVt) + "(obj." +
+                          extElem.getMethodName().replace('.', '_') + ")");
+                }
+            }
+        }
 	print(out, ");");
 	endMethodBody(out);
     }
