@@ -49,7 +49,7 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 
 	generateFilePreamble(SERIALIZER_CLASS_PACKAGE, this.out);
 	newline(out);
-	printWords(out, "public", "class", SERIALIZER_CLASS_SIMPLE_NAME);
+	printWords(out, "public", "final", "class", SERIALIZER_CLASS_SIMPLE_NAME);
 	newBlock(out);
 	generateValueTypeSerializations();
 	closeBlock(out);
@@ -73,7 +73,7 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 
     protected void generateValueTypeSerializableForm(ValueType vt) {
         onNewline(out);
-	print(out, "public static class " + makeSerializationValueTypeName(vt) + " implements java.io.Serializable");
+	print(out, "public static final class " + makeSerializationValueTypeName(vt) + " implements java.io.Serializable");
 	newBlock(out);
 	onNewline(out);
 	println(out, "private static final long serialVersionUID = 1L;");
@@ -142,7 +142,7 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 
     protected void generateValueTypeSerialization(ValueType vt) {
 	onNewline(out);
-	printMethod(out, "public static", getSerializedFormTypeName(vt),
+	printMethod(out, "public static final", getSerializedFormTypeName(vt),
 		    SERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(vt),
 		    makeArg(vt.getFullname(), "obj"));
 	startMethodBody(out);
@@ -163,7 +163,7 @@ public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
 
     protected void generateValueTypeDeSerialization(ValueType vt) {
 	onNewline(out);
-	printMethod(out, "public static", vt.getFullname(),
+	printMethod(out, "public static final", vt.getFullname(),
 		    DESERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(vt),
 		    makeArg(getSerializedFormTypeName(vt) , "obj"));
 	startMethodBody(out);
