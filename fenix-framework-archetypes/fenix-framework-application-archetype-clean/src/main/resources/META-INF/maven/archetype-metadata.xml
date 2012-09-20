@@ -11,7 +11,7 @@
     </requiredProperty>
     <requiredProperty key="backEndVersion"/>
     <requiredProperty key="codeGeneratorClassName">
-      <defaultValue>pt.ist.fenixframework.dml.AbstractCodeGenerator</defaultValue>
+      <defaultValue>pt.ist.fenixframework.dml.DefaultCodeGenerator</defaultValue>
     </requiredProperty>
   </requiredProperties>
   <fileSets>

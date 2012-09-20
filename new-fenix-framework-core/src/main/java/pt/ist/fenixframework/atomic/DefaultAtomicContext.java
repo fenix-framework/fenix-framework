@@ -4,26 +4,25 @@ import java.util.concurrent.Callable;
 
 import org.apache.log4j.Logger;
 
+import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.core.CommitError;
 import pt.ist.fenixframework.core.WriteOnReadError;
 
-public enum DefaultAtomicContext implements AtomicContext {
+public class /*enum*/ DefaultAtomicContext implements AtomicContext {
 
-    FLATTEN_READONLY(true, true),
-    FLATTEN_READWRITE(true, false),
-    READ_ONLY(false, true),
-    READ_WRITE(false, false);
+    // FLATTEN_READONLY(true, true),
+    // FLATTEN_READWRITE(true, false),
+    // READ_ONLY(false, true),
+    // READ_WRITE(false, false);
 
     private static final Logger logger = Logger.getLogger(DefaultAtomicContext.class);
 
-    private final boolean flattenTx;
-    private final boolean tryReadOnly;
+    private final Atomic atomic;
 
-    private DefaultAtomicContext(boolean flatten, boolean speculativeReadOnly)   {
-        flattenTx = flatten;
-        tryReadOnly = speculativeReadOnly;
+    DefaultAtomicContext(Atomic atomic)   {
+        this.atomic = atomic;
     }
 
     // @Override
@@ -69,12 +68,6 @@ public enum DefaultAtomicContext implements AtomicContext {
         }
         TransactionManager tm = FenixFramework.getTransactionManager();
         
-        // return tm.withTransaction(new TransactionalCommand<V>() {
-        //         public V doIt() throws Exception {
-        //             return method.call();
-        //         }
-        //     });
-        return tm.withTransaction(method);
+        return tm.withTransaction(method, this.atomic);
     }
-
 }

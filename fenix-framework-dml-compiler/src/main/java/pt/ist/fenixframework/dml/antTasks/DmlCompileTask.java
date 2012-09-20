@@ -13,11 +13,11 @@ import org.apache.tools.ant.types.FileSet;
 import pt.ist.fenixframework.DmlCompiler;
 import pt.ist.fenixframework.dml.CodeGenerator;
 import pt.ist.fenixframework.dml.CompilerArgs;
-import pt.ist.fenixframework.dml.AbstractCodeGenerator;
+import pt.ist.fenixframework.dml.DefaultCodeGenerator;
 
 public class DmlCompileTask extends Task {
 
-    private static final Class<? extends CodeGenerator> defaultCodeGeneratorClass = AbstractCodeGenerator.class;
+    private static final Class<? extends CodeGenerator> defaultCodeGeneratorClass = DefaultCodeGenerator.class;
 
     private boolean generateFinals = false;
     private String destDirectoryBase = null;

@@ -2,6 +2,7 @@ package pt.ist.fenixframework.backend.mem;
 
 import java.util.concurrent.Callable;
 
+import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionManager;
 
@@ -23,6 +24,15 @@ public class NoOpTransactionManager implements TransactionManager {
 
     @Override
     public <T> T withTransaction(Callable<T> command) {
+        return withTransaction(command, null);
+    }
+
+    /**
+     * Directly calls the command with no added behaviour, ignoring the given <code>atomic</code>
+     * configuration.
+     */
+    @Override
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) {
         try {
             return command.call();
         } catch (Exception e) {

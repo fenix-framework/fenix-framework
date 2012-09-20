@@ -9,6 +9,8 @@ import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 
+// import pt.ist.fenixframework.atomic.AtomicContext;
+
 /**
  * Fenix Framework's interface for all Transaction Managers.  This interface is similar to {@link
  * javax.transaction.TransactionManager}'s interface.
@@ -67,9 +69,19 @@ public interface TransactionManager {
     // non-JTA API
 
     /**
-     * Transactionally execute a command, possibly returning a result.
+     * Transactionally execute a command, possibly returning a result.  Implementations of this
+     * method normally invoke {@link #withTransaction(Callable<T>, Atomic)} with a default atomic
+     * behaviour.
+     * @param command The command to execute.
      */
     public <T> T withTransaction(Callable<T> command);
+
+    /**
+     * Transactionally execute a command, possibly returning a result.
+     * @param command The command to execute
+     * @param atomic the configuration for the execution of this command.
+     */
+    public <T> T withTransaction(Callable<T> command, Atomic atomic);
 
     /**
      * Create a new transaction and associate it with the current thread.  This method can be used

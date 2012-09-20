@@ -57,10 +57,10 @@ public class DmlCompiler {
     public static DomainModel compile(CompilerArgs compArgs) throws DmlCompilerException {
         try {
             DomainModel model = getDomainModel(compArgs);
-            CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class,
-                                                                                 DomainModel.class).newInstance(compArgs, model);
+            CodeGenerator generator = compArgs.getCodeGenerator().
+                getConstructor(CompilerArgs.class,
+                               DomainModel.class).newInstance(compArgs, model);
             generator.generateCode();
-            generator.generateBackEndId();
             return model;
         } catch (Exception e) {
             throw new DmlCompilerException(e);

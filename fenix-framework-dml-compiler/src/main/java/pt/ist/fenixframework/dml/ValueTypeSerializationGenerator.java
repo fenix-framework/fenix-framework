@@ -8,7 +8,7 @@ import java.util.List;
 
 import pt.ist.fenixframework.dml.runtime.Relation;
 
-public class ValueTypeSerializationGenerator extends AbstractCodeGenerator {
+public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
 
     public static final String SERIALIZER_CLASS_PACKAGE = "pt.ist.fenixframework";
     public static final String SERIALIZER_CLASS_SIMPLE_NAME = "ValueTypeSerializer";

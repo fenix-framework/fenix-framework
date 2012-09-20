@@ -2,7 +2,9 @@ package pt.ist.fenixframework.backend.infinispan;
 
 import java.io.PrintWriter;
 
-import pt.ist.fenixframework.dml.AbstractCodeGenerator;
+import pt.ist.fenixframework.atomic.ContextFactory;
+import pt.ist.fenixframework.atomic.DefaultContextFactory;
+import pt.ist.fenixframework.dml.DefaultCodeGenerator;
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
@@ -11,7 +13,7 @@ import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.dml.ValueType;
 import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 
-public class InfinispanCodeGenerator extends AbstractCodeGenerator {
+public class InfinispanCodeGenerator extends DefaultCodeGenerator {
 
     protected static final String VT_SERIALIZER =
         ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +
@@ -38,6 +40,11 @@ public class InfinispanCodeGenerator extends AbstractCodeGenerator {
     @Override
     protected String getDefaultConfigClassName() {
         return InfinispanConfig.class.getName();
+    }
+
+    @Override
+    protected Class<? extends ContextFactory> getAtomicContextFactoryClass() {
+        return DefaultContextFactory.class;
     }
 
     @Override

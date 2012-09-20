@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 
 import org.infinispan.CacheException;
 
+import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.TransactionManager;
 
 public class InfinispanTransactionManager implements TransactionManager {
@@ -57,6 +58,14 @@ public class InfinispanTransactionManager implements TransactionManager {
 
     @Override
     public <T> T withTransaction(Callable<T> command) {
+        return withTransaction(command, null);
+    }
+
+    /**
+     * For now, it ignores the value of the atomic parameter.
+     */
+    @Override
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) {
         T result = null;
         boolean txFinished = false;
         while (!txFinished) {
@@ -73,7 +82,10 @@ public class InfinispanTransactionManager implements TransactionManager {
                 // do some work
                 result = command.call();
                 if (inTopLevelTransaction) {
+                    logger.trace("Will commit a top-level transaction.");
                     commit();
+                } else {
+                    logger.trace("Leaving an inner transaction.");
                 }
                 txFinished = true;
                 return result;

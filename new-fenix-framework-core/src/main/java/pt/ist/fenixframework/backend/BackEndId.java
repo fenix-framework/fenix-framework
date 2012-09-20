@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
+import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.dml.CodeGenerator;
 
 /**
@@ -36,6 +37,13 @@ public abstract class BackEndId {
      */
     public abstract Class<? extends Config> getDefaultConfigClass();
 
+    /**
+     * Get the Class instance for the factory that creates {@link
+     * pt.ist.fenixframework.atomic.AtomicContext}s.  These contexts are backend-specific (thus the
+     * backend provides the factory), because they control the logic required to execute a {@link
+     * java.util.concurrent.Callable} within a transactional context.
+     */
+    public abstract Class<? extends ContextFactory> getAtomicContextFactoryClass();
     
     /**
      *  Lookup via reflection the {@link pt.ist.fenixframework.backend.CurrentBackEndId} class and
@@ -47,9 +55,9 @@ public abstract class BackEndId {
     public static final BackEndId getBackEndId() throws ConfigError {
         Exception ex = null;
         try {
-            Class<CurrentBackEndId> currentBackEndIdClass = (Class<CurrentBackEndId>)Class.forName(CurrentBackEndId.class.getName());
+            Class<CurrentBackEndId> currentBackEndIdClass =
+                (Class<CurrentBackEndId>)Class.forName(CurrentBackEndId.class.getName());
             BackEndId beId = (BackEndId)currentBackEndIdClass.newInstance();
-            // dont forget to catch ClassCastException from line 2
             return beId;
         } catch (ClassNotFoundException e) {
             ex = e;
