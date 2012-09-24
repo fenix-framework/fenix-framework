@@ -18,8 +18,8 @@
     </properties>
 
     <modules>
-        <module>fenix-framework-dml-compiler</module>
         <module>fenix-framework-project</module>
+        <module>fenix-framework-dml-compiler</module>
         <module>dml-maven-plugin</module>
         <module>new-fenix-framework-core</module>
         <module>fenix-framework-bplustree-domain-object</module>

@@ -12,10 +12,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
-import pt.ist.fenixframework.atomic.ProcessAtomicAnnotations;
-import pt.ist.fenixframework.core.DmlFile;
-import pt.ist.fenixframework.core.PostProcessDomainClasses;
-import pt.ist.fenixframework.core.Project;
+import pt.ist.fenixframework.core.FullPostProcessDomainClasses;
 
 public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 
@@ -34,20 +31,9 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 
 	try {
 	    URLClassLoader loader = DmlMojoUtils.augmentClassLoader(getLog(), getMavenProject());
-	    List<URL> dmlFiles = new ArrayList<URL>();
-	    for (DmlFile dmlFile : Project.fromName(getMavenProject().getArtifactId()).getFullDmlSortedList()) {
-		dmlFiles.add(dmlFile.getUrl());
-	    }
-
-	    if (dmlFiles.isEmpty()) {
-		getLog().info("No dml files found to post process domain");
-		return;
-	    }
-
-            PostProcessDomainClasses postProcessor = new PostProcessDomainClasses(dmlFiles, getCodeGeneratorClassName(), loader);
-            postProcessor.start();
-
-            ProcessAtomicAnnotations.processFile(this.getClassesDirectory());
+            FullPostProcessDomainClasses.apply(getMavenProject().getArtifactId(),
+                                               getCodeGeneratorClassName(),
+                                               this.getClassesDirectory(), loader);
 	} catch (Exception e) {
 	    getLog().error(e);
 	}
