@@ -26,7 +26,7 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
     private HashSet<String> loadedClasses = new HashSet<String>();
 
     private DomainModel domainModel;
-    protected String classFullName;
+    // protected String classFullName;
 
     protected AbstractDomainPostProcessor() {
     }
@@ -70,10 +70,10 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
 		}
 		consumeArg(args, i);
 		i += 2;
-	    } else if ("-cfn".equals(args[i])) {
-		classFullName = getNextArg(args, i);
-		consumeArg(args, i);
-		i += 2;
+	    // } else if ("-cfn".equals(args[i])) {
+	    //     classFullName = getNextArg(args, i);
+	    //     consumeArg(args, i);
+	    //     i += 2;
 	    } else if (args[i] != null) {
 		throw new Error("Unknown argument: '" + args[i] + "'");
 	    } else {

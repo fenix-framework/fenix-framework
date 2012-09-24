@@ -25,14 +25,13 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
 	super();
     }
 
-    public PostProcessDomainClasses(List<URL> dmlFiles, String classFullName) {
-	this(dmlFiles, classFullName, Thread.currentThread().getContextClassLoader());
+    public PostProcessDomainClasses(List<URL> dmlFiles) {
+	this(dmlFiles, Thread.currentThread().getContextClassLoader());
     }
 
-    public PostProcessDomainClasses(List<URL> dmlFiles, String classFullName, ClassLoader parentClassLoader) {
+    public PostProcessDomainClasses(List<URL> dmlFiles, ClassLoader parentClassLoader) {
 	super(parentClassLoader);
 	this.dmlFiles.addAll(dmlFiles);
-	this.classFullName = classFullName;
     }
 
     public static void main(final String args[]) throws MalformedURLException {

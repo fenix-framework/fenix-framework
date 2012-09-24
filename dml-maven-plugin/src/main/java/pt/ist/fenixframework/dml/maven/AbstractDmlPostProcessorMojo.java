@@ -32,7 +32,6 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 	try {
 	    URLClassLoader loader = DmlMojoUtils.augmentClassLoader(getLog(), getMavenProject());
             FullPostProcessDomainClasses.apply(getMavenProject().getArtifactId(),
-                                               getCodeGeneratorClassName(),
                                                this.getClassesDirectory(), loader);
 	} catch (Exception e) {
 	    getLog().error(e);

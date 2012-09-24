@@ -13,7 +13,7 @@ import javax.transaction.Transaction;
 
 /**
  * Fenix Framework's interface for all Transaction Managers.  This interface is similar to {@link
- * javax.transaction.TransactionManager}'s interface.
+ * javax.transaction.TransactionManager}'s interface with some extensions added.
  *
  * @see javax.transaction
  */
