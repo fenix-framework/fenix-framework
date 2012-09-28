@@ -68,6 +68,7 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 	    atomicAnnotationsProcessor.start();
 	} catch (Exception e) {
 	    getLog().error(e);
+	    throw new MojoExecutionException("Something went wrong with the post processing", e);
 	}
     }
 }
