@@ -23,4 +23,15 @@
     <module>fenix-framework-webapp-archetype-clean</module>
   </modules>
 
+  <distributionManagement>
+      <repository>
+          <id>fenix-framework-cloudtm-releases</id>
+          <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-cloudtm-releases</url>
+      </repository>
+      <snapshotRepository>
+          <id>fenix-framework-cloudtm-snapshots</id>
+          <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-cloudtm-snapshots</url>
+      </snapshotRepository>
+  </distributionManagement>
+
 </project>

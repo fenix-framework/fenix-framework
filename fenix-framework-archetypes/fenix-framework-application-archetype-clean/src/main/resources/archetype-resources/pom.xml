@@ -50,15 +50,15 @@
 
   <repositories>
     <repository>
-      <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
+      <id>fenix-framework-cloudtm-repository</id>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-framework-cloudtm-repository</url>
     </repository>
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
-      <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
+      <id>fenix-framework-cloudtm-repository</id>
+      <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-framework-cloudtm-repository</url>
     </pluginRepository>
   </pluginRepositories>
 

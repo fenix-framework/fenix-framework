@@ -62,14 +62,14 @@
 
   <repositories>
     <repository>
-      <id>fenix-ashes-maven-repository</id>
+      <id>fenix-framework-cloudtm-repository</id>
       <url>https://fenix-ashes.ist.utl.pt/maven-repository</url>
     </repository>
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
-      <id>fenix-ashes-maven-repository</id>
+      <id>fenix-framework-cloudtm-repository</id>
       <url>https://fenix-ashes.ist.utl.pt/maven-repository</url>
     </pluginRepository>
   </pluginRepositories>
