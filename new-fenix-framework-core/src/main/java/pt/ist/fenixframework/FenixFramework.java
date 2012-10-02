@@ -37,7 +37,7 @@ import pt.ist.fenixframework.dml.DomainModel;
  *
  * <p>Using the configuration by convention, the framework will first look up the name of the {@link
  * pt.ist.fenixframework.backend.BackEnd} that generated the domain-specific code (this is done by
- * instantiationg the class {@link pt.ist.fenixframework.backend.CurrentBackEndId} and by requesting
+ * instantiating the class {@link pt.ist.fenixframework.backend.CurrentBackEndId} and by requesting
  * {@link pt.ist.fenixframework.backend.BackEndId#getBackEndName}) and then use that name to check
  * for the presence of the file '<code>fenix-framework-&lt;NNN&gt;.properties</code>' in the
  * classpath using <code>Thread.currentThread().getContextClassLoader().getResource()</code> (where
@@ -55,11 +55,10 @@ import pt.ist.fenixframework.dml.DomainModel;
  *
  * where each <code>property</code> must be the name of an existing configuration field.
  * Additionally, there is one optional special property named <code>config.class</code>.  By
- * default, the config parser creates an instance of (THE config indicated on
- * |JAVA_FILE_THAT_THE_GENERATOR_WILL_MAKE|method LINK), but this property can be used to choose a
- * different (albeit compatible) configuration class.  The config instance is then populated with
- * each property (except with the <code>config.class</code> property), using the following
- * algorithm:
+ * default, the config parser creates an instance of the {@link BackEndId#getDefaultConfigClass()}
+ * provided by the current BackEndId, but this property can be used to choose a different (albeit
+ * compatible) configuration class.  The config instance is then populated with each property
+ * (except with the <code>config.class</code> property), using the following algorithm:
  *
  * <ol>
  *
