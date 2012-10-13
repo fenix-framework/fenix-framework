@@ -130,7 +130,13 @@ public class FenixFramework {
             throw new ConfigError("The file '" + FENIX_FRAMEWORK_LOGGING_CONFIG
                                   + "' should be distributed with any packaging of the Fenix Framework");
         }
-        PropertyConfigurator.configure(in);
+        Properties props = new Properties();
+        try {
+            props.load(in);
+        } catch (IOException ex) {
+            throw new RuntimeException("Fenix Framework failed to initialize the logging system");
+        }
+        PropertyConfigurator.configure(props);
         logger = Logger.getLogger(FenixFramework.class);
         logger.info("Initialized logging system for Fenix Framework.");
     }
