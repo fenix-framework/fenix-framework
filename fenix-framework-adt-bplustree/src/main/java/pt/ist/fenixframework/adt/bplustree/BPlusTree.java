@@ -3,7 +3,9 @@ package pt.ist.fenixframework.adt.bplustree;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Implementation of a persistence-independent B+Tree.  This implementation is modelled in DML and
@@ -13,7 +15,7 @@ import java.util.Iterator;
  * comparable to each other (e.g. the same BPlusTree instance cannot simultaneously support keys of
  * type Integer and String).
  */
-public class BPlusTree<T extends Serializable> extends BPlusTree_Base {
+public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements IBPlusTree<T> {
     
     /* Special last key */
     private static class ComparableLastKey implements Comparable, Serializable {
@@ -159,5 +161,16 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base {
 	    }
 	}
 	return true;
+    }
+    
+    /** Returns the set of keys mapped by this tree*/
+    public Set<? extends Comparable> getKeys() {
+	Set<Comparable> keys = new HashSet<Comparable>();
+	Iterator<AbstractNode> iter = this.getRoot().iterator();
+	while (iter.hasNext()) {
+	    AbstractNode node = iter.next();
+	    keys.addAll(node.getKeys());
+	}
+	return keys;
     }
 }

@@ -1,17 +1,13 @@
 package pt.ist.fenixframework;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
 
-// import pt.ist.fenixframework.pstm.DataAccessPatterns;
-import pt.ist.fenixframework.backend.mem.DefaultConfig;
 import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.dml.DmlCompilerException;
 import pt.ist.fenixframework.dml.DomainModel;
@@ -239,10 +235,8 @@ public class FenixFramework {
 	    }
 
             if (newConfig == null) {
-                logger.warn("Initialization with a 'null' config instance."
-                            + " Will use default configuration with empty DML.  Is this correct?");
-                newConfig = new DefaultConfig() {{
-                    this.domainModelURLs = Config.resourceToURLArray("empty.dml"); }};
+                logger.warn("Initialization with a 'null' config instance.");
+                throw new ConfigError("A configuration must be provided");
             }
 
             logger.info("Initializing Fenix Framework with config.class=" + newConfig.getClass().getName());

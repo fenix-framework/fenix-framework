@@ -90,6 +90,7 @@ public class Project {
 	    }
 	}
 	Collections.reverse(projects);
+	Project.projects.clear();
 	return projects;
     }
 

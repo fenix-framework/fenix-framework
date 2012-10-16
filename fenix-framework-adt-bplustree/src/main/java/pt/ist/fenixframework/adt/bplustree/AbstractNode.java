@@ -2,6 +2,7 @@ package pt.ist.fenixframework.adt.bplustree;
 
 import java.io.Serializable;
 // import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -28,6 +29,8 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
     abstract boolean containsKey(Comparable key);
     /** Returns the number os key-value mappings in this map */
     abstract int size();
+    /** Returns the keys mapped in this map */
+    abstract Collection<? extends Comparable> getKeys();
 
     abstract String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds);
 

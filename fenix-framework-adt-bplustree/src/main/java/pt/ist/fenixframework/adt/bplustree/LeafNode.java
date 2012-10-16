@@ -287,4 +287,9 @@ public class LeafNode extends LeafNode_Base {
 	return str.toString();
     }
 
+    @Override
+    Collection<? extends Comparable> getKeys() {
+	return this.getEntries().keySet();
+    }
+
 }

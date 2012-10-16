@@ -6,7 +6,7 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionManager;
 
-public class NoOpTransactionManager implements TransactionManager {
+public class MemTransactionManager implements TransactionManager {
     @Override
     public void begin() {}
 

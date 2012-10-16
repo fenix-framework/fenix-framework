@@ -1,6 +1,8 @@
 package pt.ist.fenixframework.adt.bplustree;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -468,5 +470,10 @@ public class InnerNode extends InnerNode_Base {
     	    str.append("]\n");
     	}
     	return str.toString();
+    }
+
+    @Override
+    Collection<? extends Comparable> getKeys() {
+	return Collections.emptySet();
     }
 }

@@ -6,6 +6,7 @@ import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.core.IdentityMap;
+import pt.ist.fenixframework.indexes.IndexesConfig;
 
 /**
  * This is the infinispan configuration manager used by the fenix-framework-backend-infinispan
@@ -14,7 +15,7 @@ import pt.ist.fenixframework.core.IdentityMap;
  * @see Config
  *
  */
-public class InfinispanConfig extends Config {
+public class InfinispanConfig extends IndexesConfig {
     private static final Logger logger = Logger.getLogger(InfinispanDomainObject.class);
 
     // /**
@@ -75,6 +76,7 @@ public class InfinispanConfig extends Config {
     @Override
     protected void init() {
         this.backEnd.configInfinispan(this);
+        updateIndexes();
         // DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
     }
 
