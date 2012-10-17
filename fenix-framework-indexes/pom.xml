@@ -82,11 +82,15 @@
         </repository>
     </repositories>
 
-    <!-- <pluginRepositories> -->
-    <!--   <pluginRepository> -->
-    <!--     <id>fenix-framework-cloudtm-repository</id> -->
-    <!--     <url>https://fenix-ashes.ist.utl.pt/maven-repository</url> -->
-    <!--   </pluginRepository> -->
-    <!-- </pluginRepositories> -->
+    <distributionManagement>
+        <repository>
+            <id>fenix-framework-releases</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>fenix-framework-snapshots</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
