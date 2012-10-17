@@ -5,8 +5,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.dml.DmlCompilerException;
@@ -94,6 +94,7 @@ import pt.ist.fenixframework.dml.DomainModel;
  * @see dml.DomainModel
  */
 public class FenixFramework {
+    private static final Logger logger = Logger.getLogger(FenixFramework.class);
 
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_DEFAULT = "fenix-framework.properties";
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX = "fenix-framework-";
@@ -111,30 +112,14 @@ public class FenixFramework {
      * can only be invoked after the framework is initialized. */
     private static DomainModel domainModel = null;
 
-    private static Logger logger = null;
+    // private static Logger logger = null;
     static {
+        logger.trace("Static initializer block for FenixFramework class [BEGIN]");
         synchronized (INIT_LOCK) {
-            initLoggingSystem();
             logger.info("Trying auto-initialization with configuration by convention");
             tryAutoInit();
         }
-    }
-
-    private static void initLoggingSystem() {
-        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(FENIX_FRAMEWORK_LOGGING_CONFIG);
-        if (in == null) {
-            throw new ConfigError("The file '" + FENIX_FRAMEWORK_LOGGING_CONFIG
-                                  + "' should be distributed with any packaging of the Fenix Framework");
-        }
-        Properties props = new Properties();
-        try {
-            props.load(in);
-        } catch (IOException ex) {
-            throw new RuntimeException("Fenix Framework failed to initialize the logging system");
-        }
-        PropertyConfigurator.configure(props);
-        logger = Logger.getLogger(FenixFramework.class);
-        logger.info("Initialized logging system for Fenix Framework.");
+        logger.trace("Static initializer block for FenixFramework class [END]");
     }
 
     /**
@@ -263,7 +248,7 @@ public class FenixFramework {
 	    // DataAccessPatterns.init(FenixFramework.config);
 	    initialized = true;
 	}
-        logger.info("Initialization of Fenix Framework is complete.");
+        logger.info("Initialization of Fenix Framework is now complete.");
     }
     
     public static void initialize(MultiConfig configs) {
