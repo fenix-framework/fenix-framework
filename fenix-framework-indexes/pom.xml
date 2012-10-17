@@ -84,12 +84,12 @@
 
     <distributionManagement>
         <repository>
-            <id>fenix-framework-releases</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+            <id>fenix-framework-cloudtm-releases</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-cloudtm-releases</url>
         </repository>
         <snapshotRepository>
-            <id>fenix-framework-snapshots</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
+            <id>fenix-framework-cloudtm-snapshots</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-cloudtm-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
