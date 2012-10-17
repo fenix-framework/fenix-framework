@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>pt.ist</groupId>
+        <artifactId>fenix-framework-parent</artifactId>
+        <version>2.0-SNAPSHOT</version>
+        <relativePath>../parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>fenix-framework-backend-ogm</artifactId>
+    <version>2.0-SNAPSHOT</version>
+    <name>Fenix Framework OGM Backend</name>
+    <description>
+        This project provides an hibarnate-ogm-based backend for the Fenix
+        Framework.  Domain entities are stored in Infinispan (via hibernate
+        mappings).  The transactional system uses Infinispan's.
+    </description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+
+            <!-- Process dml file class immediately before compiling -->
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>dml-maven-plugin</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-domain</goal>
+                            <goal>post-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*_Base*</exclude>
+                        <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>
+                        <exclude>pt/ist/fenixframework/backend/CurrentBackEndId*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+    
+    <dependencies>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-core</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-bplustree-domain-object</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>persistence-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <!-- <dependency> -->
+        <!--     <groupId>org.hibernate</groupId> -->
+        <!--     <artifactId>hibernate-core</artifactId> -->
+        <!--     <version>4.0.1.Final</version> -->
+        <!-- </dependency> -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>4.0.1.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-core</artifactId>
+            <!-- <version>${version.infinispan}</version> -->
+            <version>5.2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.ogm</groupId>
+            <artifactId>hibernate-ogm-core</artifactId>
+            <version>4.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.4.3</version>
+        </dependency>
+        <!-- <dependency> -->
+        <!--     <groupId>javax.transaction</groupId> -->
+        <!--     <artifactId>jta</artifactId> -->
+        <!--     <version>1.1</version> -->
+        <!-- </dependency> -->
+        <!-- <dependency> -->
+        <!--     <groupId>org.rhq.helpers</groupId> -->
+        <!--     <artifactId>rhq-pluginAnnotations</artifactId> -->
+        <!--     <version>${version.rhq.helpers}</version> -->
+        <!-- </dependency> -->
+        <!-- <dependency> -->
+        <!--     <groupId>org.jboss.jbossts</groupId> -->
+        <!--     <artifactId>jbossjta</artifactId> -->
+        <!--     <version>${version.jbossjta}</version> -->
+        <!--     <exclusions> -->
+        <!--         <exclusion> -->
+        <!--             <groupId>org.jboss.logging</groupId> -->
+        <!--             <artifactId>jboss-logging-spi</artifactId> -->
+        <!--         </exclusion> -->
+        <!--     </exclusions> -->
+        <!-- </dependency> -->
+        <!-- <dependency> -->
+        <!--     <groupId>org.jboss.logging</groupId> -->
+        <!--     <artifactId>jboss-logging</artifactId> -->
+        <!--     <version>${version.jboss.logging}</version> -->
+        <!-- </dependency> -->
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>fenix-ashes-maven-repository</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
+        </repository>
+        <repository>
+            <id>thirdparty</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/thirdparty</url>
+        </repository>
+        <!-- <repository> -->
+        <!--     <id>jboss-public-repository-group</id> -->
+        <!--     <name>JBoss Public Maven Repository Group</name> -->
+        <!--     <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url> -->
+        <!--     <layout>default</layout> -->
+        <!--     <releases> -->
+        <!--         <enabled>true</enabled> -->
+        <!--         <updatePolicy>never</updatePolicy> -->
+        <!--     </releases> -->
+        <!--     <snapshots> -->
+        <!--         <enabled>true</enabled> -->
+        <!--         <updatePolicy>never</updatePolicy> -->
+        <!--     </snapshots> -->
+        <!-- </repository> -->
+        <!-- <repository> -->
+        <!--     <id>guice-maven</id> -->
+        <!--     <name>guice maven</name> -->
+        <!--     <url>http://guice-maven.googlecode.com/svn/trunk</url> -->
+        <!-- </repository> -->
+        <!-- <repository> -->
+        <!--     <id>jboss-deprecated-repository</id> -->
+        <!--     <name>JBoss Deprecated Maven Repository</name> -->
+        <!--     <url>https://repository.jboss.org/nexus/content/repositories/deprecated/</url> -->
+        <!--     <layout>default</layout> -->
+        <!--     <releases> -->
+        <!--         <enabled>true</enabled> -->
+        <!--         <updatePolicy>never</updatePolicy> -->
+        <!--     </releases> -->
+        <!--     <snapshots> -->
+        <!--         <enabled>false</enabled> -->
+        <!--         <updatePolicy>never</updatePolicy> -->
+        <!--     </snapshots> -->
+        <!-- </repository> -->
+    </repositories>
+
+    <!-- <pluginRepositories> -->
+    <!--     <pluginRepository> -->
+    <!--         <id>jboss-public-repository-group</id> -->
+    <!--         <name>JBoss Public Maven Repository Group</name> -->
+    <!--         <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url> -->
+    <!--         <layout>default</layout> -->
+    <!--         <releases> -->
+    <!--             <enabled>true</enabled> -->
+    <!--             <updatePolicy>never</updatePolicy> -->
+    <!--         </releases> -->
+    <!--         <snapshots> -->
+    <!--             <enabled>true</enabled> -->
+    <!--             <updatePolicy>never</updatePolicy> -->
+    <!--         </snapshots> -->
+    <!--     </pluginRepository> -->
+    <!-- </pluginRepositories> -->
+
+
+    <distributionManagement>
+        <repository>
+            <id>fenix-framework-releases</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>fenix-framework-snapshots</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+</project>

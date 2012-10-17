@@ -18,6 +18,7 @@
     </properties>
 
     <modules>
+        <module>parent</module>
         <module>fenix-framework-project</module>
         <module>fenix-framework-dml-compiler</module>
         <module>dml-maven-plugin</module>
@@ -27,6 +28,7 @@
         <module>fenix-framework-bplustree-domain-object</module>
     	<module>fenix-framework-backend-mem</module>
         <module>fenix-framework-backend-infinispan</module>
+        <module>fenix-framework-backend-ogm</module>
         <module>fenix-framework-archetypes</module>
     </modules>
 

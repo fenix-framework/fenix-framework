@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pt.ist</groupId>
+    <artifactId>fenix-framework-parent</artifactId>
+    <version>2.0-SNAPSHOT</version>
+    <name>Fenix Framework common parent POM module</name>
+    <description>
+        This module provides the common configuration for all modules.
+    </description>
+    <packaging>pom</packaging>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <version.infinispan>5.2.0-SNAPSHOT</version.infinispan>
+        <!-- <version.infinispan>5.1.6.FINAL</version.infinispan> -->
+        <!-- <version.jta>1.0.0.Final</version.jta> -->
+        <!-- <version.rhq.helpers>3.0.4</version.rhq.helpers> -->
+        <!-- <version.jbossjta>4.16.3.Final</version.jbossjta> -->
+        <!-- <version.jboss.logging>3.1.0.GA</version.jboss.logging> -->
+
+    </properties>
+
+</project>
