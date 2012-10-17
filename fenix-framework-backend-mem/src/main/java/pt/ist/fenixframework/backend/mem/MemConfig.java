@@ -22,7 +22,7 @@ public class MemConfig extends IndexesConfig {
     @Override
     protected void init() {
         DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
-        updateIndexes();
+        super.init();
     }
 
     @Override

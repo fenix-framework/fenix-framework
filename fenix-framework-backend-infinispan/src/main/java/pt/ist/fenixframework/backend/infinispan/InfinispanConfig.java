@@ -76,8 +76,8 @@ public class InfinispanConfig extends IndexesConfig {
     @Override
     protected void init() {
         this.backEnd.configInfinispan(this);
-        updateIndexes();
         // DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
+        super.init();
     }
 
     @Override

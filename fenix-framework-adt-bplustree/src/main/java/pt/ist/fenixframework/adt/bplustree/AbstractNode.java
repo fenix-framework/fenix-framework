@@ -3,6 +3,7 @@ package pt.ist.fenixframework.adt.bplustree;
 import java.io.Serializable;
 // import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -63,6 +64,7 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
     abstract void mergeWithLeftNode(AbstractNode leftNode, Comparable splitKey);
     // the number of _elements_ in this node (not counting sub-nodes)
     abstract int shallowSize();
+    abstract Iterator<? extends Comparable> keysIterator();
 
     public static Serializable externalizeTreeMap(TreeMap treeMap) {
         return treeMap;
@@ -71,5 +73,6 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
     public static TreeMap internalizeTreeMap(Serializable externalizedTreeMap) {
         return (TreeMap)externalizedTreeMap;
     }
+
 
 }

@@ -443,6 +443,12 @@ public class InnerNode extends InnerNode_Base {
     }
 
     @Override
+    Iterator<? extends Comparable> keysIterator() {
+    	return this.getSubNodes().firstEntry().getValue().keysIterator();
+    }
+
+
+    @Override
     public Iterator iterator() {
     	return this.getSubNodes().firstEntry().getValue().iterator();
     }
@@ -476,4 +482,5 @@ public class InnerNode extends InnerNode_Base {
     Collection<? extends Comparable> getKeys() {
 	return Collections.emptySet();
     }
+
 }

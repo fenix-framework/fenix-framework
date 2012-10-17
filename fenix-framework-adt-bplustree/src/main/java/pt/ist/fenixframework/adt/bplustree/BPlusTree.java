@@ -3,7 +3,7 @@ package pt.ist.fenixframework.adt.bplustree;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -164,13 +164,14 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     }
     
     /** Returns the set of keys mapped by this tree*/
-    public Set<? extends Comparable> getKeys() {
-	Set<Comparable> keys = new HashSet<Comparable>();
-	Iterator<AbstractNode> iter = this.getRoot().iterator();
-	while (iter.hasNext()) {
-	    AbstractNode node = iter.next();
-	    keys.addAll(node.getKeys());
-	}
-	return keys;
+    public <T extends Comparable> Set<T> getKeys() {
+        Set<T> keys = new LinkedHashSet<T>();
+        Iterator<T> iter = this.getRoot().keysIterator();
+        while (iter.hasNext()) {
+            T key = iter.next();
+            keys.add(key);
+        }
+        return keys;
     }
+
 }
