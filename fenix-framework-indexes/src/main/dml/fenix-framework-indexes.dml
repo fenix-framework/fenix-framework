@@ -1,0 +1,6 @@
+package pt.ist.fenixframework.indexes;
+
+relation DomainRootHasIndexes {
+    .pt.ist.fenixframework.DomainRoot playsRole;
+    .pt.ist.fenixframework.adt.bplustree.BPlusTree playsRole indexRoot;
+}

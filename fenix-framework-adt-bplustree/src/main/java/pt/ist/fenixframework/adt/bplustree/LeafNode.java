@@ -222,19 +222,26 @@ public class LeafNode extends LeafNode_Base {
 	return this.getEntries().size();
     }
 
-    public Iterator<Serializable> iterator() {
-	return new LeafNodeIterator(this);
+    @Override
+    Iterator<? extends Comparable> keysIterator() {
+        return new LeafNodeKeysIterator(this);
     }
 
-    private class LeafNodeIterator implements Iterator<Serializable> {
-	private Iterator<Serializable> iterator;
+    public Iterator<Serializable> iterator() {
+	return new LeafNodeValuesIterator(this);
+    }
+
+    protected abstract class GenericLeafNodeIterator<T> implements Iterator<T> {
+	private Iterator<T> iterator;
 	private LeafNode current;
 	
 
-	LeafNodeIterator(LeafNode leafNode) {
-	    this.iterator = leafNode.getEntries().values().iterator();
+	GenericLeafNodeIterator(LeafNode leafNode) {
+            this.iterator = getInternalIterator(leafNode);
 	    this.current = leafNode;
 	}
+
+        protected abstract Iterator<T> getInternalIterator(LeafNode leafNode);
 
 	public boolean hasNext() {
 	    if (this.iterator.hasNext()) {
@@ -244,12 +251,12 @@ public class LeafNode extends LeafNode_Base {
 	    }
 	}
 
-        public Serializable next() {
+        public T next() {
 	    if (!this.iterator.hasNext()) {
 		LeafNode nextNode = this.current.getNext();
 		if (nextNode != null) {
 		    this.current = nextNode;
-		    this.iterator = this.current.getEntries().values().iterator();
+		    this.iterator = getInternalIterator(this.current);
 		} else {
 		    throw new NoSuchElementException();
 		}
@@ -260,6 +267,30 @@ public class LeafNode extends LeafNode_Base {
         public void remove() {
 	    throw new UnsupportedOperationException("This implementation does not allow element removal via the iterator");
 	}
+
+    }
+
+    private class LeafNodeValuesIterator extends GenericLeafNodeIterator<Serializable> {
+
+	LeafNodeValuesIterator(LeafNode leafNode) {
+            super(leafNode);
+	}
+
+        protected Iterator<Serializable> getInternalIterator(LeafNode leafNode) {
+            return leafNode.getEntries().values().iterator();
+        }
+
+    }
+
+    private class LeafNodeKeysIterator extends GenericLeafNodeIterator<Comparable> {
+
+	LeafNodeKeysIterator(LeafNode leafNode) {
+            super(leafNode);
+	}
+
+        protected Iterator<Comparable> getInternalIterator(LeafNode leafNode) {
+            return leafNode.getEntries().keySet().iterator();
+        }
 
     }
 
@@ -285,6 +316,11 @@ public class LeafNode extends LeafNode_Base {
 	}
 
 	return str.toString();
+    }
+
+    @Override
+    Collection<? extends Comparable> getKeys() {
+	return this.getEntries().keySet();
     }
 
 }

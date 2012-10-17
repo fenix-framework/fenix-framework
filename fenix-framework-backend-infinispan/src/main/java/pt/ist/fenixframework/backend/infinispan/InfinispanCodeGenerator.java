@@ -4,16 +4,16 @@ import java.io.PrintWriter;
 
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
-import pt.ist.fenixframework.dml.DefaultCodeGenerator;
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
+import pt.ist.fenixframework.dml.IndexesCodeGenerator;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.dml.ValueType;
 import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 
-public class InfinispanCodeGenerator extends DefaultCodeGenerator {
+public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     protected static final String VT_SERIALIZER =
         ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +
@@ -67,7 +67,8 @@ public class InfinispanCodeGenerator extends DefaultCodeGenerator {
         generateInitInstance(domClass, out);
         
         generateDefaultConstructor(domClass.getBaseName(), out);
-        generateSlotsAccessors(domClass.getSlots(), out);
+        generateSlotsAccessors(domClass, out);
+        super.generateIndexMethods(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
     }
 
@@ -128,9 +129,9 @@ public class InfinispanCodeGenerator extends DefaultCodeGenerator {
     }
 
     @Override
-    protected void generateSlotAccessors(Slot slot, PrintWriter out) {
+    protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateInfinispanGetter(slot, out);
-        generateInfinispanSetter(slot, out);
+        generateInfinispanSetter(domainClass, slot, out);
     }
 
     protected void generateInfinispanGetter(Slot slot, PrintWriter out) {
@@ -141,11 +142,11 @@ public class InfinispanCodeGenerator extends DefaultCodeGenerator {
         endMethodBody(out);
     }
 
-    protected void generateInfinispanSetter(Slot slot, PrintWriter out) {
+    protected void generateInfinispanSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
         startMethodBody(out);
-        generateInfinispanSetterBody(slot, out);
+        generateInfinispanSetterBody(domainClass, slot, out);
         endMethodBody(out);
     }
 
@@ -174,7 +175,7 @@ public class InfinispanCodeGenerator extends DefaultCodeGenerator {
         print(out, returnExpression);
     }
 
-    protected void generateInfinispanSetterBody(Slot slot, PrintWriter out) {
+    protected void generateInfinispanSetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
         String slotName = slot.getName();
         String setterExpression;
 	if (findWrapperEntry(slot.getTypeName()) != null) { // then it is a primitive type
@@ -190,6 +191,7 @@ public class InfinispanCodeGenerator extends DefaultCodeGenerator {
             }
             setterExpression += ")";
         }
+	super.generateIndexationInSetter(domainClass, slot, out);
         print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName
               + "\", " + setterExpression + ");");
     }

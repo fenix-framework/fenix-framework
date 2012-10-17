@@ -12,18 +12,18 @@ import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
-public class CoreDomainObject extends AbstractDomainObjectAdapter {
-    private static final Logger logger = Logger.getLogger(CoreDomainObject.class);
+public class MemDomainObject extends AbstractDomainObjectAdapter {
+    private static final Logger logger = Logger.getLogger(MemDomainObject.class);
 
     // this should be final, but the ensureOid and restoreOid methods prevent it
     private long oid;
 
     // We need to have the default constructor, because we've added the allocate-instance constructor
-    protected CoreDomainObject() {
+    protected MemDomainObject() {
         super();
     }
 
-    protected CoreDomainObject(DomainObjectAllocator.OID oid) {
+    protected MemDomainObject(DomainObjectAllocator.OID oid) {
         this.oid = (Long)oid.oid;
     }
 

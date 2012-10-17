@@ -4,6 +4,7 @@ import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.dml.DomainModel;
+import pt.ist.fenixframework.indexes.IndexesConfig;
 
 /**
  * This is the default configuration manager used by the fenix-framework-core.
@@ -11,16 +12,17 @@ import pt.ist.fenixframework.dml.DomainModel;
  * @see Config
  *
  */
-public class DefaultConfig extends Config {
+public class MemConfig extends IndexesConfig {
     protected final BackEnd backEnd;
 
-    public DefaultConfig() {
-        this.backEnd = new DefaultBackEnd();
+    public MemConfig() {
+        this.backEnd = new MemBackEnd();
     }
 
     @Override
     protected void init() {
         DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
+        super.init();
     }
 
     @Override

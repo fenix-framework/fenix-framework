@@ -36,13 +36,13 @@ import pt.ist.fenixframework.util.Converter;
  * call {@link super#init()} if an hierarchy of configs is used.
  * 
  * <p> To create an instance of this class with the proper values for its parameters, programmers
- * should generally use code like this:
+ * should generally use code like this (assuming one specific backend as an example):
  * 
  * <blockquote>
  * 
  * <pre>
  * 
- * Config config = new DefaultConfig() { // any subclass of Config should be ok
+ * Config config = new MemConfig() { // any subclass of Config should be ok
  *     {
  * 	this.domainModelURLs = resourceToURLArray(&quot;path/to/domain.dml&quot;);
  * 	this.appName = &quot;MyAppName&quot;;
@@ -86,14 +86,13 @@ import pt.ist.fenixframework.util.Converter;
  * its default value.
  * 
  * @see pt.ist.fenixframework.FenixFramework
- * @see pt.ist.fenixframework.backend.mem.DefaultConfig
+ * @see pt.ist.fenixframework.backend.mem.MemConfig
  * 
  */
 public abstract class Config {
     private static final Logger logger = Logger.getLogger(Config.class);
 
     protected static final String PROPERTY_CONFIG_CLASS = "config.class";
-    protected static final String DEFAULT_CONFIG_CLASS_NAME = "pt.ist.fenixframework.backend.mem.DefaultConfig";
     // the suffix of the method that sets a property from a String property
     protected static final String SETTER_FROM_STRING = "FromString";
 

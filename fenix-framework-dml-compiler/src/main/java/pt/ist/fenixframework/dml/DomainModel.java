@@ -10,6 +10,7 @@ public class DomainModel implements Serializable {
     protected Map<String, DomainEntity> external = new HashMap<String, DomainEntity>();
     protected Map<String, DomainClass> classes = new HashMap<String, DomainClass>();
     protected Map<String, DomainRelation> relations = new HashMap<String, DomainRelation>();
+    protected Map<String, List<AnnotatedSlot>> annotatedSlots = new HashMap<String, List<AnnotatedSlot>>();
     private boolean finalized = false;
 
     public DomainModel() {
@@ -204,6 +205,10 @@ public class DomainModel implements Serializable {
     public Collection<DomainRelation> getDomainRelations() {
 	return relations.values();
     }
+    
+    public Map<String, List<AnnotatedSlot>> getAnnotatedSlots() {
+	return annotatedSlots;
+    }
 
     public void newValueType(String domainName, String fullName) {
 	ValueType valueType = new PlainValueType(fullName);
@@ -263,6 +268,8 @@ public class DomainModel implements Serializable {
 	}
 
 	checkForRepeatedSlots();
+	
+	registerAnnotatedSlots();
 
 	if (checkForMissingExternals) {
 	    for (String externalName : external.keySet()) {
@@ -273,6 +280,21 @@ public class DomainModel implements Serializable {
 	    }
 	}
 	finalized = true;
+    }
+
+    private void registerAnnotatedSlots() {
+	for (DomainClass domClass : classes.values()) {
+	    for (Slot slot : domClass.getSlotsList()) {
+		for (Annotation ann : slot.getAnnotations()) {
+		    List<AnnotatedSlot> annotatedSlotsList = this.annotatedSlots.get(ann.getName());
+		    if (annotatedSlotsList == null) {
+			annotatedSlotsList = new ArrayList<AnnotatedSlot>();
+			this.annotatedSlots.put(ann.getName(), annotatedSlotsList);
+		    }
+		    annotatedSlotsList.add(new AnnotatedSlot(domClass, slot));
+		}
+	    }
+	}
     }
 
     protected void checkForRepeatedSlots() {

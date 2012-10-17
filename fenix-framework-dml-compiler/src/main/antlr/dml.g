@@ -22,8 +22,8 @@ options {
 
 tokens {
     DOMAIN_DEFS; CLASS_DEF; EXTENDS_CLAUSE; OBJBLOCK; IMPLEMENTS_CLAUSE;
-    RELATION_DEF; SLOT_DEF; RELATION_BLOCK; ROLE; ROLE_NAME; ROLE_OPTIONS;
-    MULTIPLICITY; MULTIPLICITY_RANGE; EXTERNAL;
+    RELATION_DEF; SLOT_DEF; RELATION_BLOCK; ROLE; ANNOTATIONS;
+    ROLE_NAME; ROLE_OPTIONS; MULTIPLICITY; MULTIPLICITY_RANGE; EXTERNAL;
     INDEXED; ORDERED; VALUE_TYPE; SLOT_OPTIONS; REQUIRED_OPTION;
     ENUM_TYPE; PACKAGE; ABSOLUTE_NAME; VALUE_TYPE_BLOCK; EXTERNALIZATION_CLAUSE;
     EXTERNALIZATION_ELEMENT; INTERNALIZATION_CLAUSE; TYPE;
@@ -143,17 +143,26 @@ classBlock
 
 classSlot
     :
+    	ann:annotations!
     	t:typeSpec!
-        classSlotInternal[#t]
+        classSlotInternal[#t, #ann]
     ;
 
 
-protected classSlotInternal![AST type]
+protected classSlotInternal![AST type, AST ann]
     :
 		id:IDENT
         so:slotOptions
         SEMI!
-		{#classSlotInternal = #(#[SLOT_DEF,"SLOT_DEF"], type, id, so);}
+		{#classSlotInternal = #(#[SLOT_DEF,"SLOT_DEF"], type, id, so, ann);}
+    ;
+    
+    
+annotations
+    : (
+        name:ANN_NAME
+      )*
+        {#annotations = #([ANNOTATIONS, "ANNOTATIONS"], #annotations);}
     ;
 
 
@@ -230,7 +239,7 @@ rolesAndSlots
             t:entityTypeIdentifier!
             // HACK! classSlotInternal should not have an entityTypeIdentifier
             // but since these are not currently used...
-            ( role[#t] | classSlotInternal[#t] )
+            ( role[#t] | classSlotInternal[#t, null] )
         )*
     ;
 
@@ -306,6 +315,11 @@ options {
 }
 
 
+ANN_NAME
+    :  ('{') ('"') ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z')* ('"') (':') ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z')* ('}')
+    ;
+
+
 IDENT
     :   ('a'..'z'|'A'..'Z'|'_'|'$') ('a'..'z'|'A'..'Z'|'_'|'0'..'9'|'$')*
     ;
@@ -329,6 +343,7 @@ MULT_RANGE      :   ".."    ;
 LANGLE          :   '<'     ;
 RANGLE          :   '>'     ;
 QUESTION        :   '?'     ;
+
 
 // Whitespace -- ignored
 WS  :   (   ' '
