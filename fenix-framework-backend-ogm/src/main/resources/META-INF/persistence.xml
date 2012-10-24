@@ -6,6 +6,12 @@
     <persistence-unit name="fenixframework-persistence-unit" transaction-type="JTA">
         <!-- Use Hibernate OGM provider: configuration will be transparent -->
         <provider>org.hibernate.ogm.jpa.HibernateOgmPersistence</provider>
+
+        <!-- (even tought it's the default,) the next line is necessary.
+             Otherwise only the jar file containing this persistence.xml will
+             be scanned for orm.xml -->
+        <mapping-file>META-INF/orm.xml</mapping-file>
+
         <properties>
             <!-- or any transaction manager lookup implementation you want in your environment -->
             <property name="hibernate.transaction.jta.platform" 

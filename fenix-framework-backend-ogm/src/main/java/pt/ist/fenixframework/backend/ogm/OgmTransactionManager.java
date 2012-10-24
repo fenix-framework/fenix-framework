@@ -1,11 +1,11 @@
 package pt.ist.fenixframework.backend.ogm;
 
 import java.util.concurrent.Callable;
+import java.util.HashMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-// import javax.transaction.TransactionManager;
 
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
@@ -17,6 +17,7 @@ import javax.transaction.Transaction;
 import org.apache.log4j.Logger;
 
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.ejb.AvailableSettings;
 import org.hibernate.ejb.HibernateEntityManagerFactory;
 import org.hibernate.service.jta.platform.spi.JtaPlatform;
 
@@ -30,19 +31,25 @@ public class OgmTransactionManager implements TransactionManager {
 
     private javax.transaction.TransactionManager delegateTxManager;
 
-    // void setDelegateTxManager(javax.transaction.TransactionManager delegate) {
-    //     delegateTxManager = delegate;
-    // }
+    private EntityManagerFactory emf;
 
-    private /* final */ EntityManagerFactory emf;// = Persistence.createEntityManagerFactory("fenixframework-ogm-persistence-unit");
-    // private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("fenixframework-ogm-persistence-unit");
+    private boolean booting = false;
 
     void setupTxManager(OgmConfig config) {
-        emf = Persistence.createEntityManagerFactory("fenixframework-persistence-unit");
+        booting = true;
+        HashMap properties = new HashMap();
+        properties.put(AvailableSettings.INTERCEPTOR, AllocationInterceptor.class.getName());
+
+        emf = Persistence.createEntityManagerFactory("fenixframework-persistence-unit", properties);
         SessionFactoryImplementor sessionFactory =
             (SessionFactoryImplementor)((HibernateEntityManagerFactory)emf).getSessionFactory();
         delegateTxManager = sessionFactory.getServiceRegistry().getService(JtaPlatform.class).
             retrieveTransactionManager();
+        booting = false;
+    }
+
+    boolean isBooting() {
+        return booting;
     }
 
     private final ThreadLocal<EntityManager> currentEntityManager = new ThreadLocal<EntityManager>();
@@ -50,10 +57,6 @@ public class OgmTransactionManager implements TransactionManager {
     EntityManager getEntityManager() {
         return currentEntityManager.get();
     }
-
-    // void setEntityManager(EntityManager em) {
-    //     currentEntityManager.set(em);
-    // }
 
     @Override
     public void begin() throws NotSupportedException, SystemException {
@@ -74,7 +77,8 @@ public class OgmTransactionManager implements TransactionManager {
     }
 
     @Override
-    public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
+    public void commit() throws RollbackException, HeuristicMixedException,
+                                HeuristicRollbackException, SystemException {
         logger.info("Commit transaction");
 
         EntityManager em = currentEntityManager.get();

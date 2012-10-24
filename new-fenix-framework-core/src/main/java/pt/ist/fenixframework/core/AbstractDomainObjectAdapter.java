@@ -18,6 +18,12 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 public class AbstractDomainObjectAdapter extends AbstractDomainObject {
     private static final Logger logger = Logger.getLogger(AbstractDomainObjectAdapter.class);
 
+    protected AbstractDomainObjectAdapter() {}
+
+    protected AbstractDomainObjectAdapter(DomainObjectAllocator.OID oid) {
+        super(oid);
+    }
+
     // serialization code
 
     @Override

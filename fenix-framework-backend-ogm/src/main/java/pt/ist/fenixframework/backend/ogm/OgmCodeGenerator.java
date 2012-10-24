@@ -113,18 +113,17 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
     protected void generateBaseClassBody(DomainClass domClass, PrintWriter out) {
         generateStaticSlots(domClass, out);
         newline(out);
-
         generateSlots(domClass.getSlots(), out);
         newline(out);
-        newline(out);
         generateRoleSlots(domClass.getRoleSlots(), out);
-
         generateDefaultConstructor(domClass.getBaseName(), out);
-
+        generateInitInstance(domClass, out);
         generateSlotsAccessors(domClass, out);
-
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
     }
+
+    @Override
+    protected void generateInitInstanceBody(DomainClass domClass, PrintWriter out) { }
 
     @Override
     protected void generateStaticRoleSlots(Role role, PrintWriter out) {
@@ -154,6 +153,76 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         printMethod(out, "public", "", classname);
         startMethodBody(out);
         endMethodBody(out);
+    }
+
+
+    private static String[] builtInTypesFromDmlInOgm = {
+        "char", "short", "float",
+        "long", "Long", "int", "Integer", "double", "Double", "String", "boolean", "Boolean", "byte", "Byte", "bytearray"
+    };
+    
+    private boolean ogmSupportsType(String typeName) {
+        for (String supportedType : builtInTypesFromDmlInOgm) {
+            if (supportedType.equals(typeName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
+        super.generateSlotAccessors(domainClass, slot, out);
+        generateHibernateSlotGetter(slot, out);
+        generateHibernateSlotSetter(slot, out);
+        this.ormTransientSlots.add(slot.getName());
+    }
+
+    protected void generateHibernateSlotGetter(Slot slot, PrintWriter out) {
+        String slotName = slot.getName();
+        String typeNameFrom = slot.getTypeName();
+        String typeNameTo;
+        String slotExpression;
+
+        if (ogmSupportsType(typeNameFrom)) {
+            typeNameTo = typeNameFrom;
+            slotExpression = getSlotExpression(slotName);
+        } else {
+            typeNameTo = "byte[]";
+            slotExpression = "Externalization.externalizeObject(" + getSlotExpression(slotName) + ")";
+        }
+
+        newline(out);
+        printFinalMethod(out, "public", typeNameTo, "get" + addHibernateToSlotName(capitalize(slotName)));
+        startMethodBody(out);
+        printWords(out, "return", slotExpression + ";");
+        endMethodBody(out);
+    }
+
+    protected void generateHibernateSlotSetter(Slot slot, PrintWriter out) {
+        String slotName = slot.getName();
+        String typeNameFrom;
+        String typeNameTo = slot.getTypeName();
+        String setterExpression;
+
+        if (ogmSupportsType(typeNameTo)) {
+            typeNameFrom = typeNameTo;
+            setterExpression = slotName;
+        } else {
+            typeNameFrom = "byte[]";
+            setterExpression = "(" + typeNameTo + ")Externalization.internalizeObject(" + slotName + ")";
+        }
+
+        newline(out);
+        printFinalMethod(out, "public", "void", "set" + addHibernateToSlotName(capitalize(slotName)),
+                         makeArg(typeNameFrom, slotName));
+        startMethodBody(out);
+        printWords(out, getSlotExpression(slotName), "=", setterExpression + ";");
+        endMethodBody(out);
+    }
+
+    protected void generateHibernateGetterBody(String slotName, String typeName, PrintWriter out) {
+        printWords(out, "return", getSlotExpression(slotName) + ";");
     }
 
     protected void generateRoleMethodAdd(Role role, Role otherRole, PrintWriter out) {
@@ -283,10 +352,10 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
             printWords(out, "private", getSetTypeDeclarationFor(role), role.getName());
             printWords(out, "=", getNewRoleStarSlotExpressionWithEmptySet(role));
 
-            println(out, ";");
-            onNewline(out);
-            printWords(out, "private", getSetTypeDeclarationFor(role), addHibernateToSlotName(role.getName()));
-            printWords(out, "=", "new", makeGenericType("java.util.HashSet", getTypeFullName(role.getType())) + "()");
+            // // // println(out, ";");
+            // // // onNewline(out);
+            // // // printWords(out, "private", getSetTypeDeclarationFor(role), addHibernateToSlotName(role.getName()));
+            // // // printWords(out, "=", "new", makeGenericType("java.util.HashSet", getTypeFullName(role.getType())) + "()");
             // ormGenerateRoleSlotMultMany(role);
         }
         println(out, ";");
@@ -430,12 +499,17 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         buf.append("    xsi:schemaLocation=\"http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd\"\n");
         buf.append("    version=\"2.0\">\n\n");
 
-        buf.append("    <mapped-superclass class=\"" + getDomainClassRoot() + "\" access=\"FIELD\" metadata-complete=\"true\">\n");
-        buf.append("        <attributes>\n");
-        buf.append("            <id name=\"oid\">\n");
-        buf.append("                  <generated-value strategy=\"AUTO\"/>\n");
-        buf.append("            </id>\n");
-        buf.append("        </attributes>\n");
+        // buf.append("    <sequence-generator name=\"OID_GEN\" initial-value=\"-1\">\n");
+        // buf.append("    </sequence-generator>\n\n");
+
+        // buf.append("    <mapped-superclass class=\"" + getDomainClassRoot() + "\" access=\"FIELD\" metadata-complete=\"true\">\n");
+        buf.append("    <mapped-superclass class=\"" + getDomainClassRoot() + "\" access=\"FIELD\" metadata-complete=\"false\">\n");
+        // buf.append("        <attributes>\n");
+        // buf.append("            <id name=\"hibernate$primaryKey\">\n");
+        // buf.append("                  <generated-value strategy=\"AUTO\" generator=\"OID_GEN\"/>\n");
+        // buf.append("                  <generated-value strategy=\"AUTO\" generator=\"pt.ist.fenixframework.backend.ogm.OgmOIDGenerator\"/>\n");
+        // buf.append("            </id>\n");
+        // buf.append("        </attributes>\n");
         buf.append("    </mapped-superclass>\n\n");
         this.ormWriter.print(buf.toString());
     }
@@ -489,8 +563,11 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
     protected void ormGenerateSlot(Slot slot) {
         StringBuilder buf = new StringBuilder();
         buf.append("            <basic name=\"");
-        buf.append(slot.getName());
-        buf.append("\"/>");
+        buf.append(addHibernateToSlotName(slot.getName()));
+        // buf.append("\" />\n");
+        // buf.append("            <transient name=\"");
+        // buf.append(slot.getName());
+        buf.append("\" />");
         this.ormWriter.println(buf.toString());
     }
 
@@ -512,8 +589,12 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         buf.append(addHibernateToSlotName(role.getName()));
         buf.append("\" target-entity=\"");
         buf.append(getTypeFullName(role.getType()));
-        buf.append("\" mapped-by=\"");
-        buf.append(role.getOtherRole().getName());
+
+        if (role.getOtherRole().getName() != null) {
+            buf.append("\" mapped-by=\"");
+            buf.append(role.getOtherRole().getName());
+        }
+
         // buf.append("\" collection-type=\"pt.ist.fenixframework.example.tpcw.dml.RelationSet\" access=\"PROPERTY\"/>");
         buf.append("\" access=\"PROPERTY\">");
         // buf.append(ormGetCascade());
@@ -559,9 +640,17 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
 
     protected void ormGenerateNonBaseClasses(Iterator classesIter) {
         StringBuilder buf = new StringBuilder();
+
+        buf.append("    <!-- The concrete classes.  Both 'class' and 'name' are required so that\n");
+        buf.append("         hibernate does not use each class's simple name, voiding the\n");
+        buf.append("         namespace :-/ -->\n");
         while (classesIter.hasNext()) {
+            String className = getEntityFullName((DomainClass) classesIter.next());
             buf.append("    <entity class=\"");
-            buf.append(getEntityFullName((DomainClass) classesIter.next()));
+            // buf.append(getEntityFullName((DomainClass) classesIter.next()));
+            buf.append(className);
+            buf.append("\" name=\"");
+            buf.append(className);
             buf.append("\" metadata-complete=\"true\"/>\n");
         }
         this.ormWriter.println(buf.toString());

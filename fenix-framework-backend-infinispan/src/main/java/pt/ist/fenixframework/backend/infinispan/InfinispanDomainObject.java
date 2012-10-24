@@ -25,6 +25,7 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     }
 
     protected InfinispanDomainObject(DomainObjectAllocator.OID oid) {
+        super(oid);
         this.oid = (OID)oid.oid;
     }
 

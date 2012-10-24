@@ -4,6 +4,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.core.exception.MissingObjectException;
@@ -17,13 +18,17 @@ public class OgmOID implements Comparable<OgmOID>, Serializable {
 
     private static final String OID_SEPARATOR = "@";
     private static final String EXTERNAL_ID_ERROR = "Could not process externalId: ";
-
-    static final OgmOID ROOT_OBJECT_ID = new OgmOID(DomainRoot.class, 1L);
+    
+    public static final String ROOT_PK = "ROOT_OBJECT";
+    static final OgmOID ROOT_OBJECT_ID = new OgmOID(DomainRoot.class, ROOT_PK);
+    // static final OgmOID ROOT_OBJECT_ID = new OgmOID(DomainRoot.class, 1L);
 
     private final Class objClass;
-    private final Long primaryKey; // includes class name to avoid repetitive computation
+    private final String primaryKey;
+    // private final Long primaryKey;
 
-    OgmOID(Class objClass, Long primaryKey) {
+    OgmOID(Class objClass, String primaryKey) {
+    // OgmOID(Class objClass, Long primaryKey) {
         this.objClass = objClass;
         this.primaryKey = primaryKey;
     }
@@ -32,7 +37,8 @@ public class OgmOID implements Comparable<OgmOID>, Serializable {
         String[] tokens = externalId.split(OID_SEPARATOR);
         try {
             this.objClass = Class.forName(tokens[0]);
-            this.primaryKey = Long.valueOf(tokens[1]);
+            this.primaryKey = tokens[1];
+            // this.primaryKey = Long.valueOf(tokens[1]);
         } catch (Exception e) {
             // e.g. index out of bounds, class not found, etc.
             logger.error(EXTERNAL_ID_ERROR + externalId);
@@ -44,7 +50,8 @@ public class OgmOID implements Comparable<OgmOID>, Serializable {
         return this.objClass;
     }
 
-    public Long getPrimaryKey() {
+    public String getPrimaryKey() {
+    // public Long getPrimaryKey() {
         return this.primaryKey;
     }
 

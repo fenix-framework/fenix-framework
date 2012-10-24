@@ -8,10 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-// import org.infinispan.Cache;
-// import org.infinispan.manager.CacheContainer;
-// import org.infinispan.manager.EmbeddedCacheManager;
-// import org.infinispan.manager.DefaultCacheManager;
+import org.hibernate.ogm.jpa.impl.OgmEntityManager;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
@@ -27,12 +24,10 @@ public class OgmBackEnd implements BackEnd {
     private static final Logger logger = Logger.getLogger(OgmBackEnd.class);
 
     public static final String BACKEND_NAME = "ogm";
-    // private static final String DOMAIN_CACHE_NAME = "DomainCache";
 
     private static final OgmBackEnd instance = new OgmBackEnd();
 
     protected final OgmTransactionManager transactionManager;
-    // protected Cache<String, Object> domainCache;
 
     private OgmBackEnd() {
         this.transactionManager = new OgmTransactionManager();
@@ -49,7 +44,14 @@ public class OgmBackEnd implements BackEnd {
 
     @Override
     public DomainRoot getDomainRoot() {
-        return fromOid(OgmOID.ROOT_OBJECT_ID);
+        OgmOID rootId = OgmOID.ROOT_OBJECT_ID;
+        DomainRoot domainRoot = fromOid(rootId);
+        // System.out.println("====================================== ROOT (1) = " + domainRoot);
+        if (domainRoot == null) {
+            domainRoot = new DomainRoot();
+        }
+        // System.out.println("====================================== ROOT (2) = " + domainRoot);
+        return domainRoot;
     }
 
     @Override
@@ -73,14 +75,21 @@ public class OgmBackEnd implements BackEnd {
     }
 
     @Override
-    public void shutdown() {
-    }
+    public void shutdown() { }
 
     protected void configOgm(OgmConfig config) {
         transactionManager.setupTxManager(config);
     }
 
-    public void save(OgmDomainObject obj) {
+    public void save(AbstractDomainObject obj) {
+        logger.debug("Saving " + obj.getClass());
+        // Hibernate may create instances during setup just to understand what their unsaved-value
+        // is.  This causes ensureOid to run, which in turn runs save().  But we want to ignore
+        // these cases.
+        if (transactionManager.isBooting()) {
+            logger.debug("Ignoring save() request while bootstrapping OgmBackEnd.");
+            return;
+        }
         transactionManager.getEntityManager().persist(obj);
     }
 
