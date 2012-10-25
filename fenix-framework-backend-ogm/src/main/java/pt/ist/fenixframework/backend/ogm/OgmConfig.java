@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.backend.ogm;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
@@ -14,7 +15,7 @@ import pt.ist.fenixframework.core.IdentityMap;
  *
  */
 public class OgmConfig extends Config {
-    private static final Logger logger = Logger.getLogger(OgmDomainObject.class);
+    private static final Logger logger = LoggerFactory.getLogger(OgmDomainObject.class);
 
     // /**
     //  * This <strong>required</strong> parameter specifies the location of the XML file used to
@@ -36,7 +37,7 @@ public class OgmConfig extends Config {
     //         identityMap = MapType.valueOf(cleanValue);
     //     } catch (IllegalArgumentException e) {
     //         String message = "Unknown value for configuration property 'identityMap': " + value;
-    //         logger.fatal(message);
+    //         logger.error(message);
     //         throw new ConfigError(message, e);
     //     }
     // }

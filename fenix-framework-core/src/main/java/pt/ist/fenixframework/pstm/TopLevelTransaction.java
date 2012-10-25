@@ -18,7 +18,8 @@ import jvstm.cps.ConsistentTopLevelTransaction;
 import jvstm.cps.DependenceRecord;
 import jvstm.util.Cons;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.accesslayer.LookupException;
@@ -29,7 +30,7 @@ import pt.ist.fenixframework.pstm.DBChanges.AttrChangeLog;
 
 public class TopLevelTransaction extends ConsistentTopLevelTransaction implements FenixTransaction, TxIntrospector {
 
-    private static final Logger logger = Logger.getLogger(TopLevelTransaction.class);
+    private static final Logger logger = LoggerFactory.getLogger(TopLevelTransaction.class);
     private static int NUM_READS_THRESHOLD = 10000000;
     private static int NUM_WRITES_THRESHOLD = 100000;
 

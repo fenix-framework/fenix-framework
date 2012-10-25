@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.backend;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
@@ -19,7 +21,7 @@ import pt.ist.fenixframework.dml.CodeGenerator;
  * @see pt.ist.fenixframework.FenixFramework
  */
 public abstract class BackEndId {
-    private static final Logger logger = Logger.getLogger(BackEndId.class);
+    private static final Logger logger = LoggerFactory.getLogger(BackEndId.class);
 
     /**
      * Get the (unique) name of this {@link BackEnd}.  The String returned by this method should

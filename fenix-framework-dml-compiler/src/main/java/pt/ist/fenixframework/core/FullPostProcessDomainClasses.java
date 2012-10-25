@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.core;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
@@ -17,7 +19,7 @@ import pt.ist.fenixframework.core.Project;
  * This class aggregates the whole post-processing required on the domain classes.
  */
 public class FullPostProcessDomainClasses {
-    private static final Logger logger = Logger.getLogger(FullPostProcessDomainClasses.class);
+    private static final Logger logger = LoggerFactory.getLogger(FullPostProcessDomainClasses.class);
 
     private String projectName;
     private File dir;
@@ -30,7 +32,7 @@ public class FullPostProcessDomainClasses {
                 dir = new File(dirName);
                 if (!dir.isDirectory()) {
                     String message = "Parameter -cd value '" + dirName + "' is not a directory.";
-                    logger.fatal(message);
+                    logger.error(message);
                     throw new Error(message);
                 }
                 consumeArg(args, i);
@@ -55,7 +57,7 @@ public class FullPostProcessDomainClasses {
 	int next = i + 1;
 	if ((next >= args.length) || (args[next] == null)) {
             String message = "Invalid argument following '" + args[i] + "'";
-            logger.fatal(message);
+            logger.error(message);
 	    throw new Error(message);
 	}
 	String result = args[next];

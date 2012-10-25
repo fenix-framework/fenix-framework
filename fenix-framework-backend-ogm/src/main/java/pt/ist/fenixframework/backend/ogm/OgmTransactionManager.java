@@ -14,7 +14,8 @@ import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.ejb.AvailableSettings;
@@ -27,7 +28,7 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.TransactionManager;
 
 public class OgmTransactionManager implements TransactionManager {
-    private static final Logger logger = Logger.getLogger(OgmTransactionManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(OgmTransactionManager.class);
 
     private javax.transaction.TransactionManager delegateTxManager;
 

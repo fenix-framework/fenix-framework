@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.core.adt.bplustree;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -13,7 +15,7 @@ import java.util.TreeMap;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class LeafNode extends LeafNode_Base {
-    private static final Logger logger = Logger.getLogger(LeafNode.class);
+    private static final Logger logger = LoggerFactory.getLogger(LeafNode.class);
     
     public LeafNode() {
 	setEntries(new TreeMap<Comparable,AbstractDomainObject>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY));

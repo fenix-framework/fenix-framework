@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.backend.mem;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
@@ -10,7 +12,7 @@ import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class MemBackEnd implements BackEnd {
-    private static final Logger logger = Logger.getLogger(MemBackEnd.class);
+    private static final Logger logger = LoggerFactory.getLogger(MemBackEnd.class);
     public static final String BACKEND_NAME = "mem";
 
     protected final TransactionManager transactionManager;
@@ -51,7 +53,7 @@ public class MemBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        if (logger.isEnabledFor(Level.TRACE)) {
+        if (logger.isTraceEnabled()) {
             logger.trace("fromOid(" + oid + ")");
         }
         return (T) SharedIdentityMap.getCache().lookup(oid);

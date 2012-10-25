@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.backend.ogm;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.EntityMode;
@@ -11,7 +13,7 @@ import java.io.Serializable;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 
 public class AllocationInterceptor extends EmptyInterceptor {
-    private static final Logger logger = Logger.getLogger(AllocationInterceptor.class);
+    private static final Logger logger = LoggerFactory.getLogger(AllocationInterceptor.class);
 
     // @Override
     // public Boolean isTransient(Object entity) {

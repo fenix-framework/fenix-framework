@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.backend.ogm;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -21,7 +23,7 @@ import pt.ist.fenixframework.core.IdentityMap;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class OgmBackEnd implements BackEnd {
-    private static final Logger logger = Logger.getLogger(OgmBackEnd.class);
+    private static final Logger logger = LoggerFactory.getLogger(OgmBackEnd.class);
 
     public static final String BACKEND_NAME = "ogm";
 
@@ -67,7 +69,7 @@ public class OgmBackEnd implements BackEnd {
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
         OgmOID internalId = (OgmOID)oid;
-        if (logger.isEnabledFor(Level.INFO)) {
+        if (logger.isInfoEnabled()) {
             logger.info("fromOid(" + internalId + ")");
         }
         return (T)transactionManager.getEntityManager().find(internalId.getObjClass(),

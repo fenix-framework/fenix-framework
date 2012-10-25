@@ -7,8 +7,10 @@ import java.util.UUID;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -18,9 +20,9 @@ import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.IdentityMap;
 
-@Tuplizer(impl = DynamicEntityTuplizer.class)
+// @Tuplizer(impl = DynamicEntityTuplizer.class)
 public class OgmDomainObject extends AbstractDomainObjectAdapter {
-    private static final Logger logger = Logger.getLogger(OgmDomainObject.class);
+    private static final Logger logger = LoggerFactory.getLogger(OgmDomainObject.class);
 
     @Id
     @GeneratedValue(generator = "ff-assigned")

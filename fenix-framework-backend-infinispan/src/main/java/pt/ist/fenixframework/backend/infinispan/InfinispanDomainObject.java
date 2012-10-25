@@ -4,8 +4,10 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.UUID;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // import pt.ist.fenixframework.DomainObject;
 // import pt.ist.fenixframework.FenixFramework;
@@ -14,7 +16,7 @@ import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.IdentityMap;
 
 public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
-    private static final Logger logger = Logger.getLogger(InfinispanDomainObject.class);
+    private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
 
     // this should be final, but the ensureOid and restoreOid methods prevent it
     private OID oid;

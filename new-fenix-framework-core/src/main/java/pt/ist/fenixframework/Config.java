@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.DmlFile;
@@ -90,7 +91,7 @@ import pt.ist.fenixframework.util.Converter;
  * 
  */
 public abstract class Config {
-    private static final Logger logger = Logger.getLogger(Config.class);
+    private static final Logger logger = LoggerFactory.getLogger(Config.class);
 
     protected static final String PROPERTY_CONFIG_CLASS = "config.class";
     // the suffix of the method that sets a property from a String property
@@ -222,7 +223,7 @@ public abstract class Config {
 
     private void checkForMultipleDomainModelUrlsDefinition() {
         if (domainModelURLs != null) { // means that it was already set
-            logger.fatal(ConfigError.DUPLICATE_DEFINITION_OF_DOMAIN_MODEL_URLS);
+            logger.error(ConfigError.DUPLICATE_DEFINITION_OF_DOMAIN_MODEL_URLS);
             throw new ConfigError(ConfigError.DUPLICATE_DEFINITION_OF_DOMAIN_MODEL_URLS);
         }
     }

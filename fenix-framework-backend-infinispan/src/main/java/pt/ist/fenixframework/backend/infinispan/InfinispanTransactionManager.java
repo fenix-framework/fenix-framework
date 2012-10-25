@@ -9,7 +9,8 @@ import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.infinispan.CacheException;
 
@@ -17,7 +18,7 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.TransactionManager;
 
 public class InfinispanTransactionManager implements TransactionManager {
-    private static final Logger logger = Logger.getLogger(InfinispanTransactionManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(InfinispanTransactionManager.class);
 
     private static javax.transaction.TransactionManager delegateTxManager;
 

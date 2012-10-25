@@ -5,8 +5,10 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.dml.DmlCompilerException;
@@ -94,7 +96,7 @@ import pt.ist.fenixframework.dml.DomainModel;
  * @see dml.DomainModel
  */
 public class FenixFramework {
-    private static final Logger logger = Logger.getLogger(FenixFramework.class);
+    private static final Logger logger = LoggerFactory.getLogger(FenixFramework.class);
 
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_DEFAULT = "fenix-framework.properties";
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX = "fenix-framework-";
@@ -114,6 +116,17 @@ public class FenixFramework {
 
     // private static Logger logger = null;
     static {
+        // System.out.println("ERROR?: " + logger.isErrorEnabled());
+        // System.out.println("WARN?: " + logger.isWarnEnabled());
+        // System.out.println("INFO?: " + logger.isInfoEnabled());
+        // System.out.println("DEBUG?: " + logger.isDebugEnabled());
+        // System.out.println("TRACE?: " + logger.isTraceEnabled());
+        // logger.error("INIT FF");
+        // logger.warn("INIT FF");
+        // logger.info("INIT FF");
+        // logger.debug("INIT FF");
+        // logger.trace("INIT FF");
+
         logger.trace("Static initializer block for FenixFramework class [BEGIN]");
         synchronized (INIT_LOCK) {
             logger.info("Trying auto-initialization with configuration by convention");

@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -24,7 +26,7 @@ import pt.ist.fenixframework.core.IdentityMap;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class InfinispanBackEnd implements BackEnd {
-    private static final Logger logger = Logger.getLogger(InfinispanBackEnd.class);
+    private static final Logger logger = LoggerFactory.getLogger(InfinispanBackEnd.class);
 
     public static final String BACKEND_NAME = "ispn";
     private static final String DOMAIN_CACHE_NAME = "DomainCache";
@@ -65,7 +67,7 @@ public class InfinispanBackEnd implements BackEnd {
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
         OID internalId = (OID)oid;
-        if (logger.isEnabledFor(Level.TRACE)) {
+        if (logger.isTraceEnabled()) {
             logger.trace("fromOid(" + internalId.getFullId() + ")");
         }
         
@@ -73,7 +75,7 @@ public class InfinispanBackEnd implements BackEnd {
         AbstractDomainObject obj = cache.lookup(internalId);
         
 	if (obj == null) {
-            if (logger.isEnabledFor(Level.TRACE)) {
+            if (logger.isTraceEnabled()) {
                 logger.trace("Object not found in IdentityMap: " + internalId.getFullId());
             }
 	    obj = DomainObjectAllocator.allocateObject(internalId.getObjClass(), internalId);
@@ -110,11 +112,11 @@ public class InfinispanBackEnd implements BackEnd {
         } catch (java.io.IOException ioe) {
             String message = "Error creating Infinispan cache manager with configuration file: "
                 + config.getIspnConfigFile();
-            logger.fatal(message, ioe);
+            logger.error(message, ioe);
             throw new Error(message, ioe);
         }
         domainCache = cc.getCache(DOMAIN_CACHE_NAME);
-        if (logger.isEnabledFor(Level.DEBUG)) {
+        if (logger.isDebugEnabled()) {
             DateFormat df = new SimpleDateFormat("HH:mm.ss");
             df.setTimeZone(TimeZone.getTimeZone("GMT"));
             logger.debug("Infinispan initialization took " +

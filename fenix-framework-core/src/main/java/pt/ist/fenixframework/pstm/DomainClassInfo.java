@@ -11,7 +11,8 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
@@ -23,7 +24,7 @@ import pt.ist.fenixframework.pstm.repository.DbUtil;
 
 public class DomainClassInfo implements Serializable {
 
-    private static final Logger logger = Logger.getLogger(DomainClassInfo.class);
+    private static final Logger logger = LoggerFactory.getLogger(DomainClassInfo.class);
     private volatile static Map<Class, DomainClassInfo> classInfoMap;
     private volatile static DomainClassInfo[] classInfoById;
     private volatile static long serverOidBase;
