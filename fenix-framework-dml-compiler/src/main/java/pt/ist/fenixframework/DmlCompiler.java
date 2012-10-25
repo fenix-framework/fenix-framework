@@ -1,7 +1,9 @@
 package pt.ist.fenixframework;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -27,7 +29,7 @@ import antlr.ANTLRException;
 import antlr.collections.AST;
 
 public class DmlCompiler {
-    private static final Logger logger = Logger.getLogger(DmlCompiler.class);
+    private static final Logger logger = LoggerFactory.getLogger(DmlCompiler.class);
 
     /** Runs the DML compiler
      *
@@ -80,7 +82,7 @@ public class DmlCompiler {
 
     public static DomainModel getDomainModel(List<URL> dmlFilesURLs, boolean checkForMissingExternals)
         throws DmlCompilerException {
-        if (logger.isEnabledFor(Level.TRACE)) {
+        if (logger.isTraceEnabled()) {
             StringBuilder message = new StringBuilder();
             for (URL url : dmlFilesURLs) {
                 message.append(url + "  ***  ");

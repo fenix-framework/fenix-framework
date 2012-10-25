@@ -1,6 +1,11 @@
-package pt.ist.fenixframework.backend.infinispan;
+package pt.ist.fenixframework.backend.ogm;
 
 import java.util.concurrent.Callable;
+import java.util.HashMap;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
@@ -12,38 +17,78 @@ import javax.transaction.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.ejb.AvailableSettings;
+import org.hibernate.ejb.HibernateEntityManagerFactory;
+import org.hibernate.service.jta.platform.spi.JtaPlatform;
+
 import org.infinispan.CacheException;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.TransactionManager;
 
-public class InfinispanTransactionManager implements TransactionManager {
-    private static final Logger logger = LoggerFactory.getLogger(InfinispanTransactionManager.class);
+public class OgmTransactionManager implements TransactionManager {
+    private static final Logger logger = LoggerFactory.getLogger(OgmTransactionManager.class);
 
-    private static javax.transaction.TransactionManager delegateTxManager;
+    private javax.transaction.TransactionManager delegateTxManager;
 
-    void setDelegateTxManager(javax.transaction.TransactionManager delegate) {
-        delegateTxManager = delegate;
+    private EntityManagerFactory emf;
+
+    private boolean booting = false;
+
+    void setupTxManager(OgmConfig config) {
+        booting = true;
+        HashMap properties = new HashMap();
+        properties.put(AvailableSettings.INTERCEPTOR, AllocationInterceptor.class.getName());
+
+        emf = Persistence.createEntityManagerFactory("fenixframework-persistence-unit", properties);
+        SessionFactoryImplementor sessionFactory =
+            (SessionFactoryImplementor)((HibernateEntityManagerFactory)emf).getSessionFactory();
+        delegateTxManager = sessionFactory.getServiceRegistry().getService(JtaPlatform.class).
+            retrieveTransactionManager();
+        booting = false;
+    }
+
+    boolean isBooting() {
+        return booting;
+    }
+
+    private final ThreadLocal<EntityManager> currentEntityManager = new ThreadLocal<EntityManager>();
+
+    EntityManager getEntityManager() {
+        return currentEntityManager.get();
     }
 
     @Override
     public void begin() throws NotSupportedException, SystemException {
-        logger.trace("Begin transaction");
+        logger.info("Begin transaction");
         delegateTxManager.begin();
+
+        EntityManager em = null;
+        em = emf.createEntityManager();
+        currentEntityManager.set(em);
     }
 
     @Override
     public void begin(boolean readOnly) throws NotSupportedException, SystemException {
         if (readOnly) {
-            logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
+            logger.warn("OgmBackEnd does not enforce read-only transactions. Starting as normal transaction");
         }
         begin();
     }
 
     @Override
-    public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
-        logger.trace("Commit transaction");
+    public void commit() throws RollbackException, HeuristicMixedException,
+                                HeuristicRollbackException, SystemException {
+        logger.info("Commit transaction");
+
+        EntityManager em = currentEntityManager.get();
+        em.flush();
+        em.close();
+
         delegateTxManager.commit();
+
+        currentEntityManager.set(null);
     }
 
     @Override
@@ -53,8 +98,10 @@ public class InfinispanTransactionManager implements TransactionManager {
 
     @Override
     public void rollback() throws SystemException {
-        logger.trace("Rollback transaction");
+        logger.info("Rollback transaction");
         delegateTxManager.rollback();
+
+        currentEntityManager.set(null);
     }
 
     @Override
@@ -74,19 +121,19 @@ public class InfinispanTransactionManager implements TransactionManager {
                 boolean inTopLevelTransaction = false;
                 // the purpose of this test is to enable reuse of the existing transaction
                 if (getTransaction() == null) {
-                    logger.trace("No previous transaction.  Will begin a new one.");
+                    logger.info("No previous transaction.  Will begin a new one.");
                     begin();
                     inTopLevelTransaction = true;
                 } else {
-                    logger.trace("Already inside a transaction. Not nesting.");
+                    logger.info("Already inside a transaction. Not nesting.");
                 }
                 // do some work
                 result = command.call();
                 if (inTopLevelTransaction) {
-                    logger.trace("Will commit a top-level transaction.");
+                    logger.info("Will commit a top-level transaction.");
                     commit();
                 } else {
-                    logger.trace("Leaving an inner transaction.");
+                    logger.info("Leaving an inner transaction.");
                 }
                 txFinished = true;
                 return result;
@@ -103,8 +150,8 @@ public class InfinispanTransactionManager implements TransactionManager {
             } catch(HeuristicRollbackException hre) {
                 //If a heuristic decision to roll back the transaction was made
                 logException(hre);
-            } catch (Exception e) { // any other exception 	 out
-                logger.debug("Exception within transaction", e);
+            } catch (Exception e) { // any other exception gets out
+                logger.info("Exception within transaction", e);
                 throw new RuntimeException(e);
             } finally {
                 if (!txFinished) {
@@ -124,7 +171,7 @@ public class InfinispanTransactionManager implements TransactionManager {
             // Pedro had this wait here.  Why?
             // waitingBeforeRetry();
 
-            logger.debug("Retrying transaction: " + command);
+            logger.info("Retrying transaction: " + command);
         }
         // never reached
         throw new RuntimeException("code never reached");
@@ -143,7 +190,7 @@ public class InfinispanTransactionManager implements TransactionManager {
 
     private void logException(Exception e) {
         logger.info("Exception caught in transaction: " + e.getLocalizedMessage());
-        logger.trace("Exception caught in transaction:", e);
+        logger.info("Exception caught in transaction:", e);
     }
 
 }

@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.dml.maven;
 
-// import org.apache.log4j.Level;
-// import org.apache.log4j.Logger;
+// import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+// import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.codehaus.classworlds.ClassRealm;
 import org.codehaus.plexus.component.configurator.AbstractComponentConfigurator;
@@ -36,7 +38,7 @@ import java.util.List;
  */
 public class IncludeProjectDependenciesComponentConfigurator extends AbstractComponentConfigurator { 
 
-    // private static final Logger LOGGER = Logger.getLogger(IncludeProjectDependenciesComponentConfigurator.class);
+    // private static final Logger LOGGER = LoggerFactory.getLogger(IncludeProjectDependenciesComponentConfigurator.class);
 
     public void configureComponent( Object component, PlexusConfiguration configuration,
                                     ExpressionEvaluator expressionEvaluator, ClassRealm containerRealm,

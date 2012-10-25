@@ -3,8 +3,10 @@ package pt.ist.fenixframework;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stores multiple Fenix Framework {@link Config}urations.  Each configuration is automatically
@@ -28,7 +30,7 @@ import org.apache.log4j.Logger;
  * @see FenixFramework
  */
 public class MultiConfig {
-    private static final Logger logger = Logger.getLogger(MultiConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(MultiConfig.class);
     private final Map<String,Config> configs = new HashMap<String,Config>();
 
     public static final String UNKNOWN_BACKEND = "Unknown backend: ";

@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
@@ -16,7 +17,7 @@ import pt.ist.fenixframework.indexes.IndexesConfig;
  *
  */
 public class InfinispanConfig extends IndexesConfig {
-    private static final Logger logger = Logger.getLogger(InfinispanDomainObject.class);
+    private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
 
     // /**
     //  * This enumeration lists the possible options for the behaviour of the domain object's {@link
@@ -64,7 +65,7 @@ public class InfinispanConfig extends IndexesConfig {
     //         identityMap = MapType.valueOf(cleanValue);
     //     } catch (IllegalArgumentException e) {
     //         String message = "Unknown value for configuration property 'identityMap': " + value;
-    //         logger.fatal(message);
+    //         logger.error(message);
     //         throw new ConfigError(message, e);
     //     }
     // }

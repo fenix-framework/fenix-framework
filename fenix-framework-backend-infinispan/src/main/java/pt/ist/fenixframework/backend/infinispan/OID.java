@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -14,7 +16,7 @@ import pt.ist.fenixframework.core.exception.MissingObjectException;
  */
 public class OID implements Comparable<OID>, Serializable {
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger(OID.class);
+    private static final Logger logger = LoggerFactory.getLogger(OID.class);
 
     private static final String OID_SEPARATOR = "@";
     private static final String EXTERNAL_ID_ERROR = "Could not process externalId: ";

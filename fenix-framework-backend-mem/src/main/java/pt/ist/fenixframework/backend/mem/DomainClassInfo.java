@@ -5,7 +5,8 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
@@ -14,7 +15,7 @@ import pt.ist.fenixframework.dml.DomainModel;
 
 public class DomainClassInfo {
 
-    private static final Logger logger = Logger.getLogger(DomainClassInfo.class);
+    private static final Logger logger = LoggerFactory.getLogger(DomainClassInfo.class);
     private volatile static Map<Class, DomainClassInfo> classInfoMap;
     private volatile static DomainClassInfo[] classInfoById;
     private volatile static long serverOidBase;
@@ -140,7 +141,7 @@ public class DomainClassInfo {
             message.append(nextKey);
             message.append(" = ");
             message.append((serverOidBase + ((long)info.classId << 32) + nextKey));
-            logger.debug(message);
+            logger.debug(message.toString());
         }
         // build and return OID
 	if ((DomainRoot.class == objClass) && (nextKey == 1)) {

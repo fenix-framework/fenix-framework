@@ -3,8 +3,10 @@ package pt.ist.fenixframework.backend.mem;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
@@ -13,7 +15,7 @@ import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class MemDomainObject extends AbstractDomainObjectAdapter {
-    private static final Logger logger = Logger.getLogger(MemDomainObject.class);
+    private static final Logger logger = LoggerFactory.getLogger(MemDomainObject.class);
 
     // this should be final, but the ensureOid and restoreOid methods prevent it
     private long oid;

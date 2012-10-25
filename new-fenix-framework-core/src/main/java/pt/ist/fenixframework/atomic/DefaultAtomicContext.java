@@ -2,7 +2,8 @@ package pt.ist.fenixframework.atomic;
 
 import java.util.concurrent.Callable;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
@@ -17,7 +18,7 @@ public class /*enum*/ DefaultAtomicContext implements AtomicContext {
     // READ_ONLY(false, true),
     // READ_WRITE(false, false);
 
-    private static final Logger logger = Logger.getLogger(DefaultAtomicContext.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultAtomicContext.class);
 
     private final Atomic atomic;
 

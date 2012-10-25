@@ -1,7 +1,9 @@
 package pt.ist.fenixframework.atomic;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
@@ -17,7 +19,7 @@ import pt.ist.fenixframework.dml.CodeGenerator;
  * Error, indicating such condition.
  */
 public final class DefaultContextFactoryViaReflection extends ContextFactory {
-    private static final Logger logger = Logger.getLogger(DefaultContextFactoryViaReflection.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultContextFactoryViaReflection.class);
 
     private static final String BACKEND_ID_FULL_CLASS_NAME = CodeGenerator.BACKEND_PACKAGE + "." +
         CodeGenerator.ABSTRACT_BACKEND_ID_CLASS;

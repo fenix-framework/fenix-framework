@@ -3,8 +3,10 @@ package pt.ist.fenixframework.core;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
@@ -16,7 +18,13 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
  * of DomainObject.
  */
 public class AbstractDomainObjectAdapter extends AbstractDomainObject {
-    private static final Logger logger = Logger.getLogger(AbstractDomainObjectAdapter.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractDomainObjectAdapter.class);
+
+    protected AbstractDomainObjectAdapter() {}
+
+    protected AbstractDomainObjectAdapter(DomainObjectAllocator.OID oid) {
+        super(oid);
+    }
 
     // serialization code
 
