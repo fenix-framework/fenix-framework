@@ -3,8 +3,6 @@
 	<name>dml-maven-plugin</name>
 	<comment></comment>
 	<projects>
-		<project>dml-fenix</project>
-		<project>dml</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

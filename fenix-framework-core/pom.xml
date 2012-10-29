@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>pt.ist</groupId>
-    <artifactId>fenix-framework-core</artifactId>
+    <artifactId>old-fenix-framework-core</artifactId>
     <name>Fenix Framework Core</name>
     <version>2.0-SNAPSHOT</version>
 
