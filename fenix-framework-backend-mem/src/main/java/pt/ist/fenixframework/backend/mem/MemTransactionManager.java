@@ -32,7 +32,7 @@ public class MemTransactionManager implements TransactionManager {
      * configuration.
      */
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exceptin {
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
         return command.call();
     }
 }
