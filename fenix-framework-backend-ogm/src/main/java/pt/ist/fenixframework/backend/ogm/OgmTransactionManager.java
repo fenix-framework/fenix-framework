@@ -32,7 +32,7 @@ public class OgmTransactionManager implements TransactionManager {
 
     private javax.transaction.TransactionManager delegateTxManager;
 
-    private EntityManagerFactory emf;
+    EntityManagerFactory emf;
 
     private boolean booting = false;
 
@@ -105,7 +105,7 @@ public class OgmTransactionManager implements TransactionManager {
     }
 
     @Override
-    public <T> T withTransaction(Callable<T> command) {
+    public <T> T withTransaction(Callable<T> command) throws Exception {
         return withTransaction(command, null);
     }
 
@@ -113,7 +113,7 @@ public class OgmTransactionManager implements TransactionManager {
      * For now, it ignores the value of the atomic parameter.
      */
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) {
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
         T result = null;
         boolean txFinished = false;
         while (!txFinished) {
@@ -152,7 +152,7 @@ public class OgmTransactionManager implements TransactionManager {
                 logException(hre);
             } catch (Exception e) { // any other exception gets out
                 logger.info("Exception within transaction", e);
-                throw new RuntimeException(e);
+                throw e;
             } finally {
                 if (!txFinished) {
                     try {

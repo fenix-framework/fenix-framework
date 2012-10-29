@@ -58,7 +58,7 @@ public class InfinispanTransactionManager implements TransactionManager {
     }
 
     @Override
-    public <T> T withTransaction(Callable<T> command) {
+    public <T> T withTransaction(Callable<T> command) throws Exception {
         return withTransaction(command, null);
     }
 
@@ -66,7 +66,7 @@ public class InfinispanTransactionManager implements TransactionManager {
      * For now, it ignores the value of the atomic parameter.
      */
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) {
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
         T result = null;
         boolean txFinished = false;
         while (!txFinished) {
@@ -105,7 +105,7 @@ public class InfinispanTransactionManager implements TransactionManager {
                 logException(hre);
             } catch (Exception e) { // any other exception 	 out
                 logger.debug("Exception within transaction", e);
-                throw new RuntimeException(e);
+                throw e;
             } finally {
                 if (!txFinished) {
                     try {

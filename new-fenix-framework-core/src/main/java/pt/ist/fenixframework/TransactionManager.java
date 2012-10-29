@@ -74,14 +74,14 @@ public interface TransactionManager {
      * behaviour.
      * @param command The command to execute.
      */
-    public <T> T withTransaction(Callable<T> command);
+    public <T> T withTransaction(Callable<T> command) throws Exception;
 
     /**
      * Transactionally execute a command, possibly returning a result.
      * @param command The command to execute
      * @param atomic the configuration for the execution of this command.
      */
-    public <T> T withTransaction(Callable<T> command, Atomic atomic);
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception;
 
     /**
      * Create a new transaction and associate it with the current thread.  This method can be used
