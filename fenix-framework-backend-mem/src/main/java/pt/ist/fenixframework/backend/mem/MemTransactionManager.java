@@ -23,7 +23,7 @@ public class MemTransactionManager implements TransactionManager {
     public void rollback() {}
 
     @Override
-    public <T> T withTransaction(Callable<T> command) {
+    public <T> T withTransaction(Callable<T> command) throws Exception {
         return withTransaction(command, null);
     }
 
@@ -32,12 +32,8 @@ public class MemTransactionManager implements TransactionManager {
      * configuration.
      */
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) {
-        try {
-            return command.call();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exceptin {
+        return command.call();
     }
 }
 
