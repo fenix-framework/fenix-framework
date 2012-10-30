@@ -77,7 +77,9 @@ public class OgmBackEnd implements BackEnd {
     }
 
     @Override
-    public void shutdown() { }
+    public void shutdown() {
+        transactionManager.emf.close();
+    }
 
     protected void configOgm(OgmConfig config) {
         transactionManager.setupTxManager(config);
