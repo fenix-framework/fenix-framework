@@ -30,11 +30,14 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +
         ValueTypeSerializationGenerator.DESERIALIZATION_METHOD_PREFIX;
 
+    protected static final String PRIMARY_KEY_TYPE = "String";
+
     protected PrintWriter ormWriter;
-    protected ArrayList<Slot> ormSlots;
+    protected ArrayList<String> ormSlots;
+    protected ArrayList<String> ormSlotsForRelationToOne;
     protected ArrayList<Role> ormRoleManyToOne;
     protected ArrayList<Role> ormRoleOneToMany;
-    protected ArrayList<Role> ormRoleOneToOne;
+    // protected ArrayList<Role> ormRoleOneToOne;
     protected ArrayList<Role> ormRoleManyToMany;
     protected ArrayList<String> ormTransientSlots;
 
@@ -157,8 +160,10 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
 
 
     private static String[] builtInTypesFromDmlInOgm = {
-        "char", "short", "float",
-        "long", "Long", "int", "Integer", "double", "Double", "String", "boolean", "Boolean", "byte", "Byte", "bytearray"
+        "char", "java.lang.Character", "short", "java.lang.Short", "float", "java.lang.Float",
+        "long", "java.lang.Long", "int", "java.lang.Integer", "double", "java.lang.Double",
+        "java.lang.String", "boolean", "java.lang.Boolean", "byte", "java.lang.Byte",
+        "bytearray", "byte[]"
     };
     
     private boolean ogmSupportsType(String typeName) {
@@ -175,7 +180,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         super.generateSlotAccessors(domainClass, slot, out);
         generateHibernateSlotGetter(slot, out);
         generateHibernateSlotSetter(slot, out);
-        this.ormTransientSlots.add(slot.getName());
+        this.ormSlots.add(addHibernateToSlotName(slot.getName()));
     }
 
     protected void generateHibernateSlotGetter(Slot slot, PrintWriter out) {
@@ -193,7 +198,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         }
 
         newline(out);
-        printFinalMethod(out, "public", typeNameTo, "get" + addHibernateToSlotName(capitalize(slotName)));
+        printFinalMethod(out, "", typeNameTo, "get" + addHibernateToSlotName(capitalize(slotName)));
         startMethodBody(out);
         printWords(out, "return", slotExpression + ";");
         endMethodBody(out);
@@ -214,7 +219,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         }
 
         newline(out);
-        printFinalMethod(out, "public", "void", "set" + addHibernateToSlotName(capitalize(slotName)),
+        printFinalMethod(out, "", "void", "set" + addHibernateToSlotName(capitalize(slotName)),
                          makeArg(typeNameFrom, slotName));
         startMethodBody(out);
         printWords(out, getSlotExpression(slotName), "=", setterExpression + ";");
@@ -329,7 +334,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
 
     @Override
     protected void generateSlot(Slot slot, PrintWriter out) {
-        ormAddSlot(slot);
+        this.ormTransientSlots.add(slot.getName());
         onNewline(out);
         // printWords(out, "private", getReferenceType(slot.getTypeName()), slot.getName());
         printWords(out, "private", slot.getTypeName(), slot.getName());
@@ -341,15 +346,22 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         print(out, "return " + getSlotExpression(slotName) + ";");
     }
 
+    protected String makeForeignKeyName(String name) {
+        return "fk$" + name;
+    }
+
     @Override
     protected void generateRoleSlot(Role role, PrintWriter out) {
         ormAddRole(role);
         onNewline(out);
+        printWords(out, "private", PRIMARY_KEY_TYPE, makeForeignKeyName(role.getName()) + ";");
+        newline(out);
+
         if (role.getMultiplicityUpper() == 1) {
-            printWords(out, "private", getTypeFullName(role.getType()), role.getName());
+            printWords(out, "private", "transient", getTypeFullName(role.getType()), role.getName());
             // ormGenerateRoleSlotMultOne(role);
         } else {
-            printWords(out, "private", getSetTypeDeclarationFor(role), role.getName());
+            printWords(out, "private", "transient", getSetTypeDeclarationFor(role), role.getName());
             printWords(out, "=", getNewRoleStarSlotExpressionWithEmptySet(role));
 
             // // // println(out, ";");
@@ -373,6 +385,24 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         // return makeGenericType("java.util.Set", elemType);
         String thisType = getTypeFullName(role.getOtherRole().getType());
         return makeGenericType(getRelationAwareBaseTypeFor(role), thisType, elemType);
+    }
+
+    @Override
+    protected void generateRoleSlotMethodsMultOne(Role role, PrintWriter out) {
+        super.generateRoleSlotMethodsMultOne(role, out);
+        generateRoleSlotMethodsMultOneHibernateFK(role, out);
+    }
+
+    protected void generateRoleSlotMethodsMultOneHibernateFK(Role role, PrintWriter out) {
+        // generateRoleSlotMethodsMultOneGetter(makeForeignKeyName(role.getName()), PRIMARY_KEY_TYPE, out);
+        String slotName = makeForeignKeyName(role.getName());
+        generateGetter("public", "get" + capitalize(slotName), slotName, PRIMARY_KEY_TYPE, out);
+        generateRoleSlotMethodsMultOneSetter(makeForeignKeyName(role.getName()), PRIMARY_KEY_TYPE, out);
+    }
+
+    // ideally, this would use generateSetter, but it now takes the domain class for the indexes :-/
+    protected void generateRoleSlotMethodsMultOneSetter() {
+        // gerar codigo como para setter
     }
 
     @Override
@@ -515,10 +545,11 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
     }
 
     protected void ormBeginBaseClass(DomainClass domClass) {
-        this.ormSlots = new ArrayList<Slot>();
+        this.ormSlots = new ArrayList<String>();
+        this.ormSlotsForRelationToOne = new ArrayList<String>();
         this.ormRoleManyToOne = new ArrayList<Role>();
         this.ormRoleOneToMany = new ArrayList<Role>();
-        this.ormRoleOneToOne = new ArrayList<Role>();
+        // this.ormRoleOneToOne = new ArrayList<Role>();
         this.ormRoleManyToMany = new ArrayList<Role>();
         this.ormTransientSlots = new ArrayList<String>();
 
@@ -534,8 +565,11 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
 
     protected void ormEndBaseClass() {
         // slots must be dumped in this order per the schema definition :-/
-        for (Slot slot : this.ormSlots) {
-            ormGenerateSlot(slot);
+        for (String name : this.ormSlots) {
+            ormGenerateSlot(name);
+        }
+        for (String name : this.ormSlotsForRelationToOne) {
+            ormGenerateSlot(name);
         }
         for (Role role : this.ormRoleManyToOne) {
             ormGenerateRoleManyToOne(role);
@@ -543,16 +577,15 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         for (Role role : this.ormRoleOneToMany) {
             ormGenerateRoleOneToMany(role);
         }
-        for (Role role : this.ormRoleOneToOne) {
-            ormGenerateRoleOneToOne(role);
-        }
+        // for (Role role : this.ormRoleOneToOne) {
+        //     ormGenerateRoleOneToOne(role);
+        // }
         for (Role role : this.ormRoleManyToMany) {
             ormGenerateRoleManyToMany(role);
         }
         for (String name : this.ormTransientSlots) {
             ormGenerateTransient(name);
         }
-        
 
         StringBuilder buf = new StringBuilder();
         buf.append("        </attributes>\n");
@@ -560,13 +593,14 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         this.ormWriter.println(buf.toString());
     }
 
-    protected void ormGenerateSlot(Slot slot) {
+    // protected void ormGenerateSlot(Slot slot) {
+    //     ormGenerateSlot(slot.getName());
+    // }
+
+    protected void ormGenerateSlot(String slotName) {
         StringBuilder buf = new StringBuilder();
         buf.append("            <basic name=\"");
-        buf.append(addHibernateToSlotName(slot.getName()));
-        // buf.append("\" />\n");
-        // buf.append("            <transient name=\"");
-        // buf.append(slot.getName());
+        buf.append(slotName);
         buf.append("\" />");
         this.ormWriter.println(buf.toString());
     }
@@ -602,15 +636,15 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         this.ormWriter.println(buf.toString());
     }
 
-    protected void ormGenerateRoleOneToOne(Role role) {
-        StringBuilder buf = new StringBuilder();
-        buf.append("            <one-to-one fetch=\"LAZY\" name=\"");
-        buf.append(role.getName());
-        buf.append("\">");
-        // buf.append(ormGetCascade());
-        buf.append("</one-to-one>");
-        this.ormWriter.println(buf.toString());
-    }
+    // protected void ormGenerateRoleOneToOne(Role role) {
+    //     StringBuilder buf = new StringBuilder();
+    //     buf.append("            <one-to-one fetch=\"LAZY\" name=\"");
+    //     buf.append(role.getName());
+    //     buf.append("\">");
+    //     // buf.append(ormGetCascade());
+    //     buf.append("</one-to-one>");
+    //     this.ormWriter.println(buf.toString());
+    // }
 
     protected void ormGenerateRoleManyToMany(Role role) {
         StringBuilder buf = new StringBuilder();
@@ -661,18 +695,24 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
     }
 
     protected void ormAddSlot(Slot slot) {
-        this.ormSlots.add(slot);
+        this.ormSlots.add(slot.getName());
+    }
+
+    protected void ormAddSlotForRelationToOne(String name) {
+        this.ormSlotsForRelationToOne.add(name);
     }
 
     protected void ormAddRole(Role role) {
         Role otherRole = role.getOtherRole();
 
         if (role.getMultiplicityUpper() == 1) {
-            if (otherRole.getMultiplicityUpper() == 1) {
-                this.ormRoleOneToOne.add(role);
-            } else {
-                this.ormRoleManyToOne.add(role);
-            }
+            this.ormSlotsForRelationToOne.add(makeForeignKeyName(role.getName()));
+            this.ormTransientSlots.add((role.getName()));
+            // if (otherRole.getMultiplicityUpper() == 1) {
+            //     // this.ormRoleOneToOne.add(role);
+            // } else {
+            //     this.ormRoleManyToOne.add(role);
+            // }
         } else {
             this.ormTransientSlots.add(role.getName());
             if (otherRole.getMultiplicityUpper() == 1) {

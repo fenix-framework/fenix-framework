@@ -219,7 +219,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateRoleGetter(String slotName, String typeName, PrintWriter out) {
+    protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", typeName, "get" + capitalize(slotName));
         startMethodBody(out);
