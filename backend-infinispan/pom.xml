@@ -61,32 +61,26 @@
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
 	<dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-indexes</artifactId>
-            <version>${project.version}</version>
 	</dependency>
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-bplustree-domain-object</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${version.slf4j.api}</version>
         </dependency>
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
-            <version>${version.infinispan}</version>
         </dependency>
         <dependency>
             <groupId>javax.transaction</groupId>
             <artifactId>jta</artifactId>
-            <version>${version.jta}</version>
         </dependency>
         <!--
             infinispan-core forgot rhq-pluginAnnotations dependency.  Remove
@@ -96,12 +90,10 @@
         <dependency>
             <groupId>org.rhq.helpers</groupId>
             <artifactId>rhq-pluginAnnotations</artifactId>
-            <version>${version.rhq.helpers}</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.jbossts</groupId>
             <artifactId>jbossjta</artifactId>
-            <version>${version.jbossjta}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.jboss.logging</groupId>
@@ -112,7 +104,6 @@
         <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
-            <version>${version.jboss.logging}</version>
         </dependency>
     </dependencies>
 

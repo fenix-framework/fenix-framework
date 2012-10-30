@@ -66,39 +66,32 @@
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-project</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-debug-all</artifactId>
-            <version>${version.asm}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>
-            <version>${version.apache.ant}</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>${version.commons.lang}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>antlr</groupId>
             <artifactId>antlr</artifactId>
-            <version>${version.antlr}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${version.slf4j.api}</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>${version.jodatime}</version>
         </dependency>
     </dependencies>
 

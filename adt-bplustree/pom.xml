@@ -55,7 +55,6 @@
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

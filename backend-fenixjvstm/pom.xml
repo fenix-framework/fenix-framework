@@ -51,27 +51,22 @@
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>jvstm</groupId>
             <artifactId>jvstm-fenix</artifactId>
-            <version>${version.jvstm-fenix}/version>
         </dependency>
         <dependency>
             <groupId>ojb</groupId>
             <artifactId>db-ojb</artifactId>
-            <version>${version.ojb}</version>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>dap-framework</artifactId>
-            <version>${version.dap-framework>}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>${version.commons.io}</version>
         </dependency>
     </dependencies>
 

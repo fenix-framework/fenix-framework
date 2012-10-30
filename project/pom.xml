@@ -18,7 +18,6 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>${version.commons.lang}</version>
         </dependency>
     </dependencies>
 
