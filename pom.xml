@@ -19,17 +19,17 @@
 
     <modules>
         <module>parent</module>
-        <module>fenix-framework-project</module>
-        <module>fenix-framework-dml-compiler</module>
+        <module>project</module>
+        <module>dml-compiler</module>
         <module>dml-maven-plugin</module>
-        <module>new-fenix-framework-core</module>
-        <module>fenix-framework-adt-bplustree</module>
-        <module>fenix-framework-indexes</module>
-        <module>fenix-framework-bplustree-domain-object</module>
-    	<module>fenix-framework-backend-mem</module>
-        <module>fenix-framework-backend-infinispan</module>
-        <module>fenix-framework-backend-ogm</module>
-        <module>fenix-framework-archetypes</module>
+        <module>core</module>
+        <module>adt-bplustree</module>
+        <module>indexes</module>
+        <module>bplustree-domain-object</module>
+    	<module>backend-mem</module>
+        <module>backend-infinispan</module>
+        <module>backend-ogm</module>
+        <module>archetypes</module>
     </modules>
 
     <build>
