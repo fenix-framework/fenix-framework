@@ -13,11 +13,11 @@
       <defaultValue>pt.ist</defaultValue>
     </requiredProperty>
     <requiredProperty key="backEndArtifactId">
-      <defaultValue>fenix-framework-core</defaultValue>
+      <defaultValue>fenix-framework-backend-mem</defaultValue>
     </requiredProperty>
     <requiredProperty key="backEndVersion"/>
     <requiredProperty key="codeGeneratorClassName">
-      <defaultValue>pt.ist.fenixframework.dml.DefaultCodeGenerator</defaultValue>
+      <defaultValue>pt.ist.fenixframework.backend.mem.MemCodeGenerator</defaultValue>
     </requiredProperty>
   </requiredProperties>
   <fileSets>
