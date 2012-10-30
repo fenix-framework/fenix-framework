@@ -19,9 +19,9 @@
     <url>http://fenix-ashes.ist.utl.pt</url>
 
     <modules>
-        <module>fenix-framework-module-archetype-clean</module>
-        <module>fenix-framework-application-archetype-clean</module>
-        <module>fenix-framework-webapp-archetype-clean</module>
+        <module>module-archetype-clean</module>
+        <module>application-archetype-clean</module>
+        <module>webapp-archetype-clean</module>
     </modules>
 
 </project>
