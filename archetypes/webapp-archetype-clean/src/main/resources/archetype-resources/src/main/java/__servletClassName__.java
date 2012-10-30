@@ -12,8 +12,8 @@ public class ${servletClassName} extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-        response.setContentType("text/html");//seta o tipo de conteúdo da resposta da servlet para html
-        PrintWriter out = response.getWriter();//instancia o printer, que vai imprimir o html.
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
 
         out.println("Bootstrap");
     }
