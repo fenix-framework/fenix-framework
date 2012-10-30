@@ -25,13 +25,18 @@ public class FenixDomainModelWithOCC extends FenixDomainModel {
      * disabled for now.
      */
 
+    /*
+     * When used in Fenix domainClassTopHierarchyLevel is 1 because every domain class extends
+     * DomainObject and it should only be injected in subclass of a "real"
+     * DomainClass.
+     */
     @Override
     public void finalizeDomain(boolean checkForMissingExternals) {
 	super.finalizeDomain(checkForMissingExternals);
-
+	final int domainClassTopHierarchyLevel = classes.containsKey("DomainObject") ? 1 : 0;
 	for (final DomainClass domainClass : classes.values()) {
 	    final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
-	    if (domainClassHierarchyLevel > 1) {
+	    if (domainClassHierarchyLevel > domainClassTopHierarchyLevel) {
 		final DomainClass domainObjectDescendent = findDirectDomainObjectDecendent(domainClass);
 		final Slot ojbConcreteClassSlot = domainObjectDescendent.findSlot("ojbConcreteClass");
 		if (ojbConcreteClassSlot == null) {
