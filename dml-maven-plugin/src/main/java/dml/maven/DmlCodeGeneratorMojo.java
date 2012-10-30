@@ -49,7 +49,7 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Domain Model Class Name
-     * @parameter expression="${generate-domain.domainModelClassName}" default-value="pt.ist.fenixframework.pstm.dml.FenixDomainModel"
+     * @parameter expression="${generate-domain.domainModelClassName}" default-value="pt.ist.fenixframework.pstm.dml.FenixDomainModelWithOCC"
      */
     private String domainModelClassName;
 
