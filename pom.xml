@@ -5,17 +5,22 @@
     
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>pt.ist</groupId>
+    <parent>
+        <groupId>pt.ist</groupId>
+        <artifactId>fenix-framework-parent</artifactId>
+        <!-- Perhaps in Maven 3.1 the version may be ommitted -->
+        <version>2.0-SNAPSHOT</version>
+        <relativePath>parent/pom.xml</relativePath>
+    </parent>
+
     <artifactId>fenix-framework</artifactId>
-    <version>2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Fenix Framework</name>
+    <name>Fenix Framework Distribution</name>
     <url>http://fenix-ashes.ist.utl.pt</url>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
+    <description>
+        Builds the complete Fenix Framework distribution
+    </description>
 
     <modules>
         <module>parent</module>
@@ -37,7 +42,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.8.1</version>
+                <version>${version.maven.javadoc-plugin}</version>
                 <configuration>
                     <!-- get all sub-projects -->
                     <aggregate>true</aggregate>
@@ -51,7 +56,7 @@
                     <docletArtifact>
                         <groupId>org.umlgraph</groupId>
                         <artifactId>doclet</artifactId>
-                        <version>5.1</version>
+                        <version>${version.maven.umlgraph-doclet-plugin}</version>
                     </docletArtifact>
                     <additionalparam>-views</additionalparam>
                     <useStandardDocletOptions>true</useStandardDocletOptions>
@@ -60,14 +65,4 @@
         </plugins>
     </build> 
 
-    <distributionManagement>
-        <repository>
-            <id>fenix-framework-releases</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>fenix-framework-snapshots</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>

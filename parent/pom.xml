@@ -8,6 +8,7 @@
     <groupId>pt.ist</groupId>
     <artifactId>fenix-framework-parent</artifactId>
     <version>2.0-SNAPSHOT</version>
+
     <name>Fenix Framework common parent POM module</name>
     <description>
         This module provides the common configuration for all modules.
@@ -18,15 +19,70 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <version.infinispan>5.2.0-SNAPSHOT</version.infinispan>
-        <!-- <version.infinispan>5.1.6.FINAL</version.infinispan> -->
-        <!-- <version.jta>1.0.0.Final</version.jta> -->
-        <!-- <version.rhq.helpers>3.0.4</version.rhq.helpers> -->
-        <!-- <version.jbossjta>4.16.3.Final</version.jbossjta> -->
-        <!-- <version.jboss.logging>3.1.0.GA</version.jboss.logging> -->
 
+        <version.commons.lang>2.6</version.commons.lang>
+        <version.dap-framework>1.0</version.dap-framework>
+        <version.infinispan>5.1.6.FINAL</version.infinispan>
+        <!-- <version.infinispan>5.2.0-SNAPSHOT</version.infinispan> -->
+        <version.jboss.logging>3.1.0.GA</version.jboss.logging>
+        <version.jbossjta>4.16.3.Final</version.jbossjta>
+        <version.jta>1.0.0.Final</version.jta>
+
+        <version.commons.io>2.4</version.commons.io>
+        <version.hibernate.core>4.0.1.Final</version.hibernate.core>
+        <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
+        <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
+        <version.hibernate.ogm>4.0.0-SNAPSHOT</version.hibernate.ogm>
+        <version.jpa>1.0</version.jpa>
+        <version.jta>1.1</version.jta>
+        <version.jvstm-fenix>1.0</version.jvstm-fenix>
+        <version.maven.core>3.0.3</version.maven.core>
+        <version.maven.javadoc-plugin>2.8.1</version.maven.javadoc-plugin>
+        <version.maven.umlgraph-doclet-plugin>5.1</version.maven.umlgraph-doclet-plugin>
+        <version.maven.jar-plugin>2.4</version.maven.jar-plugin>
+        <version.maven.build-helper-plugin>1.7</version.maven.build-helper-plugin>
+        <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
+        <version.antlr>2.7.7</version.antlr>
+        <version.jodatime>1.5.2</version.jodatime>
+        <version.maven.exec-plugin>1.2.1</version.maven.exec-plugin>
+        <version.junit>3.8.1</version.junit>
+        <version.maven.plexus-plugin>1.3.8</version.maven.plexus-plugin>
+        <version.asm>4.0</version.asm>
+        <version.apache.ant>1.8.2</version.apache.ant>
+        <version.ojb>1.0.0</version.ojb>
+        <version.rhq.helpers>3.0.4</version.rhq.helpers>
+        <version.slf4j.api>1.7.2</version.slf4j.api>
     </properties>
 
+    <!-- Building -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <proc>none</proc>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- Repositories -->
+    <repositories>
+        <repository>
+            <id>fenix-ashes-maven-repository</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
+        </repository>
+        <repository>
+            <id>thirdparty</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/thirdparty</url>
+        </repository>
+    </repositories>
+
+    <!-- Distribution Management -->
     <distributionManagement>
         <repository>
             <id>fenix-framework-releases</id>
@@ -37,6 +93,5 @@
             <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
-
 
 </project>

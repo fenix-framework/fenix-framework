@@ -5,34 +5,25 @@
     
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>pt.ist</groupId>
+    <parent>
+        <groupId>pt.ist</groupId>
+        <artifactId>fenix-framework-parent</artifactId>
+        <!-- Perhaps in Maven 3.1 the version may be ommitted -->
+        <version>2.0-SNAPSHOT</version>
+        <relativePath>../parent/pom.xml</relativePath>
+    </parent>
+
     <artifactId>fenix-framework-dml-compiler</artifactId>
     <name>Fenix Framework DML Compiler</name>
-    <version>2.0-SNAPSHOT</version>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
 
     <build>
         <plugins>
-            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
             
             <!-- Run ANTLR before compiling -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>antlr-maven-plugin</artifactId>
-                <version>2.2</version>
+                <version>${version.maven.antlr-plugin}</version>
                 <configuration>
                     <grammars>dml.g,dml.tree.g</grammars>
                 </configuration>
@@ -51,7 +42,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <version>${version.maven.exec-plugin}</version>
                 <executions>
                     <execution>
                         <phase>process-classes</phase>
@@ -75,72 +66,40 @@
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-project</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-debug-all</artifactId>
-            <version>4.0</version>
+            <version>${version.asm}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>
-            <version>1.8.2</version>
+            <version>${version.apache.ant}</version>
         </dependency>
-        <!-- <dependency> -->
-        <!--   <groupId>org.apache.commons</groupId> -->
-        <!--   <artifactId>commons-io</artifactId> -->
-        <!--   <version>1.4</version> -->
-        <!-- </dependency> -->
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
+            <version>${version.commons.lang}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>antlr</groupId>
             <artifactId>antlr</artifactId>
-            <version>2.7.7</version>
+            <version>${version.antlr}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.2</version>
+            <version>${version.slf4j.api}</version>
         </dependency>
         <dependency>
-          <groupId>joda-time</groupId>
-          <artifactId>joda-time</artifactId>
-          <version>1.5.2</version>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>${version.jodatime}</version>
         </dependency>
-        <!-- <dependency> -->
-        <!--   <groupId>jfree</groupId> -->
-        <!--   <artifactId>jfreechart</artifactId> -->
-        <!--   <version>0.9.18</version> -->
-        <!-- </dependency> -->
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
-        </repository>
-        <repository>
-            <id>thirdparty</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/thirdparty</url>
-        </repository>
-    </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>fenix-framework-releases</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>fenix-framework-snapshots</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 </project>
