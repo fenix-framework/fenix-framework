@@ -568,7 +568,9 @@ public class FenixCodeGenerator extends CodeGenerator {
 		    print(out, "hasAny");
 		}
 		print(out, capitalize(role.getName()));
-		println(out, "()) handleAttemptToDeleteConnectedObject();");
+		print(out, "()) handleAttemptToDeleteConnectedObject(\"");
+		print(out, capitalize(role.getName()));
+		println(out, "\");");
 	    }
 	}
 

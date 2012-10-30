@@ -39,8 +39,7 @@ class ReadOnlyTopLevelTransaction extends TopLevelTransaction {
 		    // after the reload, the same body should have a new value
 		    // if not, then something gone wrong and its better to abort
 		    if (body.value == VBox.NOT_LOADED_VALUE) {
-			System.out.println("Couldn't load the attribute " + attr + " for class " + obj.getClass());
-			throw new VersionNotAvailableException();
+			throw new VersionNotAvailableException("Couldn't load the attribute " + attr + " for instance " + obj);
 		    }
 		}
 	    }
