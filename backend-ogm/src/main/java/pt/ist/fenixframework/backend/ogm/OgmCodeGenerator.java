@@ -397,7 +397,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         // generateRoleSlotMethodsMultOneGetter(makeForeignKeyName(role.getName()), PRIMARY_KEY_TYPE, out);
         String slotName = makeForeignKeyName(role.getName());
         generateGetter("public", "get" + capitalize(slotName), slotName, PRIMARY_KEY_TYPE, out);
-        generateRoleSlotMethodsMultOneSetter(makeForeignKeyName(role.getName()), PRIMARY_KEY_TYPE, out);
+        // generateRoleSlotMethodsMultOneSetter(makeForeignKeyName(role.getName()), PRIMARY_KEY_TYPE, out);
     }
 
     // ideally, this would use generateSetter, but it now takes the domain class for the indexes :-/
