@@ -15,4 +15,8 @@ public class RequestInfo {
     public static void setRequestURI(String uri) {
 	REQUEST_URI.set(uri);
     }
+
+    public static void clear() {
+	REQUEST_URI.remove();
+    }
 }

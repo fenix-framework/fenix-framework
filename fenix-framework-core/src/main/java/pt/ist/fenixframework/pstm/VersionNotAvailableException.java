@@ -1,5 +1,12 @@
 package pt.ist.fenixframework.pstm;
 
 public class VersionNotAvailableException extends RuntimeException {
-    // intentionally empty
+
+    public VersionNotAvailableException() {
+    }
+
+    public VersionNotAvailableException(final String message) {
+	super(message);
+    }
+
 }
