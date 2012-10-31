@@ -105,10 +105,21 @@ public abstract class Transaction extends jvstm.Transaction {
 	}
     }
 
+    public static void commit() {
+
+	jvstm.Transaction.commit();
+
+	current.remove();
+	DEFAULT_READ_ONLY.remove();
+    }
+
     public static void abort() {
 	STATISTICS.incAborts();
 
 	jvstm.Transaction.abort();
+
+	current.remove();
+	DEFAULT_READ_ONLY.remove();
     }
 
     public static FenixTransaction currentFenixTransaction() {

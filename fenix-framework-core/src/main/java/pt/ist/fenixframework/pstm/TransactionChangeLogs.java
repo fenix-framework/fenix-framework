@@ -331,7 +331,7 @@ public class TransactionChangeLogs {
         	    try {
         		sleep(SECONDS_BETWEEN_UPDATES * 1000);
         	    } catch (InterruptedException ie) {
-        		// ignore it
+        		return;
         	    }
         	    updateServerRecord();
         	}

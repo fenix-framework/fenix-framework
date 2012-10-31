@@ -59,10 +59,11 @@ public class FenixCodeGenerator extends CodeGenerator {
     @Override
     protected void generateBaseClassConstructorsBody(DomainClass domClass, PrintWriter out) {
 	super.generateBaseClassConstructorsBody(domClass, out);
-	final Slot ojbConcreteClassSlot = domClass.findSlot("ojbConcreteClass");
-	if (ojbConcreteClassSlot != null && calculateHierarchyLevel(domClass) == 1) {
-	    newline(out);
-	    print(out, "setOjbConcreteClass(getClass().getName());");
+	for(Slot slot : domClass.getSlotsList()) {
+		if ("ojbConcreteClass".equals(slot.getName())) {
+			newline(out);
+			print(out, "setOjbConcreteClass(getClass().getName());");
+		}
 	}
     }
 
@@ -568,7 +569,9 @@ public class FenixCodeGenerator extends CodeGenerator {
 		    print(out, "hasAny");
 		}
 		print(out, capitalize(role.getName()));
-		println(out, "()) handleAttemptToDeleteConnectedObject();");
+		print(out, "()) handleAttemptToDeleteConnectedObject(\"");
+		print(out, capitalize(role.getName()));
+		println(out, "\");");
 	    }
 	}
 

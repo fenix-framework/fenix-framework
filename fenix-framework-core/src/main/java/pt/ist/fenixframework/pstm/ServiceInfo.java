@@ -55,6 +55,10 @@ public class ServiceInfo {
 	CURRENT_SERVICE.set(new ServiceInfo(username, serviceName, args));
     }
 
+    public static void clearCurrentServiceInfo() {
+	CURRENT_SERVICE.remove();
+    }
+
     public static ServiceInfo getCurrentServiceInfo() {
 	return CURRENT_SERVICE.get();
     }

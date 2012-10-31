@@ -27,35 +27,36 @@ public class DmlCompiler {
 	generator.generateCode();
     }
 
+    /**
+     * Use {@link #getDomainModelForURLs(Class, List)}
+     */
+    @Deprecated
     public static DomainModel getDomainModel(CompilerArgs compArgs) throws ANTLRException {
-	return getDomainModel(compArgs.domainModelClass, compArgs.domainSpecFilenames);
+	return getDomainModelForURLs(compArgs.domainModelClass, compArgs.dmls);
     }
 
-    // public static DomainModel getFenixDomainModel(String[] dmlFiles) throws
-    // ANTLRException {
-    // return getDomainModel(FenixDomainModel.class, Arrays.asList(dmlFiles));
-    // }
-
-    // public static DomainModel getFenixDomainModelForURL(URL dmlFileURL)
-    // throws ANTLRException {
-    // return getDomainModelForURLs(FenixDomainModel.class,
-    // Collections.singletonList(dmlFileURL));
-    // }
-
+    /**
+     * Use {@link #getDomainModelForURLs(Class, List)}
+     */
+    @Deprecated
     public static DomainModel getDomainModel(Class<? extends DomainModel> modelClass, String[] dmlFiles) throws ANTLRException {
 	return getDomainModel(modelClass, Arrays.asList(dmlFiles));
     }
 
+    /**
+     * Use {@link #getDomainModelForURLs(Class, List)}
+     */
+    @Deprecated
     public static DomainModel getDomainModel(Class<? extends DomainModel> modelClass, List<String> dmlFiles)
 	    throws ANTLRException {
 	ArrayList<URL> urls = new ArrayList<URL>();
 	for (String filename : dmlFiles) {
 	    try {
-                if(filename.startsWith("jar:file")) {
-                    urls.add(new URL(filename));
-                } else {
-                    urls.add(new File(filename).toURI().toURL());
-                }
+		if (filename.startsWith("jar:file")) {
+		    urls.add(new URL(filename));
+		} else {
+		    urls.add(new File(filename).toURI().toURL());
+		}
 	    } catch (MalformedURLException mue) {
 		System.err.println("Cannot convert " + filename + " into an URL.  Ignoring it...");
 	    }
@@ -66,7 +67,6 @@ public class DmlCompiler {
 
     public static DomainModel getDomainModelForURLs(Class<? extends DomainModel> modelClass, List<URL> dmlFilesURLs)
 	    throws ANTLRException {
-
 	return getDomainModelForURLs(modelClass, dmlFilesURLs, false);
     }
 

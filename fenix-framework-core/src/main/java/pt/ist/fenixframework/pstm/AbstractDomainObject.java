@@ -170,11 +170,11 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
     protected void checkDisconnected() {
     }
 
-    protected void handleAttemptToDeleteConnectedObject() {
+    protected void handleAttemptToDeleteConnectedObject(final String roleName) {
 	if (FenixFramework.getConfig().isErrorfIfDeletingObjectNotDisconnected()) {
-	    throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this);
+	    throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this + " by role: " + roleName);
 	} else {
-	    System.out.println("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this);
+	    System.out.println("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this + " by role: " + roleName);
 	}	
     }
 

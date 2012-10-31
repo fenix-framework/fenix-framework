@@ -1,15 +1,11 @@
 package pt.ist.fenixframework.pstm;
 
-import java.net.URL;
-import java.util.List;
-
 import org.apache.ojb.broker.metadata.ConnectionPoolDescriptor;
 import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
 import org.apache.ojb.broker.metadata.SequenceDescriptor;
 import org.apache.ojb.broker.util.configuration.impl.OjbConfiguration;
 
 import pt.ist.fenixframework.Config;
-import pt.ist.fenixframework.FenixFrameworkPlugin;
 import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
 
 public class MetadataManager {
@@ -22,29 +18,7 @@ public class MetadataManager {
 
     private MetadataManager(final Config config) {
 	try {
-
-	    // Let's first inject the framework domain model and the plugins
-	    // domain model
-
-	    List<URL> domainModelURLs = config.getDomainModelURLs();
-	    domainModelURLs.add(0, getClass().getResource("/fenix-framework.dml"));
-
-	    // whereToInject keeps track where the DMLs for the plugin should
-	    // be injected, so they are sequential injected and before the
-	    // application DMLs
-
-	    FenixFrameworkPlugin[] plugins = config.getPlugins();
-	    if (plugins != null) {
-		int whereToInject = 1;
-		for (FenixFrameworkPlugin plugin : plugins) {
-		    List<URL> pluginDomainModel = plugin.getDomainModel();
-		    domainModelURLs.addAll(whereToInject, pluginDomainModel);
-		    whereToInject += pluginDomainModel.size();
-		}
-	    }
-
-	    // first, get the domain model
-	    this.domainModel = DML.getDomainModelForURLs(config.getDomainModelClass(), domainModelURLs, true);
+	    this.domainModel = DML.getDomainModelForURLs(config.getDomainModelClass(), config.getDomainModelURLs(), true);
 
 	    // create the OJB's MetadataManager, but use the correct
 	    // OJB.properties file

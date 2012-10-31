@@ -1,8 +1,6 @@
 package pt.ist.fenixframework.pstm;
 
-import java.sql.Clob;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collections;
@@ -11,11 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.sql.rowset.serial.SerialClob;
-
 import jvstm.CommitException;
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.FenixFramework;
 
 import org.apache.ojb.broker.OptimisticLockException;
 import org.apache.ojb.broker.PersistenceBroker;
@@ -27,6 +21,8 @@ import org.apache.ojb.broker.metadata.JdbcType;
 import org.apache.ojb.broker.util.JdbcTypesHelper;
 import org.apache.ojb.broker.util.ObjectModificationDefaultImpl;
 
+import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.FenixFramework;
 
 class DBChanges {
     private static final String SQL_CHANGE_LOGS_CMD_PREFIX = "INSERT INTO FF$TX_CHANGE_LOGS VALUES ";
@@ -44,23 +40,23 @@ class DBChanges {
     private Map<RelationTupleInfo, RelationTupleInfo> mToNTuples = null;
 
     protected Set<AttrChangeLog> getAttrChangeLogs() {
-        Set<AttrChangeLog> set = attrChangeLogs;
+	Set<AttrChangeLog> set = attrChangeLogs;
 
-        if (set == null) {
-            set = new HashSet<AttrChangeLog>();
-        }
+	if (set == null) {
+	    set = new HashSet<AttrChangeLog>();
+	}
 
-        return Collections.unmodifiableSet(set);
+	return Collections.unmodifiableSet(set);
     }
 
     protected Set<DomainObject> getNewObjects() {
-        Set<DomainObject> set = newObjs;
+	Set<DomainObject> set = newObjs;
 
-        if (set == null) {
-            set = new HashSet<DomainObject>();
-        }
+	if (set == null) {
+	    set = new HashSet<DomainObject>();
+	}
 
-        return Collections.unmodifiableSet(set);
+	return Collections.unmodifiableSet(set);
     }
 
     public Set<DomainObject> getModifiedObjects() {
@@ -68,9 +64,9 @@ class DBChanges {
 
 	if (attrChangeLogs != null) {
 	    for (AttrChangeLog log : attrChangeLogs) {
-                if (! isNewObject(log.obj)) {
-                    modified.add(log.obj);
-                }
+		if (!isNewObject(log.obj)) {
+		    modified.add(log.obj);
+		}
 	    }
 	}
 
@@ -87,7 +83,7 @@ class DBChanges {
     }
 
     public boolean isNewObject(DomainObject obj) {
-        return (newObjs != null) && newObjs.contains(obj);
+	return (newObjs != null) && newObjs.contains(obj);
     }
 
     public void logAttrChange(DomainObject obj, String attrName) {
@@ -108,10 +104,10 @@ class DBChanges {
     public void storeObject(DomainObject obj, String attrName) {
 	logAttrChange(obj, attrName);
 
-        if (isNewObject(obj)) {
-            // don't need to update new objects
-            return;
-        }
+	if (isNewObject(obj)) {
+	    // don't need to update new objects
+	    return;
+	}
 
 	if (objsToStore == null) {
 	    objsToStore = new HashSet();
@@ -137,7 +133,8 @@ class DBChanges {
 	setRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, false);
     }
 
-    public void removeRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2) {
+    public void removeRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2,
+	    String colNameOnObj2) {
 	setRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, true);
     }
 
@@ -153,8 +150,8 @@ class DBChanges {
 	}
     }
 
-    private void setRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2,
-	    boolean remove) {
+    private void setRelationTuple(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2,
+	    String colNameOnObj2, boolean remove) {
 	if (mToNTuples == null) {
 	    mToNTuples = new HashMap<RelationTupleInfo, RelationTupleInfo>();
 	}
@@ -216,57 +213,39 @@ class DBChanges {
 	// write change logs
 	Connection conn = pb.serviceConnectionManager().getConnection();
 	writeAttrChangeLogs(conn, txNumber);
-
-	// write ServiceInfo
-	ServiceInfo info = ServiceInfo.getCurrentServiceInfo();
-	if ((info != null) && info.shouldLog()) {
-	    PreparedStatement stmt = null;
-	    try {
-		stmt = conn.prepareStatement("INSERT INTO FF$SERVICE_LOG VALUES (?,?,?,?)");
-		stmt.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
-		stmt.setString(2, info.username);
-		stmt.setString(3, info.serviceName);
-		Clob clob = new SerialClob(info.getArgumentsAsString().toCharArray());
-		stmt.setClob(4, clob);
-		stmt.executeUpdate();
-	    } finally {
-		stmt.close();
-	    }
-	}
     }
 
     private void writeAttrChangeLogs(Connection conn, int txNumber) throws SQLException {
-        int numRecords = (attrChangeLogs == null) ? 0 : attrChangeLogs.size();
+	int numRecords = (attrChangeLogs == null) ? 0 : attrChangeLogs.size();
 
-        // allocate a large capacity StringBuilder to avoid reallocation
-        int bufferCapacity = Math.min(MIN_BUFFER_CAPACITY + (numRecords * PER_RECORD_LENGTH),
-                                      MAX_BUFFER_CAPACITY);
-        StringBuilder sqlCmd = new StringBuilder(bufferCapacity);
-        sqlCmd.append(SQL_CHANGE_LOGS_CMD_PREFIX);
+	// allocate a large capacity StringBuilder to avoid reallocation
+	int bufferCapacity = Math.min(MIN_BUFFER_CAPACITY + (numRecords * PER_RECORD_LENGTH), MAX_BUFFER_CAPACITY);
+	StringBuilder sqlCmd = new StringBuilder(bufferCapacity);
+	sqlCmd.append(SQL_CHANGE_LOGS_CMD_PREFIX);
 
-        Statement stmt = null;
-        try {
-            stmt = conn.createStatement();
+	Statement stmt = null;
+	try {
+	    stmt = conn.createStatement();
 
-            boolean addedRecord = false;
+	    boolean addedRecord = false;
 
-            if (attrChangeLogs == null) {
-                // if no AttrChangeLog exists, then it means that we
-                // only created objects, without changing any other
-                // object
+	    if (attrChangeLogs == null) {
+		// if no AttrChangeLog exists, then it means that we
+		// only created objects, without changing any other
+		// object
 
-                // Still, we need to notify other servers of the tx
-                // number, so create an empty changelog line...
-                sqlCmd.append("(0,'',");
-                sqlCmd.append(txNumber);
-                sqlCmd.append(")");
-                addedRecord = true;
-            } else {
+		// Still, we need to notify other servers of the tx
+		// number, so create an empty changelog line...
+		sqlCmd.append("(0,'',");
+		sqlCmd.append(txNumber);
+		sqlCmd.append(")");
+		addedRecord = true;
+	    } else {
 		for (AttrChangeLog log : attrChangeLogs) {
-                    if (isNewObject(log.obj)) {
-                        // don't need to warn others of changes to new objects
-                        continue;
-                    }
+		    if (isNewObject(log.obj)) {
+			// don't need to warn others of changes to new objects
+			continue;
+		    }
 
 		    if (addedRecord) {
 			sqlCmd.append(",");
@@ -287,22 +266,22 @@ class DBChanges {
 			addedRecord = false;
 		    }
 		}
-            }
+	    }
 
-            if (addedRecord) {
-                try {
-                    stmt.execute(sqlCmd.toString());
-                } catch (SQLException ex) {
-                    System.out.println("SqlException: " + ex.getMessage());
-                    System.out.println("Deadlock trying to insert: " + sqlCmd.toString());
-                    throw new CommitException();
-                }
-            }
-        } finally {
-            if (stmt != null) {
-                stmt.close();
-            }
-        }
+	    if (addedRecord) {
+		try {
+		    stmt.execute(sqlCmd.toString());
+		} catch (SQLException ex) {
+		    System.out.println("SqlException: " + ex.getMessage());
+		    System.out.println("Deadlock trying to insert: " + sqlCmd.toString());
+		    throw new CommitException();
+		}
+	    }
+	} finally {
+	    if (stmt != null) {
+		stmt.close();
+	    }
+	}
     }
 
     private static JdbcType OID_JDBC_TYPE = JdbcTypesHelper.getJdbcTypeByName("BIGINT");
@@ -330,8 +309,8 @@ class DBChanges {
 	oidColumns[1] = cod.getFksToItemClass()[0];
 
 	ValueContainer[] oidValues = new ValueContainer[2];
-        oidValues[0] = new ValueContainer(obj1.getOid(), OID_JDBC_TYPE);
-        oidValues[1] = new ValueContainer(obj2.getOid(), OID_JDBC_TYPE);
+	oidValues[0] = new ValueContainer(obj1.getOid(), OID_JDBC_TYPE);
+	oidValues[1] = new ValueContainer(obj2.getOid(), OID_JDBC_TYPE);
 
 	String table = cod.getIndirectionTable();
 
@@ -358,7 +337,8 @@ class DBChanges {
 	final String colNameOnObj2;
 	final boolean remove;
 
-	RelationTupleInfo(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2, boolean remove) {
+	RelationTupleInfo(String relation, DomainObject obj1, String colNameOnObj1, DomainObject obj2, String colNameOnObj2,
+		boolean remove) {
 	    this.relation = relation;
 	    this.obj1 = obj1;
 	    this.colNameOnObj1 = colNameOnObj1;
@@ -367,10 +347,12 @@ class DBChanges {
 	    this.remove = remove;
 	}
 
+	@Override
 	public int hashCode() {
 	    return relation.hashCode() + obj1.hashCode() + obj2.hashCode();
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 	    if ((obj != null) && (obj.getClass() == this.getClass())) {
 		RelationTupleInfo other = (RelationTupleInfo) obj;
@@ -390,10 +372,12 @@ class DBChanges {
 	    this.attr = attr;
 	}
 
+	@Override
 	public int hashCode() {
 	    return System.identityHashCode(obj) + attr.hashCode();
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 	    if ((obj != null) && (obj.getClass() == this.getClass())) {
 		AttrChangeLog other = (AttrChangeLog) obj;

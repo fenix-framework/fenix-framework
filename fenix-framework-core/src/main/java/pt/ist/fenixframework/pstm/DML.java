@@ -10,6 +10,10 @@ import dml.DmlCompiler;
 
 public class DML {
 
+    /**
+     * Use {@link #getDomainModelForURLs(Class, List)}
+     */
+    @Deprecated
     public static FenixDomainModel getDomainModel(Class<? extends FenixDomainModel> modelClass, String[] dmlFiles)
 	    throws ANTLRException {
 	return (FenixDomainModel) DmlCompiler.getDomainModel(modelClass, Arrays.asList(dmlFiles));

@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import pt.ist.fenixframework.pstm.dml.FenixDomainModelWithOCC;
 import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
 
 /**
@@ -162,7 +163,7 @@ public class Config {
      * FenixDomainModel should be created by the DmlCompiler when parsing a DML
      * file.
      */
-    protected Class<? extends FenixDomainModel> domainModelClass = FenixDomainModel.class;
+    protected Class<? extends FenixDomainModel> domainModelClass = FenixDomainModelWithOCC.class;
 
     /**
      * This <strong>optional</strong> parameter indicates whether the framework

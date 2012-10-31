@@ -25,14 +25,20 @@ public class FenixDomainModelWithOCC extends FenixDomainModel {
      * disabled for now.
      */
 
+    /*
+     * When used in Fenix domainClassTopHierarchyLevel is 1 because every domain
+     * class extends DomainObject and it should only be injected in subclass of
+     * a "real" DomainClass.
+     */
     @Override
     public void finalizeDomain(boolean checkForMissingExternals) {
 	super.finalizeDomain(checkForMissingExternals);
-
+	final int domainClassTopHierarchyLevel = classes.containsKey("DomainObject") ? 1 : 0;
 	for (final DomainClass domainClass : classes.values()) {
 	    final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
-	    if (domainClassHierarchyLevel > 1) {
-		final DomainClass domainObjectDescendent = findDirectDomainObjectDecendent(domainClass);
+	    if (domainClassHierarchyLevel > domainClassTopHierarchyLevel) {
+		final DomainClass domainObjectDescendent = findDirectDomainObjectDecendent(domainClass,
+			domainClassTopHierarchyLevel);
 		final Slot ojbConcreteClassSlot = domainObjectDescendent.findSlot("ojbConcreteClass");
 		if (ojbConcreteClassSlot == null) {
 		    domainObjectDescendent.addSlot(new Slot("ojbConcreteClass", findValueType("String")));
@@ -43,10 +49,10 @@ public class FenixDomainModelWithOCC extends FenixDomainModel {
 	checkForRepeatedSlots();
     }
 
-    private DomainClass findDirectDomainObjectDecendent(final DomainClass domainClass) {
+    private DomainClass findDirectDomainObjectDecendent(final DomainClass domainClass, int domainClassTopHierarchyLevel) {
 	final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
-	return domainClassHierarchyLevel == 1 ? domainClass : findDirectDomainObjectDecendent((DomainClass) domainClass
-		.getSuperclass());
+	return domainClassHierarchyLevel == domainClassTopHierarchyLevel ? domainClass : findDirectDomainObjectDecendent(
+		(DomainClass) domainClass.getSuperclass(), domainClassTopHierarchyLevel);
     }
 
     private int calculateHierarchyLevel(final DomainClass domainClass) {
