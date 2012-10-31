@@ -26,9 +26,9 @@ public class FenixDomainModelWithOCC extends FenixDomainModel {
      */
 
     /*
-     * When used in Fenix domainClassTopHierarchyLevel is 1 because every domain class extends
-     * DomainObject and it should only be injected in subclass of a "real"
-     * DomainClass.
+     * When used in Fenix domainClassTopHierarchyLevel is 1 because every domain
+     * class extends DomainObject and it should only be injected in subclass of
+     * a "real" DomainClass.
      */
     @Override
     public void finalizeDomain(boolean checkForMissingExternals) {
@@ -37,7 +37,8 @@ public class FenixDomainModelWithOCC extends FenixDomainModel {
 	for (final DomainClass domainClass : classes.values()) {
 	    final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
 	    if (domainClassHierarchyLevel > domainClassTopHierarchyLevel) {
-		final DomainClass domainObjectDescendent = findDirectDomainObjectDecendent(domainClass);
+		final DomainClass domainObjectDescendent = findDirectDomainObjectDecendent(domainClass,
+			domainClassTopHierarchyLevel);
 		final Slot ojbConcreteClassSlot = domainObjectDescendent.findSlot("ojbConcreteClass");
 		if (ojbConcreteClassSlot == null) {
 		    domainObjectDescendent.addSlot(new Slot("ojbConcreteClass", findValueType("String")));
@@ -48,10 +49,10 @@ public class FenixDomainModelWithOCC extends FenixDomainModel {
 	checkForRepeatedSlots();
     }
 
-    private DomainClass findDirectDomainObjectDecendent(final DomainClass domainClass) {
+    private DomainClass findDirectDomainObjectDecendent(final DomainClass domainClass, int domainClassTopHierarchyLevel) {
 	final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
-	return domainClassHierarchyLevel == 1 ? domainClass : findDirectDomainObjectDecendent((DomainClass) domainClass
-		.getSuperclass());
+	return domainClassHierarchyLevel == domainClassTopHierarchyLevel ? domainClass : findDirectDomainObjectDecendent(
+		(DomainClass) domainClass.getSuperclass(), domainClassTopHierarchyLevel);
     }
 
     private int calculateHierarchyLevel(final DomainClass domainClass) {
