@@ -199,7 +199,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateRoleSlotMethodsMultOne(Role role, PrintWriter out) {
         super.generateRoleSlotMethodsMultOne(role, out);
+        generateRoleSlotMethodsMultOneInternalSetter(role, out);
+    }
 
+    protected void generateRoleSlotMethodsMultOneInternalSetter(Role role, PrintWriter out) {
         String typeName = getTypeFullName(role.getType());
         String slotName = role.getName();
         String capitalizedSlotName = capitalize(slotName);
@@ -337,14 +340,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected String getNewRoleStarSlotExpression(Role role) {
         return getNewRoleStarSlotExpressionWithBackingSet(role, role.getName());
-    }
-
-    protected String getNewRoleStarSlotExpressionWithEmptySet(Role role) {
-        StringBuilder buf = new StringBuilder();
-        buf.append("new ");
-        buf.append(makeGenericType("java.util.HashSet", getTypeFullName(role.getType())));
-        buf.append("()");
-        return getNewRoleStarSlotExpressionWithBackingSet(role, buf.toString());
     }
 
     protected String getNewRoleStarSlotExpressionWithBackingSet(Role role, String theSet) {

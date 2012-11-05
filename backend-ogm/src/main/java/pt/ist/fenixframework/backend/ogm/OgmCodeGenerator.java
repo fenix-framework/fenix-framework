@@ -119,37 +119,21 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         generateSlots(domClass.getSlots(), out);
         newline(out);
         generateRoleSlots(domClass.getRoleSlots(), out);
-        generateDefaultConstructor(domClass.getBaseName(), out);
         generateInitInstance(domClass, out);
+        generateDefaultConstructor(domClass.getBaseName(), out);
         generateSlotsAccessors(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
     }
 
     @Override
-    protected void generateInitInstanceBody(DomainClass domClass, PrintWriter out) { }
-
-    @Override
-    protected void generateStaticRoleSlots(Role role, PrintWriter out) {
-        onNewline(out);
-
-        Role otherRole = role.getOtherRole();
-
-        // The Role slot
-        String roleType = getRoleType(role);
-        printWords(out, "public", "static", roleType, getRoleHandlerName(role, false), "=", "new", roleType);
-        print(out, "(");
-        print(out, getRoleArgs(role));
-        print(out, ")");
-        newBlock(out);
-        if (role.getMultiplicityUpper() == 1) {
-            generateRoleMethodAdd(role, otherRole, out);
-            generateRoleMethodRemove(role, otherRole, out);
-        } else {
-            generateRoleClassGetter(role, otherRole, out);
+    protected void generateInitRoleSlot(Role role, PrintWriter out) {
+        if (role.getMultiplicityUpper() != 1) {
+            onNewline(out);
+            print(out, role.getName());
+            print(out, " = ");
+            print(out, getNewRoleStarSlotExpressionWithEmptySet(role));
+            print(out, ";");
         }
-        generateRoleMethodGetInverseRole(role, otherRole, out);
-        closeBlock(out, false);
-        println(out, ";");
     }
 
     protected void generateDefaultConstructor(String classname, PrintWriter out) {
@@ -158,12 +142,26 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         endMethodBody(out);
     }
 
-
     private static String[] builtInTypesFromDmlInOgm = {
-        "char", "java.lang.Character", "short", "java.lang.Short", "float", "java.lang.Float",
-        "long", "java.lang.Long", "int", "java.lang.Integer", "double", "java.lang.Double",
-        "java.lang.String", "boolean", "java.lang.Boolean", "byte", "java.lang.Byte",
-        "bytearray", "byte[]"
+        // "char",
+        // "java.lang.Character",
+        // "short",
+        // "java.lang.Short",
+        // "float",
+        // "java.lang.Float",
+        "long",
+        "java.lang.Long",
+        "int",
+        "java.lang.Integer",
+        "double",
+        "java.lang.Double",
+        "java.lang.String",
+        "boolean",
+        "java.lang.Boolean",
+        "byte",
+        "java.lang.Byte",
+        "bytearray",
+        "byte[]"
     };
     
     private boolean ogmSupportsType(String typeName) {
@@ -198,7 +196,8 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         }
 
         newline(out);
-        printFinalMethod(out, "", typeNameTo, "get" + addHibernateToSlotName(capitalize(slotName)));
+        println(out, "@javax.persistence.Access(javax.persistence.AccessType.PROPERTY)");
+        printFinalMethod(out, "private", typeNameTo, "get" + addHibernateToSlotName(capitalize(slotName)));
         startMethodBody(out);
         printWords(out, "return", slotExpression + ";");
         endMethodBody(out);
@@ -219,7 +218,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         }
 
         newline(out);
-        printFinalMethod(out, "", "void", "set" + addHibernateToSlotName(capitalize(slotName)),
+        printFinalMethod(out, "private", "void", "set" + addHibernateToSlotName(capitalize(slotName)),
                          makeArg(typeNameFrom, slotName));
         startMethodBody(out);
         printWords(out, getSlotExpression(slotName), "=", setterExpression + ";");
@@ -230,6 +229,14 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         printWords(out, "return", getSlotExpression(slotName) + ";");
     }
 
+    // smf: This code is the same as in ISPN backend. Should refactor.
+    @Override
+    protected void generateStaticRoleSlotsMultOne(Role role, Role otherRole, PrintWriter out) {
+        generateRoleMethodAdd(role, otherRole, out);
+        generateRoleMethodRemove(role, otherRole, out);
+    }
+
+    // smf: This code is the same as in ISPN backend. Should refactor.
     protected void generateRoleMethodAdd(Role role, Role otherRole, PrintWriter out) {
         boolean multOne = (role.getMultiplicityUpper() == 1);
         
@@ -244,19 +251,17 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         startMethodBody(out);
         print(out, "if (o1 != null)");
         newBlock(out);
-        println(out, roleTypeFullName + " old2 = ((" + otherRole.getType().getBaseName() + ")o1)." +
-                role.getName() + ";");
+        println(out, roleTypeFullName + " old2 = o1.get" + capitalize(role.getName()) + "();");
         print(out, "if (o2 != old2)");
         newBlock(out);
         println(out, "relation.remove(o1, old2);");
-        println(out, otherRole.getType().getBaseName() + " o1Base = (" +
-                otherRole.getType().getBaseName() + ")o1;");
-        print(out, "o1Base." + role.getName() + " = o2;");
+        print(out, "o1.set" + capitalize(role.getName()) + "$unidirectional(o2);");
         closeBlock(out, false);
         closeBlock(out, false);
         endMethodBody(out);
     }
 
+    // smf: This code is the same as in ISPN backend. Should refactor.
     protected void generateRoleMethodRemove(Role role, Role otherRole, PrintWriter out) {
         boolean multOne = (role.getMultiplicityUpper() == 1);
         
@@ -269,42 +274,10 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         startMethodBody(out);
         print(out, "if (o1 != null)");
         newBlock(out);
-        println(out, otherRole.getType().getBaseName() + " o1Base = (" + otherRole.getType().getBaseName() + ")o1;");
-        print(out, "o1Base." + role.getName() + " = null;");
+        print(out, "o1.set" + capitalize(role.getName()) + "$unidirectional(null);");
         closeBlock(out, false);
         endMethodBody(out);
     }
-
-    // In this class this method is only invoked when the role's multiplicity is > 1
-    // @Override
-    protected void generateRoleClassGetter(Role role, Role otherRole, PrintWriter out) {
-        print(out, "public ");
-        print(out, makeGenericType("pt.ist.fenixframework.dml.runtime.RelationBaseSet", getTypeFullName(role.getType())));
-        print(out, " ");
-        print(out, "getSet(");
-        print(out, getTypeFullName(otherRole.getType()));
-        print(out, " o1)");
-        startMethodBody(out);
-        // println(out, "if (o1 instanceof pt.ist.fenixframework.dml.runtime.RelationBaseSet) {");
-        // print(out, "  return (pt.ist.fenixframework.dml.runtime.RelationBaseSet)((");
-        // print(out, otherRole.getType().getBaseName());
-        // print(out, ")o1).");
-        // print(out, role.getName());
-        // println(out, ";");
-        // println(out, "} else {");
-        // print(out, "  return (pt.ist.fenixframework.dml.runtime.RelationBaseSet)((");
-        // print(out, otherRole.getType().getBaseName());
-        // print(out, ")o1).");
-        // print(out, role.getName());
-        // println(out, ";");
-
-        print(out, "return (pt.ist.fenixframework.dml.runtime.RelationBaseSet)((");
-        print(out, otherRole.getType().getBaseName());
-        print(out, ")o1).");
-        print(out, role.getName());
-        print(out, ";");
-        endMethodBody(out);
-    }    
 
     protected void generateRoleMethodGetInverseRole(Role role, Role otherRole, PrintWriter out) {
         // the getInverseRole method
@@ -325,13 +298,6 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         endMethodBody(out);
     }
 
-    // @Override
-    // protected void generateSlots(Iterator slotsIter, PrintWriter out) {
-    //     while (slotsIter.hasNext()) {
-    //         generateSlot((Slot) slotsIter.next(), out);
-    //     }
-    // }
-
     @Override
     protected void generateSlot(Slot slot, PrintWriter out) {
         this.ormTransientSlots.add(slot.getName());
@@ -339,11 +305,6 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         // printWords(out, "private", getReferenceType(slot.getTypeName()), slot.getName());
         printWords(out, "private", slot.getTypeName(), slot.getName());
         print(out, ";");
-    }
-
-    @Override
-    protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
-        print(out, "return " + getSlotExpression(slotName) + ";");
     }
 
     protected String makeForeignKeyName(String name) {
@@ -354,15 +315,15 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
     protected void generateRoleSlot(Role role, PrintWriter out) {
         ormAddRole(role);
         onNewline(out);
-        printWords(out, "private", PRIMARY_KEY_TYPE, makeForeignKeyName(role.getName()) + ";");
-        newline(out);
 
         if (role.getMultiplicityUpper() == 1) {
+            printWords(out, "private", PRIMARY_KEY_TYPE, makeForeignKeyName(role.getName()) + ";");
+            newline(out);
             printWords(out, "private", "transient", getTypeFullName(role.getType()), role.getName());
             // ormGenerateRoleSlotMultOne(role);
         } else {
             printWords(out, "private", "transient", getSetTypeDeclarationFor(role), role.getName());
-            printWords(out, "=", getNewRoleStarSlotExpressionWithEmptySet(role));
+            // printWords(out, "=", getNewRoleStarSlotExpressionWithEmptySet(role));
 
             // // // println(out, ";");
             // // // onNewline(out);
@@ -391,18 +352,76 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
     protected void generateRoleSlotMethodsMultOne(Role role, PrintWriter out) {
         super.generateRoleSlotMethodsMultOne(role, out);
         generateRoleSlotMethodsMultOneHibernateFK(role, out);
+        generateRoleSlotMethodsMultOneInternalSetter(role, out);
+    }
+
+    @Override
+    protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", typeName, "get" + capitalize(slotName));
+        startMethodBody(out);
+        generateRoleSlotMethodsMultOneGetterUpdateFromFK(slotName, makeForeignKeyName(slotName),
+                                                         out);
+        printWords(out, "return", getSlotExpression(slotName) + ";");
+        endMethodBody(out);
+    }
+
+    protected void generateRoleSlotMethodsMultOneGetterUpdateFromFK(String slotName,
+                                                                    String fkSlotName,
+                                                                    PrintWriter out) {
+        print(out, "if (" + slotName + " == null && " + fkSlotName + " != null)");
+        newBlock(out);
+        print(out, getSlotExpression(slotName) + " = OgmBackEnd.getInstance().getDomainObject(" +
+              fkSlotName + ");");
+        closeBlock(out);
+    }
+
+    protected void generateRoleSlotMethodsMultOneGetterUpdateToFK(String fkSetterName,
+                                                                  String slotName,
+                                                                  PrintWriter out) {
+        print(out, fkSetterName + "(" + slotName + " == null ? null : " + slotName + ".getExternalId());");
     }
 
     protected void generateRoleSlotMethodsMultOneHibernateFK(Role role, PrintWriter out) {
-        // generateRoleSlotMethodsMultOneGetter(makeForeignKeyName(role.getName()), PRIMARY_KEY_TYPE, out);
         String slotName = makeForeignKeyName(role.getName());
-        generateGetter("public", "get" + capitalize(slotName), slotName, PRIMARY_KEY_TYPE, out);
-        // generateRoleSlotMethodsMultOneSetter(makeForeignKeyName(role.getName()), PRIMARY_KEY_TYPE, out);
+        generateRoleSlotMethodsMultOneHibernateFkGetter(slotName, out);
+        generateRoleSlotMethodsMultOneHibernateFkSetter(slotName, out);
     }
 
-    // ideally, this would use generateSetter, but it now takes the domain class for the indexes :-/
-    protected void generateRoleSlotMethodsMultOneSetter() {
-        // gerar codigo como para setter
+    protected void generateRoleSlotMethodsMultOneHibernateFkGetter(String slotName, PrintWriter out) {
+        // for now we can reuse generateGetter
+        generateGetter("", "get" + capitalize(slotName), slotName, PRIMARY_KEY_TYPE, out);
+    }
+
+    // ideally, this would use generateSetter, but that method now takes the domain class for the
+    // indexes :-/ (which should actually be using generateSlotSetter instead :-/)
+    protected void generateRoleSlotMethodsMultOneHibernateFkSetter(String slotName, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "", "void", "set" + capitalize(slotName), makeArg(PRIMARY_KEY_TYPE, slotName));
+        startMethodBody(out);
+        printWords(out, getSlotExpression(slotName), "=", slotName + ";");
+        endMethodBody(out);
+    }
+
+
+    // smf: This code is similar to the ISPN backend. Should refactor (consider this method name in superclass?)
+    protected void generateRoleSlotMethodsMultOneInternalSetter(Role role, PrintWriter out) {
+        String typeName = getTypeFullName(role.getType());
+        String slotName = role.getName();
+        String capitalizedSlotName = capitalize(slotName);
+        String setterName = "set" + capitalizedSlotName;
+
+        String methodModifiers = getMethodModifiers();
+
+        // internal setter, which does not inform the relation
+        newline(out);
+        printMethod(out, methodModifiers, "void", setterName + "$unidirectional", makeArg(typeName,
+                                                                                          slotName));
+        startMethodBody(out);
+        println(out, getSlotExpression(slotName) + " = " + slotName + ";");
+        generateRoleSlotMethodsMultOneGetterUpdateToFK("set" + capitalize(makeForeignKeyName(slotName)),
+                                                       slotName, out);
+        endMethodBody(out);
     }
 
     @Override
@@ -432,19 +451,18 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
     }
 
     protected void generateRoleMultGetter(Role role, PrintWriter out) {
-        newline(out);
-        // printFinalMethod(out, "public", makeGenericType("java.util.Set", getTypeFullName(role.getType())), "get"
-        // // // // printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()));
-        // // // // startMethodBody(out);
-        // // // // printWords(out, "return", getSlotExpression(role.getName()) + ";");
-        // // // // endMethodBody(out);
+        String roleName = role.getName();
+        String slotExpression = getSlotExpression(roleName);
 
         newline(out);
-        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + addHibernateToSlotName(capitalize(role.getName())));
+        println(out, "@javax.persistence.Access(javax.persistence.AccessType.PROPERTY)");
+        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + addHibernateToSlotName(capitalize(roleName)));
         startMethodBody(out);
-        printWords(out, "return", "((" + getRelationAwareTypeFor(role) + ")" + getSlotExpression(role.getName()) + ").getToHibernate();");
+        // we need to check for null, because save() runs in the top-level class's constructor,
+        // which means that at that time, initInstance() hasn't yet executed
+        println(out, "if (" + slotExpression + " == null) { return null; }");
+        printWords(out, "return", "((" + getRelationAwareTypeFor(role) + ")" + slotExpression + ").getToHibernate();");
         endMethodBody(out);
-
     }
 
     protected void generateRoleMultSetter(Role role, PrintWriter out) {
@@ -454,15 +472,6 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         startMethodBody(out);
         printWords(out, "((" + getRelationAwareTypeFor(role) + ")this." + role.getName() + ").setFromHibernate(" + role.getName() + ");");
         endMethodBody(out);
-
-        // // NOT REALLY NEEDED
-        // printFinalMethod(out, "private", "void", "set" + capitalize(role.getName()),
-        //                  makeArg(getSetTypeDeclarationFor(role), role.getName()));
-        // startMethodBody(out);
-        // // printWords(out, "System.out.println(\"Hello from JAPAN!!!!!!!!!!!!!!!!: " + role.getName() + "\");");
-        // printWords(out, "this." + role.getName(), "=", getNewRoleStarSlotExpression(role) + ";");
-        // // printWords(out, "this." + role.getName(), "=", role.getName() + ";");
-        // endMethodBody(out);
     }
 
     @Override
@@ -529,17 +538,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         buf.append("    xsi:schemaLocation=\"http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd\"\n");
         buf.append("    version=\"2.0\">\n\n");
 
-        // buf.append("    <sequence-generator name=\"OID_GEN\" initial-value=\"-1\">\n");
-        // buf.append("    </sequence-generator>\n\n");
-
-        // buf.append("    <mapped-superclass class=\"" + getDomainClassRoot() + "\" access=\"FIELD\" metadata-complete=\"true\">\n");
         buf.append("    <mapped-superclass class=\"" + getDomainClassRoot() + "\" access=\"FIELD\" metadata-complete=\"false\">\n");
-        // buf.append("        <attributes>\n");
-        // buf.append("            <id name=\"hibernate$primaryKey\">\n");
-        // buf.append("                  <generated-value strategy=\"AUTO\" generator=\"OID_GEN\"/>\n");
-        // buf.append("                  <generated-value strategy=\"AUTO\" generator=\"pt.ist.fenixframework.backend.ogm.OgmOIDGenerator\"/>\n");
-        // buf.append("            </id>\n");
-        // buf.append("        </attributes>\n");
         buf.append("    </mapped-superclass>\n\n");
         this.ormWriter.print(buf.toString());
     }
@@ -558,7 +557,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         buf.append(domClass.getPackageName());
         buf.append(".");
         buf.append(domClass.getBaseName());
-        buf.append("\" metadata-complete=\"true\">\n");
+        buf.append("\" metadata-complete=\"false\">\n");
         buf.append("        <attributes>\n");
         this.ormWriter.print(buf.toString());
     }
@@ -601,7 +600,9 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         StringBuilder buf = new StringBuilder();
         buf.append("            <basic name=\"");
         buf.append(slotName);
-        buf.append("\" />");
+        buf.append("\"");
+        buf.append(" access=\"PROPERTY\"");
+        buf.append(" />");
         this.ormWriter.println(buf.toString());
     }
 
@@ -623,15 +624,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         buf.append(addHibernateToSlotName(role.getName()));
         buf.append("\" target-entity=\"");
         buf.append(getTypeFullName(role.getType()));
-
-        if (role.getOtherRole().getName() != null) {
-            buf.append("\" mapped-by=\"");
-            buf.append(role.getOtherRole().getName());
-        }
-
-        // buf.append("\" collection-type=\"pt.ist.fenixframework.example.tpcw.dml.RelationSet\" access=\"PROPERTY\"/>");
         buf.append("\" access=\"PROPERTY\">");
-        // buf.append(ormGetCascade());
         buf.append("</one-to-many>");
         this.ormWriter.println(buf.toString());
     }
@@ -678,6 +671,14 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         buf.append("    <!-- The concrete classes.  Both 'class' and 'name' are required so that\n");
         buf.append("         hibernate does not use each class's simple name, voiding the\n");
         buf.append("         namespace :-/ -->\n");
+
+        // buf.append("    <entity class=\"pt.ist.fenixframework.core.AbstractDomainObject\" name=\"pt.ist.fenixframework.core.AbstractDomainObject\" access=\"FIELD\" metadata-complete=\"false\">\n");
+        // buf.append("        <attributes>\n");
+        // buf.append("            <id name=\"hibernate$primaryKey\" />\n");
+        // buf.append("        </attributes>\n");
+        // buf.append("        <!--<inheritance strategy=\"\">-->\n");
+        // buf.append("    </entity>\n\n");
+
         while (classesIter.hasNext()) {
             String className = getEntityFullName((DomainClass) classesIter.next());
             buf.append("    <entity class=\"");
