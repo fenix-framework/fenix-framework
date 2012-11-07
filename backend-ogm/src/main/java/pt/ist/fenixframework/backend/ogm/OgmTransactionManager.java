@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.ejb.AvailableSettings;
 import org.hibernate.ejb.HibernateEntityManagerFactory;
+import org.hibernate.ogm.datastore.infinispan.impl.InfinispanDatastoreProvider;
 import org.hibernate.service.jta.platform.spi.JtaPlatform;
 
 import org.infinispan.CacheException;
@@ -40,6 +41,7 @@ public class OgmTransactionManager implements TransactionManager {
         booting = true;
         HashMap properties = new HashMap();
         properties.put(AvailableSettings.INTERCEPTOR, AllocationInterceptor.class.getName());
+        properties.put(InfinispanDatastoreProvider.INFINISPAN_CONFIGURATION_RESOURCENAME, config.getIspnConfigFile());
 
         emf = Persistence.createEntityManagerFactory("fenixframework-persistence-unit", properties);
         SessionFactoryImplementor sessionFactory =

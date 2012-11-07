@@ -66,6 +66,10 @@
             <artifactId>fenix-framework-bplustree-domain-object</artifactId>
         </dependency>
         <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-indexes</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
