@@ -212,12 +212,20 @@ public class DomainClassInfo implements Serializable {
 //         System.out.println(": " + serverOidBase + " + " + ((long)info.classId << 32) + " + "
 //                            + nextKey + " = " + (serverOidBase + ((long)info.classId << 32) + nextKey));
 
-        // build and return OID
-	if ((PersistentRoot.class == objClass) && (nextKey == 1)) {
+        return getOidFor(info, nextKey);
+    }
+    
+    public static long getOidFor(Class objClass, Integer idInternal) {
+	DomainClassInfo info = classInfoMap.get(objClass);
+	return getOidFor(info, idInternal);
+    }
+
+    private static long getOidFor(DomainClassInfo info, Integer idInternal) {
+	if ((PersistentRoot.class.equals(info.domainClass)) && (idInternal == 1)) {
 	    // this first PersistentRoot instance is special and always takes a known value
 	    return 1L;
 	} else {
-	    return serverOidBase + ((long)info.classId << 32) + nextKey;
+	    return serverOidBase + ((long)info.classId << 32) + idInternal;
 	}
     }
 

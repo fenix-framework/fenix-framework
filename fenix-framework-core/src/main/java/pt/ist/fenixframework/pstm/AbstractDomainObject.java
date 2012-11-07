@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Comparator;
 
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
@@ -15,6 +16,13 @@ import pt.ist.fenixframework.FenixFramework;
 public abstract class AbstractDomainObject implements DomainObject, dml.runtime.FenixDomainObject, Serializable {
     // this should be final, but the ensureIdInternal method prevents it
     private long oid;
+
+    static final public Comparator<DomainObject> COMPARATOR_BY_ID = new Comparator<DomainObject>() {
+	@Override
+	public int compare(DomainObject o1, DomainObject o2) {
+	    return new Long(o1.getOid()).compareTo(o2.getOid());
+	}
+    };
 
     public class UnableToDetermineIdException extends RuntimeException {
 	public UnableToDetermineIdException(Throwable cause) {
@@ -38,6 +46,7 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	this.oid = oid.oid;
     }
 
+    @Override
     public final Integer getIdInternal() {
 	return (int) (this.oid & 0x7FFFFFFF);
     }
@@ -48,20 +57,19 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 
     protected void ensureOid() {
 	try {
-            // find successive ids until one is available
-            while (true) {
+	    // find successive ids until one is available
+	    while (true) {
 		this.oid = DomainClassInfo.getNextOidFor(this.getClass());
-                Object cached = Transaction.getCache().cache(this);
-                if (cached == this) {
-                    // break the loop once we got this instance cached
-                    return;
-                }
-            }
+		Object cached = Transaction.getCache().cache(this);
+		if (cached == this) {
+		    // break the loop once we got this instance cached
+		    return;
+		}
+	    }
 	} catch (Exception e) {
 	    throw new UnableToDetermineIdException(e);
 	}
     }
-
 
     protected void ensureIdInternal() {
 	try {
@@ -69,7 +77,7 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	    Class myClass = this.getClass();
 	    ClassDescriptor cld = broker.getClassDescriptor(myClass);
 
-	    long cid = ((long) DomainClassInfo.mapClassToId(myClass) << 32);
+	    long cid = (long) DomainClassInfo.mapClassToId(myClass) << 32;
 
 	    // find successive ids until one is available
 	    while (true) {
@@ -96,12 +104,15 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	return super.equals(obj);
     }
 
+    @Override
+    @Deprecated
     public long getOID() {
 	return getOid();
     }
 
     // duplicate method (see getOID()). This is the name that should stick.
     // the other is to go away
+    @Override
     public long getOid() {
 	return oid;
     }
@@ -163,6 +174,7 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 
     protected abstract void readSlotsFromResultSet(java.sql.ResultSet rs, int txNumber) throws java.sql.SQLException;
 
+    @Override
     public boolean isDeleted() {
 	throw new UnsupportedOperationException();
     }
@@ -172,10 +184,12 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 
     protected void handleAttemptToDeleteConnectedObject(final String roleName) {
 	if (FenixFramework.getConfig().isErrorfIfDeletingObjectNotDisconnected()) {
-	    throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this + " by role: " + roleName);
+	    throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this + " by role: "
+		    + roleName);
 	} else {
-	    System.out.println("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this + " by role: " + roleName);
-	}	
+	    System.out.println("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this
+		    + " by role: " + roleName);
+	}
     }
 
     protected void deleteDomainObject() {
@@ -217,6 +231,7 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	}
     }
 
+    @Override
     public final String getExternalId() {
 	return String.valueOf(getOID());
     }
@@ -230,7 +245,7 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
     }
 
     protected void doCheckDisconnectedAction(java.util.List<String> relationList) {
-	for(String relation : relationList) {
+	for (String relation : relationList) {
 	    System.out.println("Relation not disconnected" + relation);
 	}
     }

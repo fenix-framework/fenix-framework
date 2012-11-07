@@ -1,6 +1,5 @@
 package pt.ist.fenixframework.pstm;
 
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,57 +8,23 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.VBoxBody;
 import jvstm.util.Cons;
 
-import org.apache.ojb.broker.Identity;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.accesslayer.LookupException;
-import org.apache.ojb.broker.metadata.ClassDescriptor;
-import org.apache.ojb.broker.metadata.DescriptorRepository;
 
 import pt.ist.fenixframework.DomainObject;
 
 public class TransactionChangeLogs {
 
-    private static class ClassInfo {
-	final ClassDescriptor classDescriptor;
-	final Class topLevelClass;
-	
-	ClassInfo(ClassDescriptor classDescriptor, Class topLevelClass) {
-	    this.classDescriptor = classDescriptor;
-	    this.topLevelClass = topLevelClass;
-	}
-    }
 
-    private static final DescriptorRepository OJB_REPOSITORY = MetadataManager.getOjbMetadataManager().getRepository();
-
-    private static final Map<String,ClassInfo> CLASS_INFOS = new ConcurrentHashMap<String,ClassInfo>();
-
-    private static ClassInfo getClassInfo(String className) {
-	ClassInfo info = CLASS_INFOS.get(className);
-	if (info == null) {
-	    try {
-		Class realClass = Class.forName(className);
-		ClassDescriptor cld = OJB_REPOSITORY.getDescriptorFor(realClass);
-		Class topLevelClass = OJB_REPOSITORY.getTopLevelClass(realClass);
-		info = new ClassInfo(cld, topLevelClass);
-		CLASS_INFOS.put(className, info);
-	    } catch (ClassNotFoundException cnfe) {
-		throw new Error("Couldn't find class " + className + ": " + cnfe);
-	    }
-	}
-
-        return info;
-    }
-
-    static DomainObject readDomainObject(PersistenceBroker pb, String className, int idInternal) {
-	ClassInfo info = getClassInfo(className);
+   static DomainObject readDomainObject(PersistenceBroker pb, String className, int idInternal) {
+	//ClassInfo info = getClassInfo(className);
         //DomainObject obj = (DomainObject)Transaction.getCache().lookup(info.topLevelClass, idInternal);
 
         // As the cache now only maps OIDs to objects, the previous
@@ -67,19 +32,17 @@ public class TransactionChangeLogs {
         // cache first and always go to the database.  This may be a
         // performance problem if the readDomainObject is called many
         // times, but this method should disappear, either way.
-        DomainObject obj = null;
 
-        if (obj == null) {
-            Identity oid = new Identity(null, info.topLevelClass, new Object[] { idInternal });
-            obj = (DomainObject) pb.getObjectByIdentity(oid);
+        //Identity oid = new Identity(null, info.topLevelClass, new Object[] { idInternal });
+        //return (DomainObject) pb.getObjectByIdentity(oid);
+        try {
+            Class clazz = Class.forName(className);
+            long oid = DomainClassInfo.getOidFor(clazz, idInternal);
+            return AbstractDomainObject.fromOID(oid);
+        }catch(ClassNotFoundException cnfe) {
+            throw new Error("Couldn't find class " + className + ": " + cnfe);
         }
-
-        if ((obj != null) && obj.isDeleted()) {
-            // if the object is deleted, then return null
-            obj = null;
-        }
-
-        return obj;
+        
     }
 
 
