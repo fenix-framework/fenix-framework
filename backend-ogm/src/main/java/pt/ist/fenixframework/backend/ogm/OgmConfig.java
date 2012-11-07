@@ -3,10 +3,10 @@ package pt.ist.fenixframework.backend.ogm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.core.IdentityMap;
+import pt.ist.fenixframework.indexes.IndexesConfig;
 
 /**
  * This is the ogm configuration manager used by the fenix-framework-backend-ogm project.
@@ -14,7 +14,7 @@ import pt.ist.fenixframework.core.IdentityMap;
  * @see Config
  *
  */
-public class OgmConfig extends Config {
+public class OgmConfig extends IndexesConfig {
     private static final Logger logger = LoggerFactory.getLogger(OgmDomainObject.class);
 
     /**
@@ -38,6 +38,7 @@ public class OgmConfig extends Config {
     @Override
     protected void init() {
         this.backEnd.configOgm(this);
+        super.init(); // do this only after having set up transaction manager
     }
 
     @Override

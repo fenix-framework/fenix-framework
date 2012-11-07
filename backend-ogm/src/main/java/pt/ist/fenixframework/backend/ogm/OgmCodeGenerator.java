@@ -10,7 +10,7 @@ import java.util.Iterator;
 
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
-import pt.ist.fenixframework.dml.DefaultCodeGenerator;
+import pt.ist.fenixframework.dml.IndexesCodeGenerator;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.CompilerArgs;
 // import pt.ist.fenixframework.dml.DomainClass;
@@ -20,7 +20,7 @@ import pt.ist.fenixframework.dml.Slot;
 // import pt.ist.fenixframework.dml.ValueType;
 import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 
-public class OgmCodeGenerator extends DefaultCodeGenerator {
+public class OgmCodeGenerator extends IndexesCodeGenerator {
 
     protected static final String VT_SERIALIZER =
         ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +
@@ -123,6 +123,7 @@ public class OgmCodeGenerator extends DefaultCodeGenerator {
         generateDefaultConstructor(domClass.getBaseName(), out);
         generateSlotsAccessors(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
+        generateIndexMethods(domClass, out);
     }
 
     @Override

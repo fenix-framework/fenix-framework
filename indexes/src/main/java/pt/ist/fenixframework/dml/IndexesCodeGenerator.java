@@ -61,7 +61,7 @@ public class IndexesCodeGenerator extends DefaultCodeGenerator {
 	print(out, getStaticFieldName(slot.getName()));
 	print(out, ".remove(");
 	print(out, "get" + capitalize(slot.getName() + "()"));
-	println(out, ");");
+	print(out, ");");
 	
 	if (slotMayBeNull) {
 	    closeBlock(out);
@@ -74,17 +74,18 @@ public class IndexesCodeGenerator extends DefaultCodeGenerator {
 	    print(out, " != null)");
 	    newBlock(out);
 	}
-	
+	onNewline(out);
 	print(out, getStaticFieldName(slot.getName()));
 	print(out, ".insert(");
 	print(out, slot.getName());
 	print(out, ", (");
 	print(out, domainClass.getFullName());
-	println(out, ")this);");
+	print(out, ")this);");
 	
 	if (slotMayBeNull) {
 	    closeBlock(out);
 	}
+        onNewline(out);
     }
 
     private static final String[] primitiveTypes = { "byte", "short", "int", "long", "float", "double", "boolean", "char" };
