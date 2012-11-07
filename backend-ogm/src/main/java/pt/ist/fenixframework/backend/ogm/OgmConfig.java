@@ -17,11 +17,11 @@ import pt.ist.fenixframework.core.IdentityMap;
 public class OgmConfig extends Config {
     private static final Logger logger = LoggerFactory.getLogger(OgmDomainObject.class);
 
-    // /**
-    //  * This <strong>required</strong> parameter specifies the location of the XML file used to
-    //  * configure Infinispan.  This file should be available in the application's classpath.
-    //  */
-    // protected String ispnConfigFile = null;
+    /**
+     * This <strong>required</strong> parameter specifies the location of the XML file used to
+     * configure Infinispan.  This file should be available in the application's classpath.
+     */
+    protected String ispnConfigFile = null;
 
     protected final OgmBackEnd backEnd;
 
@@ -31,34 +31,22 @@ public class OgmConfig extends Config {
 
     // process this config's parameters
 
-    // protected void identityMapFromString(String value) {
-    //     String cleanValue = value.trim().toUpperCase();
-    //     try {
-    //         identityMap = MapType.valueOf(cleanValue);
-    //     } catch (IllegalArgumentException e) {
-    //         String message = "Unknown value for configuration property 'identityMap': " + value;
-    //         logger.error(message);
-    //         throw new ConfigError(message, e);
-    //     }
-    // }
-
-    // public String getIspnConfigFile() {
-    //     return this.ispnConfigFile;
-    // }
+    public String getIspnConfigFile() {
+        return this.ispnConfigFile;
+    }
 
     @Override
     protected void init() {
         this.backEnd.configOgm(this);
-        // DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
     }
 
-    // @Override
-    // protected void checkConfig() {
-    //     super.checkConfig();
-    //     if (ispnConfigFile == null) {
-    //         missingRequired("ispnConfigFile");
-    //     }
-    // }
+    @Override
+    protected void checkConfig() {
+        super.checkConfig();
+        if (ispnConfigFile == null) {
+            missingRequired("ispnConfigFile");
+        }
+    }
 
     @Override
     public OgmBackEnd getBackEnd() {

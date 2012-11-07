@@ -48,11 +48,9 @@ public class OgmBackEnd implements BackEnd {
     public DomainRoot getDomainRoot() {
         OgmOID rootId = OgmOID.ROOT_OBJECT_ID;
         DomainRoot domainRoot = fromOid(rootId);
-        // System.out.println("====================================== ROOT (1) = " + domainRoot);
         if (domainRoot == null) {
             domainRoot = new DomainRoot();
         }
-        // System.out.println("====================================== ROOT (2) = " + domainRoot);
         return domainRoot;
     }
 

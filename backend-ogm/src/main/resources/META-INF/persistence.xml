@@ -21,7 +21,7 @@
 
             <property name="hibernate.cache.use_second_level_cache" value="false" />
 
-            <property name="hibernate.ogm.infinispan.configuration_resourcename" value="infinispanNoFile.xml" />
+            <!-- <property name="hibernate.ogm.infinispan.configuration_resourcename" value="infinispanNoFile.xml" /> -->
             <!-- <property name="hibernate.cache.use_query_cache" value="true" /> -->
         </properties>
     </persistence-unit>
