@@ -9,9 +9,14 @@ import pt.ist.fenixframework.indexes.InitializerBPlusTree;
 
 /**
  * This code generator enhances the default generation by adding indexation to fields 
- * annotated to have that behavior. To do so, it produces three tasks:
- *  - Change setters to update the index (and initialize the index tree if needed)
- *  - Add a static method to allow an index search by the field
+ * annotated to have that behavior. To do so, it:
+ * <ul>
+ *
+ *  <li>Changes setters to update the index (and initializes the index tree if needed)</li>
+ *
+ *  <li>Adds a static method to allow an index search by the field</li>
+ *
+ * </ul>
  * @author nmld
  */
 public class IndexesCodeGenerator extends DefaultCodeGenerator {
@@ -28,6 +33,18 @@ public class IndexesCodeGenerator extends DefaultCodeGenerator {
 	super(compArgs, domainModel);
     }
 
+    @Override
+    protected void generateBaseClassBody(DomainClass domClass, PrintWriter out) {
+        super.generateBaseClassBody(domClass, out);
+        generateIndexMethods(domClass, out);
+    }
+    
+    @Override
+    protected void generateSetterBody(DomainClass domainClass, String setterName, Slot slot, PrintWriter out) {
+        generateIndexationInSetter(domainClass, slot, out);
+        super.generateSetterBody(domainClass, setterName, slot, out);
+    }
+    
     protected void generateIndexationInSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
 	if (!slot.hasIndexedAnnotation()) {
 	    return;

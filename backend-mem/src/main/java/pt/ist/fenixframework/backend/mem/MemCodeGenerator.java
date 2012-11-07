@@ -17,18 +17,6 @@ public class MemCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateBaseClassBody(DomainClass domClass, PrintWriter out) {
-        super.generateBaseClassBody(domClass, out);
-        super.generateIndexMethods(domClass, out);
-    }
-    
-    @Override
-    protected void generateSetterBody(DomainClass domainClass, String setterName, Slot slot, PrintWriter out) {
-	super.generateIndexationInSetter(domainClass, slot, out);
-        super.generateSetterBody(domainClass, setterName, slot, out);
-    }
-    
-    @Override
     protected String getDomainClassRoot() {
         return MemDomainObject.class.getName();
     }
