@@ -12,8 +12,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jvstm.version>1.0</jvstm.version>
-        <dml.fenix.version>1.1.0</dml.fenix.version>
-        <dml.maven.plugin.version>1.1.0</dml.maven.plugin.version>
+        <dml.fenix.version>1.2-SNAPSHOT</dml.fenix.version>
+        <dml.maven.plugin.version>1.2-SNAPSHOT</dml.maven.plugin.version>
     </properties>
 
     <build>
