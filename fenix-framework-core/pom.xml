@@ -7,8 +7,8 @@
     <artifactId>fenix-framework-core</artifactId>
     <name>Fenix Framework Core</name>
     <version>1.2-SNAPSHOT</version>
-
-    <properties>
+	
+	<properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jvstm.version>1.0</jvstm.version>
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>3.16.1-GA</version>
+            <version>3.14.0-GA</version>
         </dependency>
     </dependencies>
 
