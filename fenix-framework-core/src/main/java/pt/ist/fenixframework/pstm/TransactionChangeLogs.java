@@ -19,30 +19,55 @@ import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.accesslayer.LookupException;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.FenixFramework;
+import dml.DomainClass;
 
 public class TransactionChangeLogs {
+    
+    static final String SQL_STMT_FORMAT = "SELECT OID from %s where ID_INTERNAL = %s";
 
+    static DomainObject readDomainObject(PersistenceBroker pb, String className, int idInternal) {
+	// This method now goes to DB directly through JDBC to get the OID
+	// corresponding to className and idInternal.
+	// It uses the standard way to load an OID calling fromExternalId which
+	// goes through the lookup cache.
 
-   static DomainObject readDomainObject(PersistenceBroker pb, String className, int idInternal) {
-	//ClassInfo info = getClassInfo(className);
-        //DomainObject obj = (DomainObject)Transaction.getCache().lookup(info.topLevelClass, idInternal);
+	final DomainClass domainClass = FenixFramework.getDomainModel().findClass(className);
+	final String tableName = OJBMetadataGenerator.getExpectedTableName(domainClass);
+	String oid = null;
+	ResultSet result = null;
+	Statement statement = null;
+	try {
+	    final Connection connection = pb.serviceConnectionManager().getConnection();
+	    connection.commit();
+	    statement = connection.createStatement();
+	    result = statement.executeQuery(String.format(SQL_STMT_FORMAT, tableName, idInternal));
+	    if (result.next()) {
+		oid = result.getString(1);
+	    }
+	} catch (SQLException se) {
+	    throw new Error(se);
+	} catch (LookupException e) {
+	    throw new Error(e);
+	} finally {
+	    try {
+		if (result != null) {
+		    result.close();
+		}
+		if (statement != null) {
+		    statement.close();
+		}
+	    } catch (SQLException se) {
+		throw new Error(se);
+	    }
+	}
 
-        // As the cache now only maps OIDs to objects, the previous
-        // method is no longer easy to implement.  So, don't go to the
-        // cache first and always go to the database.  This may be a
-        // performance problem if the readDomainObject is called many
-        // times, but this method should disappear, either way.
+	if (oid == null) {
+	    return null;
+	} else {
+	    return AbstractDomainObject.fromExternalId(oid);
+	}
 
-        //Identity oid = new Identity(null, info.topLevelClass, new Object[] { idInternal });
-        //return (DomainObject) pb.getObjectByIdentity(oid);
-        try {
-            Class clazz = Class.forName(className);
-            long oid = DomainClassInfo.getOidFor(clazz, idInternal);
-            return AbstractDomainObject.fromOID(oid);
-        }catch(ClassNotFoundException cnfe) {
-            throw new Error("Couldn't find class " + className + ": " + cnfe);
-        }
-        
     }
 
 
