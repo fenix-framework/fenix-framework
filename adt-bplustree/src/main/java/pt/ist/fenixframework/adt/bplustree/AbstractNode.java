@@ -66,13 +66,38 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
     abstract int shallowSize();
     abstract Iterator<? extends Comparable> keysIterator();
 
-    public static Serializable externalizeTreeMap(TreeMap treeMap) {
-        return treeMap;
+    /*
+     * We need to ensure that no DomainObjects escape in the serialization.  This would be a problem
+     * if 'someone' (e.g. Infinispan in clustered mode) needed to internalize a D.O. (hidden in a
+     * treemap entry) while the FenixFramework was still running its static initialization code. So
+     * we convert the TreeMap to/from a byte[] every time it is externalized/internalize by the FF.
+     * We wrap it in a Serializable class (TreeMapExternalization) ,because some backends (e.g. OGM)
+     * don't deal well with byte[] yet.
+     */
+
+    public static Serializable /*byte[]*/ externalizeTreeMap(TreeMap treeMap) {
+        // return Externalization.externalizeObject(new TreeMapExternalization(treeMap));
+        return new TreeMapExternalization(treeMap);
+        // return treeMap;
     }
 
-    public static TreeMap internalizeTreeMap(Serializable externalizedTreeMap) {
-        return (TreeMap)externalizedTreeMap;
+    public static TreeMap internalizeTreeMap(Serializable/*byte[]*/ externalizedTreeMap) {
+        // TreeMapExternalization treeMapExternalization = Externalization.internalizeObject(externalizedTreeMap);
+        return ((TreeMapExternalization)externalizedTreeMap).toTreeMap();
+        // return (TreeMap)externalizedTreeMap;
     }
 
+    private static class TreeMapExternalization implements Serializable {
+        private static final long serialVersionUID = 1L;
 
+        private byte[] serializedTreeMap;
+
+        TreeMapExternalization(TreeMap<Comparable,? extends Serializable> treeMap) {
+            this.serializedTreeMap = Externalization.externalizeSerializable(treeMap);
+        }
+
+        TreeMap toTreeMap() {
+            return (TreeMap)Externalization.internalizeSerializable(serializedTreeMap);
+        }
+    }
 }
