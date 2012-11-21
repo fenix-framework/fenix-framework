@@ -64,13 +64,14 @@ public abstract class AbstractNode<T extends AbstractDomainObject> extends Abstr
 
     public static Serializable /*byte[]*/ externalizeTreeMap(TreeMap treeMap) {
         // return Externalization.externalizeObject(new TreeMapExternalization(treeMap));
-        return treeMap;
+        return new TreeMapExternalization(treeMap);
+        // return treeMap;
     }
 
     public static TreeMap internalizeTreeMap(Serializable/*byte[]*/ externalizedTreeMap) {
         // TreeMapExternalization treeMapExternalization = Externalization.internalizeObject(externalizedTreeMap);
-        // return treeMapExternalization.toTreeMap();
-        return (TreeMap)externalizedTreeMap;
+        return ((TreeMapExternalization)externalizedTreeMap).toTreeMap();
+        // return (TreeMap)externalizedTreeMap;
     }
 
     private static class TreeMapExternalization implements Serializable {
