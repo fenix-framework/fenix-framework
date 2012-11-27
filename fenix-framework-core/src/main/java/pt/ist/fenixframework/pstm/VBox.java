@@ -40,10 +40,12 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runti
 	return this.slotName;
     }
 
+    @Override
     public E get(Object obj, String attrName) {
         return Transaction.currentFenixTransaction().getBoxValue(this, obj, attrName);
     }
 
+    @Override
     public void put(Object obj, String attrName, E newValue) {
         // TODO: eventually remove this 
         if (! (attrName.equals("idInternal") || attrName.equals("ackOptLock"))) {
@@ -53,6 +55,19 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runti
         put(newValue);
     }
     
+    /*
+     * Allows a nested FenixConsistencyCheckTransaction, that should not perform writes,
+     * to delegate the write to boxes to the parent TopLevelTransaction.
+     */
+    public void putDelayed(E newE) {
+	FenixTransaction tx = Transaction.currentFenixTransaction();
+	if (tx == null) {
+	    throw new Error("Trying to putDeplayed() a box value without a running transaction!");
+	} else {
+	    tx.setBoxValueDelayed(this, newE);
+	}
+    }
+
     public boolean hasValue() {
 	return Transaction.currentFenixTransaction().isBoxValueLoaded(this);
     }
@@ -74,6 +89,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runti
 	}
     }
 
+    @Override
     public VBoxBody addNewVersion(String attr, int txNumber) {
 	if (body.version < txNumber) {
             return commit(VBox.<E>notLoadedValue(), txNumber);
@@ -92,6 +108,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,dml.runti
 	}
     }
 
+    @Override
     public Object getCurrentValue(Object obj, String attrName) {
         return this.get(obj, attrName);
     }

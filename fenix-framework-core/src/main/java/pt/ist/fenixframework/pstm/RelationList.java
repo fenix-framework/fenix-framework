@@ -7,24 +7,26 @@ import java.util.Set;
 
 import jvstm.PerTxBox;
 import pt.ist.fenixframework.DomainObject;
-import dml.runtime.Relation;
 import dml.runtime.FunctionalSet;
+import dml.runtime.Relation;
 
 public class RelationList<E1 extends DomainObject,E2 extends DomainObject> extends AbstractList<E2> implements VersionedSubject,Set<E2>,dml.runtime.RelationBaseSet<E2> {
-    private E1 listHolder;
-    private Relation<E1,E2> relation;
-    private String attributeName;
+    private final E1 listHolder;
+    private final Relation<E1,E2> relation;
+    private final String attributeName;
 
     private SoftReference<VBox<FunctionalSet<E2>>> elementsRef;
 
-    private PerTxBox<FunctionalSet<E2>> elementsToAdd = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
-        public void commit(FunctionalSet<E2> toAdd) {
+    private final PerTxBox<FunctionalSet<E2>> elementsToAdd = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+        @Override
+	public void commit(FunctionalSet<E2> toAdd) {
 	    consolidateElementsIfLoaded();
         }
     };
 
-    private PerTxBox<FunctionalSet<E2>> elementsToRemove = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
-        public void commit(FunctionalSet<E2> toRemove) {
+    private final PerTxBox<FunctionalSet<E2>> elementsToRemove = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+        @Override
+	public void commit(FunctionalSet<E2> toRemove) {
 	    consolidateElementsIfLoaded();
         }
     };
@@ -54,10 +56,12 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
     }
 
 
+    @Override
     public jvstm.VBoxBody addNewVersion(String attr, int txNumber) {
         return getElementsBox().addNewVersion(attr, txNumber);
     }
 
+    @Override
     public Object getCurrentValue(Object obj, String attrName) {
         // what's the correct value to return here?  should it be the
         // RelationList instance or the FunctionalSet within it?  I'll
@@ -106,7 +110,7 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
 	}
 
 	if (newSet != origSet) {
-	    box.put(newSet);
+	    box.putDelayed(newSet);
 	}
     }
 
@@ -114,27 +118,72 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
 	getElementsBox().setFromOJB(obj, attr, ojbList.getElements());
     }
 
+    @Override
     public void justAdd(E2 obj) {
-        Transaction.logAttrChange((DomainObject)listHolder, attributeName);
+	Transaction.currentFenixTransaction().registerRelationListChanges(this);
+	Transaction.logAttrChange(listHolder, attributeName);
 	elementsToAdd.put(elementsToAdd.get().add(obj));
 	elementsToRemove.put(elementsToRemove.get().remove(obj));
     }
 
+    @Override
     public void justRemove(E2 obj) {
-        Transaction.logAttrChange((DomainObject)listHolder, attributeName);
+	Transaction.currentFenixTransaction().registerRelationListChanges(this);
+	Transaction.logAttrChange(listHolder, attributeName);
 	elementsToRemove.put(elementsToRemove.get().add(obj));
 	elementsToAdd.put(elementsToAdd.get().remove(obj));
     }
 
+    /**
+     * Returns a <code>String</code> with a unique identification of this
+     * <code>RelationList</code>. The id of two <code>RelationLists</code> will
+     * be the same if and only if the two <code>RelationLists</code> are the
+     * same.<br>
+     * This id is used for both the <code>hashCode()</code> and
+     * <code>equals()</code> methods.<br>
+     * <br>
+     * 
+     * This method assumes that only the fenix-framework creates
+     * <code>RelationLists</code>, and only one for each side of a domain
+     * relation, without any duplicates.
+     */
+    public String getUniqueId() {
+	return listHolder.getExternalId() + attributeName;
+    }
 
+    /**
+     * @see RelationList#getUniqueId()
+     */
+    @Override
+    public int hashCode() {
+	return getUniqueId().hashCode();
+    }
+    
+    /**
+     * @see RelationList#getUniqueId()
+     */
+    @Override
+    public boolean equals(Object otherObject) {
+	if ((otherObject == null) || (!(otherObject instanceof RelationList))) {
+	    return false;
+        }
+	if (((RelationList<DomainObject, DomainObject>) otherObject).getUniqueId().equals(getUniqueId())) {
+	    return true;
+	}
+	return false;
+    }
+
+    @Override
     public int size() {
 	return elementSet().size();
     }
 
+    @Override
     public E2 get(int index) {
         return elementSet().get(index);
     }
 
+    @Override
     public E2 set(int index, E2 element) {
         E2 oldElement = get(index);
 
@@ -148,17 +197,20 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
         return oldElement;
     }
 
+    @Override
     public void add(int index, E2 element) {
         relation.add(listHolder, element);
         modCount++;
     }
 
+    @Override
     public E2 remove(int index) {
         E2 elemToRemove = get(index);
         remove(elemToRemove);
 	return elemToRemove;
     }
 
+    @Override
     public boolean remove(Object o) {
         modCount++;
         relation.remove(listHolder, (E2)o);
@@ -167,13 +219,14 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
 	return true;
     }
 
+    @Override
     public Iterator<E2> iterator() {
 	return new RelationListIterator<E2>(this);
     }
 
     private static class RelationListIterator<X extends DomainObject> implements Iterator<X> {
-        private RelationList<?,X> list;
-	private Iterator<X> iter;
+        private final RelationList<?,X> list;
+	private final Iterator<X> iter;
 	private boolean canRemove = false;
 	private X previous = null;
 
@@ -182,10 +235,12 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
 	    this.iter = list.elementSet().iterator();
 	}
 
+	@Override
 	public boolean hasNext() {
 	    return iter.hasNext();
 	}
 
+	@Override
 	public X next() {
 	    X result = iter.next();
 	    canRemove = true;
@@ -193,6 +248,7 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
 	    return result;
 	}
 	    
+	@Override
 	public void remove() {
 	    if (! canRemove) {
 		throw new IllegalStateException();

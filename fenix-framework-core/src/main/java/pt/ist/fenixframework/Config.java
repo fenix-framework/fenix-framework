@@ -6,8 +6,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import pt.ist.fenixframework.pstm.dml.FenixDomainModelWithOCC;
+import pt.ist.fenixframework.pstm.DomainMetaClass;
+import pt.ist.fenixframework.pstm.DomainMetaObject;
 import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
+import pt.ist.fenixframework.pstm.dml.FenixDomainModelWithOCC;
 
 /**
  * An instance of the <code>Config</code> class bundles together the
@@ -192,6 +194,35 @@ public class Config {
      */
     protected FenixFrameworkPlugin[] plugins;
 
+    /**
+     * This <strong>optional</strong> parameter indicates whether the framework
+     * should automatically create {@link DomainMetaObject}s and
+     * {@link DomainMetaClass}es. Only if the value is true will a consistency
+     * predicate of a domain object be allowed to read values from other
+     * objects. The default value is false.<br>
+     * 
+     * If this parameter is set to true, then,
+     * {@link Config#errorfIfDeletingObjectNotDisconnected} must also be set to
+     * true.<br>
+     * <br>
+     * <strong>Note: Setting this parameter to true causes the fenix-framework
+     * to create a {@link DomainMetaObject} for each existing domain object
+     * during the initialization. Depending on the amount of already existing
+     * objects, this may cause the next application startup to be very
+     * slow.</strong><br>
+     * <br>
+     * If set to true, the fenix-framework no longer supports overriding a
+     * consistency predicate with a non-predicate method.<br>
+     * <br>
+     * <strong>If a programmer changes the implementation of an existing
+     * consistency predicate, he/she should always change the method's signature
+     * to force the fenix-framework to re-execute the predicate and re-calculate
+     * its dependencies.</strong>
+     * 
+     * @see DomainMetaObject#delete()
+     */
+    protected boolean canCreateDomainMetaObjects = false;
+
     private static void checkRequired(Object obj, String fieldName) {
 	if (obj == null) {
 	    missingRequired(fieldName);
@@ -310,6 +341,20 @@ public class Config {
 
     public String getCollectDataAccessPatternsPath() {
 	return collectDataAccessPatternsPath;
+    }
+
+    /**
+     * Checks that, if the parameter <code>canCreateDomainMetaObjects</code> is
+     * set to true, then <code>errorfIfDeletingObjectNotDisconnected</code> is
+     * also set to true.
+     * 
+     * @see DomainMetaObject#delete()
+     */
+    public void checkIsValid() {
+	if ((canCreateDomainMetaObjects) && (!errorfIfDeletingObjectNotDisconnected)) {
+	    throw new Error(
+		    "If the parameter canCreateDomainMetaObjects is set to true, then errorfIfDeletingObjectNotDisconnected must also be set to true.");
+	}
     }
 
 }

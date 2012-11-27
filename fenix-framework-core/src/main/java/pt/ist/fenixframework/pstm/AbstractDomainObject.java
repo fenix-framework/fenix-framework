@@ -24,6 +24,8 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	}
     };
 
+    private VBox<DomainMetaObject> domainMetaObject;
+
     public class UnableToDetermineIdException extends RuntimeException {
 	public UnableToDetermineIdException(Throwable cause) {
 	    super("Unable to determine id Exception", cause);
@@ -38,12 +40,27 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	ensureIdInternal();
 	// ensureOid();
 	Transaction.storeNewObject(this);
+
+	initMetaObject(false);
+
+	if ((!getClass().isAnnotationPresent(NoDomainMetaObjects.class)) && FenixFramework.canCreateDomainMetaObjects()) {
+	    DomainMetaObject metaObject = new DomainMetaObject();
+	    metaObject.setDomainObject(this);
+
+	    getDomainMetaClass().addExistingDomainMetaObject(getDomainMetaObject());
+	}
     }
 
     protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
 	// this constructor exists only as part of the allocate-instance
 	// protocol
 	this.oid = oid.oid;
+
+	initMetaObject(true);
+    }
+
+    private void initMetaObject(boolean allocateOnly) {
+	domainMetaObject = VBox.makeNew(this, "domainMetaObject", allocateOnly, false);
     }
 
     @Override
@@ -167,9 +184,45 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 	return null;
     }
 
+    public DomainMetaObject getDomainMetaObject() {
+	return domainMetaObject.get(this, "domainMetaObject");
+    }
+
+    public void justSetMetaObject(DomainMetaObject domainMetaObject) {
+	this.domainMetaObject.put(this, "domainMetaObject", domainMetaObject);
+    }
+
+    private void setMetaObject(DomainMetaObject domainMetaObject) {
+	domainMetaObject.setDomainObject(this);
+    }
+
+    private void removeMetaObject() {
+	getDomainMetaObject().removeDomainObject();
+    }
+
+    /**
+     * This should be invoked only when this DO is being deleted.
+     */
+    private void deleteDomainMetaObject() {
+	if (getDomainMetaObject() != null) {
+	    getDomainMetaObject().delete();
+	}
+    }
+
+    private Long get$oidDomainMetaObject() {
+	pt.ist.fenixframework.pstm.AbstractDomainObject value = getDomainMetaObject();
+	return (value == null) ? null : value.getOid();
+    }
+
     public void readFromResultSet(java.sql.ResultSet rs) throws java.sql.SQLException {
 	int txNumber = Transaction.current().getNumber();
 	readSlotsFromResultSet(rs, txNumber);
+	readMetaObjectFromResultSet(rs, txNumber);
+    }
+
+    protected void readMetaObjectFromResultSet(java.sql.ResultSet rs, int txNumber) throws SQLException {
+	DomainMetaObject metaObject = pt.ist.fenixframework.pstm.ResultSetReader.readDomainObject(rs, "OID_DOMAIN_META_OBJECT");
+	this.domainMetaObject.persistentLoad(metaObject, txNumber);
     }
 
     protected abstract void readSlotsFromResultSet(java.sql.ResultSet rs, int txNumber) throws java.sql.SQLException;
@@ -194,7 +247,12 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
 
     protected void deleteDomainObject() {
 	checkDisconnected();
+	deleteDomainMetaObject();
 	Transaction.deleteObject(this);
+    }
+
+    private DomainMetaClass getDomainMetaClass() {
+	return DomainFenixFrameworkRoot.getInstance().getDomainMetaClass(this.getClass());
     }
 
     protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,

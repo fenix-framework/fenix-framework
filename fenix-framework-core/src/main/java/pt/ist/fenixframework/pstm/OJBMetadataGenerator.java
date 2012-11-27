@@ -115,16 +115,16 @@ public class OJBMetadataGenerator {
     }
 
     protected static String getExpectedTableName(final DomainClass domainClass) {
-	// Shameless hack to make OJB map to the special framework tables
-	if (domainClass.getFullName().startsWith(FRAMEWORK_PACKAGE)) {
-	    return "FF$" + getTableName(domainClass.getName());
-	}
 	if (domainClass.getFullName().equals(DOMAIN_OBJECT_CLASSNAME)) {
 	    return null;
 	}
 	if (domainClass.getSuperclass() == null
 		|| (domainClass.getSuperclass() instanceof DomainClass && domainClass.getSuperclass().getFullName().equals(
 			DOMAIN_OBJECT_CLASSNAME))) {
+	    // Shameless hack to make OJB map to the special framework tables
+	    if (domainClass.getFullName().startsWith(FRAMEWORK_PACKAGE)) {
+		return "FF$" + getTableName(domainClass.getName());
+	    }
 	    return getTableName(domainClass.getName());
 	}
 	return domainClass.getSuperclass() instanceof DomainClass ? getExpectedTableName((DomainClass) domainClass
@@ -165,6 +165,9 @@ public class OJBMetadataGenerator {
 
 	// write the OID also
 	addFieldDescriptor(domainModel, "oid", "long", fieldID++, classDescriptor, persistentFieldClass);
+
+	// write the domainMetaObject for all domain objects
+	addFieldDescriptor(domainModel, "oidDomainMetaObject", "Long", fieldID++, classDescriptor, persistentFieldClass);
 
 	while (domEntity instanceof DomainClass) {
 	    DomainClass dClass = (DomainClass) domEntity;
@@ -297,6 +300,11 @@ public class OJBMetadataGenerator {
     private static void generateManyToManyCollectionDescriptor(CollectionDescriptor collectionDescriptor, Role role) {
 
 	String indirectionTableName = DbUtil.convertToDBStyle(role.getRelation().getName());
+	// Shameless hack to make OJB map to the special framework tables
+	if ((role.getType().getFullName().startsWith(FRAMEWORK_PACKAGE))
+		&& (role.getOtherRole().getType().getFullName().startsWith(FRAMEWORK_PACKAGE))) {
+	    indirectionTableName = "FF$" + indirectionTableName;
+	}
 	String fkToItemClass = DbUtil.getFkName(role.getType().getName());
 	String fkToThisClass = DbUtil.getFkName(role.getOtherRole().getType().getName());
 

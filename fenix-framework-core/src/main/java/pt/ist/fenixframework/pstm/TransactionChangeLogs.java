@@ -79,7 +79,7 @@ public class TransactionChangeLogs {
         // the set of objects is kept so that a strong reference exists 
         // for each of the objects modified by another server until no running 
         // transaction in the current VM may need to access it
-	private Map<AbstractDomainObject,List<String>> objectAttrChanges = new HashMap<AbstractDomainObject,List<String>>();
+	private final Map<AbstractDomainObject,List<String>> objectAttrChanges = new HashMap<AbstractDomainObject,List<String>>();
 
 	AlienTransaction(int txNumber) {
 	    this.txNumber = txNumber;
@@ -299,7 +299,7 @@ public class TransactionChangeLogs {
     private static class CleanThread extends Thread {
 	private static final long SECONDS_BETWEEN_UPDATES = 120;
 
-	private String server;
+	private final String server;
 	private int lastTxNumber = -1;
 	
 	CleanThread(int lastTxNumber) {
@@ -309,7 +309,8 @@ public class TransactionChangeLogs {
 	    setDaemon(true);
 	}
 	
-        public void run() {
+        @Override
+	public void run() {
             try {
         	while (! initializeServerRecord()) {
         	    // intentionally empty
@@ -351,8 +352,14 @@ public class TransactionChangeLogs {
 		e.printStackTrace();
 		System.out.println("Couldn't initialize the clean thread");
 		//throw new Error("Couldn't initialize the clean thread");
+		if (broker != null) {
+		    broker.abortTransaction();
+		}
 	    } finally {
 		if (broker != null) {
+		    if (broker.isInTransaction()) {
+			broker.abortTransaction();
+		    }
 		    broker.close();
 		}
 	    }
@@ -389,15 +396,17 @@ public class TransactionChangeLogs {
 		broker.commitTransaction();
 
 		this.lastTxNumber = currentTxNumber;
-	    } catch (Exception e) {
-		e.printStackTrace();
-		System.out.println("Couldn't update database in the clean thread");
-		//throw new Error("Couldn't update database in the clean thread");
 	    } catch (Throwable t) {
 		t.printStackTrace();
-		System.out.println("Couldn't update database in the clean thread because of a Throwable.");
+		System.out.println("Couldn't update database in the clean thread");
+		if ((broker != null) && (broker.isInTransaction())) {
+		    broker.abortTransaction();
+		}
 	    } finally {
 		if (broker != null) {
+		    if (broker.isInTransaction()) {
+			broker.abortTransaction();
+		    }
 		    broker.close();
 		}
 	    }

@@ -1,12 +1,11 @@
 package pt.ist.fenixframework.pstm;
 
-import dml.runtime.Relation;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 
 import jvstm.util.Cons;
 import jvstm.util.Pair;
-
-import java.io.ObjectStreamException;
-import java.io.Serializable;
+import dml.runtime.Relation;
 
 /**
  * The OneBoxDomainObject class is meant to be used as a superclass of
@@ -69,17 +68,29 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
     }
 
     protected final DO_State get$obj$state(boolean forWriting) {
-        DO_State currState = (DO_State)this.obj$state.get(this, OBJ_STATE_SLOT_NAME);
-        if (forWriting && currState.committed) {
-            DO_State newState = make$newState();
-            currState.copyTo(newState);
-            this.obj$state.put(this, OBJ_STATE_SLOT_NAME, newState);
-            return newState;
-        } else {
-            return currState;
-        }
+	DO_State currState = (DO_State) this.obj$state.get(this, OBJ_STATE_SLOT_NAME);
+	if (forWriting) {
+	    if (currState.committed) {
+		DO_State newState = make$newState();
+		currState.copyTo(newState);
+		this.obj$state.put(this, OBJ_STATE_SLOT_NAME, newState);
+		return newState;
+	    } else {
+		/*
+		 * This workaround is needed to keep FenixConsistencyCheckTransactions from performing writes
+		 * to DOStates which have already been written to by the parent transaction.
+		 * This workaround is specific for the FenixConsistencyCheckTransaction, because it is the only
+		 * current case of a read-only nested transaction.
+		 */
+		if (Transaction.currentFenixTransaction() instanceof FenixConsistencyCheckTransaction) {
+		    throw new Error("It is not permitted to perform writes inside a Consistency Predicate");
+		}
+	    }
+	}
+	return currState;
     }
 
+    @Override
     protected void readSlotsFromResultSet(java.sql.ResultSet rs, int txNumber) throws java.sql.SQLException {
         throw new Error("readSlotsFromResultSet should not be used for OneBoxDomainObjects");
     }
@@ -94,6 +105,8 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
         loadedState.markCommitted();
 
         obj$state.persistentLoad(loadedState, txNumber);
+
+	readMetaObjectFromResultSet(rs, txNumber);
     }
 
     protected abstract void readStateFromResultSet(java.sql.ResultSet rs, DO_State state) throws java.sql.SQLException;

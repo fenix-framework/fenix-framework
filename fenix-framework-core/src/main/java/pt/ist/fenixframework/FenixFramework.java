@@ -2,6 +2,9 @@ package pt.ist.fenixframework;
 
 import jvstm.TransactionalCommand;
 import pt.ist.fenixframework.pstm.DataAccessPatterns;
+import pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot;
+import pt.ist.fenixframework.pstm.DomainMetaClass;
+import pt.ist.fenixframework.pstm.DomainMetaObject;
 import pt.ist.fenixframework.pstm.MetadataManager;
 import pt.ist.fenixframework.pstm.PersistentRoot;
 import pt.ist.fenixframework.pstm.Transaction;
@@ -29,7 +32,9 @@ public class FenixFramework {
     private static Config config;
 
     public static void initialize(Config config) {
-        bootStrap(config);
+	config.checkIsValid();
+
+	bootStrap(config);
         initialize();
     }
 
@@ -50,11 +55,13 @@ public class FenixFramework {
 
     public static void initialize() {
 	synchronized (INIT_LOCK) {
-	    if (initialized) {
+	    if (isInitialized()) {
 		throw new Error("Fenix framework already initialized");
 	    }
 
+	    initDomainFenixFrameworkRoot();
 	    PersistentRoot.initRootIfNeeded(config);
+
 	    FenixFrameworkPlugin[] plugins = config.getPlugins();
 	    if (plugins != null) {
 		for (final FenixFrameworkPlugin plugin : plugins) {
@@ -72,6 +79,54 @@ public class FenixFramework {
 	}
     }
 
+    /**
+     * @return <code>true</code> if the framework was already initialized. <br>
+     *         <code>false</code> if the framework was not yet initialized, or
+     *         the initialization is still in progress.
+     */
+    public static boolean isInitialized() {
+	return initialized;
+    }
+
+    /**
+     * Creates a {@link PersistentRoot} for the {@link DomainFenixFrameworkRoot}
+     * and then initializes the {@link DomainFenixFrameworkRoot}.
+     */
+    private static void initDomainFenixFrameworkRoot() {
+	while (true) {
+	    try {
+		Transaction.withTransaction(new TransactionalCommand() {
+		    @Override
+		    public void doIt() {
+			if (getDomainFenixFrameworkRoot() == null) {
+			    DomainFenixFrameworkRoot fenixFrameworkRoot = new DomainFenixFrameworkRoot();
+			    PersistentRoot.addRoot(DomainFenixFrameworkRoot.ROOT_KEY, fenixFrameworkRoot);
+			}
+			getDomainFenixFrameworkRoot().initialize(getDomainModel());
+		    }
+		});
+		break;
+	    } catch (Throwable t) {
+		// Debug-related code
+		//if (t.getMessage().equals("It ends tonight.")) {
+		//    System.out.println("SUCCESS! The MetaClass initialization has finished! Finally!");
+		//    break;
+		//}
+		t.printStackTrace();
+		System.out
+			.println("ERROR: An exception was thrown during the initialization of the Consistency Predicates, retrying...");
+	    } finally {
+		if (Transaction.isInTransaction()) {
+		    Transaction.abort();
+		}
+	    }
+	}
+    }
+
+    public static DomainFenixFrameworkRoot getDomainFenixFrameworkRoot() {
+	return PersistentRoot.getRoot(DomainFenixFrameworkRoot.ROOT_KEY);
+    }
+
     public static Config getConfig() {
 	return config;
     }
@@ -82,5 +137,17 @@ public class FenixFramework {
 
     public static <T extends DomainObject> T getRoot() {
 	return (T) PersistentRoot.getRoot();
+    }
+
+    /**
+     * Indicates whether the framework was configured to allow the automatic
+     * creation of {@link DomainMetaObject}s and {@link DomainMetaClass}es. Only
+     * if this method returns <code>true</code> will a consistency predicate of
+     * a domain object be allowed to read values from other objects.
+     * 
+     * @return the value of {@link Config}.canCreateDomainMetaObjects
+     */
+    public static boolean canCreateDomainMetaObjects() {
+	return getConfig().canCreateDomainMetaObjects;
     }
 }

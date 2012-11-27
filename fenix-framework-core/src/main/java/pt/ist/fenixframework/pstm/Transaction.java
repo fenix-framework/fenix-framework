@@ -19,10 +19,12 @@ public abstract class Transaction extends jvstm.Transaction {
 	DomainClassInfo.initializeClassInfos(0);
 
 	jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
+	    @Override
 	    public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
 		return new TopLevelTransaction(record);
 	    }
 
+	    @Override
 	    public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
 		return new ReadOnlyTopLevelTransaction(record);
 	    }
@@ -47,7 +49,15 @@ public abstract class Transaction extends jvstm.Transaction {
 	super(0);
     }
 
+    public static void beginTransaction() {
+	if (jvstm.Transaction.current() != null) {
+	    jvstm.Transaction.commit();
+	}
+	Transaction.begin();
+    }
+
     private static final ThreadLocal<Boolean> DEFAULT_READ_ONLY = new ThreadLocal<Boolean>() {
+	@Override
 	protected Boolean initialValue() {
 	    return Boolean.FALSE;
 	}

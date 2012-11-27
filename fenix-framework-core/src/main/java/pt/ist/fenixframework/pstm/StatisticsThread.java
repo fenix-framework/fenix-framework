@@ -10,7 +10,7 @@ import org.apache.ojb.broker.PersistenceBrokerFactory;
 class StatisticsThread extends Thread {
     private static final long SECONDS_BETWEEN_REPORTS = 5 * 60;
 
-    private String server;
+    private final String server;
     private int numReport = 0;
 	
     StatisticsThread() {
@@ -19,6 +19,7 @@ class StatisticsThread extends Thread {
         setDaemon(true);
     }
 
+    @Override
     public void run() {
         while (true) {
             try {
@@ -95,6 +96,9 @@ class StatisticsThread extends Thread {
             // issue just a warning
             e.printStackTrace();
             System.out.println("WARNING: Couldn't insert the statistics data");
+	    if ((broker != null) && (broker.isInTransaction())) {
+		broker.abortTransaction();
+	    }
         } finally {
             if (broker != null) {
                 if (broker.isInTransaction()) {
