@@ -6,7 +6,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
@@ -42,6 +44,8 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	protected abstract boolean generateFinals();
 
 	protected abstract boolean generateProjectProperties();
+
+	protected abstract Map<String,String> getParams();
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -123,9 +127,10 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 		if (verbose()) {
 		    getLog().info("Using generator: " + getCodeGeneratorClass().getName());
 		}
+		Map<String,String> realParams = getParams() == null ? new HashMap<String,String>() : getParams();
 
 		compArgs = new CompilerArgs(getSourcesDirectory(), getGeneratedSourcesDirectory(), getPackageName(),
-                                            generateFinals(), getCodeGeneratorClass(), localDmls, externalDmls);
+                                            generateFinals(), getCodeGeneratorClass(), localDmls, externalDmls, realParams);
 
                 DmlCompiler.compile(compArgs);
 	    } else {

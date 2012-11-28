@@ -8,16 +8,18 @@ import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
+import pt.ist.fenixframework.dap.FFDAPConfig;
 import pt.ist.fenixframework.dml.AnnotatedSlot;
 import pt.ist.fenixframework.dml.Annotation;
 
-public abstract class IndexesConfig extends Config {
+public abstract class IndexesConfig extends FFDAPConfig {
 
 
     /* See comment on updateIndexes() */
     @Override
     protected void init() {
         updateIndexes();
+        super.init();
     }
 
     /*

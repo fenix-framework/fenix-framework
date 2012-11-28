@@ -61,10 +61,6 @@
             <artifactId>db-ojb</artifactId>
         </dependency>
         <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>dap-framework</artifactId>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>

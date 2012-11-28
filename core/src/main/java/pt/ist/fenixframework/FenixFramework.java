@@ -173,7 +173,7 @@ public class FenixFramework {
         try {
             config = createConfigFromResourceStream(in);
         } catch (IOException e) {
-            logger.debug("Failed autio initialization with " + resourceName, e);
+            logger.debug("Failed auto initialization with " + resourceName, e);
             return false;
         }
         FenixFramework.initialize(config);

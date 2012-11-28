@@ -67,8 +67,8 @@ public class OgmBackEnd implements BackEnd {
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
         OgmOID internalId = (OgmOID)oid;
-        if (logger.isInfoEnabled()) {
-            logger.info("fromOid(" + internalId + ")");
+        if (logger.isTraceEnabled()) {
+            logger.trace("fromOid(" + internalId + ")");
         }
         return (T)transactionManager.getEntityManager().find(internalId.getObjClass(),
                                                              internalId.getPrimaryKey());

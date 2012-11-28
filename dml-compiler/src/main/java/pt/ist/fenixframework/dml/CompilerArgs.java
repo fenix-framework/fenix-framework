@@ -79,6 +79,7 @@ public class CompilerArgs {
     List<URL> localDomainSpecs = new ArrayList<URL>();
     List<URL> externalDomainSpecs = new ArrayList<URL>();
     Class<? extends CodeGenerator> generatorClass = DefaultCodeGenerator.class;
+    Map<String,String> params = new HashMap<String,String>();
 
     /*
      * This is not part of the API
@@ -89,13 +90,14 @@ public class CompilerArgs {
     private boolean addToLocalDomainSpecs = true; 
 
     private CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
-	    Class<? extends CodeGenerator> generatorClass) {
+	    Class<? extends CodeGenerator> generatorClass, Map<String,String> params) {
 
 	this.destDirectory = destDirectory;
 	this.destDirectoryBase = destDirectoryBase;
 	this.packageName = packageName;
 	this.generateFinals = generateFinals;
 	this.generatorClass = generatorClass != null ? generatorClass : DefaultCodeGenerator.class;
+	this.params = new HashMap<String,String>(params);
     }
 
     /**
@@ -103,9 +105,9 @@ public class CompilerArgs {
      */
     public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName,
                         Boolean generateFinals, Class<? extends CodeGenerator> generatorClass,
-                        List<URL> localDomainSpecs, List<URL> externalDomainSpecs) {
+                        List<URL> localDomainSpecs, List<URL> externalDomainSpecs, Map<String,String> params) {
 
-        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass);
+        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params);
 	if (localDomainSpecs != null) { this.localDomainSpecs.addAll(localDomainSpecs); }
         if (externalDomainSpecs != null) {this.externalDomainSpecs.addAll(externalDomainSpecs); }
 	checkArguments();
@@ -117,9 +119,9 @@ public class CompilerArgs {
      */
     public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName,
                         Boolean generateFinals, Class<? extends CodeGenerator> generatorClass,
-                        String projectName) throws DmlCompilerException {
+                        String projectName, Map<String,String> params) throws DmlCompilerException {
 
-        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass);
+        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params);
         try {
             setDmlSpecsFromProjectName(projectName);
         } catch (Exception e) {
@@ -195,6 +197,11 @@ public class CompilerArgs {
             String projectName = getNextArgument(args, pos);
             setDmlSpecsFromProjectName(projectName);
             return pos + 2;
+        } else if (args[pos].equals("-param")) {
+	    String paramValue = getNextArgument(args, pos);
+	    String[] vals = paramValue.split("=");
+            params.put(vals[0],vals[1]);
+            return pos + 2;
         } else {
             // use last set default
             addToDomainSpecs(args[pos], addToLocalDomainSpecs);
@@ -259,6 +266,10 @@ public class CompilerArgs {
 
     public boolean isExternalDefinition(URL domainSpec) {
         return this.externalDomainSpecs.contains(domainSpec);
+    }
+    
+    public Map<String,String> getParams() {
+        return Collections.unmodifiableMap(params);
     }
 
     // static

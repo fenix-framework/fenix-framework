@@ -14,7 +14,7 @@
         This module provides the common configuration for all modules.
     </description>
     <packaging>pom</packaging>
-
+    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -25,7 +25,7 @@
         <version.asm>4.0</version.asm>
         <version.commons.io>2.4</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
-        <version.dap-framework>1.0</version.dap-framework>
+        <version.dap-framework>2.0</version.dap-framework>
         <version.hibernate.core>4.0.1.Final</version.hibernate.core>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
@@ -75,7 +75,7 @@
             <dependency>
                 <groupId>pt.ist</groupId>
                 <artifactId>dap-framework</artifactId>
-                <version>${version.dap-framework>}</version>
+                <version>${version.dap-framework}</version>
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
@@ -130,6 +130,11 @@
             <dependency>
                 <groupId>pt.ist</groupId>
                 <artifactId>fenix-framework-adt-bplustree</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-data-access-patterns</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -268,6 +273,7 @@
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
+
         <repository>
             <id>guice-maven</id>
             <name>guice maven</name>

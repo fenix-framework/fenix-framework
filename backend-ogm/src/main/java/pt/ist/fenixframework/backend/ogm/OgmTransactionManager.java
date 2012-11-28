@@ -63,7 +63,7 @@ public class OgmTransactionManager implements TransactionManager {
 
     @Override
     public void begin() throws NotSupportedException, SystemException {
-        logger.info("Begin transaction");
+        logger.trace("Begin transaction");
         delegateTxManager.begin();
 
         EntityManager em = null;
@@ -82,7 +82,7 @@ public class OgmTransactionManager implements TransactionManager {
     @Override
     public void commit() throws RollbackException, HeuristicMixedException,
                                 HeuristicRollbackException, SystemException {
-        logger.info("Commit transaction");
+        logger.trace("Commit transaction");
 
         EntityManager em = currentEntityManager.get();
         em.flush();
@@ -100,7 +100,7 @@ public class OgmTransactionManager implements TransactionManager {
 
     @Override
     public void rollback() throws SystemException {
-        logger.info("Rollback transaction");
+        logger.trace("Rollback transaction");
         delegateTxManager.rollback();
 
         currentEntityManager.set(null);
@@ -123,19 +123,19 @@ public class OgmTransactionManager implements TransactionManager {
                 boolean inTopLevelTransaction = false;
                 // the purpose of this test is to enable reuse of the existing transaction
                 if (getTransaction() == null) {
-                    logger.info("No previous transaction.  Will begin a new one.");
+                    logger.trace("No previous transaction.  Will begin a new one.");
                     begin();
                     inTopLevelTransaction = true;
                 } else {
-                    logger.info("Already inside a transaction. Not nesting.");
+                    logger.trace("Already inside a transaction. Not nesting.");
                 }
                 // do some work
                 result = command.call();
                 if (inTopLevelTransaction) {
-                    logger.info("Will commit a top-level transaction.");
+                    logger.trace("Will commit a top-level transaction.");
                     commit();
                 } else {
-                    logger.info("Leaving an inner transaction.");
+                    logger.trace("Leaving an inner transaction.");
                 }
                 txFinished = true;
                 return result;
@@ -153,7 +153,7 @@ public class OgmTransactionManager implements TransactionManager {
                 //If a heuristic decision to roll back the transaction was made
                 logException(hre);
             } catch (Exception e) { // any other exception gets out
-                logger.info("Exception within transaction", e);
+                logger.debug("Exception within transaction", e);
                 throw e;
             } finally {
                 if (!txFinished) {
@@ -173,7 +173,7 @@ public class OgmTransactionManager implements TransactionManager {
             // Pedro had this wait here.  Why?
             // waitingBeforeRetry();
 
-            logger.info("Retrying transaction: " + command);
+            logger.debug("Retrying transaction: " + command);
         }
         // never reached
         throw new RuntimeException("code never reached");
@@ -192,7 +192,7 @@ public class OgmTransactionManager implements TransactionManager {
 
     private void logException(Exception e) {
         logger.info("Exception caught in transaction: " + e.getLocalizedMessage());
-        logger.info("Exception caught in transaction:", e);
+        logger.trace("Exception caught in transaction:", e);
     }
 
 }
