@@ -1,0 +1,26 @@
+package x.y;
+
+class A {
+    String name;
+    String address;
+}
+
+class B {
+    int age;
+}
+
+relation AToB {
+    A playsRole a;
+    B playsRole b {
+        multiplicity *;
+    }
+}
+
+
+relation DRWithAs {
+    .pt.ist.fenixframework.DomainRoot playsRole pai;
+    A playsRole theAs {
+        multiplicity *;
+    }
+}
+

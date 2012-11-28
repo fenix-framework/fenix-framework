@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
+import pt.ist.fenixframework.dml.DAPCodeGenerator;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
@@ -14,6 +15,7 @@ import pt.ist.fenixframework.dml.ValueType;
 import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 
 public class InfinispanCodeGenerator extends IndexesCodeGenerator {
+//public class InfinispanCodeGenerator extends DAPCodeGenerator{
 
     protected static final String VT_SERIALIZER =
         ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +
@@ -130,15 +132,15 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     @Override
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
-        generateInfinispanGetter(slot, out);
+        generateInfinispanGetter(domainClass, slot, out);
         generateInfinispanSetter(domainClass, slot, out);
     }
 
-    protected void generateInfinispanGetter(Slot slot, PrintWriter out) {
+    protected void generateInfinispanGetter(DomainClass domainClass, Slot slot, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName()));
         startMethodBody(out);
-        generateInfinispanGetterBody(slot, out);
+        generateInfinispanGetterBody(domainClass, slot, out);
         endMethodBody(out);
     }
 
@@ -150,7 +152,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
-    protected void generateInfinispanGetterBody(Slot slot, PrintWriter out) {
+    protected void generateInfinispanGetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
+        generateGetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP read stats update statement
+
         println(out, "Object obj = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + slot.getName() + "\");");
         
         String defaultValue;
@@ -176,6 +180,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     }
 
     protected void generateInfinispanSetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
+        generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
+
         String slotName = slot.getName();
         String setterExpression;
 	if (findWrapperEntry(slot.getTypeName()) != null) { // then it is a primitive type
@@ -226,6 +232,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printFinalMethod(out, "public", typeName, "get" + capitalize(slotName));
         startMethodBody(out);
+        
+        generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
+        
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + slotName + "\");");
         print(out, "return (oid == null || oid instanceof Externalization.NullClass ? null : (" + typeName + ")InfinispanBackEnd.getInstance().fromOid(oid));");
         endMethodBody(out);
@@ -253,6 +262,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()));
         startMethodBody(out);
+        
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 
         println(out, "BPlusTree internalSet;");
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + role.getName() + "\");");
@@ -297,6 +308,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printMethod(out, methodModifiers, "int", "get" + capitalizedSlotName + "Count");
         startMethodBody(out);
+        
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
+        
         printWords(out, "return get" + capitalizedSlotName + "().size();");
         endMethodBody(out);
     }
@@ -306,6 +320,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printMethod(out, methodModifiers, "boolean", "hasAny" + capitalizedSlotName);
         startMethodBody(out);
+        
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
+        
         printWords(out, "return (get" + capitalizedSlotName + "().size() != 0);");
         endMethodBody(out);
     }
@@ -315,6 +332,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
         startMethodBody(out);
+        
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
+        
         printWords(out, "return get" + capitalizedSlotName + "().contains(" + slotName + ");");
         endMethodBody(out);
     }
@@ -324,6 +344,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printMethod(out, methodModifiers, makeGenericType("java.util.Set", typeName), "get" + capitalizedSlotName + "Set");
         startMethodBody(out);
+        
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
+        
         print(out, "return get" + capitalizedSlotName + "();");
         endMethodBody(out);
     }
@@ -333,6 +356,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
                          + capitalize(role.getName()) + "Iterator");
         startMethodBody(out);
+        
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
+        
         printWords(out, "return get" + capitalize(role.getName()) + "().iterator();");
         endMethodBody(out);
     }

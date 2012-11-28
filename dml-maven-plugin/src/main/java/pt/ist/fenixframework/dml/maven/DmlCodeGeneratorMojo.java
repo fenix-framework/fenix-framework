@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.dml.maven;
 
 import java.io.File;
+import java.util.Map;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
@@ -78,6 +79,12 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
      */
     private boolean generateProjectProperties;
 
+    /**
+     * Generic Code Generator Class Parameters
+     * @parameter
+     */
+    private Map<String,String> params;
+
     @Override
     public void execute() throws MojoExecutionException {
         super.execute();
@@ -131,5 +138,10 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     @Override
     protected String getOutputDirectoryPath() {
         return mavenProject.getBuild().getOutputDirectory();
+    }
+     
+    @Override
+    protected Map<String,String> getParams() {
+	return params;
     }
 }

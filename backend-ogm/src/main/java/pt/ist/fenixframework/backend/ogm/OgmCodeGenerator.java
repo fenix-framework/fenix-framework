@@ -10,11 +10,12 @@ import java.util.Iterator;
 
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
-import pt.ist.fenixframework.dml.IndexesCodeGenerator;
-import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.CompilerArgs;
+import pt.ist.fenixframework.dml.DAPCodeGenerator;
+import pt.ist.fenixframework.dml.DomainClass;
 // import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
+import pt.ist.fenixframework.dml.IndexesCodeGenerator;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 // import pt.ist.fenixframework.dml.ValueType;
@@ -361,6 +362,9 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printFinalMethod(out, "public", typeName, "get" + capitalize(slotName));
         startMethodBody(out);
+        
+        generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
+        
         generateRoleSlotMethodsMultOneGetterUpdateFromFK(slotName, makeForeignKeyName(slotName),
                                                          out);
         printWords(out, "return", getSlotExpression(slotName) + ";");
@@ -391,7 +395,14 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
     protected void generateRoleSlotMethodsMultOneHibernateFkGetter(String slotName, PrintWriter out) {
         // for now we can reuse generateGetter
-        generateGetter("", "get" + capitalize(slotName), slotName, PRIMARY_KEY_TYPE, out);
+        //generateGetter("", "get" + capitalize(slotName), slotName, PRIMARY_KEY_TYPE, out);
+        
+        newline(out);
+        printFinalMethod(out, "", PRIMARY_KEY_TYPE, "get" + capitalize(slotName));
+        startMethodBody(out);
+        //generateGetterBody(slotName, PRIMARY_KEY_TYPE, out);
+        printWords(out, "return", getSlotExpression(slotName) + ";");
+        endMethodBody(out);
     }
 
     // ideally, this would use generateSetter, but that method now takes the domain class for the

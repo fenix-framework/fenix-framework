@@ -25,6 +25,7 @@
     <modules>
         <module>parent</module>
         <module>project</module>
+        <module>data-access-patterns</module>
         <module>dml-compiler</module>
         <module>dml-maven-plugin</module>
         <module>core</module>
