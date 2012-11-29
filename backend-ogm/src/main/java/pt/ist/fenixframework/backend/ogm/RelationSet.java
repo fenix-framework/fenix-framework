@@ -5,10 +5,11 @@ import java.util.AbstractSet;
 import java.util.HashSet;
 import java.util.Set;
 
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationBaseSet;
 
-public class RelationSet<E1,E2> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
+public class RelationSet<E1 extends DomainObject,E2 extends DomainObject> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
     // /* when theSet is an hibernate's PersistentSet then we need another place to store elements...  This is it */
     // private Set<E2> addedObjects = new HashSet<E2>();
 

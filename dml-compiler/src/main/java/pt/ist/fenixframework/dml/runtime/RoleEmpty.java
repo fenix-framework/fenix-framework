@@ -1,11 +1,13 @@
 package pt.ist.fenixframework.dml.runtime;
 
+import pt.ist.fenixframework.DomainObject;
+
 /**
  * This class handles one side of a relation which is not navigable in
  * the other direction.
  */
 
-public class RoleEmpty<C1,C2> implements Role<C1,C2> {
+public class RoleEmpty<C1 extends DomainObject,C2 extends DomainObject> implements Role<C1,C2> {
     private Role<C2,C1> inverseRole;
 
     public RoleEmpty(Role<C2,C1> inverseRole) {

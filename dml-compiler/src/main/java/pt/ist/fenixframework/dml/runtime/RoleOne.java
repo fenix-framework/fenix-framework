@@ -1,12 +1,14 @@
 package pt.ist.fenixframework.dml.runtime;
 
+import pt.ist.fenixframework.DomainObject;
+
 /**
  * This class handles one side of a one-to-something relation: the
  * side that keeps the single reference corresponding to the
  * multiplicity one.
  */
 
-public abstract class RoleOne<C1,C2> implements Role<C1,C2> {
+public abstract class RoleOne<C1 extends DomainObject,C2 extends DomainObject> implements Role<C1,C2> {
     public void add(C1 o1, C2 o2, Relation<C1,C2> relation) {
         if (o1 != null) {
             C2 old2 = getValue(o1);

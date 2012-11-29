@@ -3,7 +3,9 @@ package pt.ist.fenixframework.dml.runtime;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-public class InverseRelation<C1,C2> implements Relation<C1,C2> {
+import pt.ist.fenixframework.DomainObject;
+
+public class InverseRelation<C1 extends DomainObject,C2 extends DomainObject> implements Relation<C1,C2> {
     private Relation<C2,C1> inverseRelation;
     //private LinkedList<InverseListener<C2,C1>> inverseListeners = null;
 

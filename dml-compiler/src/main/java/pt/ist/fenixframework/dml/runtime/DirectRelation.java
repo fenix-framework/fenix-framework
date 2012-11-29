@@ -2,7 +2,9 @@ package pt.ist.fenixframework.dml.runtime;
 
 import java.util.LinkedList;
 
-public class DirectRelation<C1,C2> implements Relation<C1,C2> {
+import pt.ist.fenixframework.DomainObject;
+
+public class DirectRelation<C1 extends DomainObject,C2 extends DomainObject> implements Relation<C1,C2> {
     private Relation<C2,C1> inverse = new InverseRelation<C2,C1>(this);
     
     private Role<C1,C2> firstRole;

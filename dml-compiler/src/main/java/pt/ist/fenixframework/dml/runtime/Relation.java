@@ -1,6 +1,8 @@
 package pt.ist.fenixframework.dml.runtime;
 
-public interface Relation<C1,C2> {
+import pt.ist.fenixframework.DomainObject;
+
+public interface Relation<C1 extends DomainObject,C2 extends DomainObject> {
     public void add(C1 o1, C2 o2);
     public void remove(C1 o1, C2 o2);
     public Relation<C2,C1> getInverseRelation();
