@@ -17,8 +17,8 @@ import pt.ist.fenixframework.FenixFramework;
  */
 public class DAPCodeGenerator extends DefaultCodeGenerator {
     
-    public static final String DAP_COMPILE_ARG = "pt.ist.dap";
-    public static final String DAP_COMPILE_ENABLE = "on";
+    public static final String DAP_ON_CONFIG_KEY = "ptIstDapEnable";
+    public static final String DAP_ON_CONFIG_VALUE = "true";
     private static boolean DAP_ENABLED = false;
     protected static DomainClass dC = null;
 
@@ -26,9 +26,9 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
         super(compArgs, domainModel);
         //System.out.println("\n\n__DAPCodeGenerator__\n\n");
         
-        String state = compArgs.getParams().get(DAP_COMPILE_ARG);
+        String state = compArgs.getParams().get(DAP_ON_CONFIG_KEY);
         
-        if (state != null) DAP_ENABLED = state.equals(DAP_COMPILE_ENABLE);
+        if (state != null) DAP_ENABLED = state.equalsIgnoreCase(DAP_ON_CONFIG_VALUE);
     }
 
     public static final String getGetterDAPStatement(DomainClass domainClass, String slotName, String typeName) {
@@ -233,5 +233,17 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
         generateSetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
         super.generateRelationRemoveMethodCall(role, otherArg, out);
     }
-    
+
+    @Override
+    protected void generateBackEndIdClassBody(PrintWriter out) {
+        if (DAP_ENABLED) {
+            // add parameter in static initializer block
+            newline(out);
+            newBlock(out);
+            print(out, "setParam(\"" + DAP_ON_CONFIG_KEY + "\", \"" + DAP_ON_CONFIG_VALUE + "\");");
+            closeBlock(out);
+        }
+        super.generateBackEndIdClassBody(out);
+    }
+
 }
