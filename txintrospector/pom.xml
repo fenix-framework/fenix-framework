@@ -10,14 +10,13 @@
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>fenix-framework-indexes</artifactId>
+    <artifactId>fenix-framework-txintrospector</artifactId>
     <packaging>jar</packaging>
 
-    <name>Fenix Framework Support for Indexes</name>
+    <name>Fenix Framework Support for TxIntrospector</name>
 
     <build>
         <plugins>
-            
             <plugin>
                 <groupId>pt.ist</groupId>
                 <artifactId>dml-maven-plugin</artifactId>
@@ -31,7 +30,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -55,19 +53,11 @@
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-adt-bplustree</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-core</artifactId>
         </dependency>
-	<dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-data-access-patterns</artifactId>
-        </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-txintrospector</artifactId>
+            <artifactId>fenix-framework-data-access-patterns</artifactId>
         </dependency>
     </dependencies>
 

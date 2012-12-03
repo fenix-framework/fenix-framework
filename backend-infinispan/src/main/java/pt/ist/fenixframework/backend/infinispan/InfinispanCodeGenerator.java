@@ -181,7 +181,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     protected void generateInfinispanSetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
+        generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
+        generateIndexationInSetter(domainClass, slot, out); // Indexes
 
+        onNewline(out);
         String slotName = slot.getName();
         String setterExpression;
 	if (findWrapperEntry(slot.getTypeName()) != null) { // then it is a primitive type
@@ -197,7 +200,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
             }
             setterExpression += ")";
         }
-	super.generateIndexationInSetter(domainClass, slot, out);
+
+
         print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName
               + "\", " + setterExpression + ");");
     }
