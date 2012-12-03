@@ -7,7 +7,7 @@
 	<groupId>dml</groupId>
 	<artifactId>dml</artifactId>
 	<name>Domain Model Language</name>
-	<version>1.1.2</version>
+	<version>1.2-SNAPSHOT</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -97,7 +97,7 @@
 		<dependency>
 			<groupId>pt.ist</groupId>
 			<artifactId>fenix-framework-project</artifactId>
-			<version>1.1.0</version>
+			<version>1.2-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
