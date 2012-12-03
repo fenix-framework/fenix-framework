@@ -66,8 +66,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
 
         generateInitInstance(domClass, out);
-        
-        generateDefaultConstructor(domClass.getBaseName(), out);
+
+        generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
         super.generateIndexMethods(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
@@ -76,9 +76,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateInitInstanceBody(DomainClass domClass, PrintWriter out) { }
 
-    protected void generateDefaultConstructor(String classname, PrintWriter out) {
-        printMethod(out, "public", "", classname);
+    protected void generateDefaultConstructor(DomainClass domClass, PrintWriter out) {
+        printMethod(out, "public", "", domClass.getBaseName());
         startMethodBody(out);
+        generateBaseClassConstructorsBody(domClass, out);
         endMethodBody(out);
     }
 

@@ -122,7 +122,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         generateRoleSlots(domClass.getRoleSlots(), out);
         generateInitInstance(domClass, out);
-        generateDefaultConstructor(domClass.getBaseName(), out);
+        generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
         generateIndexMethods(domClass, out);
@@ -139,9 +139,10 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         }
     }
 
-    protected void generateDefaultConstructor(String classname, PrintWriter out) {
-        printMethod(out, "public", "", classname);
+    protected void generateDefaultConstructor(DomainClass domClass, PrintWriter out) {
+        printMethod(out, "public", "", domClass.getBaseName());
         startMethodBody(out);
+        generateBaseClassConstructorsBody(domClass, out);
         endMethodBody(out);
     }
 
