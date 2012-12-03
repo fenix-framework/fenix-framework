@@ -501,6 +501,9 @@ public abstract class CodeGenerator {
             print(out, genericType);
             print(out, "(");
             print(out, getRoleHandlerName(role, false));
+            print(out, ", \"");
+            print(out, role.getRelation().getName());
+            print(out, "\"");
             println(out, ");");
             if (otherRole.getName() != null) {
                 print(out, "static");
