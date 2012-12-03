@@ -504,6 +504,7 @@ public abstract class CodeGenerator {
             print(out, ", \"");
             print(out, role.getRelation().getName());
             print(out, "\"");
+            generateDefaultRelationListeners(role, out);
             println(out, ");");
             if (otherRole.getName() != null) {
                 print(out, "static");
@@ -519,6 +520,10 @@ public abstract class CodeGenerator {
         } else {
             println(out, ";");
         }
+    }
+
+    protected void generateDefaultRelationListeners(Role role, PrintWriter out) {
+        // intentionally empty
     }
 
     protected String getRoleType(Role role) {

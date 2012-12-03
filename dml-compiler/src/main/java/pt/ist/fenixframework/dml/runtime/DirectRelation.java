@@ -17,6 +17,13 @@ public class DirectRelation<C1 extends DomainObject,C2 extends DomainObject> imp
         inverse = new InverseRelation<C2,C1>(this, name);
     }
 
+    public DirectRelation(Role<C1,C2> firstRole, String name, RelationListener<C1,C2> ... listeners) {
+        this(firstRole, name);
+        for (RelationListener<C1,C2> listener : listeners) {
+            addListener(listener);
+        }
+    }
+
     public void add(C1 o1, C2 o2) {
         if (listeners != null) {
             for (RelationListener<C1,C2> l : listeners) {
