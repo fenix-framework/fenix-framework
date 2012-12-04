@@ -1,5 +1,6 @@
 package pt.ist.fenixframework.core.adt.bplustree;
 
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
@@ -14,7 +15,13 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
  */
 public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
     /* Special last key */
-    private static class ComparableLastKey implements Comparable, Serializable {
+    private static final class ComparableLastKey implements Comparable, Serializable {
+        private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
+                protected Object readResolve() throws ObjectStreamException {
+                    return LAST_KEY;
+                }
+            };
+
         public int compareTo(Object c) {
             if (c == null) {
                 // because comparing the other way around would cause a NullPointerException
@@ -27,6 +34,13 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
             
         public String toString() {
             return "LAST_KEY";
+        }
+        
+        // This object's serialization is special.  We need to ensure that two deserializations of
+        // the same object will provide the same instance, so that we can compare using == in the
+        // ComparatorSupportingLastKey
+        protected Object writeReplace() throws ObjectStreamException {
+            return LAST_KEY_SERIALIZED_FORM;
         }
     }
     static final Comparable LAST_KEY = new ComparableLastKey();

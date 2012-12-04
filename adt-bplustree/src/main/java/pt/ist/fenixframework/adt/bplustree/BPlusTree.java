@@ -1,5 +1,6 @@
 package pt.ist.fenixframework.adt.bplustree;
 
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
@@ -18,7 +19,13 @@ import java.util.Set;
 public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements IBPlusTree<T> {
     
     /* Special last key */
-    private static class ComparableLastKey implements Comparable, Serializable {
+    private static final class ComparableLastKey implements Comparable, Serializable {
+        private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
+                protected Object readResolve() throws ObjectStreamException {
+                    return LAST_KEY;
+                }
+            };
+
         public int compareTo(Object c) {
             if (c == null) {
                 // because comparing the other way around would cause a NullPointerException
@@ -31,6 +38,13 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
             
         public String toString() {
             return "LAST_KEY";
+        }
+        
+        // This object's serialization is special.  We need to ensure that two deserializations of
+        // the same object will provide the same instance, so that we can compare using == in the
+        // ComparatorSupportingLastKey
+        protected Object writeReplace() throws ObjectStreamException {
+            return LAST_KEY_SERIALIZED_FORM;
         }
     }
     static final Comparable LAST_KEY = new ComparableLastKey();
@@ -103,7 +117,8 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
 	}
     }
 
-    /** Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key. */
+    /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
+     * contains no mapping for the key. */
     public T get(Comparable key) {
 	return ((AbstractNode<T>)this.getRoot()).get(key);
     }
