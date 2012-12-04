@@ -3,6 +3,7 @@ package pt.ist.fenixframework.dml.antTasks;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.tools.ant.BuildException;
@@ -145,7 +146,7 @@ public class DmlCompileTask extends Task {
 
 		compArgs = new CompilerArgs(getDestDirectoryFile(), destDirectoryBaseFile, getPackageName(), isGenerateFinals(),
                                             getCodeGeneratorClass(),
-                                            CompilerArgs.convertFilenamesToURLs(localDomainSpecFileNames), new ArrayList<URL>());
+                                            CompilerArgs.convertFilenamesToURLs(localDomainSpecFileNames), new ArrayList<URL>(), new HashMap<String,String>());
 
 		DmlCompiler.compile(compArgs);
 

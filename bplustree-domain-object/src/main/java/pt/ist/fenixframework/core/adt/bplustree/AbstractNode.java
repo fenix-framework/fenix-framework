@@ -77,27 +77,45 @@ public abstract class AbstractNode<T extends AbstractDomainObject> extends Abstr
     private static class TreeMapExternalization implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        private Comparable[] keyOids;
+        private byte[] serializedTreeMap;
 
-        TreeMapExternalization(TreeMap<Comparable,? extends AbstractDomainObject> treeMap) {
-            int size = treeMap.size();
-            this.keyOids = new Comparable[size];
-
-            int i = 0;
-            for (Map.Entry<Comparable,? extends AbstractDomainObject> entry : treeMap.entrySet()) {
-        	this.keyOids[i] = entry.getKey();
-        	i++;
-            }
+        TreeMapExternalization(TreeMap<Comparable,? extends Serializable> treeMap) {
+            this.serializedTreeMap = Externalization.externalizeSerializable(treeMap);
         }
 
         TreeMap toTreeMap() {
-            TreeMap treeMap = new TreeMap(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
-
-            for (int i = 0; i < this.keyOids.length; i++) {
-        	Comparable key = this.keyOids[i];
-        	treeMap.put(key, FenixFramework.getConfig().getBackEnd().fromOid(key));
-            }
-            return treeMap;
+            return (TreeMap)Externalization.internalizeSerializable(serializedTreeMap);
         }
     }
+
+    ///////////////////////////////////////////////////////////////////////
+    //  Buggy implementation because not all Comparables are OIDs.  In the InnerNode instances the
+    //  last is an instance of LAST_KEY.
+
+    // private static class TreeMapExternalization implements Serializable {
+    //     private static final long serialVersionUID = 1L;
+
+    //     private Comparable[] keyOids;
+
+    //     TreeMapExternalization(TreeMap<Comparable,? extends AbstractDomainObject> treeMap) {
+    //         int size = treeMap.size();
+    //         this.keyOids = new Comparable[size];
+
+    //         int i = 0;
+    //         for (Map.Entry<Comparable,? extends AbstractDomainObject> entry : treeMap.entrySet()) {
+    //     	this.keyOids[i] = entry.getKey();
+    //     	i++;
+    //         }
+    //     }
+
+    //     TreeMap toTreeMap() {
+    //         TreeMap treeMap = new TreeMap(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
+
+    //         for (int i = 0; i < this.keyOids.length; i++) {
+    //     	Comparable key = this.keyOids[i];
+    //     	treeMap.put(key, FenixFramework.getConfig().getBackEnd().fromOid(key));
+    //         }
+    //         return treeMap;
+    //     }
+    // }
 }

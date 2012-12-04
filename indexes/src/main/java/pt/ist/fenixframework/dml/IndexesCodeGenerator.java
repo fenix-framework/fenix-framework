@@ -19,7 +19,8 @@ import pt.ist.fenixframework.indexes.InitializerBPlusTree;
  * </ul>
  * @author nmld
  */
-public class IndexesCodeGenerator extends DefaultCodeGenerator {
+public class IndexesCodeGenerator extends DAPCodeGenerator {
+//public class IndexesCodeGenerator extends DefaultCodeGenerator {
 
     public static final String FENIX_FRAMEWORK_FULL_CLASS = FenixFramework.class.getName();
     /** Cannot refer directly to the BPlusTree.class because that would load the class into the VM, and thus load the base class.
@@ -44,7 +45,7 @@ public class IndexesCodeGenerator extends DefaultCodeGenerator {
         generateIndexationInSetter(domainClass, slot, out);
         super.generateSetterBody(domainClass, setterName, slot, out);
     }
-    
+
     protected void generateIndexationInSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
 	if (!slot.hasIndexedAnnotation()) {
 	    return;

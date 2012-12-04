@@ -35,4 +35,5 @@ public class MemCodeGenerator extends IndexesCodeGenerator {
     protected Class<? extends ContextFactory> getAtomicContextFactoryClass() {
         return DefaultContextFactory.class;
     }
+
 }

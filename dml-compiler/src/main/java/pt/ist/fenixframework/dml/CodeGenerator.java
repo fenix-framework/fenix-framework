@@ -1094,10 +1094,10 @@ public abstract class CodeGenerator {
     }
 
     protected void generateRelationGetter(Role role, String paramListType, PrintWriter out) {
-	generateRelationGetter("get" + capitalize(role.getName()), getSlotExpression(role.getName()), paramListType, out);
+	generateRelationGetter("get" + capitalize(role.getName()), getSlotExpression(role.getName()), role, paramListType, out);
     }
 
-    protected void generateRelationGetter(String getterName, String valueToReturn, String typeName, PrintWriter out) {
+    protected void generateRelationGetter(String getterName, String valueToReturn, Role role, String typeName, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", typeName, getterName);
 

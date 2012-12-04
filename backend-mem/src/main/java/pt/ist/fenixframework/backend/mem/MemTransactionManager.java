@@ -3,6 +3,7 @@ package pt.ist.fenixframework.backend.mem;
 import java.util.concurrent.Callable;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionManager;
 
@@ -21,6 +22,15 @@ public class MemTransactionManager implements TransactionManager {
 
     @Override
     public void rollback() {}
+
+    @Override
+    public <T> T withTransaction(CallableWithoutException<T> command) {
+        try {
+            return withTransaction((Callable<T>)command, null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {

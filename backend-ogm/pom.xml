@@ -45,6 +45,11 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${version.maven.jar-plugin}</version>
                 <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Dependencies>org.hibernate:main,org.hibernate:ogm,javax.persistence.api,javax.transaction.api,org.hibernate.validator,org.javassist</Dependencies>
+                        </manifestEntries>
+                    </archive>
                     <excludes>
                         <exclude>**/*_Base*</exclude>
                         <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>
@@ -77,10 +82,10 @@
             <groupId>javax.persistence</groupId>
             <artifactId>persistence-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-        </dependency>
+        <!-- <dependency> -->
+        <!--     <groupId>org.hibernate</groupId> -->
+        <!--     <artifactId>hibernate-entitymanager</artifactId> -->
+        <!-- </dependency> -->
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>

@@ -48,7 +48,7 @@ public interface TransactionManager {
      * @throws SystemException Thrown if the transaction manager encounters an unexpected error
      * condition.
      */
-    public javax.transaction.Transaction getTransaction() throws SystemException;
+    public Transaction getTransaction() throws SystemException;
 
     /**
      * Roll back the transaction associated with the current thread. When this method completes, the
@@ -67,6 +67,14 @@ public interface TransactionManager {
 
 
     // non-JTA API
+
+    /**
+     * Transactionally execute a command, possibly returning a result.  Implementations of this
+     * method normally invoke {@link #withTransaction(Callable<T>, Atomic)} with a default atomic
+     * behaviour.
+     * @param command The command to execute.
+     */
+    public <T> T withTransaction(CallableWithoutException<T> command);
 
     /**
      * Transactionally execute a command, possibly returning a result.  Implementations of this
