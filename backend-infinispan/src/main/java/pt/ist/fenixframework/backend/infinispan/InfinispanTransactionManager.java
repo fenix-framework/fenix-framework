@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.infinispan.CacheException;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.TransactionManager;
 
 public class InfinispanTransactionManager implements TransactionManager {
@@ -55,6 +56,15 @@ public class InfinispanTransactionManager implements TransactionManager {
     public void rollback() throws SystemException {
         logger.trace("Rollback transaction");
         delegateTxManager.rollback();
+    }
+
+    @Override
+    public <T> T withTransaction(CallableWithoutException<T> command) {
+        try {
+            return withTransaction(command, null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

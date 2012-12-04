@@ -26,6 +26,7 @@ import org.hibernate.service.jta.platform.spi.JtaPlatform;
 import org.infinispan.CacheException;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.util.Misc;
 
@@ -109,6 +110,15 @@ public class OgmTransactionManager implements TransactionManager {
         delegateTxManager.rollback();
 
         currentEntityManager.set(null);
+    }
+
+    @Override
+    public <T> T withTransaction(CallableWithoutException<T> command) {
+        try {
+            return withTransaction(command, null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

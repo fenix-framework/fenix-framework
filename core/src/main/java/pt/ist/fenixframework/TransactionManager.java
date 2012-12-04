@@ -74,6 +74,14 @@ public interface TransactionManager {
      * behaviour.
      * @param command The command to execute.
      */
+    public <T> T withTransaction(CallableWithoutException<T> command);
+
+    /**
+     * Transactionally execute a command, possibly returning a result.  Implementations of this
+     * method normally invoke {@link #withTransaction(Callable<T>, Atomic)} with a default atomic
+     * behaviour.
+     * @param command The command to execute.
+     */
     public <T> T withTransaction(Callable<T> command) throws Exception;
 
     /**
