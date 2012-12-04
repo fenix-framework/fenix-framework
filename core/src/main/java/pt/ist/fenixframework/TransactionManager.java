@@ -48,7 +48,7 @@ public interface TransactionManager {
      * @throws SystemException Thrown if the transaction manager encounters an unexpected error
      * condition.
      */
-    public javax.transaction.Transaction getTransaction() throws SystemException;
+    public Transaction getTransaction() throws SystemException;
 
     /**
      * Roll back the transaction associated with the current thread. When this method completes, the

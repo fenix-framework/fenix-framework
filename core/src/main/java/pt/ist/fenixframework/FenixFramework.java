@@ -114,11 +114,16 @@ public class FenixFramework {
 
     // private static Logger logger = null;
     static {
-        // System.out.println("ERROR?: " + logger.isErrorEnabled());
-        // System.out.println("WARN?: " + logger.isWarnEnabled());
-        // System.out.println("INFO?: " + logger.isInfoEnabled());
-        // System.out.println("DEBUG?: " + logger.isDebugEnabled());
-        // System.out.println("TRACE?: " + logger.isTraceEnabled());
+        // System.out.println("out.ERROR?: " + logger.isErrorEnabled());
+        // System.out.println("out.WARN?: " + logger.isWarnEnabled());
+        // System.out.println("out.INFO?: " + logger.isInfoEnabled());
+        // System.out.println("out.DEBUG?: " + logger.isDebugEnabled());
+        // System.out.println("out.TRACE?: " + logger.isTraceEnabled());
+        // System.err.println("err.ERROR?: " + logger.isErrorEnabled());
+        // System.err.println("err.WARN?: " + logger.isWarnEnabled());
+        // System.err.println("err.INFO?: " + logger.isInfoEnabled());
+        // System.err.println("err.DEBUG?: " + logger.isDebugEnabled());
+        // System.err.println("err.TRACE?: " + logger.isTraceEnabled());
         // logger.error("INIT FF");
         // logger.warn("INIT FF");
         // logger.info("INIT FF");
@@ -255,7 +260,12 @@ public class FenixFramework {
                 throw new ConfigError(ex);
             }
 
-            FenixFramework.config.initialize();
+            try {
+                FenixFramework.config.initialize();
+            } catch (RuntimeException e) {
+                logger.error("Could not initialize Fenix Framework", e);
+                throw e;
+            }
 	    // DataAccessPatterns.init(FenixFramework.config);
 	    initialized = true;
 	}

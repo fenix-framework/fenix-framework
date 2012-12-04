@@ -93,6 +93,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
             super.generateCode();
             ormGenerateNonBaseClasses(getDomainModel().getClasses());
             ormEndFile();
+            generatePersistenceXml();
         } catch (IOException ioe) {
             throw new Error("Can't open file " + file);
         } finally {
@@ -755,6 +756,87 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         //         this.ormRoleManyToMany.add(role);
         //     }
         // }
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Below are methods specific to the generation of the persistence.xml file
+    
+    protected void generatePersistenceXml() {
+        File file = new File(getBaseDirectoryFor("") + "/META-INF/persistence.xml");
+        file.getParentFile().mkdirs();
+
+        FileWriter fileWriter = null;
+        try {
+            fileWriter = new FileWriter(file);
+            PrintWriter persistenceWriter = new PrintWriter(fileWriter, true);
+            generatePersistenceFileContent(persistenceWriter);
+        } catch (IOException ioe) {
+            throw new Error("Can't open file " + file);
+        } finally {
+            if (fileWriter != null) {
+                try {
+                    fileWriter.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+    }
+
+    protected void generatePersistenceFileContent(PrintWriter out) {
+        StringBuilder text = new StringBuilder();
+        text.append("<persistence xmlns=\"http://java.sun.com/xml/ns/persistence\"\n");
+        text.append("             xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+        text.append("             xsi:schemaLocation=\"http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd\"\n");
+        text.append("             version=\"2.0\">\n");
+        text.append("\n");
+        text.append("    <persistence-unit name=\"fenixframework-persistence-unit\" transaction-type=\"JTA\">\n");
+        text.append("        <!-- Use Hibernate OGM provider: configuration will be transparent -->\n");
+        text.append("        <provider>org.hibernate.ogm.jpa.HibernateOgmPersistence</provider>\n");
+        text.append("\n");
+        text.append("        <!-- (even tought it's the default,) the next line is necessary.\n");
+        text.append("             Otherwise only the jar file containing this persistence.xml will\n");
+        text.append("             be scanned for orm.xml -->\n");
+        text.append("        <mapping-file>META-INF/orm.xml</mapping-file>\n");
+        text.append("\n");
+        text.append("        <!-- Provided by Scott Marlow -->\n");
+        text.append("        <!-- <jta-data-source>java:jboss/datasources/ExampleDS</jta-data-source> -->\n");
+        text.append("    \n");
+        text.append("        <properties>\n");
+        text.append("            <!-- Provided by Scott Marlow -->\n");
+        text.append("            <property name=\"jboss.as.jpa.classtransformer\" value=\"false\" />      \n");
+        text.append("            <property name=\"jboss.as.jpa.adapterModule\" value=\"org.jboss.as.jpa.hibernate:4\"/>\n");
+        text.append("\n");
+        text.append("\n");
+        text.append("            <!-- Added because JBoss startup complains with:\n");
+        text.append("\n");
+        text.append("                     org.hibernate.HibernateException: Connection cannot be null when 'hibernate.dialect' not set\n");
+        text.append("            -->\n");
+        text.append("            <property name=\"hibernate.dialect\" value=\"org.hibernate.ogm.dialect.NoopDialect\"/>\n");
+        text.append("\n");
+        text.append("\n");
+        text.append("            <!-- or any transaction manager lookup implementation you want in your environment -->\n");
+        text.append("            <!-- <property name=\"hibernate.transaction.jta.platform\"  -->\n");
+        text.append("            <!--           value=\"org.hibernate.service.jta.platform.internal.JBossStandAloneJtaPlatform\" /> -->\n");
+        text.append("\n");
+        text.append("            <!-- <property name=\"hibernate.cache.provider_class\" value=\"org.hibernate.cache.EhCacheProvider\" /> -->\n");
+        text.append("\n");
+        text.append("            <!-- <property name=\"hibernate.connection.datasource\" value=\"XPTO\" /> -->\n");
+        text.append("\n");
+        text.append("            <property name=\"hibernate.cache.use_second_level_cache\" value=\"false\" />\n");
+        text.append("\n");
+        text.append("            <!-- set to false to disable container managed JPA access to the\n");
+        text.append("                 persistence unit.  The default is true, which enables\n");
+        text.append("                 container managed JPA access to the persistence unit. -->\n");
+        text.append("            <property name=\"jboss.as.jpa.managed\" value=\"false\" />\n");
+        text.append("\n");
+        text.append("            <property name=\"hibernate.ejb.interceptor\" value=\"pt.ist.fenixframework.backend.ogm.AllocationInterceptor\" />\n");
+        text.append("            <!-- <property name=\"hibernate.ogm.infinispan.configuration_resourcename\" value=\"infinispanNoFile.xml\" /> -->\n");
+        text.append("            <!-- <property name=\"hibernate.cache.use_query_cache\" value=\"true\" /> -->\n");
+        text.append("        </properties>\n");
+        text.append("    </persistence-unit>\n");
+        text.append("</persistence>\n");
+        out.println(text.toString());
     }
 
 }

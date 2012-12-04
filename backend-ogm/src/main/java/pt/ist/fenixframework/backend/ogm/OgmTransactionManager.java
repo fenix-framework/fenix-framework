@@ -27,23 +27,28 @@ import org.infinispan.CacheException;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.TransactionManager;
+import pt.ist.fenixframework.util.Misc;
 
 public class OgmTransactionManager implements TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(OgmTransactionManager.class);
 
-    private javax.transaction.TransactionManager delegateTxManager;
-
-    EntityManagerFactory emf;
-
     private boolean booting = false;
+    private javax.transaction.TransactionManager delegateTxManager;
+    EntityManagerFactory emf;
 
     void setupTxManager(OgmConfig config) {
         booting = true;
+
+        if (logger.isTraceEnabled()) {
+            Misc.traceClassLoaderHierarchy(logger);
+        }
         HashMap properties = new HashMap();
         properties.put(AvailableSettings.INTERCEPTOR, AllocationInterceptor.class.getName());
         properties.put(InfinispanDatastoreProvider.INFINISPAN_CONFIGURATION_RESOURCENAME, config.getIspnConfigFile());
 
         emf = Persistence.createEntityManagerFactory("fenixframework-persistence-unit", properties);
+        logger.debug("Created EntityManagerFactory: " + emf);
+
         SessionFactoryImplementor sessionFactory =
             (SessionFactoryImplementor)((HibernateEntityManagerFactory)emf).getSessionFactory();
         delegateTxManager = sessionFactory.getServiceRegistry().getService(JtaPlatform.class).
