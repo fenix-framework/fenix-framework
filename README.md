@@ -50,7 +50,7 @@ pom.xml:
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-core</artifactId> <!-- or any other module -->
-            <version>2.0-SNAPSHOT</version>               <!-- or any other version -->
+            <version>2.0-cloudtm-SNAPSHOT</version>       <!-- or any other version -->
         </dependency>
     </dependencies>
     
