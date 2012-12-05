@@ -253,10 +253,8 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 	    creator.start();
 	    try {
 		creator.join();
-		if ((iterations % 10) == 0) {
-		    System.out.println("[DomainMetaClass] Number of initialized " + getDomainClass().getSimpleName()
-			    + " objects: " + iterations * MAX_NUMBER_OF_OBJECTS_TO_PROCESS);
-		}
+		System.out.println("[DomainMetaClass] Number of initialized " + getDomainClass().getSimpleName() + " objects: "
+			+ iterations * MAX_NUMBER_OF_OBJECTS_TO_PROCESS);
 		iterations++;
 	    } catch (InterruptedException e) {
 		e.printStackTrace();
@@ -312,7 +310,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 
 	String query = "select OID from " + tableName
 		+ ", FF$DOMAIN_CLASS_INFO where OID >> 32 = DOMAIN_CLASS_ID and DOMAIN_CLASS_NAME = '" + className
-		+ "' and OID_DOMAIN_META_OBJECT is null limit " + MAX_NUMBER_OF_OBJECTS_TO_PROCESS;
+		+ "' and OID_DOMAIN_META_OBJECT is null order by OID limit " + MAX_NUMBER_OF_OBJECTS_TO_PROCESS;
 
 	ArrayList<String> oids = new ArrayList<String>();
 	try {

@@ -24,7 +24,7 @@ import dml.DomainModel;
  * 
  * The initialize method is called during the initialization of the
  * {@link FenixFramework}. This method is responsible for the initialization of
- * the {@link DomainMetaClass}es, and the {@link DomainConsistencyPredicates}.
+ * the {@link DomainMetaClass}es, and the {@link DomainConsistencyPredicate}s.
  * It creates the persistent versions of new domain classes and predicates that
  * have been detected in the code, and deletes old ones that have been removed.
  * 
@@ -263,6 +263,10 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
 	    // Commits the current, and starts a new write transaction.
 	    Transaction.beginTransaction();
 	    metaClass.initExistingDomainObjects();
+
+	    if (hasSuperclassInDML(metaClass)) {
+		metaClass.initDomainMetaSuperclass(getDomainMetaSuperclassFromDML(metaClass));
+	    }
 
 	    // Because the initExistingDomainObjects method is split among several transactions,
 	    // the creation of the DomainMetaClass and its full initialization may not run atomically.
