@@ -2,7 +2,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>pt.ist</groupId>
@@ -14,7 +14,7 @@
         This module provides the common configuration for all modules.
     </description>
     <packaging>pom</packaging>
-    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -32,6 +32,7 @@
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
         <!-- <version.hibernate.ogm>4.0.0-SNAPSHOT</version.hibernate.ogm> -->
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
+        <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
         <version.infinispan>5.1.6.FINAL</version.infinispan>
         <!-- <version.infinispan>5.2.0-SNAPSHOT</version.infinispan> -->
         <version.jboss.logging>3.1.0.GA</version.jboss.logging>
@@ -165,6 +166,11 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-hibernate-search</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
                 <artifactId>fenix-framework-test</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -222,6 +228,11 @@
                 <groupId>org.hibernate.ogm</groupId>
                 <artifactId>hibernate-ogm-infinispan</artifactId>
                 <version>${version.hibernate.ogm.infinispan}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-search-engine</artifactId>
+                <version>${version.hibernate.search}</version>
             </dependency>
             <dependency>
                 <groupId>javax.transaction</groupId>
