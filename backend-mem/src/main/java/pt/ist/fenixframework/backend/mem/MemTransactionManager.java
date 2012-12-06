@@ -10,7 +10,7 @@ import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionManager;
 
-public class MemTransactionManager implements TransactionManager {
+public class MemTransactionManager extends TransactionManager {
 
     // Dummy transaction instance
     private static final Transaction TRANSACTION = new Transaction() {
@@ -24,31 +24,28 @@ public class MemTransactionManager implements TransactionManager {
     };
 
     @Override
-    public void begin() {}
+    public void backendBegin(boolean readOnly) {}
 
     @Override
-    public void begin(boolean readOnly) {}
+    public void backendCommit() {}
 
     @Override
-    public void commit() {}
+    public Transaction backendGetTransaction() { return TRANSACTION; }
 
     @Override
-    public Transaction getTransaction() { return TRANSACTION; }
+    public void backendRollback() {}
 
     @Override
-    public void rollback() {}
-
-    @Override
-    public <T> T withTransaction(CallableWithoutException<T> command) {
+    public <T> T backendWithTransaction(CallableWithoutException<T> command) {
         try {
-            return withTransaction((Callable<T>)command, null);
+            return withTransaction(command, null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public <T> T withTransaction(Callable<T> command) throws Exception {
+    public <T> T backendWithTransaction(Callable<T> command) throws Exception {
         return withTransaction(command, null);
     }
 
@@ -57,7 +54,7 @@ public class MemTransactionManager implements TransactionManager {
      * configuration.
      */
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
+    public <T> T backendWithTransaction(Callable<T> command, Atomic atomic) throws Exception {
         return command.call();
     }
 }
