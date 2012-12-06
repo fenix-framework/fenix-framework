@@ -284,11 +284,11 @@ public class FenixFramework {
         }
     }
 
-    public static Config getConfig() {
+    public static <T extends Config> T getConfig() {
         if (config == null) {
             throw new ConfigError(ConfigError.MISSING_CONFIG);
         }
-	return config;
+	return (T) config;
     }
 
     /**

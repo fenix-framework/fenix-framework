@@ -52,6 +52,8 @@
         <version.ojb>1.0.0</version.ojb>
         <version.rhq.helpers>3.0.4</version.rhq.helpers>
         <version.slf4j.api>1.7.2</version.slf4j.api>
+        <version.mysql.connector>5.1.20</version.mysql.connector>
+		<version.jfreechart>1.0.14</version.jfreechart>
     </properties>
 
     <!-- Building -->
@@ -246,6 +248,16 @@
                 <version>${version.junit}</version>
                 <scope>test</scope>
             </dependency>
+	        <dependency>
+	        	<groupId>mysql</groupId>
+	        	<artifactId>mysql-connector-java</artifactId>
+	        	<version>${version.mysql.connector}</version>
+	        </dependency>
+	        <dependency>
+	        	<groupId>org.jfree</groupId>
+	        	<artifactId>jfreechart</artifactId>
+	        	<version>${version.jfreechart}</version>
+	        </dependency>
         </dependencies>
     </dependencyManagement>
 
