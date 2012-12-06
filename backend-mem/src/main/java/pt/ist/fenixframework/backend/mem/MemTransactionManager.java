@@ -2,12 +2,27 @@ package pt.ist.fenixframework.backend.mem;
 
 import java.util.concurrent.Callable;
 
+import javax.transaction.*;
+import javax.transaction.xa.XAResource;
+
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionManager;
 
 public class MemTransactionManager implements TransactionManager {
+
+    // Dummy transaction instance
+    private static final Transaction TRANSACTION = new Transaction() {
+        @Override public void commit() { }
+        @Override public boolean delistResource(XAResource a, int b) { return false; }
+        @Override public boolean enlistResource(XAResource a) { return false; }
+        @Override public int getStatus() { return 0; }
+        @Override public void registerSynchronization(Synchronization a) { }
+        @Override public void rollback() { }
+        @Override public void setRollbackOnly() { }
+    };
+
     @Override
     public void begin() {}
 
@@ -18,7 +33,7 @@ public class MemTransactionManager implements TransactionManager {
     public void commit() {}
 
     @Override
-    public Transaction getTransaction() { return null; }
+    public Transaction getTransaction() { return TRANSACTION; }
 
     @Override
     public void rollback() {}
