@@ -100,7 +100,7 @@ public interface Transaction extends javax.transaction.Transaction {
         private TxLocal() { }
 
         // Transaction-local fields
-        private final TxStats txStats = new TxStats();
-        public TxStats getTxStats() { return txStats; }
+        private final TxStats txStats = TxStats.newInstance();
+        public TxStats getTxStats() { return TxStats.getInstance(txStats); }
     }
 }

@@ -4,10 +4,20 @@ import java.util.*;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.Transaction;
+import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationListener;
 
 public class TxStats implements TxIntrospector {
+
+    public static final String TXINTROSPECTOR_ON_CONFIG_KEY = "ptIstTxIntrospectorEnable";
+
+    private static final boolean enabled = checkEnabled();
+
+    private static boolean checkEnabled() {
+        String param = BackEndId.getBackEndId().getParam(TXINTROSPECTOR_ON_CONFIG_KEY);
+        return (param != null) && Boolean.parseBoolean(param);
+    }
 
     private static final boolean FILTER = Boolean.getBoolean("pt.ist.fenixframework.txintrospector.filter");
 
@@ -16,7 +26,19 @@ public class TxStats implements TxIntrospector {
     private final Map<RelationChangelog, RelationChangelog> relationsChangelog =
             new HashMap<RelationChangelog, RelationChangelog>();
 
-    public TxStats() { }
+    private TxStats() { }
+
+    public static TxStats newInstance() {
+        if (!enabled) return null;
+        return new TxStats();
+    }
+
+    public static TxStats getInstance(TxStats txStats) {
+        if (txStats == null) {
+            throw new RuntimeException("TxIntrospector is disabled, please enable it and rebuild your application");
+        }
+        return txStats;
+    }
 
     public void addNewObject(DomainObject object) {
         if (filter(object)) return;

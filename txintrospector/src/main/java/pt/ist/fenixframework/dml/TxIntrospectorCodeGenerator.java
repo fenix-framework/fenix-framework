@@ -6,13 +6,13 @@ import java.io.PrintWriter;
  * Code generator used for TxIntrospector information gathering.
  * Disabled by default. You can enable it by adding
  * <params>
- *     <pt.ist.fenixframework.txintrospector>on</pt.ist.fenixframework.txintrospector>
+ *     <ptIstTxIntrospectorEnable>true</ptIstTxIntrospectorEnable>
  * </params>
  * to the configuration section of the dml-maven-plugin plugin in your pom.xml.
  */
 public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
-    public static final String TXINTROSPECTOR_COMPILE_ARG = "pt.ist.fenixframework.txintrospector";
-    public static final String TXINTROSPECTOR_COMPILE_ENABLE = "on";
+    public static final String TXINTROSPECTOR_ON_CONFIG_KEY =
+        pt.ist.fenixframework.txintrospector.TxStats.TXINTROSPECTOR_ON_CONFIG_KEY;
 
     private static final String TXSTATS_FULL_CLASS =
         pt.ist.fenixframework.txintrospector.TxStats.class.getName();
@@ -23,8 +23,8 @@ public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
 
     public TxIntrospectorCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
-        String state = compArgs.getParams().get(TXINTROSPECTOR_COMPILE_ARG);
-        enabled = (state != null) && state.equalsIgnoreCase(TXINTROSPECTOR_COMPILE_ENABLE);
+        String param = compArgs.getParams().get(TXINTROSPECTOR_ON_CONFIG_KEY);
+        enabled = (param != null) && Boolean.parseBoolean(param);
     }
 
     @Override
@@ -60,5 +60,17 @@ public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
             onNewline(out);
             print(out, TX_STATS_INSTANCE + ".addModifiedObject(this);");
         }
+    }
+
+    @Override
+    protected void generateBackEndIdClassBody(PrintWriter out) {
+        if (enabled) {
+            // add parameter in static initializer block
+            newline(out);
+            newBlock(out);
+            print(out, "setParam(\"" + TXINTROSPECTOR_ON_CONFIG_KEY + "\", \"true\");");
+            closeBlock(out);
+        }
+        super.generateBackEndIdClassBody(out);
     }
 }
