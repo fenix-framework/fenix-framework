@@ -8,7 +8,7 @@ import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationListener;
 
-public class TxStats implements TxIntrospector {
+public class TxStats extends TxIntrospector {
 
     public static final String TXINTROSPECTOR_ON_CONFIG_KEY = "ptIstTxIntrospectorEnable";
 

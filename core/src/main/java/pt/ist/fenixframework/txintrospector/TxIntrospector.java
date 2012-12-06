@@ -3,45 +3,49 @@ package pt.ist.fenixframework.txintrospector;
 import java.util.Collection;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.Transaction;
 
-public interface TxIntrospector {
+/**
+ * The TxIntrospector class allows access to internal details from transactions executed in the system.
+ */
+public abstract class TxIntrospector {
     /**
      * Returns a Collection containing new objects created during this transaction.
      * @return Collection of new objects
      */
-    public Collection<DomainObject> getNewObjects();
+    public abstract Collection<DomainObject> getNewObjects();
 
     /**
      * Returns a Collection containing objects which had any of their slots modified, excluding those that
      * only had relationship changes.
      * @return Collection of directly modified objects
      */
-    public Collection<DomainObject> getDirectlyModifiedObjects();
+    public abstract Collection<DomainObject> getDirectlyModifiedObjects();
 
     /**
      * Returns a Collection containing both objects which had any of their slots modified and those that
      * had relationship changes.
      * @return Collection of modified objects
      */
-    public Collection<DomainObject> getModifiedObjects();
+    public abstract Collection<DomainObject> getModifiedObjects();
 
     /**
      * Returns the read-set of this transaction.
      * @return Read-set of the this transaction
      */
-    public Collection<Entry> getReadSetLog();
+    public abstract Collection<Entry> getReadSetLog();
 
     /**
      * Returns the write-set of this transaction.
      * @return Write-set of the this transaction
      */
-    public Collection<Entry> getWriteSetLog();
+    public abstract Collection<Entry> getWriteSetLog();
 
     /**
      * Returns a Collection containing the relations changed during this transaction.
      * @return Collection of relation changes
      */
-    public Collection<RelationChangelog> getRelationsChangelog();
+    public abstract Collection<RelationChangelog> getRelationsChangelog();
 
     /**
      * Used to represent a read or write-set entry.
@@ -96,5 +100,19 @@ public interface TxIntrospector {
             return "Relation '" + relation + "' " + first + "---" + second + " (" +
                     (remove ? "removed)" : "changed)");
         }
+    }
+
+    /**
+     * Returns the TxIntrospector instance for the current active transaction.
+     */
+    public static TxIntrospector getTxIntrospector() {
+        return Transaction.TxLocal.getTxLocal().getTxStats();
+    }
+
+    /**
+     * Returns the TxIntrospector instance for the given transaction.
+     */
+    public static TxIntrospector getTxIntrospector(javax.transaction.Transaction transaction) {
+        return Transaction.TxLocal.getTxLocal(transaction).getTxStats();
     }
 }
