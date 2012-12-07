@@ -47,11 +47,11 @@ public class TxNumber {
         return false;
     }
 
-    public static long externalize(TxNumber num) {
-        if (num.number == null) {
-            num.number = Long.valueOf(Transaction.current().getNumber());
+    public long externalize() {
+        if (number == null) {
+            number = Long.valueOf(Transaction.current().getNumber());
         }
-        return num.number;
+        return number;
     }
         
     public static TxNumber internalize(long value) {
