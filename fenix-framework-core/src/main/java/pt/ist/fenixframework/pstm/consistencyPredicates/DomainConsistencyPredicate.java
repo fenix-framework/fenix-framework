@@ -160,6 +160,8 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
 		// Because this method checks for repeated OwnDependenceRecords of each meta object being checked, there is no problem with
 		// processing only an incomplete part of the objects of the given class.
 		Transaction.beginTransaction();
+		System.out.println("[DomainConsistencyPredicate] Transaction finished. Number of process"
+			+ metaClass.getDomainClass().getSimpleName() + "objects: " + count);
 	    }
 	    
 	    // The predicate was already checked during a previous incomplete initialization of this DomainConsistencyPredicate

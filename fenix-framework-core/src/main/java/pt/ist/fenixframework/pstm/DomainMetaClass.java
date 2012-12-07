@@ -248,13 +248,16 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 	// Because the JDBC query only returns objects that have no DomainMetaObjects, there is no problem with
 	// processing only an incomplete part of the objects of this class.
 	int iterations = 1;
-	while (!getExistingOIDsWithoutMetaObject(getDomainClass()).isEmpty()) {
+	while (true) {
 	    MetaDomainObjectCreator creator = new MetaDomainObjectCreator();
 	    creator.start();
 	    try {
 		creator.join();
-		System.out.println("[DomainMetaClass] Number of initialized " + getDomainClass().getSimpleName() + " objects: "
-			+ iterations * MAX_NUMBER_OF_OBJECTS_TO_PROCESS);
+		if (creator.isAllDone()) {
+		    break;
+		}
+		System.out.println("[DomainMetaClass] Thread finished. Number of initialized " + getDomainClass().getSimpleName()
+			+ " objects: " + iterations * MAX_NUMBER_OF_OBJECTS_TO_PROCESS);
 		iterations++;
 	    } catch (InterruptedException e) {
 		e.printStackTrace();
@@ -264,13 +267,28 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     private class MetaDomainObjectCreator extends Thread {
+
+	private boolean allDone = false;
+
+	public boolean isAllDone() {
+	    return allDone;
+	}
+
+	public void setAllDone(boolean allDone) {
+	    this.allDone = allDone;
+	}
+
 	@Override
 	public void run() {
 	    Transaction.withTransaction(false, new TransactionalCommand() {
 	        @Override
 	        public void doIt() {
 	            AbstractDomainObject existingDO = null;
-		    for (String oid : getExistingOIDsWithoutMetaObject(getDomainClass())) {
+		    List<String> oids = getExistingOIDsWithoutMetaObject(getDomainClass());
+		    if (oids.size() < MAX_NUMBER_OF_OBJECTS_TO_PROCESS) {
+			setAllDone(true);
+		    }
+		    for (String oid : oids) {
 			try {
 			    existingDO = (AbstractDomainObject) AbstractDomainObject.fromOID(Long.valueOf(oid));
 			} catch (Exception ex) {
