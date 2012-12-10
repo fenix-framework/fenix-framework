@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.backend.fenixjvstm;
+package pt.ist.fenixframework.backend.jvstmojb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,15 +9,15 @@ import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
-public class FenixJvstmBackEnd implements BackEnd {
-    private static final Logger logger = LoggerFactory.getLogger(FenixJvstmBackEnd.class);
+public class JvstmOJBBackEnd implements BackEnd {
+    private static final Logger logger = LoggerFactory.getLogger(JvstmOJBBackEnd.class);
 
-    private static final String BACKEND_NAME = "fenixjvstm";
+    private static final String BACKEND_NAME = "jvstm-ojb";
 
     private final TransactionManager transactionManager;
 
-    public FenixJvstmBackEnd() {
-	transactionManager = new FenixJvstmTransactionManager();
+    public JvstmOJBBackEnd() {
+	transactionManager = new JvstmOJBTransactionManager();
     }
 
     @Override

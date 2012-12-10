@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.backend.fenixjvstm;
+package pt.ist.fenixframework.backend.jvstmojb;
 
 import java.util.concurrent.Callable;
 
@@ -12,7 +12,7 @@ import javax.transaction.Transaction;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.TransactionManager;
 
-public class FenixJvstmTransactionManager implements TransactionManager {
+public class JvstmOJBTransactionManager implements TransactionManager {
 
     @Override
     public void begin() throws NotSupportedException, SystemException {

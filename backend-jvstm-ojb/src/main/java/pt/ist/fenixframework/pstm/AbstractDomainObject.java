@@ -10,7 +10,7 @@ import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.backend.fenixjvstm.FenixJvstmConfig;
+import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 
 public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
@@ -156,7 +156,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     }
 
     protected void handleAttemptToDeleteConnectedObject() {
-	if (FenixFramework.<FenixJvstmConfig> getConfig().isErrorfIfDeletingObjectNotDisconnected()) {
+	if (FenixFramework.<JvstmOJBConfig> getConfig().isErrorfIfDeletingObjectNotDisconnected()) {
 	    throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this);
 	} else {
 	    System.out.println("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this);

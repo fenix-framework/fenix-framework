@@ -23,7 +23,7 @@ import org.apache.ojb.broker.util.ObjectModificationDefaultImpl;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.backend.fenixjvstm.FenixJvstmConfig;
+import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 
 class DBChanges {
     private static final String SQL_CHANGE_LOGS_CMD_PREFIX = "INSERT INTO FF$TX_CHANGE_LOGS VALUES ";
@@ -142,7 +142,7 @@ class DBChanges {
     private void removeFromDeleted(DomainObject obj) {
 	if (objsToDelete != null) {
 	    if (objsToDelete.remove(obj)) {
-		if (FenixFramework.<FenixJvstmConfig>getConfig().isErrorIfChangingDeletedObject()) {
+		if (FenixFramework.<JvstmOJBConfig>getConfig().isErrorIfChangingDeletedObject()) {
 		    throw new Error("Changing object after it was deleted: " + obj);
 		} else {
 		    System.err.println("WARNING: Changing object after it was deleted: " + obj);

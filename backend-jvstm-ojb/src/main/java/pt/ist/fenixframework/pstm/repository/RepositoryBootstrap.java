@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.backend.fenixjvstm.FenixJvstmConfig;
+import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 
 /**
  * This class is used when the fenix-framework starts up. It is responsible for
@@ -26,9 +26,9 @@ import pt.ist.fenixframework.backend.fenixjvstm.FenixJvstmConfig;
  */
 public class RepositoryBootstrap {
 
-    final FenixJvstmConfig config;
+    final JvstmOJBConfig config;
 
-    public RepositoryBootstrap(FenixJvstmConfig config) {
+    public RepositoryBootstrap(JvstmOJBConfig config) {
 	this.config = config;
     }
 
