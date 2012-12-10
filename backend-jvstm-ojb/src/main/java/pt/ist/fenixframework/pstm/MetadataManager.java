@@ -6,7 +6,7 @@ import org.apache.ojb.broker.metadata.SequenceDescriptor;
 import org.apache.ojb.broker.util.configuration.impl.OjbConfiguration;
 
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.backend.fenixjvstm.FenixJvstmConfig;
+import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 
 public class MetadataManager {
 
@@ -14,7 +14,7 @@ public class MetadataManager {
 
     private org.apache.ojb.broker.metadata.MetadataManager ojbMetadataManager;
 
-    private MetadataManager(final FenixJvstmConfig config) {
+    private MetadataManager(final JvstmOJBConfig config) {
 	try {
 	    // create the OJB's MetadataManager, but use the correct
 	    // OJB.properties file
@@ -35,7 +35,7 @@ public class MetadataManager {
 	}
     }
 
-    public static void init(final FenixJvstmConfig config) {
+    public static void init(final JvstmOJBConfig config) {
 	synchronized (MetadataManager.class) {
 	    if (instance == null) {
 		instance = new MetadataManager(config);
@@ -47,7 +47,7 @@ public class MetadataManager {
 	return instance != null ? instance.ojbMetadataManager : null;
     }
 
-    public static JdbcConnectionDescriptor makeJdbcDescriptor(FenixJvstmConfig config) {
+    public static JdbcConnectionDescriptor makeJdbcDescriptor(JvstmOJBConfig config) {
 	JdbcConnectionDescriptor jcd = new JdbcConnectionDescriptor();
 	jcd.setJcdAlias("OJB/repository.xml");
 	jcd.setDefaultConnection(true);

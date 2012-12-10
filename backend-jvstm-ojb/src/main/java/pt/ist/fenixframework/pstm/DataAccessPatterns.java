@@ -8,7 +8,7 @@ import pt.ist.dap.structure.PClass;
 import pt.ist.dap.structure.PField;
 import pt.ist.dap.structure.StructureManager;
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.backend.fenixjvstm.FenixJvstmConfig;
+import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.Role;
@@ -20,7 +20,7 @@ public class DataAccessPatterns {
 
     private static boolean COLLECT_DATA = false;
 
-    public static void init(FenixJvstmConfig config) {
+    public static void init(JvstmOJBConfig config) {
 	if (config.getCollectDataAccessPatterns()) {
 	    try {
 		COLLECT_DATA = true;

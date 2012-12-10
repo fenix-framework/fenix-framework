@@ -23,7 +23,7 @@ import org.apache.ojb.broker.metadata.CollectionDescriptor;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.backend.fenixjvstm.FenixJvstmConfig;
+import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.DomainRelation;
 import pt.ist.fenixframework.dml.Role;
@@ -32,7 +32,7 @@ import pt.ist.fenixframework.pstm.repository.database.DatabaseDescriptorFactory;
 public class SQLUpdateGenerator {
     public static String generateSqlUpdates(final URL[] modelUrls, final String db, final String dbUser, final String dbPass,
 	    String charset, boolean genDrops) throws SQLException, LookupException {
-	FenixFramework.initialize(new FenixJvstmConfig() {
+	FenixFramework.initialize(new JvstmOJBConfig() {
 	    {
 		domainModelURLs = modelUrls;
 		dbAlias = db;

@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.backend.fenixjvstm;
+package pt.ist.fenixframework.backend.jvstmojb;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -70,7 +70,7 @@ import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
  * <li>dbPassword</li>
  * </ul>
  */
-public class FenixJvstmConfig extends Config {
+public class JvstmOJBConfig extends Config {
     protected final BackEnd backEnd;
 
     /**
@@ -150,8 +150,8 @@ public class FenixJvstmConfig extends Config {
      */
     protected boolean errorfIfDeletingObjectNotDisconnected = false;
 
-    public FenixJvstmConfig() {
-	this.backEnd = new FenixJvstmBackEnd();
+    public JvstmOJBConfig() {
+	this.backEnd = new JvstmOJBBackEnd();
     }
 
     @Override
