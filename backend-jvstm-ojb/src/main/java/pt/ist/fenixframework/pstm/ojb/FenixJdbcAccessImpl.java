@@ -12,6 +12,7 @@ import org.apache.ojb.broker.accesslayer.JdbcAccessImpl;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.util.logging.Logger;
 
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.Transaction;
 
@@ -92,7 +93,7 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
             long objectOid = rs.getLong("OID");
             if (objectOid != 0) {
                 // if it is, then we may get the object by its OID and skip all the old stuff
-                AbstractDomainObject materializedObject = AbstractDomainObject.fromOID(objectOid);
+                AbstractDomainObject materializedObject = FenixFramework.getConfig().getBackEnd().fromOid(objectOid);
                 materializedObject.readFromResultSet(rs);
                 return materializedObject;
             }

@@ -24,6 +24,7 @@ import org.apache.ojb.broker.util.ObjectModificationDefaultImpl;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
+import pt.ist.fenixframework.core.SharedIdentityMap;
 
 class DBChanges {
     private static final String SQL_CHANGE_LOGS_CMD_PREFIX = "INSERT INTO FF$TX_CHANGE_LOGS VALUES ";
@@ -162,11 +163,9 @@ class DBChanges {
     }
 
     void cache() {
-	FenixCache cache = Transaction.getCache();
-
 	if (newObjs != null) {
 	    for (AbstractDomainObject obj : newObjs) {
-		cache.cache(obj);
+		SharedIdentityMap.getCache().cache(obj);
 	    }
 	}
     }

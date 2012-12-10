@@ -4,10 +4,10 @@ import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.FenixFramework;
 
 public abstract class Transaction extends jvstm.Transaction {
     public final static TransactionStatistics STATISTICS = new TransactionStatistics();
-    private final static FenixCache cache = new FenixCache();
 
     static {
 	try {
@@ -123,11 +123,6 @@ public abstract class Transaction extends jvstm.Transaction {
 	return (oid == null) ? null : currentFenixTransaction().readDomainObject(classname, oid);
     }
 
-    @Deprecated
-    public static <T extends AbstractDomainObject> T getObjectForOID(long oid) {
-	return AbstractDomainObject.<T> fromOID(oid);
-    }
-
     public static void logAttrChange(AbstractDomainObject obj, String attrName) {
 	currentDBChanges().logAttrChange(obj, attrName);
     }
@@ -179,10 +174,6 @@ public abstract class Transaction extends jvstm.Transaction {
 	} catch (org.apache.ojb.broker.accesslayer.LookupException le) {
 	    throw new Error("Couldn't find a JDBC connection");
 	}
-    }
-
-    public static FenixCache getCache() {
-	return cache;
     }
 
     public static void withTransaction(jvstm.TransactionalCommand command) {

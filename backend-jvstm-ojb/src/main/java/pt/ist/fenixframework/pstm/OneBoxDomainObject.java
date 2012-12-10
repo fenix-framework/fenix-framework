@@ -5,6 +5,7 @@ import java.io.Serializable;
 
 import jvstm.util.Cons;
 import jvstm.util.Pair;
+import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.dml.runtime.Relation;
 
 /**

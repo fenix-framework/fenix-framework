@@ -1,35 +1,31 @@
 package org.apache.ojb.broker.core;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import java.util.Iterator;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.ojb.broker.Identity;
 import org.apache.ojb.broker.ManageableCollection;
 import org.apache.ojb.broker.PBKey;
 import org.apache.ojb.broker.PersistenceBrokerException;
+import org.apache.ojb.broker.accesslayer.ChainingIterator;
 import org.apache.ojb.broker.accesslayer.JdbcAccess;
 import org.apache.ojb.broker.accesslayer.OJBIterator;
 import org.apache.ojb.broker.accesslayer.PagingIterator;
 import org.apache.ojb.broker.accesslayer.RsIterator;
 import org.apache.ojb.broker.accesslayer.RsQueryObject;
-import org.apache.ojb.broker.accesslayer.ChainingIterator;
+import org.apache.ojb.broker.metadata.ClassDescriptor;
+import org.apache.ojb.broker.metadata.CollectionDescriptor;
+import org.apache.ojb.broker.metadata.FieldDescriptor;
 import org.apache.ojb.broker.query.Criteria;
 import org.apache.ojb.broker.query.Query;
 import org.apache.ojb.broker.query.QueryBySQL;
 import org.apache.ojb.broker.query.QueryFactory;
-import org.apache.ojb.broker.metadata.ClassDescriptor;
-import org.apache.ojb.broker.metadata.CollectionDescriptor;
-import org.apache.ojb.broker.metadata.FieldDescriptor;
-import org.apache.ojb.broker.metadata.ObjectReferenceDescriptor;
-import org.apache.ojb.broker.util.ClassHelper;
 
-import pt.ist.fenixframework.pstm.ojb.FenixJdbcAccessImpl;
+import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.pstm.AbstractDomainObject;
-import pt.ist.fenixframework.pstm.DomainObjectAllocator;
+import pt.ist.fenixframework.pstm.ojb.FenixJdbcAccessImpl;
 
 
 public class FenixPersistenceBroker extends PersistenceBrokerImpl {

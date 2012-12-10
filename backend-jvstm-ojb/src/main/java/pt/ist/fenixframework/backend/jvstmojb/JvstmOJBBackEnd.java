@@ -7,7 +7,10 @@ import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
+import pt.ist.fenixframework.core.AbstractDomainObject;
+import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
+import pt.ist.fenixframework.pstm.DomainClassInfo;
 
 public class JvstmOJBBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(JvstmOJBBackEnd.class);
@@ -25,7 +28,15 @@ public class JvstmOJBBackEnd implements BackEnd {
 	if (logger.isTraceEnabled()) {
 	    logger.trace("fromOid(" + oid + ")");
 	}
-	return (T) SharedIdentityMap.getCache().lookup(oid);
+
+	AbstractDomainObject obj = SharedIdentityMap.getCache().lookup(oid);
+
+	if (obj == null) {
+	    obj = DomainObjectAllocator.allocateObject(DomainClassInfo.mapOidToClass(((Long) oid).longValue()), oid);
+	    obj = SharedIdentityMap.getCache().cache(obj);
+	}
+
+	return (T) obj;
     }
 
     @Override

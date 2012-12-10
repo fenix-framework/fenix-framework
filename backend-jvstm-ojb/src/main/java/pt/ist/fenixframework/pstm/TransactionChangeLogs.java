@@ -24,6 +24,7 @@ import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.DescriptorRepository;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.FenixFramework;
 
 public class TransactionChangeLogs {
 
@@ -230,7 +231,7 @@ public class TransactionChangeLogs {
                     // doesn't represent a real change (see the
                     // comment on the DbChanges.writeAttrChangeLogs
                     // method)
-                    AbstractDomainObject obj = AbstractDomainObject.fromOID(oid);
+                    AbstractDomainObject obj = FenixFramework.getConfig().getBackEnd().fromOid(oid);
                     alienTx.register(obj, attr);
                 }
 

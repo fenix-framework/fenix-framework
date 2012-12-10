@@ -12,6 +12,8 @@ import org.apache.ojb.broker.metadata.ClassDescriptor;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
+import pt.ist.fenixframework.core.DomainObjectAllocator;
+import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     // this should be final, but the ensureIdInternal method prevents it
@@ -36,7 +38,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
 	// this constructor exists only as part of the allocate-instance
 	// protocol
-	this.oid = oid.oid;
+	this.oid = ((Long) oid.oid).longValue();
     }
 
     public final Integer getIdInternal() {
@@ -52,7 +54,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 	    // find successive ids until one is available
 	    while (true) {
 		this.oid = DomainClassInfo.getNextOidFor(this.getClass());
-		Object cached = Transaction.getCache().cache(this);
+		Object cached = SharedIdentityMap.getCache().cache(this);
 		if (cached == this) {
 		    // break the loop once we got this instance cached
 		    return;
@@ -75,7 +77,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 	    while (true) {
 		Integer id = (Integer) broker.serviceSequenceManager().getUniqueValue(cld.getFieldDescriptorByName("idInternal"));
 		this.oid = cid + id;
-		Object cached = Transaction.getCache().cache(this);
+		Object cached = SharedIdentityMap.getCache().cache(this);
 		if (cached == this) {
 		    // break the loop once we got this instance cached
 		    return;
@@ -93,19 +95,6 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     private long get$oid() {
 	return getOid();
-    }
-
-    public static <T extends AbstractDomainObject> T fromOID(long oid) {
-	AbstractDomainObject obj = Transaction.getCache().lookup(oid);
-
-	if (obj == null) {
-	    obj = DomainObjectAllocator.allocateObject(oid);
-
-	    // cache object and return the canonical object
-	    obj = Transaction.getCache().cache(obj);
-	}
-
-	return (T) obj;
     }
 
     VersionedSubject getSlotNamed(String attrName) {
@@ -198,7 +187,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
 	Object readResolve() throws ObjectStreamException {
 	    long objOid = Long.parseLong(this.oid);
-	    return AbstractDomainObject.fromOID(objOid);
+	    return FenixFramework.getConfig().getBackEnd().fromOid(objOid);
 	}
     }
 
@@ -209,9 +198,8 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     public static <T extends AbstractDomainObject> T fromExternalId(String extId) {
 	if (extId == null) {
 	    return null;
-	} else {
-	    return AbstractDomainObject.<T> fromOID(Long.valueOf(extId));
 	}
+	return FenixFramework.getConfig().getBackEnd().fromOid(Long.valueOf(extId));
     }
 
     protected void doCheckDisconnectedAction(java.util.List<String> relationList) {

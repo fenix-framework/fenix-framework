@@ -8,6 +8,7 @@ import jvstm.util.Cons;
 import dml.runtime.FunctionalSet;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.FenixFramework;
 
 public class DOFunctionalSet<E extends AbstractDomainObject> extends FunctionalSet<E> implements Serializable {
     public static final DOFunctionalSet EMPTY = new DOFunctionalSet(0, Cons.empty());
@@ -51,7 +52,7 @@ public class DOFunctionalSet<E extends AbstractDomainObject> extends FunctionalS
 	Object readResolve() throws ObjectStreamException {
 	    FunctionalSet<DomainObject> set = DOFunctionalSet.EMPTY;
 	    for (int i = oids.length - 1; i >= 0; i--) { // this respects the original order, for whatever that is worth
- 		set = set.addUnique(Transaction.getObjectForOID(oids[i]));
+ 		set = set.addUnique(FenixFramework.getConfig().getBackEnd().fromOid(oids[i]));
 	    }
 	    return set;
 	}
