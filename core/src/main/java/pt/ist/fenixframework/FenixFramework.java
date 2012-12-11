@@ -330,6 +330,10 @@ public class FenixFramework {
     public static TransactionManager getTransactionManager() {
         return getConfig().getBackEnd().getTransactionManager();
     }
+    
+    public static Transaction getTransaction() {
+        return getTransactionManager().getTransaction();
+    }
 
     /**
      * Inform the framework components that the application intends to shutdown.  This allows for an
