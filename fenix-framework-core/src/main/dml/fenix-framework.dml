@@ -104,7 +104,6 @@ class consistencyPredicates.DomainConsistencyPredicate {
 	}
 	
 class consistencyPredicates.DomainDependenceRecord {
-	Boolean consistent;
 }
 
 class DomainMetaObject {

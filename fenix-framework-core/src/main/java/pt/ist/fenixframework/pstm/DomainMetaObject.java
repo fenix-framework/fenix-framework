@@ -96,6 +96,19 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
     }
 
     /**
+     * @return true if this object is consistent according to all its
+     *         {@link DomainConsistencyPredicate}s.
+     */
+    public boolean isConsistent() {
+	for (DomainDependenceRecord dependenceRecord : getOwnDependenceRecords()) {
+	    if (!dependenceRecord.isConsistent()) {
+		return false;
+	    }
+	}
+	return true;
+    }
+
+    /**
      * @return true if this <code>DomainMetaObject</code> has a
      *         {@link DomainDependenceRecord} for the
      *         {@link DomainConsistencyPredicate} passed as argument

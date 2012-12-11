@@ -55,29 +55,21 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
 
     /**
      * Sets this <code>DomainDependenceRecord</code> as being consistent, or
-     * inconsistent. Also updates the <code>inconsistentDependenceRecords</code>
+     * inconsistent by updating the <code>inconsistentDependenceRecords</code>
      * relation to the {@link DomainConsistencyPredicate}.<br>
      * This method should only be invoked after the execution of a consistency
      * predicate.
      */
-    @Override
     public void setConsistent(Boolean consistent) {
 	if (consistent) {
-	    if ((isConsistent() != null) && !isConsistent()) {
-		// Setting to consistent after being inconsistent
-		getDomainConsistencyPredicate().removeInconsistentDependenceRecords(this);
-	    }
+	    removeInconsistentPredicate();
 	} else {
-	    if ((isConsistent() == null) || isConsistent()) {
-		// Setting to inconsistent after being consistent, or for the first time
-		getDomainConsistencyPredicate().addInconsistentDependenceRecords(this);
-	    }
+	    setInconsistentPredicate(getDomainConsistencyPredicate());
 	}
-	super.setConsistent(consistent);
     }
 
     public Boolean isConsistent() {
-	return getConsistent();
+	return !hasInconsistentPredicate();
     }
 
     /**
