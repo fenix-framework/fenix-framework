@@ -39,7 +39,7 @@
         <version.jodatime>1.5.2</version.jodatime>
         <version.jpa>1.0</version.jpa>
         <version.jta>1.1</version.jta>
-        <version.junit>3.8.1</version.junit>
+        <version.junit>4.10</version.junit>
         <version.jvstm-fenix>1.0</version.jvstm-fenix>
         <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
         <version.maven.build-helper-plugin>1.7</version.maven.build-helper-plugin>
@@ -107,6 +107,8 @@
                                             <goals>
                                                 <goal>post-compile</goal>
                                                 <goal>generate-domain</goal>
+                                                <goal>test-post-compile</goal>
+                                                <goal>test-generate-domain</goal>
                                             </goals>
                                     </pluginExecutionFilter>
                                     <action>
@@ -195,8 +197,23 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-test</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-test-txintrospector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
+                <version>${version.slf4j.api}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
                 <version>${version.slf4j.api}</version>
             </dependency>
             <dependency>

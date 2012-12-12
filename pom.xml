@@ -36,6 +36,7 @@
     	<module>backend-mem</module>
         <module>backend-infinispan</module>
         <module>backend-ogm</module>
+        <module>test</module>
         <module>archetypes</module>
     </modules>
 
