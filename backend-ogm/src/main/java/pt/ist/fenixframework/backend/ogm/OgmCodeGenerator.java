@@ -129,13 +129,38 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
+    protected void generateInitInstanceMethodBody(DomainClass domClass, PrintWriter out) {
+        boolean firstInLoop = true;
+
+        for (Role role : domClass.getRoleSlotsList()) {
+            if (role.getName() != null) {
+                firstInLoop = generateInitRoleSlot(role, firstInLoop, out);
+            }
+        }
+        if (!firstInLoop) {
+            closeBlock(out);
+        }
+    }
+
+    protected boolean generateInitRoleSlot(Role role, boolean generateInitialTest, PrintWriter out) {
+        if (role.getMultiplicityUpper() != 1) {
+            if (generateInitialTest) {
+                generateInitialTest = false;
+                print(out, "if (!allocateOnly)");
+                newBlock(out);
+            }
+            generateInitRoleSlot(role, out);
+        }
+        return generateInitialTest;
+    }
+
+    @Override
     protected void generateInitRoleSlot(Role role, PrintWriter out) {
+        // create the B+Tree and initialize its foreign key slot
         if (role.getMultiplicityUpper() != 1) {
             onNewline(out);
-            print(out, role.getName());
-            print(out, " = ");
-            print(out, getNewRoleStarSlotExpressionWithEmptySet(role));
-            print(out, ";");
+            print(out, "this." + makeForeignKeyName(role.getName()) +
+                  " = new BPlusTree().getExternalId();");
         }
     }
 
@@ -324,16 +349,9 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
             printWords(out, "private", PRIMARY_KEY_TYPE, makeForeignKeyName(role.getName()) + ";");
             newline(out);
             printWords(out, "private", "transient", getTypeFullName(role.getType()), role.getName());
-            // ormGenerateRoleSlotMultOne(role);
         } else {
-            printWords(out, "private", "transient", getSetTypeDeclarationFor(role), role.getName());
-            // printWords(out, "=", getNewRoleStarSlotExpressionWithEmptySet(role));
-
-            // // // println(out, ";");
-            // // // onNewline(out);
-            // // // printWords(out, "private", getSetTypeDeclarationFor(role), addHibernateToSlotName(role.getName()));
-            // // // printWords(out, "=", "new", makeGenericType("java.util.HashSet", getTypeFullName(role.getType())) + "()");
-            // ormGenerateRoleSlotMultMany(role);
+            // USING B+TREE to MAP COLLECTIONS - slot is not really needed., only need B+Tree FK
+            printWords(out, "private", PRIMARY_KEY_TYPE, makeForeignKeyName(role.getName()));
         }
         println(out, ";");
     }
@@ -437,23 +455,28 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
         super.generateRoleSlotMethodsMultStar(role, out);
-
-        // String paramListType = makeGenericType("java.util.List", getTypeFullName(role.getType()));
-
-        // generateIteratorMethod(role, out);
-        generateRoleMultGetterSetter(role, out);
+        // generateRoleMultGetterSetter(role, out);
+        generateRoleSlotMethodsMultOneHibernateFK(role, out);
     }
 
-    // @Override
-    // protected void generateIteratorMethod(Role role, PrintWriter out) {
-    //     newline(out);
-    //     printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
-    //                      + capitalize(role.getName()) + "Iterator");
-    //     startMethodBody(out);
-    //     printWords(out, "return", getSlotExpression(role.getName()));
-    //     print(out, ".iterator();");
-    //     endMethodBody(out);
-    // }
+    @Override
+    protected void generateRelationGetter(String getterName, String valueToReturn, Role role,
+                                          String typeName, PrintWriter out) {
+	newline(out);
+	printFinalMethod(out, "public", typeName, getterName);
+
+	startMethodBody(out);
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
+        println(out, "BPlusTree internalSet = OgmBackEnd.getInstance().getDomainObject(" +
+                makeForeignKeyName(role.getName()) + ");");
+
+        print(out, "return new " + getRelationAwareBaseTypeFor(role) + "(this, " + getRelationSlotNameFor(role) + ", internalSet);");
+	endMethodBody(out);
+    }
+
+    protected void generateIteratorMethod(Role role, PrintWriter out) {
+	generateIteratorMethod(role, out, getRoleManyGetterExpression(role.getName()));
+    }
 
     protected void generateRoleMultGetterSetter(Role role, PrintWriter out) {
         generateRoleMultGetter(role, out);
@@ -487,6 +510,10 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected String getNewRoleStarSlotExpression(Role role) {
         return getNewRoleStarSlotExpressionWithBackingSet(role, role.getName());
+    }
+
+    protected String getRoleManyGetterExpression(String slotName) {
+        return "get" + capitalize(slotName) + "()";
     }
 
     protected String getNewRoleStarSlotExpressionWithEmptySet(Role role) {
@@ -584,13 +611,13 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
             ormGenerateRoleManyToOne(role);
         }
         for (Role role : this.ormRoleOneToMany) {
-            ormGenerateRoleOneToMany(role);
+            ormGenerateSlot(makeForeignKeyName(role.getName()));
         }
         // for (Role role : this.ormRoleOneToOne) {
         //     ormGenerateRoleOneToOne(role);
         // }
         for (Role role : this.ormRoleManyToMany) {
-            ormGenerateRoleManyToMany(role);
+            ormGenerateSlot(makeForeignKeyName(role.getName()));
         }
         for (String name : this.ormTransientSlots) {
             ormGenerateTransient(name);
@@ -625,37 +652,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         buf.append("\">");
         // buf.append(ormGetCascade());
         buf.append("</many-to-one>");
-        this.ormWriter.println(buf.toString());
-    }
-
-    protected void ormGenerateRoleOneToMany(Role role) {
-        StringBuilder buf = new StringBuilder();
-        buf.append("            <one-to-many name=\"");
-        buf.append(addHibernateToSlotName(role.getName()));
-        buf.append("\" target-entity=\"");
-        buf.append(getTypeFullName(role.getType()));
-        buf.append("\" access=\"PROPERTY\">");
-        buf.append("</one-to-many>");
-        this.ormWriter.println(buf.toString());
-    }
-
-    // protected void ormGenerateRoleOneToOne(Role role) {
-    //     StringBuilder buf = new StringBuilder();
-    //     buf.append("            <one-to-one fetch=\"LAZY\" name=\"");
-    //     buf.append(role.getName());
-    //     buf.append("\">");
-    //     // buf.append(ormGetCascade());
-    //     buf.append("</one-to-one>");
-    //     this.ormWriter.println(buf.toString());
-    // }
-
-    protected void ormGenerateRoleManyToMany(Role role) {
-        StringBuilder buf = new StringBuilder();
-        buf.append("            <many-to-many name=\"");
-        buf.append(addHibernateToSlotName(role.getName()));
-        buf.append("\" access=\"PROPERTY\">");
-        // buf.append(ormGetCascade());
-        buf.append("</many-to-many>");
         this.ormWriter.println(buf.toString());
     }
 
@@ -725,7 +721,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
             //     this.ormRoleManyToOne.add(role);
             // }
         } else {
-            this.ormTransientSlots.add(role.getName());
             if (otherRole.getMultiplicityUpper() == 1) {
                 this.ormRoleOneToMany.add(role);
             } else {
