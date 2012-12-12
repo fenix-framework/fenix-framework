@@ -74,7 +74,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateInitInstanceBody(DomainClass domClass, PrintWriter out) { }
+    protected void generateInitInstanceMethodBody(DomainClass domClass, PrintWriter out) { }
 
     protected void generateDefaultConstructor(String classname, PrintWriter out) {
         printMethod(out, "public", "", classname);
@@ -351,15 +351,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out) {
-        newline(out);
-        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
-                         + capitalize(role.getName()) + "Iterator");
-        startMethodBody(out);
-        
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
-        
-        printWords(out, "return get" + capitalize(role.getName()) + "().iterator();");
-        endMethodBody(out);
+	generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "()");
     }
 
     @Override
