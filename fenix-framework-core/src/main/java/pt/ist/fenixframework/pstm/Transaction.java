@@ -119,7 +119,6 @@ public abstract class Transaction extends jvstm.Transaction {
 
 	jvstm.Transaction.commit();
 
-	current.remove();
 	DEFAULT_READ_ONLY.remove();
     }
 
@@ -128,7 +127,6 @@ public abstract class Transaction extends jvstm.Transaction {
 
 	jvstm.Transaction.abort();
 
-	current.remove();
 	DEFAULT_READ_ONLY.remove();
     }
 
