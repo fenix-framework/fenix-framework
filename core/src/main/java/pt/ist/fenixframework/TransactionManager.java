@@ -1,5 +1,7 @@
 package pt.ist.fenixframework;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import javax.transaction.HeuristicMixedException;
@@ -12,12 +14,15 @@ import javax.transaction.Transaction;
 // import pt.ist.fenixframework.atomic.AtomicContext;
 
 /**
- * Fenix Framework's interface for all Transaction Managers.  This interface is similar to {@link
- * javax.transaction.TransactionManager}'s interface with some extensions added.
+ * Fenix Framework's abstract class for all Transaction Managers.  This class has an interface
+ * similar to {@link javax.transaction.TransactionManager}'s interface with some extensions added.
  *
  * @see javax.transaction
  */
-public interface TransactionManager {
+public abstract class TransactionManager {
+
+    private List<TransactionListener> listeners = null;
+
     /**
      * Create a new transaction and associate it with the current thread.
      *
@@ -26,7 +31,9 @@ public interface TransactionManager {
      * @throws SystemException Thrown if the transaction manager encounters an unexpected error
      * condition that prevents future transaction services from proceeding.
      */
-    public void begin() throws NotSupportedException, SystemException;
+    public final void begin() throws NotSupportedException, SystemException {
+        begin(false);
+    }
 
     /**
      * Complete the transaction associated with the current thread. When this method completes, the
@@ -39,8 +46,10 @@ public interface TransactionManager {
      * @throws HeuristicRollbackException Thrown to indicate that a heuristic decision was made and
      * that some relevant updates have been rolled back.
      */
-    public void commit() throws RollbackException, HeuristicMixedException,
-                                HeuristicRollbackException, SystemException;
+    public final void commit() throws RollbackException, HeuristicMixedException,
+                                HeuristicRollbackException, SystemException {
+        backendCommit();
+    }
 
     /**
      * Get the transaction object that represents the transaction context of the calling thread.
@@ -48,7 +57,10 @@ public interface TransactionManager {
      * @throws SystemException Thrown if the transaction manager encounters an unexpected error
      * condition.
      */
-    public Transaction getTransaction() throws SystemException;
+    public final Transaction getTransaction() throws SystemException {
+        Transaction tx = backendGetTransaction();
+        return tx;
+    }
 
     /**
      * Roll back the transaction associated with the current thread. When this method completes, the
@@ -57,7 +69,9 @@ public interface TransactionManager {
      * @throws SystemException Thrown if the transaction manager encounters an unexpected error
      * condition.
      */
-    public void rollback() throws SystemException;
+    public final void rollback() throws SystemException {
+        backendRollback();
+    }
 
     // public int getStatus();
     // public void resume(Transaction tobj);
@@ -74,7 +88,10 @@ public interface TransactionManager {
      * behaviour.
      * @param command The command to execute.
      */
-    public <T> T withTransaction(CallableWithoutException<T> command);
+    public final <T> T withTransaction(CallableWithoutException<T> command) {
+        T result = backendWithTransaction(command);
+        return result;
+    }
 
     /**
      * Transactionally execute a command, possibly returning a result.  Implementations of this
@@ -82,14 +99,20 @@ public interface TransactionManager {
      * behaviour.
      * @param command The command to execute.
      */
-    public <T> T withTransaction(Callable<T> command) throws Exception;
+    public final <T> T withTransaction(Callable<T> command) throws Exception {
+        T result = backendWithTransaction(command);
+        return result;
+    }
 
     /**
      * Transactionally execute a command, possibly returning a result.
      * @param command The command to execute
      * @param atomic the configuration for the execution of this command.
      */
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception;
+    public final <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
+        T result = backendWithTransaction(command, atomic);
+        return result;
+    }
 
     /**
      * Create a new transaction and associate it with the current thread.  This method can be used
@@ -105,6 +128,39 @@ public interface TransactionManager {
      * @throws SystemException Thrown if the transaction manager encounters an unexpected error
      * condition that prevents future transaction services from proceeding.
      */
-    public void begin(boolean readOnly) throws NotSupportedException, SystemException;
-    
+    public final void begin(boolean readOnly) throws NotSupportedException, SystemException {
+        if (listeners != null) {
+            for (TransactionListener listener : listeners) {
+                listener.notifyBeforeBegin();
+            }
+        }
+
+        backendBegin(readOnly);
+        Transaction tx = backendGetTransaction();
+        assert (tx != null);
+
+        if (listeners != null) {
+            for (TransactionListener listener : listeners) {
+                listener.notifyAfterBegin(tx);
+            }
+        }
+    }
+
+    // For listeners
+
+    public final void registerForBegin(TransactionListener listener) {
+        if (listeners == null) {
+            listeners = new ArrayList<TransactionListener>();
+        }
+        listeners.add(listener);
+    }
+
+    // Abstract
+    protected abstract void backendBegin(boolean readOnly) throws NotSupportedException, SystemException;
+    protected abstract void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException;
+    protected abstract Transaction backendGetTransaction() throws SystemException;
+    protected abstract void backendRollback() throws SystemException;
+    protected abstract <T> T backendWithTransaction(CallableWithoutException<T> command);
+    protected abstract <T> T backendWithTransaction(Callable<T> command) throws Exception;
+    protected abstract <T> T backendWithTransaction(Callable<T> command, Atomic atomic) throws Exception;
 }

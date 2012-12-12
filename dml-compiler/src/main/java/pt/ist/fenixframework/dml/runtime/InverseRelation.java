@@ -3,12 +3,16 @@ package pt.ist.fenixframework.dml.runtime;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-public class InverseRelation<C1,C2> implements Relation<C1,C2> {
+import pt.ist.fenixframework.DomainObject;
+
+public class InverseRelation<C1 extends DomainObject,C2 extends DomainObject> implements Relation<C1,C2> {
     private Relation<C2,C1> inverseRelation;
+    private final String name;
     //private LinkedList<InverseListener<C2,C1>> inverseListeners = null;
 
-    public InverseRelation(Relation<C2,C1> inverseRelation) {
+    public InverseRelation(Relation<C2,C1> inverseRelation, String name) {
         this.inverseRelation = inverseRelation;
+        this.name = name;
     }
 
     public void add(C1 o1, C2 o2) {
@@ -23,7 +27,11 @@ public class InverseRelation<C1,C2> implements Relation<C1,C2> {
         return inverseRelation;
     }
 
-    /* 
+    public String getName() {
+        return name;
+    }
+
+    /*
      * The following methods are commented out because, currently, we
      * can only add listeners to DirectRelations (a consequence of the
      * initialization order of classes)

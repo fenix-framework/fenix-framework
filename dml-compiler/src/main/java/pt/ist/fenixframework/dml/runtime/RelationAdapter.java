@@ -1,6 +1,8 @@
 package pt.ist.fenixframework.dml.runtime;
 
-public class RelationAdapter<C1,C2> implements RelationListener<C1,C2> {
+import pt.ist.fenixframework.DomainObject;
+
+public class RelationAdapter<C1 extends DomainObject,C2 extends DomainObject> implements RelationListener<C1,C2> {
     public void beforeAdd(Relation<C1,C2> rel, C1 o1, C2 o2) {
         beforeAdd(o1, o2);
     }

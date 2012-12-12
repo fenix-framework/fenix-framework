@@ -2,15 +2,26 @@ package pt.ist.fenixframework.dml.runtime;
 
 import java.util.LinkedList;
 
-public class DirectRelation<C1,C2> implements Relation<C1,C2> {
-    private Relation<C2,C1> inverse = new InverseRelation<C2,C1>(this);
-    
+import pt.ist.fenixframework.DomainObject;
+
+public class DirectRelation<C1 extends DomainObject,C2 extends DomainObject> implements Relation<C1,C2> {
+    private Relation<C2,C1> inverse;
     private Role<C1,C2> firstRole;
+    private final String name;
 
     private LinkedList<RelationListener<C1,C2>> listeners = null;
 
-    public DirectRelation(Role<C1,C2> firstRole) {
+    public DirectRelation(Role<C1,C2> firstRole, String name) {
         this.firstRole = firstRole;
+        this.name = name;
+        inverse = new InverseRelation<C2,C1>(this, name);
+    }
+
+    public DirectRelation(Role<C1,C2> firstRole, String name, RelationListener<C1,C2> ... listeners) {
+        this(firstRole, name);
+        for (RelationListener<C1,C2> listener : listeners) {
+            addListener(listener);
+        }
     }
 
     public void add(C1 o1, C2 o2) {
@@ -65,5 +76,9 @@ public class DirectRelation<C1,C2> implements Relation<C1,C2> {
 
     public void removeListener(RelationListener<C1,C2> listener) {
         getListeners().remove(listener);
+    }
+
+    public String getName() {
+        return name;
     }
 }

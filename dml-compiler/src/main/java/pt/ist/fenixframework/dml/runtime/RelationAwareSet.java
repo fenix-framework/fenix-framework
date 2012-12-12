@@ -5,7 +5,9 @@ import java.util.AbstractSet;
 import java.util.HashSet;
 import java.util.Set;
 
-public class RelationAwareSet<E1,E2> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
+import pt.ist.fenixframework.DomainObject;
+
+public class RelationAwareSet<E1 extends DomainObject,E2 extends DomainObject> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
     private Set<E2> set = new HashSet<E2>();
     private E1 owner;
     private Relation<E1,E2> relation;

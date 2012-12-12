@@ -501,6 +501,10 @@ public abstract class CodeGenerator {
             print(out, genericType);
             print(out, "(");
             print(out, getRoleHandlerName(role, false));
+            print(out, ", \"");
+            print(out, role.getRelation().getName());
+            print(out, "\"");
+            generateDefaultRelationListeners(role, out);
             println(out, ");");
             if (otherRole.getName() != null) {
                 print(out, "static");
@@ -516,6 +520,10 @@ public abstract class CodeGenerator {
         } else {
             println(out, ";");
         }
+    }
+
+    protected void generateDefaultRelationListeners(Role role, PrintWriter out) {
+        // intentionally empty
     }
 
     protected String getRoleType(Role role) {
@@ -643,32 +651,56 @@ public abstract class CodeGenerator {
         }
     }
 
+
+    /**
+     * The purpose of the initInstance method is to have the code needed to correctly initialize a
+     * domain object instance.  There are two cases:
+     *
+     * <ol>
+     * <li> When the instance is *really* new.
+     * <li> When the instance is being re-constructed from persistence (by the DomainObjectAllocator)
+     * </ol>
+     * 
+     * <p>In the first case the parameter 'allocateOnly' is false.  Tipically, we need to fully
+     * initialize the slots, e.g. create new lists, etc.  In the second case, the instance's
+     * attributes will be populated, so we should not create them anew.
+     *
+     * <p> This method is responsible for: generating the <code>initInstance(boolean)</code> method;
+     * generate the call to this method as an instance initializer with the parameter
+     * <code>allocateInstance = false</code>.
+     */
     protected void generateInitInstance(DomainClass domClass, PrintWriter out) {
-	// generate initInstance method to be used by OJB.  This is used in the PostProcessDomainClasses. Maybe we could disable it...
+	// generate initInstance method to be used by OJB.  This is used in the
+	// PostProcessDomainClasses. Maybe we could disable it..., or at least move it to a specific
+	// backend.
+        generateInitInstanceNoArg(domClass, out);
+
+        // generate initInstance method
+        generateInitInstanceMethod(domClass, out);
+
+        // add instance initializer block that calls the initInstance method
+        generateInitInstanceInitializer(domClass, out);
+    }
+
+    protected void generateInitInstanceNoArg(DomainClass domClass, PrintWriter out) {
 	onNewline(out);
 	newline(out);
 	printMethod(out, "private", "void", "initInstance");
 	startMethodBody(out);
 	print(out, "initInstance(true);");
 	endMethodBody(out);
+    }
 
-
-        // generate initInstance method
+    protected void generateInitInstanceMethod(DomainClass domClass, PrintWriter out) {
         onNewline(out);
         newline(out);
         printMethod(out, "private", "void", "initInstance", makeArg("boolean", "allocateOnly"));
         startMethodBody(out);
-        generateInitInstanceBody(domClass, out);
+        generateInitInstanceMethodBody(domClass, out);
         endMethodBody(out);
-
-        // add instance initializer block that calls the initInstance method
-        newline(out);
-        newBlock(out);
-        print(out, "initInstance(false);");
-        closeBlock(out);
     }
 
-    protected void generateInitInstanceBody(DomainClass domClass, PrintWriter out) {
+    protected void generateInitInstanceMethodBody(DomainClass domClass, PrintWriter out) {
         // for (Slot slot : domClass.getSlotsList()) {
         //     generateInitSlot(slot, out);
         // }
@@ -679,6 +711,13 @@ public abstract class CodeGenerator {
                 generateInitRoleSlot(role, out);
             }
         }
+    }
+
+    protected void generateInitInstanceInitializer(DomainClass domClass, PrintWriter out) {
+        newline(out);
+        newBlock(out);
+        print(out, "initInstance(false);");
+        closeBlock(out);
     }
 
 //     protected void generateInitSlot(Slot slot, PrintWriter out) {
@@ -936,8 +975,9 @@ public abstract class CodeGenerator {
 
         String typeName = getTypeFullName(role.getType());
         String slotName = role.getName();
-        String slotAccessExpression = getSlotExpression(slotName);
         String capitalizedSlotName = capitalize(slotName);
+        // String slotAccessExpression = getSlotExpression(slotName);
+        String slotAccessExpression = "get" + capitalizedSlotName + "()";
         String collectionType = getCollectionTypeFor(role);
 
         String posVar = (slotName.equals("index") ? "pos" : "index");

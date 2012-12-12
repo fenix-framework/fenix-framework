@@ -19,8 +19,7 @@ import pt.ist.fenixframework.indexes.InitializerBPlusTree;
  * </ul>
  * @author nmld
  */
-public class IndexesCodeGenerator extends DAPCodeGenerator {
-//public class IndexesCodeGenerator extends DefaultCodeGenerator {
+public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
 
     public static final String FENIX_FRAMEWORK_FULL_CLASS = FenixFramework.class.getName();
     /** Cannot refer directly to the BPlusTree.class because that would load the class into the VM, and thus load the base class.

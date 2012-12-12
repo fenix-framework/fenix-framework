@@ -2,38 +2,50 @@ package pt.ist.fenixframework.backend.mem;
 
 import java.util.concurrent.Callable;
 
+import javax.transaction.*;
+import javax.transaction.xa.XAResource;
+
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionManager;
 
-public class MemTransactionManager implements TransactionManager {
-    @Override
-    public void begin() {}
+public class MemTransactionManager extends TransactionManager {
+
+    // Dummy transaction instance
+    private static final Transaction TRANSACTION = new Transaction() {
+        @Override public void commit() { }
+        @Override public boolean delistResource(XAResource a, int b) { return false; }
+        @Override public boolean enlistResource(XAResource a) { return false; }
+        @Override public int getStatus() { return 0; }
+        @Override public void registerSynchronization(Synchronization a) { }
+        @Override public void rollback() { }
+        @Override public void setRollbackOnly() { }
+    };
 
     @Override
-    public void begin(boolean readOnly) {}
+    public void backendBegin(boolean readOnly) {}
 
     @Override
-    public void commit() {}
+    public void backendCommit() {}
 
     @Override
-    public Transaction getTransaction() { return null; }
+    public Transaction backendGetTransaction() { return TRANSACTION; }
 
     @Override
-    public void rollback() {}
+    public void backendRollback() {}
 
     @Override
-    public <T> T withTransaction(CallableWithoutException<T> command) {
+    public <T> T backendWithTransaction(CallableWithoutException<T> command) {
         try {
-            return withTransaction((Callable<T>)command, null);
+            return withTransaction(command, null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public <T> T withTransaction(Callable<T> command) throws Exception {
+    public <T> T backendWithTransaction(Callable<T> command) throws Exception {
         return withTransaction(command, null);
     }
 
@@ -42,7 +54,7 @@ public class MemTransactionManager implements TransactionManager {
      * configuration.
      */
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
+    public <T> T backendWithTransaction(Callable<T> command, Atomic atomic) throws Exception {
         return command.call();
     }
 }

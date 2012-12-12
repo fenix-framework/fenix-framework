@@ -6,18 +6,17 @@
         <groupId>pt.ist</groupId>
         <artifactId>fenix-framework-parent</artifactId>
         <!-- Perhaps in Maven 3.1 the version may be ommitted -->
-        <version>2.0-cloudtm-SNAPSHOT</version>
+        <version>2.0-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>fenix-framework-indexes</artifactId>
+    <artifactId>fenix-framework-txintrospector</artifactId>
     <packaging>jar</packaging>
 
-    <name>Fenix Framework Support for Indexes</name>
+    <name>Fenix Framework Support for TxIntrospector</name>
 
     <build>
         <plugins>
-            
             <plugin>
                 <groupId>pt.ist</groupId>
                 <artifactId>dml-maven-plugin</artifactId>
@@ -31,7 +30,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -55,19 +53,12 @@
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-adt-bplustree</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-core</artifactId>
         </dependency>
-	<dependency>
+        <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-data-access-patterns</artifactId>
         </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-txintrospector</artifactId>
-        </dependency>
     </dependencies>
+
 </project>

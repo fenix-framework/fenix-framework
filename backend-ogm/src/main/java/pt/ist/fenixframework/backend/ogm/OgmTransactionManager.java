@@ -30,7 +30,7 @@ import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.util.Misc;
 
-public class OgmTransactionManager implements TransactionManager {
+public class OgmTransactionManager extends TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(OgmTransactionManager.class);
 
     private boolean booting = false;
@@ -68,7 +68,11 @@ public class OgmTransactionManager implements TransactionManager {
     }
 
     @Override
-    public void begin() throws NotSupportedException, SystemException {
+    public void backendBegin(boolean readOnly) throws NotSupportedException, SystemException {
+        if (readOnly) {
+            logger.warn("OgmBackEnd does not enforce read-only transactions. Starting as normal transaction");
+        }
+
         logger.trace("Begin transaction");
         delegateTxManager.begin();
 
@@ -78,15 +82,7 @@ public class OgmTransactionManager implements TransactionManager {
     }
 
     @Override
-    public void begin(boolean readOnly) throws NotSupportedException, SystemException {
-        if (readOnly) {
-            logger.warn("OgmBackEnd does not enforce read-only transactions. Starting as normal transaction");
-        }
-        begin();
-    }
-
-    @Override
-    public void commit() throws RollbackException, HeuristicMixedException,
+    public void backendCommit() throws RollbackException, HeuristicMixedException,
                                 HeuristicRollbackException, SystemException {
         logger.trace("Commit transaction");
 
@@ -100,12 +96,12 @@ public class OgmTransactionManager implements TransactionManager {
     }
 
     @Override
-    public Transaction getTransaction() throws SystemException {
+    public Transaction backendGetTransaction() throws SystemException {
         return delegateTxManager.getTransaction();
     }
 
     @Override
-    public void rollback() throws SystemException {
+    public void backendRollback() throws SystemException {
         logger.trace("Rollback transaction");
         delegateTxManager.rollback();
 
@@ -113,7 +109,7 @@ public class OgmTransactionManager implements TransactionManager {
     }
 
     @Override
-    public <T> T withTransaction(CallableWithoutException<T> command) {
+    public <T> T backendWithTransaction(CallableWithoutException<T> command) {
         try {
             return withTransaction(command, null);
         } catch (Exception e) {
@@ -122,7 +118,7 @@ public class OgmTransactionManager implements TransactionManager {
     }
 
     @Override
-    public <T> T withTransaction(Callable<T> command) throws Exception {
+    public <T> T backendWithTransaction(Callable<T> command) throws Exception {
         return withTransaction(command, null);
     }
 
@@ -130,7 +126,7 @@ public class OgmTransactionManager implements TransactionManager {
      * For now, it ignores the value of the atomic parameter.
      */
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
+    public <T> T backendWithTransaction(Callable<T> command, Atomic atomic) throws Exception {
         T result = null;
         boolean txFinished = false;
         while (!txFinished) {

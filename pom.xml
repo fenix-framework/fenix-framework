@@ -30,6 +30,7 @@
         <module>core</module>
         <module>adt-bplustree</module>
         <module>data-access-patterns</module>
+        <module>txintrospector</module>
         <module>indexes</module>
         <module>bplustree-domain-object</module>
     	<module>backend-mem</module>

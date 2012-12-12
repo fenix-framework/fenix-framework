@@ -18,7 +18,7 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.TransactionManager;
 
-public class InfinispanTransactionManager implements TransactionManager {
+public class InfinispanTransactionManager extends TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanTransactionManager.class);
 
     private static javax.transaction.TransactionManager delegateTxManager;
@@ -28,38 +28,33 @@ public class InfinispanTransactionManager implements TransactionManager {
     }
 
     @Override
-    public void begin() throws NotSupportedException, SystemException {
+    public void backendBegin(boolean readOnly) throws NotSupportedException, SystemException {
+        if (readOnly) {
+            logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
+        }
         logger.trace("Begin transaction");
         delegateTxManager.begin();
     }
 
     @Override
-    public void begin(boolean readOnly) throws NotSupportedException, SystemException {
-        if (readOnly) {
-            logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
-        }
-        begin();
-    }
-
-    @Override
-    public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
+    public void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
         logger.trace("Commit transaction");
         delegateTxManager.commit();
     }
 
     @Override
-    public Transaction getTransaction() throws SystemException {
+    public Transaction backendGetTransaction() throws SystemException {
         return delegateTxManager.getTransaction();
     }
 
     @Override
-    public void rollback() throws SystemException {
+    public void backendRollback() throws SystemException {
         logger.trace("Rollback transaction");
         delegateTxManager.rollback();
     }
 
     @Override
-    public <T> T withTransaction(CallableWithoutException<T> command) {
+    public <T> T backendWithTransaction(CallableWithoutException<T> command) {
         try {
             return withTransaction(command, null);
         } catch (Exception e) {
@@ -68,7 +63,7 @@ public class InfinispanTransactionManager implements TransactionManager {
     }
 
     @Override
-    public <T> T withTransaction(Callable<T> command) throws Exception {
+    public <T> T backendWithTransaction(Callable<T> command) throws Exception {
         return withTransaction(command, null);
     }
 
@@ -76,7 +71,7 @@ public class InfinispanTransactionManager implements TransactionManager {
      * For now, it ignores the value of the atomic parameter.
      */
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
+    public <T> T backendWithTransaction(Callable<T> command, Atomic atomic) throws Exception {
         T result = null;
         boolean txFinished = false;
         while (!txFinished) {

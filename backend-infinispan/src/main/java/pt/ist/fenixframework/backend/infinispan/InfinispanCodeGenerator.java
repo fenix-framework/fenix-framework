@@ -66,19 +66,20 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
 
         generateInitInstance(domClass, out);
-        
-        generateDefaultConstructor(domClass.getBaseName(), out);
+
+        generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
         super.generateIndexMethods(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
     }
 
     @Override
-    protected void generateInitInstanceBody(DomainClass domClass, PrintWriter out) { }
+    protected void generateInitInstanceMethodBody(DomainClass domClass, PrintWriter out) { }
 
-    protected void generateDefaultConstructor(String classname, PrintWriter out) {
-        printMethod(out, "public", "", classname);
+    protected void generateDefaultConstructor(DomainClass domClass, PrintWriter out) {
+        printMethod(out, "public", "", domClass.getBaseName());
         startMethodBody(out);
+        generateBaseClassConstructorsBody(domClass, out);
         endMethodBody(out);
     }
 
@@ -180,7 +181,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     protected void generateInfinispanSetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
+        generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
+        generateIndexationInSetter(domainClass, slot, out); // Indexes
 
+        onNewline(out);
         String slotName = slot.getName();
         String setterExpression;
 	if (findWrapperEntry(slot.getTypeName()) != null) { // then it is a primitive type
@@ -196,7 +200,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
             }
             setterExpression += ")";
         }
-	super.generateIndexationInSetter(domainClass, slot, out);
+
+
         print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName
               + "\", " + setterExpression + ");");
     }
@@ -351,15 +356,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out) {
-        newline(out);
-        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
-                         + capitalize(role.getName()) + "Iterator");
-        startMethodBody(out);
-        
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
-        
-        printWords(out, "return get" + capitalize(role.getName()) + "().iterator();");
-        endMethodBody(out);
+	generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "()");
     }
 
     @Override
