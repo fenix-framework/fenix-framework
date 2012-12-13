@@ -69,11 +69,11 @@ public class HibernateSearchSupport {
         // Map the getExternalId() method as a documentId for all domain classes
         // Note that hibernate-search currently requires this method to really exist in the
         // AbstractDomainObject class
-        mapping
+        /*mapping
             .entity(AbstractDomainObject.class)
                 .property("externalId", ElementType.METHOD)
                     .documentId()
-                    .name("id");
+                    .name("id");*/
 
         return mapping;
     }

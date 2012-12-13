@@ -19,7 +19,7 @@ import javax.transaction.Transaction;
  *
  * @see javax.transaction
  */
-public abstract class TransactionManager {
+public abstract class TransactionManager implements javax.transaction.TransactionManager {
 
     private List<TransactionListener> listeners = null;
 
@@ -163,4 +163,29 @@ public abstract class TransactionManager {
     protected abstract <T> T backendWithTransaction(CallableWithoutException<T> command);
     protected abstract <T> T backendWithTransaction(Callable<T> command) throws Exception;
     protected abstract <T> T backendWithTransaction(Callable<T> command, Atomic atomic) throws Exception;
+
+    @Override
+    public int getStatus() throws SystemException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void resume(Transaction transaction) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void setRollbackOnly() {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void setTransactionTimeout(int timeout) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public Transaction suspend() {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 }

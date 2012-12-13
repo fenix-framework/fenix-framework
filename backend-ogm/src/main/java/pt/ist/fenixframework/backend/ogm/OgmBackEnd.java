@@ -71,7 +71,7 @@ public class OgmBackEnd implements BackEnd {
             logger.trace("fromOid(" + internalId + ")");
         }
         return (T)transactionManager.getEntityManager().find(internalId.getObjClass(),
-                                                             internalId.getPrimaryKey());
+                                                             internalId.toExternalId());
     }
 
     @Override
