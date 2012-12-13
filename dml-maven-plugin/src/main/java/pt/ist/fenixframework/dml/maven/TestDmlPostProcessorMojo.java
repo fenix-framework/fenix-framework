@@ -1,6 +1,9 @@
 package pt.ist.fenixframework.dml.maven;
 
 import java.io.File;
+import java.util.List;
+
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
@@ -81,5 +84,15 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
     @Override
     protected MavenProject getMavenProject() {
         return mavenProject;
+    }
+
+    @Override
+    protected List<String> getClasspathElements() {
+        try {
+            return getMavenProject().getTestClasspathElements();
+        } catch (DependencyResolutionRequiredException e) {
+            getLog().error(e);
+        }
+        return null;
     }
 }

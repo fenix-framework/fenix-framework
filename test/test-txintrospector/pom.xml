@@ -1,0 +1,84 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>pt.ist</groupId>
+        <artifactId>fenix-framework-parent</artifactId>
+        <!-- Perhaps in Maven 3.1 the version may be ommitted -->
+        <version>2.0-SNAPSHOT</version>
+        <relativePath>../../parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>fenix-framework-test-txintrospector</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Fenix Framework Tests for TxIntrospector</name>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>dml-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <configuration>
+                    <!-- use infinispan backend for running tests -->
+                    <codeGeneratorClassName>pt.ist.fenixframework.backend.infinispan.InfinispanCodeGenerator</codeGeneratorClassName>
+                    <params>
+                        <ptIstTxIntrospectorEnable>true</ptIstTxIntrospectorEnable>
+                    </params>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-generate-domain</goal>
+                            <goal>test-post-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${version.maven.jar-plugin}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*_Base*</exclude>
+                        <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>
+                        <exclude>pt/ist/fenixframework/backend/CurrentBackEndId*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-dml-compiler</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-txintrospector</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-infinispan</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

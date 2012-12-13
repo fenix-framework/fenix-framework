@@ -1,0 +1,187 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>example</groupId>
+    <version>1.0-SNAPSHOT</version>
+    <artifactId>books</artifactId>
+    <packaging>jar</packaging>
+
+    <name>hibernate-books</name>
+
+    <properties>
+        <!-- <fenixframework.code.generator>pt.ist.fenixframework.backend.mem.MemCodeGenerator</fenixframework.code.generator> -->
+            <!--<fenixframework.code.generator>pt.ist.fenixframework.backend.infinispan.InfinispanCodeGenerator</fenixframework.code.generator>-->
+         <fenixframework.code.generator>pt.ist.fenixframework.backend.ogm.OgmCodeGenerator</fenixframework.code.generator>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- PLEASE KEEP THIS LIST SORTED ALPHABETICALLY!!!  THANKS -->
+        <version.antlr>2.7.7</version.antlr>
+        <version.apache.ant>1.8.2</version.apache.ant>
+        <version.asm>4.0</version.asm>
+        <version.commons.io>2.4</version.commons.io>
+        <version.commons.lang>2.6</version.commons.lang>
+        <version.dap-framework>1.0</version.dap-framework>
+        <version.hibernate.core>4.0.1.Final</version.hibernate.core>
+        <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
+        <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
+        <version.hibernate.ogm>4.0.0-SNAPSHOT</version.hibernate.ogm>
+        <version.infinispan>5.1.6.FINAL</version.infinispan>
+        <!-- <version.infinispan>5.2.0-SNAPSHOT</version.infinispan> -->
+        <version.jboss.logging>3.1.0.GA</version.jboss.logging>
+        <version.jbossjta>4.16.3.Final</version.jbossjta>
+        <version.jodatime>1.5.2</version.jodatime>
+        <version.jpa>1.0</version.jpa>
+        <version.jta>1.0.0.Final</version.jta>
+        <version.jta>1.1</version.jta>
+        <version.junit>3.8.1</version.junit>
+        <version.jvstm-fenix>1.0</version.jvstm-fenix>
+        <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
+        <version.maven.build-helper-plugin>1.7</version.maven.build-helper-plugin>
+        <version.maven.core>3.0.3</version.maven.core>
+        <version.maven.exec-plugin>1.2.1</version.maven.exec-plugin>
+        <version.maven.jar-plugin>2.4</version.maven.jar-plugin>
+        <version.maven.javadoc-plugin>2.8.1</version.maven.javadoc-plugin>
+        <version.maven.plexus-plugin>1.3.8</version.maven.plexus-plugin>
+        <version.maven.umlgraph-doclet-plugin>5.1</version.maven.umlgraph-doclet-plugin>
+        <version.ojb>1.0.0</version.ojb>
+        <version.rhq.helpers>3.0.4</version.rhq.helpers>
+        <version.slf4j.api>1.7.2</version.slf4j.api>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>dml-maven-plugin</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <configuration>
+                    <codeGeneratorClassName>${fenixframework.code.generator}</codeGeneratorClassName>
+                    <params>
+                        <ptIstTxIntrospectorEnable>true</ptIstTxIntrospectorEnable>
+                    </params>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-domain</goal>
+                            <goal>post-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${version.maven.build-helper-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>add-resource</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>add-resource</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+<!--                                <resource>
+                                    <directory>target/generated-sources/dml-maven-plugin</directory>
+                                    <excludes>
+                                        <exclude>**/*.java</exclude>
+                                    </excludes>
+                                </resource>-->
+                                <resource>
+                                    <directory>target/generated-sources/dml-maven-plugin</directory>
+                                    <!-- <targetPath>target/classes</targetPath> -->
+                                    <excludes>
+                                        <exclude>**/*.java</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+
+	<pluginManagement><plugins>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<!--<version>3.0</version>-->
+			<configuration>
+				<source>1.6</source>
+				<target>1.6</target>
+			</configuration>
+		</plugin>
+	</plugins></pluginManagement>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-core</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-bplustree-domain-object</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-adt-bplustree</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-mem</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-infinispan</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.jbossts</groupId>
+            <artifactId>jbossjta</artifactId>
+            <version>${version.jbossjta}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-ogm</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${version.slf4j.api}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${version.junit}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- START hibernate stuff -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-search-engine</artifactId>
+            <version>4.2.0.Beta2</version>
+        </dependency>
+        <!-- END hibernate stuff -->
+    </dependencies>
+
+    <pluginRepositories>
+      <pluginRepository>
+        <id>fenix-framework-cloudtm-repository</id>
+        <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-cloudtm-repository</url>
+      </pluginRepository>
+    </pluginRepositories>
+
+</project>

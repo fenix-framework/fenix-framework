@@ -14,9 +14,11 @@ public class OgmOIDGenerator implements IdentifierGenerator {
     public Serializable generate(SessionImplementor sessionImplementor, Object object)
         throws HibernateException {
         if (object.getClass() == DomainRoot.class) {
-            return OgmOID.ROOT_PK;
+//            return OgmOID.ROOT_PK;
+            return OgmOID.ROOT_OBJECT_ID.toExternalId();
         }
-        return UUID.randomUUID().toString();
+        //return UUID.randomUUID().toString();
+        return new OgmOID(object.getClass(), UUID.randomUUID().toString()).toExternalId();
 
         // String uuid = UUID.randomUUID().toString();
         // return new OgmOID(object.getClass(), uuid);

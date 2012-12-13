@@ -15,7 +15,25 @@ import javax.transaction.SystemException;
  * 
  * @see javax.transaction
  */
+<<<<<<< HEAD
 public interface TransactionManager extends javax.transaction.TransactionManager {
+=======
+public abstract class TransactionManager implements javax.transaction.TransactionManager {
+
+    private List<TransactionListener> listeners = null;
+
+    /**
+     * Create a new transaction and associate it with the current thread.
+     *
+     * @throws NotSupportedException Thrown if the thread is already associated with a transaction
+     * and the Transaction Manager implementation does not support nested transactions.
+     * @throws SystemException Thrown if the transaction manager encounters an unexpected error
+     * condition that prevents future transaction services from proceeding.
+     */
+    public final void begin() throws NotSupportedException, SystemException {
+        begin(false);
+    }
+>>>>>>> big-refactoring-2012-hibsearch-merge-ogmfixes
 
     /**
      * Get the {@link Transaction} object that represents the transaction
@@ -99,4 +117,40 @@ public interface TransactionManager extends javax.transaction.TransactionManager
      */
     public void removeCommitListener(CommitListener listener);
 
+<<<<<<< HEAD
+=======
+    // Abstract
+    protected abstract void backendBegin(boolean readOnly) throws NotSupportedException, SystemException;
+    protected abstract void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException;
+    protected abstract Transaction backendGetTransaction() throws SystemException;
+    protected abstract void backendRollback() throws SystemException;
+    protected abstract <T> T backendWithTransaction(CallableWithoutException<T> command);
+    protected abstract <T> T backendWithTransaction(Callable<T> command) throws Exception;
+    protected abstract <T> T backendWithTransaction(Callable<T> command, Atomic atomic) throws Exception;
+
+    @Override
+    public int getStatus() throws SystemException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void resume(Transaction transaction) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void setRollbackOnly() {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void setTransactionTimeout(int timeout) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public Transaction suspend() {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+>>>>>>> big-refactoring-2012-hibsearch-merge-ogmfixes
 }

@@ -37,7 +37,8 @@ public class AllocationInterceptor extends EmptyInterceptor {
 
         try {
             Class clazz = Class.forName(entityName);
-            OgmOID oid = new OgmOID(clazz, (String)id);
+//            OgmOID oid = new OgmOID(clazz, (String)id);
+            OgmOID oid = new OgmOID((String)id);
             return DomainObjectAllocator.allocateObject(clazz, oid);
         } catch (ClassNotFoundException ex) {
             // Should not occur.

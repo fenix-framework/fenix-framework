@@ -38,13 +38,20 @@ public class OgmDomainObject extends AbstractDomainObjectAdapter {
     protected OgmDomainObject(DomainObjectAllocator.OID oid) {
         super(oid);
         this.oid = (OgmOID)oid.oid;
-        this.hibernate$primaryKey = this.oid.getPrimaryKey();
+//        this.hibernate$primaryKey = this.oid.getPrimaryKey();
+        this.hibernate$primaryKey = this.oid.toExternalId();
     }
 
     @Override
     protected void ensureOid() {
         OgmBackEnd.getInstance().save(this);
-        this.oid = new OgmOID(this.getClass(), this.hibernate$primaryKey);
+        logger.trace("Assigned hibernate key: " + this.hibernate$primaryKey);
+        // maybe null during bootstrap
+        if (this.hibernate$primaryKey == null) {
+            this.oid = new OgmOID(this.getClass(), null);
+        } else {
+            this.oid = new OgmOID(this.hibernate$primaryKey);
+        }
         logger.debug("Saved " + this);
     }
 

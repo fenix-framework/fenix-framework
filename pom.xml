@@ -31,11 +31,13 @@
         <module>adt-bplustree</module>
         <module>data-access-patterns</module>
         <module>txintrospector</module>
+        <module>hibernate-search</module>
         <module>indexes</module>
         <module>bplustree-domain-object</module>
     	<module>backend-mem</module>
         <module>backend-infinispan</module>
         <module>backend-ogm</module>
+        <module>test</module>
         <module>archetypes</module>
     </modules>
 
