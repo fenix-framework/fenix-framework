@@ -31,8 +31,6 @@ public class BooksTest {
     private static final String ECLIPSE = "Eclipse";
     private static final String DRACULA = "Dracula";
 
-    private static final DomainRoot domainRoot = FenixFramework.getDomainRoot();
-
     @AfterClass
     public static void shutdown() {
         FenixFramework.shutdown();
@@ -90,7 +88,7 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + FEW_MOON + "']; RCL: ['VampireBookToVampireBook'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        VampireBook fewMoon = getVampireBookByName(domainRoot, FEW_MOON);
+        VampireBook fewMoon = getVampireBookByName(FEW_MOON);
         eclipse.setPrequel(fewMoon);
 
         assertFalse(txIntrospector.getModifiedObjects().contains(eclipse)); // modified objects should NOT contain eclipse
@@ -109,7 +107,7 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + FEW_MOON + "']; RCL: ['VampireBookToVampireBook'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        VampireBook fewMoon = getVampireBookByName(domainRoot, FEW_MOON);
+        VampireBook fewMoon = getVampireBookByName(FEW_MOON);
         eclipse.setPrequel(fewMoon);
         fewMoon.setSequel(eclipse);
 
@@ -129,7 +127,7 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + FEW_MOON + "']; RCL: ['VampireBookToVampireBook'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        VampireBook fewMoon = getVampireBookByName(domainRoot, FEW_MOON);
+        VampireBook fewMoon = getVampireBookByName(FEW_MOON);
         eclipse.setPrequel(fewMoon);
         fewMoon.setSequel(null);
         eclipse.setPrequel(fewMoon);
@@ -150,7 +148,7 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: []; RCL: [])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        VampireBook fewMoon = getVampireBookByName(domainRoot, FEW_MOON);
+        VampireBook fewMoon = getVampireBookByName(FEW_MOON);
         eclipse.setPrequel(fewMoon);
         fewMoon.setSequel(null);
 
@@ -170,8 +168,8 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + DRACULA + "']; RCL: ['VampireBookToVampireBook'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        VampireBook fewMoon = getVampireBookByName(domainRoot, FEW_MOON);
-        VampireBook dracula = getVampireBookByName(domainRoot, DRACULA);
+        VampireBook fewMoon = getVampireBookByName(FEW_MOON);
+        VampireBook dracula = getVampireBookByName(DRACULA);
         eclipse.setPrequel(fewMoon);
         eclipse.setPrequel(dracula);
 
@@ -193,7 +191,7 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + LITTLE + "']; RCL: ['PublisherWithBooks'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Publisher little = getPublisherByName(domainRoot, LITTLE);
+        Publisher little = getPublisherByName(LITTLE);
         eclipse.setPublisher(little);
 
         assertFalse(txIntrospector.getModifiedObjects().contains(eclipse)); // modified objects should NOT contain eclipse
@@ -212,7 +210,7 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + LITTLE + "']; RCL: ['PublisherWithBooks'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Publisher little = getPublisherByName(domainRoot, LITTLE);
+        Publisher little = getPublisherByName(LITTLE);
         eclipse.setPublisher(little);
         little.addBooksPublished(eclipse);
 
@@ -232,7 +230,7 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + LITTLE + "']; RCL: ['PublisherWithBooks'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Publisher little = getPublisherByName(domainRoot, LITTLE);
+        Publisher little = getPublisherByName(LITTLE);
         eclipse.setPublisher(little);
         little.removeBooksPublished(eclipse);
         little.addBooksPublished(eclipse);
@@ -253,7 +251,7 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + LITTLE + "']; RCL: [])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Publisher little = getPublisherByName(domainRoot, LITTLE);
+        Publisher little = getPublisherByName(LITTLE);
         eclipse.setPublisher(little);
         little.removeBooksPublished(eclipse);
 
@@ -273,8 +271,8 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + ARCHIBALD + "']; RCL: ['PublisherWithBooks'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Publisher little = getPublisherByName(domainRoot, LITTLE);
-        Publisher archibald = getPublisherByName(domainRoot, ARCHIBALD);
+        Publisher little = getPublisherByName(LITTLE);
+        Publisher archibald = getPublisherByName(ARCHIBALD);
         eclipse.setPublisher(little);
         eclipse.setPublisher(archibald);
 
@@ -296,8 +294,8 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + STEPH + "," + MEH + "']; RCL: ['2*AuthorsWithBooks'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Author meh = getAuthorByName(domainRoot, MEH);
-        Author steph = getAuthorByName(domainRoot, STEPH);
+        Author meh = getAuthorByName(MEH);
+        Author steph = getAuthorByName(STEPH);
         eclipse.addAuthors(meh);
         eclipse.addAuthors(steph);
 
@@ -319,8 +317,8 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + STEPH + "," + MEH + "']; RCL: ['2*AuthorsWithBooks'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Author meh = getAuthorByName(domainRoot, MEH);
-        Author steph = getAuthorByName(domainRoot, STEPH);
+        Author meh = getAuthorByName(MEH);
+        Author steph = getAuthorByName(STEPH);
         eclipse.addAuthors(meh);
         eclipse.addAuthors(steph);
         eclipse.addAuthors(meh);
@@ -344,8 +342,8 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + STEPH + "," + MEH + "']; RCL: ['2*AuthorsWithBooks'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Author meh = getAuthorByName(domainRoot, MEH);
-        Author steph = getAuthorByName(domainRoot, STEPH);
+        Author meh = getAuthorByName(MEH);
+        Author steph = getAuthorByName(STEPH);
         eclipse.addAuthors(meh);
         eclipse.addAuthors(steph);
         eclipse.removeAuthors(meh);
@@ -371,8 +369,8 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: []; RCL: [])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Author meh = getAuthorByName(domainRoot, MEH);
-        Author steph = getAuthorByName(domainRoot, STEPH);
+        Author meh = getAuthorByName(MEH);
+        Author steph = getAuthorByName(STEPH);
         eclipse.addAuthors(meh);
         eclipse.addAuthors(steph);
         eclipse.removeAuthors(meh);
@@ -396,9 +394,9 @@ public class BooksTest {
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + BRAM_STOKER + "']; RCL: ['AuthorsWithBooks'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
-        Author meh = getAuthorByName(domainRoot, MEH);
-        Author steph = getAuthorByName(domainRoot, STEPH);
-        Author bStoker = getAuthorByName(domainRoot, BRAM_STOKER);
+        Author meh = getAuthorByName(MEH);
+        Author steph = getAuthorByName(STEPH);
+        Author bStoker = getAuthorByName(BRAM_STOKER);
         eclipse.addAuthors(meh);
         eclipse.addAuthors(steph);
         eclipse.removeAuthors(meh);
@@ -425,9 +423,9 @@ public class BooksTest {
                 + "(New: []; DM: []; M: ['" + FEW_MOON + "', '" + DRACULA + "', '" + TWOLIGHTS + "']; "
                 + "RCL: ['VampireBookToVampireBook' (removed), 'VampireBookToVampireBook' (changed)])");
 
-        VampireBook fewMoon = getVampireBookByName(domainRoot, FEW_MOON);
-        VampireBook twoLights = getVampireBookByName(domainRoot, TWOLIGHTS);
-        VampireBook dracula = getVampireBookByName(domainRoot, DRACULA);
+        VampireBook fewMoon = getVampireBookByName(FEW_MOON);
+        VampireBook twoLights = getVampireBookByName(TWOLIGHTS);
+        VampireBook dracula = getVampireBookByName(DRACULA);
         fewMoon.setPrequel(dracula);
 
         assertTrue(txIntrospector.getNewObjects().isEmpty()); // should be empty
@@ -450,9 +448,9 @@ public class BooksTest {
                 + "(New: []; DM: []; M: ['" + FEW_MOON + "', '" + DRACULA + "', '" + TWOLIGHTS + "']; "
                 + "RCL: ['VampireBookToVampireBook' (removed), 'VampireBookToVampireBook' (changed)])");
 
-        VampireBook fewMoon = getVampireBookByName(domainRoot, FEW_MOON);
-        VampireBook twoLights = getVampireBookByName(domainRoot, TWOLIGHTS);
-        VampireBook dracula = getVampireBookByName(domainRoot, DRACULA);
+        VampireBook fewMoon = getVampireBookByName(FEW_MOON);
+        VampireBook twoLights = getVampireBookByName(TWOLIGHTS);
+        VampireBook dracula = getVampireBookByName(DRACULA);
         fewMoon.setPrequel(dracula);
         twoLights.setBookName("tWoLiGhTs");
 
@@ -475,9 +473,9 @@ public class BooksTest {
                 + "and then back again to '" + FEW_MOON + "' <-> '" + TWOLIGHTS + "'. Finally change the name of '" + TWOLIGHTS + "' to tWoLiGhTs\n\t"
                 + "(New: []; DM: ['" + TWOLIGHTS + "']; M: ['" + TWOLIGHTS + "']; RCL: [])");
 
-        VampireBook fewMoon = getVampireBookByName(domainRoot, FEW_MOON);
-        VampireBook twoLights = getVampireBookByName(domainRoot, TWOLIGHTS);
-        VampireBook dracula = getVampireBookByName(domainRoot, DRACULA);
+        VampireBook fewMoon = getVampireBookByName(FEW_MOON);
+        VampireBook twoLights = getVampireBookByName(TWOLIGHTS);
+        VampireBook dracula = getVampireBookByName(DRACULA);
         fewMoon.setPrequel(dracula);
         fewMoon.setPrequel(twoLights);
         twoLights.setBookName("tWoLiGhTs");
@@ -501,6 +499,8 @@ public class BooksTest {
     @Before
     @Atomic
     public void init() {
+        DomainRoot domainRoot = FenixFramework.getDomainRoot();
+
         // Authors
         Author steph = new Author(STEPH, 83);
         domainRoot.addTheAuthors(steph);
@@ -542,6 +542,8 @@ public class BooksTest {
     @After
     @Atomic
     public void reset() {
+        DomainRoot domainRoot = FenixFramework.getDomainRoot();
+
         for (Book book : domainRoot.getTheBooks()) {
             domainRoot.removeTheBooks(book);
         }
@@ -555,8 +557,11 @@ public class BooksTest {
         }
     }
 
+    @Atomic
     @SuppressWarnings("unused")
     private static void printAll() {
+        DomainRoot domainRoot = FenixFramework.getDomainRoot();
+
         for (Book book : domainRoot.getTheBooks()) {
             System.out.println(book);
         }
@@ -570,7 +575,9 @@ public class BooksTest {
         }
     }
 
-    public static Author getAuthorByName(DomainRoot domainRoot, String authorName) {
+    @Atomic
+    public static Author getAuthorByName(String authorName) {
+        DomainRoot domainRoot = FenixFramework.getDomainRoot();
         for (Author author : domainRoot.getTheAuthors()) {
             if (author.getName().equals(authorName)) {
                 return author;
@@ -579,7 +586,9 @@ public class BooksTest {
         return null;
     }
 
-    public static Book getBookByName(DomainRoot domainRoot, String bookName) {
+    @Atomic
+    public static Book getBookByName(String bookName) {
+        DomainRoot domainRoot = FenixFramework.getDomainRoot();
         for (Book book : domainRoot.getTheBooks()) {
             if (book.getBookName().equals(bookName)) {
                 return book;
@@ -588,11 +597,13 @@ public class BooksTest {
         return null;
     }
 
-    public static VampireBook getVampireBookByName(DomainRoot domainRoot, String bookName) {
-        return (VampireBook) getBookByName(domainRoot, bookName);
+    public static VampireBook getVampireBookByName(String bookName) {
+        return (VampireBook) getBookByName(bookName);
     }
 
-    public static Publisher getPublisherByName(DomainRoot domainRoot, String publisherName) {
+    @Atomic
+    public static Publisher getPublisherByName(String publisherName) {
+        DomainRoot domainRoot = FenixFramework.getDomainRoot();
         for (Publisher publisher : domainRoot.getThePublishers()) {
             if (publisher.getPublisherName().equals(publisherName)) {
                 return publisher;
