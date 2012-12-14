@@ -24,6 +24,7 @@
                 <configuration>
                     <!-- use infinispan backend for running tests -->
                     <codeGeneratorClassName>pt.ist.fenixframework.backend.infinispan.InfinispanCodeGenerator</codeGeneratorClassName>
+                    <!--<codeGeneratorClassName>pt.ist.fenixframework.backend.ogm.OgmCodeGenerator</codeGeneratorClassName>-->
                     <params>
                         <ptIstTxIntrospectorEnable>true</ptIstTxIntrospectorEnable>
                     </params>
@@ -50,6 +51,32 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- needed by the ogm backend -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${version.maven.build-helper-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>add-test-resource</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>add-test-resource</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>target/generated-test-sources/dml-maven-plugin</directory>
+                                    <!-- <targetPath>target/classes</targetPath> -->
+                                    <excludes>
+                                        <exclude>**/*.java</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -69,6 +96,10 @@
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-backend-infinispan</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-ogm</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
