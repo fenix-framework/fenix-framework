@@ -34,7 +34,7 @@ public class OgmTransactionManager extends TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(OgmTransactionManager.class);
 
     private boolean booting = false;
-    private javax.transaction.TransactionManager delegateTxManager = new OgmBootingTransactionManager();
+    private javax.transaction.TransactionManager delegateTxManager;
     EntityManagerFactory emf;
 
     void setupTxManager(OgmConfig config) {
