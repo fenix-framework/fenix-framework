@@ -19,6 +19,7 @@
 
     <modules>
         <module>test-txintrospector</module>
+        <module>test-hibernate-search</module>
     </modules>
 
 </project>
