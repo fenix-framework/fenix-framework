@@ -20,24 +20,18 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
     private static final Logger logger = LoggerFactory.getLogger(HibernateSearchConfig.class);
 
     /**
-     * This <strong>optional</strong> parameter specifies the location of the properties file used
-     * to configure Hibernate Search.  This file should be available in the application's classpath.
+     * This well-known name specifies the location of the properties file used to configure
+     * Hibernate Search.  This file should be available in the application's classpath.
      */
-    protected String hibernateSearchConfigFile = null;
+    public static final String CONFIG_FILE = "fenix-framework-hibernate-search.properties";
 
     @Override
     protected void init() {
         super.init();
 
-        if (hibernateSearchConfigFile == null) {
-            logger.info("No property 'hibernateSearchConfigFile' given. Hibernate Search disabled");
-            return;
-        }
-        logger.info("Initializing Hibernate Search module");
-
-        URL hibernateSearchConfigURL = Thread.currentThread().getContextClassLoader().getResource(hibernateSearchConfigFile);
+        URL hibernateSearchConfigURL = Thread.currentThread().getContextClassLoader().getResource(CONFIG_FILE);
         if (hibernateSearchConfigURL == null) {
-            logger.error("Cannot access resource '" + hibernateSearchConfigFile + "'. Hibernate Search disabled");
+            logger.info("Cannot access resource '" + CONFIG_FILE + "'. Hibernate Search disabled");
             return;
         }
 
