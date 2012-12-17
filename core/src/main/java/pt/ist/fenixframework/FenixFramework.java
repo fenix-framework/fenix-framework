@@ -333,11 +333,11 @@ public class FenixFramework {
 
     /**
      * Inform the framework components that the application intends to shutdown.  This allows for an
-     * orderly termination of any running components.  The execution of this method is also
-     * delegated on the backend-specific implementation.  After invoking this method there is no
+     * orderly termination of any running components.  The default implementation delegates to the
+     * backend the task of shutting down the framework.  After invoking this method there is no
      * guarantee that the Fenix Framework is able to provide any more services.
      */
     public static void shutdown() {
-        getConfig().getBackEnd().shutdown();
+        getConfig().shutdown();
     }
 }

@@ -1,11 +1,7 @@
 package pt.ist.fenixframework.dml.maven;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.maven.plugin.AbstractMojo;
@@ -21,6 +17,7 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
     protected abstract File getClassesDirectory();
     protected abstract String getCodeGeneratorClassName();
     protected abstract boolean verbose();
+    protected abstract List<String> getClasspathElements();
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -30,7 +27,7 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 	}
 
 	try {
-	    URLClassLoader loader = DmlMojoUtils.augmentClassLoader(getLog(), getMavenProject());
+            URLClassLoader loader = DmlMojoUtils.augmentClassLoader(getLog(), getClasspathElements());
             FullPostProcessDomainClasses.apply(getMavenProject().getArtifactId(),
                                                this.getClassesDirectory(), loader);
 	} catch (Exception e) {

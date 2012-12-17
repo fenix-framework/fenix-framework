@@ -1,7 +1,10 @@
 package pt.ist.fenixframework.dml.maven;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
@@ -91,6 +94,7 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
         getMavenProject().addCompileSourceRoot(getGeneratedSourcesDirectory().getAbsolutePath());
     }
 
+    @Override
     protected File getDmlSourceDirectory() {
         return dmlSourceDirectory;
     }
@@ -143,5 +147,15 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     @Override
     protected Map<String,String> getParams() {
 	return params;
+    }
+
+    @Override
+    protected List<String> getClasspathElements() {
+        try {
+            return getMavenProject().getCompileClasspathElements();
+        } catch (DependencyResolutionRequiredException e) {
+            getLog().error(e);
+        }
+        return null;
     }
 }

@@ -293,6 +293,14 @@ public abstract class Config {
 	return appName;
     }
 
+    /**
+     * Subclasses of this class can overwrite this method, but they should specifically call
+     * <code>super.shutdown()</code> to orderly shutdown the framework.
+     */
+    protected void shutdown() {
+        getBackEnd().shutdown();
+    }
+
     /* UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - BEGIN */
     /* code linked from pt.ist.fenixframework.util.Converter to make configuration API more straightforward */
 

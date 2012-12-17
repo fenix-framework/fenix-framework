@@ -11,7 +11,6 @@ import java.util.jar.JarFile;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
@@ -66,15 +65,7 @@ public class DmlMojoUtils {
 				dependencies, shouldCompile);
 	}
 
-	public static URLClassLoader augmentClassLoader(Log log,
-			MavenProject project) {
-		List<String> classpathElements = null;
-		try {
-			classpathElements = project.getCompileClasspathElements();
-		} catch (DependencyResolutionRequiredException e) {
-			log.error(e);
-		}
-
+	public static URLClassLoader augmentClassLoader(Log log, List<String> classpathElements) {
 		URL[] classesURL = new URL[classpathElements.size()];
 		int i = 0;
 

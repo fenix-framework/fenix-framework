@@ -87,10 +87,10 @@ public class OgmTransactionManager extends TransactionManager {
         logger.trace("Commit transaction");
 
         EntityManager em = currentEntityManager.get();
-        em.flush();
-        em.close();
 
+        em.flush();
         delegateTxManager.commit();
+        em.close();
 
         currentEntityManager.set(null);
     }

@@ -4,15 +4,14 @@ import java.util.List;
 import java.util.Set;
 
 import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
-import pt.ist.fenixframework.dap.FFDAPConfig;
 import pt.ist.fenixframework.dml.AnnotatedSlot;
 import pt.ist.fenixframework.dml.Annotation;
+import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
 
-public abstract class IndexesConfig extends FFDAPConfig {
+public abstract class IndexesConfig extends HibernateSearchConfig {
 
 
     /* See comment on updateIndexes() */

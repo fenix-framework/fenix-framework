@@ -67,8 +67,34 @@ public class TxStats extends TxIntrospector {
         return FILTER && object.getClass().getPackage().getName().startsWith("pt.ist.fenixframework.core.adt.bplustree");
     }
 
+    private static String collectionToStringSafe(Collection<? extends Object> collection) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        for (Object o : collection) {
+            sb.append(o.getClass().getName());
+            sb.append('@');
+            sb.append(Integer.toHexString(System.identityHashCode(o)));
+            sb.append(", ");
+        }
+        if (sb.length() > 1) sb.delete(sb.length()-2, sb.length());
+        sb.append(']');
+        return sb.toString();
+    }
+
     @Override
     public String toString() {
+        return "TxStats\n\tnewObjects: " + collectionToStringSafe(getNewObjects())
+                + "\n\tdirectlyModifiedObjects: " + collectionToStringSafe(getDirectlyModifiedObjects())
+                + "\n\tmodifiedObjects: " + collectionToStringSafe(getModifiedObjects())
+                + "\n\trelationsChangelog: " + collectionToStringSafe(getRelationsChangelog());
+    }
+
+    /**
+     * Version of toString() that may fail because it uses the DomainObject's toString() operation to
+     * print them, as calling toString() on a DomainObject may cause further changes to objects or
+     * relations.
+     */
+    public String unsafeToString() {
         return "TxStats\n\tnewObjects: " + getNewObjects()
                 + "\n\tdirectlyModifiedObjects: " + getDirectlyModifiedObjects()
                 + "\n\tmodifiedObjects: " + getModifiedObjects()

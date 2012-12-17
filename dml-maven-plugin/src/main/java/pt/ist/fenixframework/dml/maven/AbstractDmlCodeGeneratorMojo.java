@@ -15,7 +15,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
-import org.codehaus.plexus.util.StringUtils;
 
 import pt.ist.fenixframework.DmlCompiler;
 import pt.ist.fenixframework.dml.CodeGenerator;
@@ -47,6 +46,8 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
 	protected abstract Map<String,String> getParams();
 
+	protected abstract List<String> getClasspathElements();
+
     @Override
     public void execute() throws MojoExecutionException {
 	if (getMavenProject().getArtifact().getType().equals("pom")) {
@@ -54,7 +55,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	    return;
 	}
 
-	DmlMojoUtils.augmentClassLoader(getLog(), getMavenProject());
+	DmlMojoUtils.augmentClassLoader(getLog(), getClasspathElements());
 
 	CompilerArgs compArgs = null;
 	long latestBuildTime = getGeneratedSourcesDirectory().lastModified();
@@ -73,6 +74,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	    resource.setDirectory(getDmlSourceDirectory().getAbsolutePath());
 	    resource.addInclude("*.dml");
 	    getMavenProject().addResource(resource);
+	    getMavenProject().addTestResource(resource);
 
 	    for (String includedFile : scanner.getIncludedFiles()) {
 		String filePath = getDmlSourceDirectory().getAbsolutePath() + "/" + includedFile;
