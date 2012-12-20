@@ -10,6 +10,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import javax.transaction.SystemException;
+
+import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
 import org.infinispan.manager.CacheContainer;
 import org.infinispan.manager.EmbeddedCacheManager;
@@ -160,6 +163,11 @@ public class InfinispanBackEnd implements BackEnd {
     }
     
     public final void registerGet(String key) {
-	// domainCache.getAdvancedCache().getTxTable()
+	AdvancedCache advCache = domainCache.getAdvancedCache();
+	try {
+	    advCache.getTxTable().getLocalTransaction(advCache.getTransactionManager().getTransaction()).addReadKey(key);
+	} catch (SystemException e) {
+	    logger.error("Exception while getting the current JPA Transaction to register a key read", e);
+	}
     }
 }

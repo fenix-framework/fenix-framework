@@ -18,8 +18,8 @@
     <name>Fenix Framework Tests</name>
 
     <modules>
-        <module>test-txintrospector</module>
-        <module>test-hibernate-search</module>
+<!--        <module>test-txintrospector</module>
+        <module>test-hibernate-search</module> -->
     </modules>
 
 </project>
