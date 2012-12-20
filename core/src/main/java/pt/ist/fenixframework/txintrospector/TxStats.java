@@ -10,13 +10,11 @@ import pt.ist.fenixframework.dml.runtime.RelationListener;
 
 public class TxStats extends TxIntrospector {
 
-    public static final String TXINTROSPECTOR_ON_CONFIG_KEY = "ptIstTxIntrospectorEnable";
+    public static final boolean ENABLED = checkEnabled();
 
-    private static final boolean enabled = checkEnabled();
-
-    private static boolean checkEnabled() {
+    public static boolean checkEnabled() {
         String param = BackEndId.getBackEndId().getParam(TXINTROSPECTOR_ON_CONFIG_KEY);
-        return (param != null) && Boolean.parseBoolean(param);
+        return (param != null) && param.trim().equalsIgnoreCase(TXINTROSPECTOR_ON_CONFIG_VALUE);
     }
 
     private static final boolean FILTER = Boolean.getBoolean("pt.ist.fenixframework.txintrospector.filter");
@@ -29,7 +27,7 @@ public class TxStats extends TxIntrospector {
     private TxStats() { }
 
     public static TxStats newInstance() {
-        if (!enabled) return null;
+        if (!ENABLED) return null;
         return new TxStats();
     }
 

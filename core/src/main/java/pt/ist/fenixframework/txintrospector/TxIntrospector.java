@@ -9,6 +9,9 @@ import pt.ist.fenixframework.Transaction;
  * The TxIntrospector class allows access to internal details from transactions executed in the system.
  */
 public abstract class TxIntrospector {
+    public static final String TXINTROSPECTOR_ON_CONFIG_KEY = "ptIstTxIntrospectorEnable";
+    public static final String TXINTROSPECTOR_ON_CONFIG_VALUE = "true";
+
     /**
      * Returns a Collection containing new objects created during this transaction.
      * @return Collection of new objects
