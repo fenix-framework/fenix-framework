@@ -31,11 +31,11 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
 
         URL hibernateSearchConfigURL = Thread.currentThread().getContextClassLoader().getResource(CONFIG_FILE);
         if (hibernateSearchConfigURL == null) {
-            logger.info("Cannot access resource '" + CONFIG_FILE + "'. Hibernate Search disabled");
+            logger.info("Resource '" + CONFIG_FILE + "' not found. Hibernate Search disabled");
             return;
         }
 
-        logger.trace("Using Hibernate Search config file: " + hibernateSearchConfigURL);
+        logger.info("Using config resource: " + hibernateSearchConfigURL);
         Properties properties = new Properties();
         try {
             properties.load(hibernateSearchConfigURL.openStream());
