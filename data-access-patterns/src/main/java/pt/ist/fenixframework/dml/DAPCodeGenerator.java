@@ -19,7 +19,7 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
     
     public static final String DAP_ON_CONFIG_KEY = "ptIstDapEnable";
     public static final String DAP_ON_CONFIG_VALUE = "true";
-    private static boolean DAP_ENABLED = false;
+    private final boolean DAP_ENABLED;
     protected static DomainClass dC = null;
 
     public DAPCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
@@ -28,16 +28,16 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
         
         String state = compArgs.getParams().get(DAP_ON_CONFIG_KEY);
         
-        if (state != null) DAP_ENABLED = state.equalsIgnoreCase(DAP_ON_CONFIG_VALUE);
+        DAP_ENABLED = (state != null) && state.trim().equalsIgnoreCase(DAP_ON_CONFIG_VALUE);
     }
 
-    public static final String getGetterDAPStatement(DomainClass domainClass, String slotName, String typeName) {
+    public final String getGetterDAPStatement(DomainClass domainClass, String slotName, String typeName) {
         //System.out.println("\tGenerating getter DAP statement for " + domainClass.getFullName() + "."  + slotName + " of type " + typeName);
         if (DAP_ENABLED) return "pt.ist.dap.implementation.simple.SimpleContextManager.updateReadStatisticsWithoutContext(\"" + domainClass.getFullName() + "\", \"" + slotName + "\");";
         else return "";
     }
 
-    public static final String getSetterDAPStatement(DomainClass domainClass, String slotName, String typeName) {
+    public final String getSetterDAPStatement(DomainClass domainClass, String slotName, String typeName) {
         //System.out.println("\tGenerating setter DAP statement for " + domainClass.getFullName() + "."  + slotName + " of type " + typeName);
         if (DAP_ENABLED) return "pt.ist.dap.implementation.simple.SimpleContextManager.updateWriteStatisticsWithoutContext(\"" + domainClass.getFullName() + "\", \"" + slotName + "\");";
         else return "";
