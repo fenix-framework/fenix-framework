@@ -40,7 +40,7 @@ relation BPlusTreeHasRootNode {
 
 relation NodeHasParent {
     AbstractNode playsRole {
-	multiplicity *;
+	   multiplicity *;
     }
     InnerNode playsRole parent;
 }
@@ -48,4 +48,26 @@ relation NodeHasParent {
 relation LeafNodeHasSibling {
     LeafNode playsRole previous;
     LeafNode playsRole next;
+}
+
+
+/* Linked List */
+
+class LinkedList {}
+
+class ListNode {}
+
+relation LinkedListHasHeadNode {
+    LinkedList playsRole;
+    ListNode playsRole head;
+}
+
+relation ListNodeHasValue {
+    ListNode playsRole;
+    .pt.ist.fenixframework.core.AbstractDomainObject playsRole value;
+}
+
+relation ListNodeHasNext {
+    ListNode playsRole;
+    ListNode playsRole next;
 }

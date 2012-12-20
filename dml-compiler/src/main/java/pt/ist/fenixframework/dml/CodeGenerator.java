@@ -760,6 +760,9 @@ public abstract class CodeGenerator {
 
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateSlotGetter(slot.getName(), slot.getTypeName(), out);
+        // also generate the get unsafe methods 
+        generateSlotUnsafeGetter(slot.getName(), slot.getTypeName(), out);
+        generateEmptyRegisterGet(slot.getName(), out);
         generateSlotSetter(domainClass, slot, out);
     }
 
@@ -771,6 +774,18 @@ public abstract class CodeGenerator {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
     }
 
+    protected void generateSlotUnsafeGetter(String slotName, String typeName, PrintWriter out) {
+        generateGetter("public", "get" + capitalize(slotName) + "Unsafe", slotName, typeName, out);
+    }
+    
+    protected void generateEmptyRegisterGet(String suffixName, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", "void", "registerGet" + capitalize(suffixName));
+        startMethodBody(out);
+        // empty method on purpose
+        endMethodBody(out);
+    }
+    
     protected void generateGetter(String visibility, String getterName, String slotName, String typeName, PrintWriter out) {
         newline(out);
         printFinalMethod(out, visibility, typeName, getterName);
@@ -890,8 +905,10 @@ public abstract class CodeGenerator {
 
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
+        generateGetter("public", "get" + capitalize(slotName) + "Unsafe", slotName, typeName, out);
+        generateEmptyRegisterGet(slotName, out);
     }
-
+    
     protected void generateRoleSlotMethodsMultOneSetter(Role role, PrintWriter out) {
         String typeName = getTypeFullName(role.getType());
         String slotName = role.getName();
@@ -1111,17 +1128,35 @@ public abstract class CodeGenerator {
 
     protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
 	generateRelationGetter("get" + capitalize(role.getName()), role, out);
+	generateRelationGetter("get" + capitalize(role.getName() + "Unsafe"), role, out);
+	generateEmptyRegisterGet(role.getName(), out);
 	generateIteratorMethod(role, out);
+	generateIteratorUnsafeMethod(role, out);
+	generateEmptyRegisterGet(role.getName(), out);
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out) {
 	generateIteratorMethod(role, out, getSlotExpression(role.getName()));
+    }
+    
+    protected void generateIteratorUnsafeMethod(Role role, PrintWriter out) {
+	generateIteratorUnsafeMethod(role, out, getSlotExpression(role.getName()));
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {
 	newline(out);
 	printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
 		+ capitalize(role.getName()) + "Iterator");
+	startMethodBody(out);
+	printWords(out, "return", slotAccessExpression);
+	print(out, ".iterator();");
+	endMethodBody(out);
+    }
+    
+    protected void generateIteratorUnsafeMethod(Role role, PrintWriter out, final String slotAccessExpression) {
+	newline(out);
+	printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
+		+ capitalize(role.getName()) + "UnsafeIterator");
 	startMethodBody(out);
 	printWords(out, "return", slotAccessExpression);
 	print(out, ".iterator();");

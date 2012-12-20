@@ -262,7 +262,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         
         // also generate the Unsafe getter
         newline(out);
-        printFinalMethod(out, "public", typeName, "getUnsafe" + capitalize(slotName));
+        printFinalMethod(out, "public", typeName, "get" + capitalize(slotName) + "Unsafe");
         startMethodBody(out);
         generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGetUnsafe(getOid().getFullId() + \":" + slotName + "\");");
