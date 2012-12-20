@@ -133,6 +133,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateInfinispanGetter(domainClass, slot, out);
+        generateInfinispanUnsafeGetter(domainClass, slot, out);
+        generateInfinispanRegisterGet(domainClass, slot, out);
         generateInfinispanSetter(domainClass, slot, out);
     }
 
@@ -141,6 +143,22 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName()));
         startMethodBody(out);
         generateInfinispanGetterBody(domainClass, slot, out);
+        endMethodBody(out);
+    }
+    
+    protected void generateInfinispanUnsafeGetter(DomainClass domainClass, Slot slot, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", slot.getTypeName(), "getUnsafe" + capitalize(slot.getName()));
+        startMethodBody(out);
+        generateInfinispanUnsafeGetterBody(domainClass, slot, out);
+        endMethodBody(out);
+    }
+    
+    protected void generateInfinispanRegisterGet(DomainClass domainClass, Slot slot, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", "void", "registerGet" + capitalize(slot.getName()));
+        startMethodBody(out);
+        print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + slot.getName() + "\");");
         endMethodBody(out);
     }
 
@@ -178,7 +196,34 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         returnExpression += ";";
         print(out, returnExpression);
     }
+    
+    protected void generateInfinispanUnsafeGetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
+        generateGetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP read stats update statement
 
+        println(out, "Object obj = InfinispanBackEnd.getInstance().cacheGetUnsafe(getOid().getFullId() + \":" + slot.getName() + "\");");
+        
+        String defaultValue;
+        PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(slot.getTypeName());
+        if (wrapperEntry != null) { // then it is a primitive type
+            defaultValue = wrapperEntry.defaultPrimitiveValue;
+        } else {
+            defaultValue = "null";
+        }
+        println(out, "if (obj == null || obj instanceof Externalization.NullClass) { return " + defaultValue + "; }");
+        String returnExpression = "return (" + getReferenceType(slot.getTypeName()) + ")";
+        ValueType vt = slot.getSlotType();
+        if (vt.isBuiltin() || vt.isEnum()) {
+            returnExpression += "obj";
+        } else {
+            returnExpression += VT_DESERIALIZER +
+                ValueTypeSerializationGenerator.makeSafeValueTypeName(vt) + "((" +
+                getReferenceType(ValueTypeSerializationGenerator.getSerializedFormTypeName(vt)) +
+                ")obj)";
+        }
+        returnExpression += ";";
+        print(out, returnExpression);
+    }
+    
     protected void generateInfinispanSetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
         generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector

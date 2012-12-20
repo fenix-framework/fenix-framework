@@ -148,4 +148,18 @@ public class InfinispanBackEnd implements BackEnd {
         Object obj = domainCache.get(key);
         return (T)(obj instanceof Externalization.NullClass ? null : obj);
     }
+    
+    /**
+     * Reads from Infinispan a value with a given key such that the transactional context does not keep 
+     * track of this key. This means that this read can never cause the trasactin to abort.
+     * This method is used by the code generated in the Domain Objects.
+     */
+    public final <T> T cacheGetUnsafe(String key) {
+	Object obj = domainCache.getAdvancedCache().withFlags(/* TODO FILL IN FLAG */).get(key);
+        return (T)(obj instanceof Externalization.NullClass ? null : obj);
+    }
+    
+    public final void registerGet(String key) {
+	// domainCache.getAdvancedCache().getTxTable()
+    }
 }
