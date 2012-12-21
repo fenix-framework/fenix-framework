@@ -187,6 +187,9 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
 
     @Override
     public boolean remove(Object o) {
+        if (! (o instanceof AbstractDomainObject)) {
+            return false;
+        }
         if (contains(o)) {
             remove(((T)o).getOid());
             return true;
@@ -203,6 +206,8 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
         return containsKey(((T)o).getOid());
     }
 
+    /* The following methods are not needed at the moment but we need to implement Set */
+    
     @Override
     public boolean addAll(Collection<? extends T> c) {
 	throw new UnsupportedOperationException();

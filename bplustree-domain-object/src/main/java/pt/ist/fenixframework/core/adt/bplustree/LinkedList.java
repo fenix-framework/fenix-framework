@@ -1,17 +1,19 @@
 package pt.ist.fenixframework.core.adt.bplustree;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base implements Iterable<T> {
+public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base implements Set<T> {
 
     public  LinkedList() {
 	super();
     }
 
-    public void insert(T value) {
+    public boolean insert(T value) {
 	ListNode<T> previous = getHead();
 	ListNode<T> next = previous.getNext();
 	Comparable toInsert = value.getOid();
@@ -22,10 +24,12 @@ public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base 
 	}
 	if (toInsert.compareTo(oid) != 0) {
 	    previous.setNext(new ListNode(value, next));
+	    return true;
 	}
+	return false;
     }
 
-    public void remove(T value) {
+    public boolean remove(T value) {
 	ListNode<T> previous = getHead();
 	ListNode<T> next = previous.getNext();
 	Comparable toInsert = value.getOid();
@@ -36,7 +40,9 @@ public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base 
 	}
 	if (toInsert.compareTo(oid) == 0) {
 	    previous.setNext(next.getNext());
+	    return true;
 	}
+	return false;
     }
 
     public boolean contains(T value) {
@@ -89,4 +95,66 @@ public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base 
 	};
     }
 
+    @Override
+    public boolean add(T e) {
+        return insert(e);
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        if (! (o instanceof AbstractDomainObject)) {
+            return false;
+        }
+        return remove((T)o);
+    }
+    
+    @Override
+    public boolean contains(Object o) {
+        if (! (o instanceof AbstractDomainObject)) {
+            return false;
+        }
+        return contains((T)o);
+    }
+
+    /* The following methods are not needed at the moment but we need to implement Set */
+    
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+	throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public boolean containsAll(Collection<?> c) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isEmpty() {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object[] toArray() {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+	throw new UnsupportedOperationException();
+    }
 }

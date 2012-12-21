@@ -630,7 +630,7 @@ public abstract class CodeGenerator {
     protected String getNewRoleStarSlotExpression(Role role) {
         StringBuilder buf = new StringBuilder();
 
-        // generate the default collection, a HashSet
+        // generate the default collection
         buf.append("new ");
         buf.append(getDefaultCollectionFor(role.getType().getFullName()));
         buf.append("()");

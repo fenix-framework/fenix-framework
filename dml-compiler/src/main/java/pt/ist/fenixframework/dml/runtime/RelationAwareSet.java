@@ -1,8 +1,7 @@
 package pt.ist.fenixframework.dml.runtime;
 
-import java.util.Iterator;
 import java.util.AbstractSet;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import pt.ist.fenixframework.DomainObject;
@@ -36,7 +35,7 @@ public class RelationAwareSet<E1 extends DomainObject,E2 extends DomainObject> e
 
     @Override
     public Iterator<E2> iterator() {
-        return new RelationAwareIterator<E2>(set);
+        return new RelationAwareIterator(set);
     }
 
     @Override
@@ -59,7 +58,7 @@ public class RelationAwareSet<E1 extends DomainObject,E2 extends DomainObject> e
         }
     }
 
-    private class RelationAwareIterator<E2> implements Iterator<E2> {
+    private class RelationAwareIterator implements Iterator<E2> {
         private Iterator<E2> iterator;
         private E2 current = null;
         private boolean canRemove = false;
@@ -87,7 +86,7 @@ public class RelationAwareSet<E1 extends DomainObject,E2 extends DomainObject> e
                 throw new IllegalStateException();
             } else {
                 canRemove = false;
-                RelationAwareSet.this.remove(current);
+                relation.remove(owner, current);
             }
         }
     }

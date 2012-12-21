@@ -69,7 +69,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
         generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
+        
+        // Index method generation
         super.generateIndexMethods(domClass, out);
+        
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
     }
 
@@ -316,7 +319,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, "internalSet = (BPlusTree)InfinispanBackEnd.getInstance().fromOid(oid);");
         // print(out, "// no need to test for null.  The entry must exist for sure.");
         closeBlock(out);
-        print(out, "return new " + getRelationAwareBaseTypeFor(role) + "(this, " + getRelationSlotNameFor(role) + ", internalSet);");
+        print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", internalSet);");
         endMethodBody(out);
     }
 
@@ -442,12 +445,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected String getRoleOneBaseType() {
         return "pt.ist.fenixframework.dml.runtime.Role";
-    }
-
-    @Override
-    protected String getRelationAwareBaseTypeFor(Role role) {
-        // FIXME: handle other types of collections other than sets
-        return "pt.ist.fenixframework.backend.infinispan.RelationSet";
     }
 
 }

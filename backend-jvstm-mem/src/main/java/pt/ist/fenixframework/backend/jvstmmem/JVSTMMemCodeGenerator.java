@@ -48,13 +48,8 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateSlot(Slot slot, PrintWriter out) {
 	onNewline(out);
-	String defaultValue = "";
 	PrimitiveToWrapperEntry w = findWrapperEntry(slot.getTypeName());
-	if (w != null) {
-	    defaultValue = w.defaultPrimitiveValue;
-	} else {
-	    defaultValue = "null";
-	}
+	String defaultValue = w != null ? w.defaultPrimitiveValue : "null";
 	printWords(out, "private", getVBoxType(slot), slot.getName(), "= new", getVBoxType(slot), "(" + defaultValue + ")");
 	print(out, ";");
     }
@@ -63,18 +58,12 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     protected void generateRoleSlot(Role role, PrintWriter out) {
         onNewline(out);
         if (role.getMultiplicityUpper() == 1) {
-            String defaultValue = "";
             PrimitiveToWrapperEntry w = findWrapperEntry(getTypeFullName(role.getType()));
-            if (w != null) {
-        	defaultValue = w.defaultPrimitiveValue;
-            } else {
-        	defaultValue = "null";
-            }
+            String defaultValue = w != null ? w.defaultPrimitiveValue : "null";
             String t = makeGenericType("VBox", getReferenceType(getTypeFullName(role.getType())));
-            printWords(out, "private", t, role.getName(),
-        	    "= new", t, "(" + defaultValue + ")");
+            printWords(out, "private", t, role.getName(), "= new", t, "(" + defaultValue + ")");
         } else {
-            printWords(out, "private", getRelationAwareTypeFor(role), role.getName());
+            printWords(out, "private", getDefaultCollectionFor(role.getType().getFullName()), role.getName());
         }
         println(out, ";");
     }
@@ -105,20 +94,9 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	endMethodBody(out);
     }
 
-    protected String getRelationAwareTypeFor(Role role) {
-	String elemType = getTypeFullName(role.getType());
-	return makeGenericType(getRelationAwareBaseTypeFor(role), elemType);
-    }
-    
-    protected String getConcreteSetTypeDeclarationFor(Role role) {
-        String elemType = getTypeFullName(role.getType());
-        String thisType = getTypeFullName(role.getOtherRole().getType());
-        return makeGenericType("pt.ist.fenixframework.backend.jvstmmem.RelationSet", thisType, elemType);
-    }
-    
     @Override
-    protected String getRelationAwareBaseTypeFor(Role role) {
-	return "BPlusTree";
+    protected String getDefaultCollectionFor(String type) {
+	return makeGenericType("BPlusTree", type);
     }
     
     @Override
@@ -127,7 +105,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 
 	// generate the relation aware collection
 	buf.append("new ");
-	buf.append(getRelationAwareTypeFor(role));
+	buf.append(getDefaultCollectionFor(role.getType().getFullName()));
 	buf.append("()");
 
 	return buf.toString();
@@ -155,10 +133,10 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	newline(out);
 	printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()));
 	startMethodBody(out);
-	print(out, "return new " + getReturnRelationAwareBaseTypeFor(role) + "(this, " + getRelationSlotNameFor(role) + ", this." + role.getName() + ");");
+	print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", this." + role.getName() + ");");
 	endMethodBody(out);
     }
-
+    
     protected void generateRoleSlotMethodsMultStarSetter(Role role, PrintWriter out, String methodModifiers,
 	    String capitalizedSlotName, String typeName, String slotName) {
 	newline(out);
@@ -232,12 +210,10 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
-    protected String getReturnRelationAwareBaseTypeFor(Role role) {
-	return "pt.ist.fenixframework.backend.jvstmmem.RelationSet";
-    }
-    
     @Override
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
+	// call the DAP CodeGen which is overridden in this method
+	super.generateGetterBody(slotName, typeName, out);
         printWords(out, "return", getSlotExpression(slotName) + ".get();");
     }
     
