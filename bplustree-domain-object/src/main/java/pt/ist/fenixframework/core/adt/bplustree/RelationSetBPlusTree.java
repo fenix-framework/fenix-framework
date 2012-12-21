@@ -1,21 +1,19 @@
-package pt.ist.fenixframework.backend.infinispan;
+package pt.ist.fenixframework.core.adt.bplustree;
 
 import java.util.AbstractSet;
 import java.util.Iterator;
-import java.util.Set;
 
+import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationBaseSet;
-import pt.ist.fenixframework.core.AbstractDomainObject;
-import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;
 
-public class RelationSet<E1 extends AbstractDomainObject,E2 extends AbstractDomainObject> extends AbstractSet<E2> implements RelationBaseSet<E2> {
+public class RelationSetBPlusTree<E1 extends AbstractDomainObject,E2 extends AbstractDomainObject> extends AbstractSet<E2> implements RelationBaseSet<E2> {
     private E1 listHolder;
     private Relation<E1,E2> relation;
 
     private BPlusTree<E2> elements;
 
-    public RelationSet(E1 listHolder, Relation<E1,E2> relation, BPlusTree<E2> elements) {
+    public RelationSetBPlusTree(E1 listHolder, Relation<E1,E2> relation, BPlusTree<E2> elements) {
 	this.listHolder = listHolder;
         this.relation = relation;
         this.elements = elements;
@@ -64,12 +62,12 @@ public class RelationSet<E1 extends AbstractDomainObject,E2 extends AbstractDoma
     }
 
     private static class RelationSetIterator<X extends AbstractDomainObject> implements Iterator<X> {
-        private RelationSet<?,X> list;
+        private RelationSetBPlusTree<?,X> list;
     	private Iterator<X> iter;
     	private boolean canRemove = false;
     	private X previous = null;
 
-    	RelationSetIterator(RelationSet<?,X> list) {
+    	RelationSetIterator(RelationSetBPlusTree<?,X> list) {
             this.list = list;
     	    this.iter = list.elements.iterator();
     	}

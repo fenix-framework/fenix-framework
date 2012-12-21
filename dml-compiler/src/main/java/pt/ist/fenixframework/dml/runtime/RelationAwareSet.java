@@ -8,13 +8,14 @@ import java.util.Set;
 import pt.ist.fenixframework.DomainObject;
 
 public class RelationAwareSet<E1 extends DomainObject,E2 extends DomainObject> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
-    private Set<E2> set = new HashSet<E2>();
+    private Set<E2> set;
     private E1 owner;
     private Relation<E1,E2> relation;
 
-    public RelationAwareSet(E1 owner, Relation<E1,E2> relation) {
+    public RelationAwareSet(E1 owner, Relation<E1,E2> relation, Set<E2> set) {
         this.owner = owner;
         this.relation = relation;
+        this.set = set;
     }
 
     public void justAdd(E2 elem) {

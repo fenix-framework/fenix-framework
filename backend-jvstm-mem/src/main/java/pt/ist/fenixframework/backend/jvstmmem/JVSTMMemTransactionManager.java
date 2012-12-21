@@ -5,37 +5,33 @@ import java.util.concurrent.Callable;
 import javax.transaction.Transaction;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.TransactionManager;
 
-public class JVSTMMemTransactionManager implements TransactionManager {
+public class JVSTMMemTransactionManager extends TransactionManager {
 
     @Override
-    public void begin() {
-	jvstm.Transaction.begin();
-    }
-    
-    @Override
-    public void begin(boolean readOnly) {
+    public void backendBegin(boolean readOnly) {
 	jvstm.Transaction.begin(readOnly);
     }
 
     @Override
-    public void commit() {
+    public void backendCommit() {
 	jvstm.Transaction.commit();
     }
 
     @Override
-    public Transaction getTransaction() {
+    public Transaction backendGetTransaction() {
 	throw new RuntimeException("Should not had been called!");
     }
 
     @Override
-    public void rollback() {
+    public void backendRollback() {
 	jvstm.Transaction.abort();
     }
 
     @Override
-    public <T> T withTransaction(Callable<T> command) {
+    public <T> T backendWithTransaction(Callable<T> command) {
 	try {
 	    return jvstm.Transaction.doIt(command);
 	} catch (Exception e) {
@@ -46,7 +42,7 @@ public class JVSTMMemTransactionManager implements TransactionManager {
     }
 
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) {
+    public <T> T backendWithTransaction(Callable<T> command, Atomic atomic) {
 	try {
 	    jvstm.Transaction.beginInevitable();
 	    T res = command.call();
@@ -58,5 +54,14 @@ public class JVSTMMemTransactionManager implements TransactionManager {
 	    return null;
 	}
     }
+
+    @Override
+    protected <T> T backendWithTransaction(CallableWithoutException<T> command) {
+	jvstm.Transaction.beginInevitable();
+	T res = command.call();
+	jvstm.Transaction.commit();
+	return res;
+    }
+
 
 }

@@ -610,7 +610,7 @@ public abstract class CodeGenerator {
         if (role.getMultiplicityUpper() == 1) {
             printWords(out, "private", getTypeFullName(role.getType()), role.getName());
         } else {
-            printWords(out, "private", getRelationAwareTypeFor(role), role.getName());
+            printWords(out, "private", getDefaultCollectionFor(role.getType().getFullName()), role.getName());
         }
         println(out, ";");
     }
@@ -623,18 +623,17 @@ public abstract class CodeGenerator {
 //         return "new " + getBoxType(role) + "()";
 //     }
 
+    protected String getDefaultCollectionFor(String type) {
+	return makeGenericType("java.util.HashSet", type);
+    }
+    
     protected String getNewRoleStarSlotExpression(Role role) {
         StringBuilder buf = new StringBuilder();
 
-        // generate the relation aware collection
-        String thisType = getTypeFullName(role.getOtherRole().getType());
+        // generate the default collection, a HashSet
         buf.append("new ");
-        buf.append(getRelationAwareTypeFor(role));
-        buf.append("((");
-        buf.append(thisType);
-        buf.append(")this, ");
-        buf.append(getRelationSlotNameFor(role));
-        buf.append(")");
+        buf.append(getDefaultCollectionFor(role.getType().getFullName()));
+        buf.append("()");
 
         return buf.toString();
     }
@@ -1132,7 +1131,7 @@ public abstract class CodeGenerator {
 	generateEmptyRegisterGet(role.getName(), out);
 	generateIteratorMethod(role, out);
 	generateIteratorUnsafeMethod(role, out);
-	generateEmptyRegisterGet(role.getName(), out);
+	generateEmptyRegisterGet(role.getName() + "UnsafeIterator", out);
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out) {
@@ -1165,11 +1164,11 @@ public abstract class CodeGenerator {
 
     protected void generateRelationGetter(String getterName, Role role, PrintWriter out) {
 	String paramListType = makeGenericType("java.util.Set", getTypeFullName(role.getType()));
-	generateRelationGetter(role, paramListType, out);
+	generateRelationGetter(getterName, role, paramListType, out);
     }
 
-    protected void generateRelationGetter(Role role, String paramListType, PrintWriter out) {
-	generateRelationGetter("get" + capitalize(role.getName()), getSlotExpression(role.getName()), role, paramListType, out);
+    protected void generateRelationGetter(String getterName, Role role, String paramListType, PrintWriter out) {
+	generateRelationGetter(getterName, getSlotExpression(role.getName()), role, paramListType, out);
     }
 
     protected void generateRelationGetter(String getterName, String valueToReturn, Role role, String typeName, PrintWriter out) {
@@ -1178,7 +1177,15 @@ public abstract class CodeGenerator {
 
 	startMethodBody(out);
 	print(out, "return ");
-	print(out, valueToReturn);
+        print(out, "new ");
+        print(out, getRelationAwareTypeFor(role));
+        print(out, "((");
+        print(out, getTypeFullName(role.getOtherRole().getType()));
+        print(out, ")this, ");
+        print(out, getRelationSlotNameFor(role));
+        print(out, ", ");
+        print(out, role.getName());
+        print(out, ")");
 	print(out, ";");
 	endMethodBody(out);
     }
