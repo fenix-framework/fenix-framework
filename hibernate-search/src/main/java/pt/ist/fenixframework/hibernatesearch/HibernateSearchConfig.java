@@ -4,15 +4,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
-import javax.transaction.RollbackException;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.TransactionListener;
 import pt.ist.fenixframework.dap.FFDAPConfig;
 import pt.ist.fenixframework.txintrospector.TxStats;
 
@@ -55,21 +50,8 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
         HibernateSearchSupport.initializeSearchFactory(properties);
 
         // Register our listener
-        FenixFramework.getTransactionManager().registerForBegin(new TransactionListener() {
-            @Override public void notifyBeforeBegin() { }
+        FenixFramework.getTransactionManager().addCommitListener(new CommitIndexer());
 
-            @Override public void notifyAfterBegin(Transaction tx) {
-                try {
-                    tx.registerSynchronization(new CommitIndexer());
-                } catch (IllegalStateException e) {
-                    logger.error("Exception caught in HibernateSearchConfig.init()", e);
-                } catch (RollbackException e) {
-                    logger.error("Exception caught in HibernateSearchConfig.init()", e);
-                } catch (SystemException e) {
-                    logger.error("Exception caught in HibernateSearchConfig.init()", e);
-                }
-            }
-        });
     }
 
     /**
