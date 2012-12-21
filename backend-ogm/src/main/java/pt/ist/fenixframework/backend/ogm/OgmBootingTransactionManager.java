@@ -2,15 +2,19 @@ package pt.ist.fenixframework.backend.ogm;
 
 import java.util.concurrent.Callable;
 
+import javax.transaction.NotSupportedException;
 import javax.transaction.Synchronization;
-import javax.transaction.Transaction;
+import javax.transaction.SystemException;
 import javax.transaction.xa.XAResource;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
+import pt.ist.fenixframework.CommitListener;
+import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionManager;
+import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
-public class OgmBootingTransactionManager extends TransactionManager {
+public class OgmBootingTransactionManager implements TransactionManager {
 
     private static final Transaction BOOTING_TRANSACTION = new Transaction() {
         @Override
@@ -47,41 +51,86 @@ public class OgmBootingTransactionManager extends TransactionManager {
         public void setRollbackOnly() {
             throw new UnsupportedOperationException("Booting OGM");
         }
+
+	@Override
+	public TxIntrospector getTxIntrospector() {
+	    return null;
+	}
     };
 
     @Override
-    protected void backendBegin(boolean readOnly) {
+    public void begin() {
         throw new UnsupportedOperationException("Booting OGM");
     }
 
     @Override
-    protected void backendCommit() {
+    public void commit() {
         throw new UnsupportedOperationException("Booting OGM");
     }
 
     @Override
-    protected Transaction backendGetTransaction() {
-        return BOOTING_TRANSACTION;
+    public int getStatus() {
+	throw new UnsupportedOperationException("Booting OGM");
     }
 
     @Override
-    protected void backendRollback() {
-        throw new UnsupportedOperationException("Booting OGM");
+    public void resume(javax.transaction.Transaction tobj) {
+	throw new UnsupportedOperationException("Booting OGM");
     }
 
     @Override
-    protected <T> T backendWithTransaction(CallableWithoutException<T> command) {
-        throw new UnsupportedOperationException("Booting OGM");
+    public void rollback() {
+	throw new UnsupportedOperationException("Booting OGM");
     }
 
     @Override
-    protected <T> T backendWithTransaction(Callable<T> command) {
-        throw new UnsupportedOperationException("Booting OGM");
+    public void setRollbackOnly() {
+	throw new UnsupportedOperationException("Booting OGM");
     }
 
     @Override
-    protected <T> T backendWithTransaction(Callable<T> command, Atomic atomic) {
-        throw new UnsupportedOperationException("Booting OGM");
+    public void setTransactionTimeout(int seconds) {
+	throw new UnsupportedOperationException("Booting OGM");
+    }
+
+    @Override
+    public Transaction suspend() {
+	throw new UnsupportedOperationException("Booting OGM");
+    }
+
+    @Override
+    public Transaction getTransaction() {
+	return BOOTING_TRANSACTION;
+    }
+
+    @Override
+    public <T> T withTransaction(CallableWithoutException<T> command) {
+	throw new UnsupportedOperationException("Booting OGM");
+    }
+
+    @Override
+    public <T> T withTransaction(Callable<T> command) throws Exception {
+	throw new UnsupportedOperationException("Booting OGM");
+    }
+
+    @Override
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
+	throw new UnsupportedOperationException("Booting OGM");
+    }
+
+    @Override
+    public void begin(boolean readOnly) throws NotSupportedException, SystemException {
+	throw new UnsupportedOperationException("Booting OGM");
+    }
+
+    @Override
+    public void addCommitListener(CommitListener listener) {
+	throw new UnsupportedOperationException("Booting OGM");
+    }
+
+    @Override
+    public void removeCommitListener(CommitListener listener) {
+	throw new UnsupportedOperationException("Booting OGM");
     }
 
 }
