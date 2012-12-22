@@ -1135,11 +1135,11 @@ public abstract class CodeGenerator {
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out) {
-	generateIteratorMethod(role, out, getSlotExpression(role.getName()));
+	generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "()");
     }
     
     protected void generateIteratorUnsafeMethod(Role role, PrintWriter out) {
-	generateIteratorUnsafeMethod(role, out, getSlotExpression(role.getName()));
+	generateIteratorUnsafeMethod(role, out, "get" + capitalize(role.getName()) + "()");
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {

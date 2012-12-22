@@ -125,7 +125,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
-        generateIndexMethods(domClass, out);
+        // Generate the index methods
+        super.generateIndexMethods(domClass, out);
     }
 
     @Override
@@ -156,12 +157,16 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
     @Override
     protected void generateInitRoleSlot(Role role, PrintWriter out) {
-        // create the B+Tree and initialize its foreign key slot
+        // create the default collection and initialize its foreign key slot
         if (role.getMultiplicityUpper() != 1) {
             onNewline(out);
-            print(out, "this." + makeForeignKeyName(role.getName()) +
-                  " = new BPlusTree().getExternalId();");
+            print(out, "this." + makeForeignKeyName(role.getName()) + " = new " +
+        	    getDefaultCollectionFor(role.getType().getFullName()) + "().getExternalId();");
         }
+    }
+
+    protected String getDefaultCollectionFor(String type) {
+	return makeGenericType("BPlusTree", type);
     }
 
     protected void generateDefaultConstructor(DomainClass domClass, PrintWriter out) {
@@ -363,13 +368,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         // return makeGenericType(getRelationAwareBaseTypeFor(role), thisType, elemType);
     }
 
-    protected String getConcreteSetTypeDeclarationFor(Role role) {
-        String elemType = getTypeFullName(role.getType());
-        // return makeGenericType("java.util.Set", elemType);
-        String thisType = getTypeFullName(role.getOtherRole().getType());
-        return makeGenericType(getRelationAwareBaseTypeFor(role), thisType, elemType);
-    }
-
     @Override
     protected void generateRoleSlotMethodsMultOne(Role role, PrintWriter out) {
         super.generateRoleSlotMethodsMultOne(role, out);
@@ -555,13 +553,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     protected String getRoleOneBaseType() {
         return "pt.ist.fenixframework.dml.runtime.Role";
     }
-
-    @Override
-    protected String getRelationAwareBaseTypeFor(Role role) {
-        // FIXME: handle other types of collections other than sets
-        return "pt.ist.fenixframework.backend.ogm.RelationSet";
-    }
-
 
     ///////////////////////////////////////////////////////////////////////////
     // Below are methods specific to the generation of the ORM mapping XML file

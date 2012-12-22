@@ -86,6 +86,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
+    protected String getDefaultCollectionFor(String type) {
+	return makeGenericType("BPlusTree", type);
+    }
+    
     @Override
     protected void generateStaticRoleSlotsMultOne(Role role, Role otherRole, PrintWriter out) {
         generateRoleMethodAdd(role, otherRole, out);
