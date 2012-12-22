@@ -26,8 +26,10 @@ public class DmlCompileTask extends Task {
     private String packageName = "";
     private final List<FileSet> filesets = new ArrayList<FileSet>();
     private String generatorClassName;
+    private String collectionClassame = "";
     private String classPathRef;
     private String hasRun = DmlCompileTask.class.getName() + ".run";
+    private boolean generateUnsafeAccesses = false;
 
     // this is defined when first requested (see the getter)
     private Class<? extends CodeGenerator> codeGeneratorClass;
@@ -91,7 +93,23 @@ public class DmlCompileTask extends Task {
     public void setGeneratorClassName(String generatorClassName) {
 	this.generatorClassName = generatorClassName;
     }
+    
+    public String getCollectionClassName() {
+	return collectionClassame;
+    }
 
+    public void setCollectionClassName(String collectionClassName) {
+	this.collectionClassame = collectionClassName;
+    }
+    
+    public boolean isGenerateUnsafeAccesses() {
+	return generateFinals;
+    }
+
+    public void setGenerateUnsafeAccesses(boolean generateUnsafeAccesses) {
+	this.generateUnsafeAccesses = generateUnsafeAccesses;
+    }
+    
     public File getDestDirectoryFile() {
 	return (this.destDirectory == null) ? null : new File(destDirectory);
     }
@@ -145,8 +163,9 @@ public class DmlCompileTask extends Task {
 		System.out.println("Using generator: " + getCodeGeneratorClass().getName());
 
 		compArgs = new CompilerArgs(getDestDirectoryFile(), destDirectoryBaseFile, getPackageName(), isGenerateFinals(),
-                                            getCodeGeneratorClass(),
-                                            CompilerArgs.convertFilenamesToURLs(localDomainSpecFileNames), new ArrayList<URL>(), new HashMap<String,String>());
+                                            getCodeGeneratorClass(), getCollectionClassName(),
+                                            CompilerArgs.convertFilenamesToURLs(localDomainSpecFileNames), new ArrayList<URL>(),
+                                            new HashMap<String,String>(), isGenerateUnsafeAccesses());
 
 		DmlCompiler.compile(compArgs);
 

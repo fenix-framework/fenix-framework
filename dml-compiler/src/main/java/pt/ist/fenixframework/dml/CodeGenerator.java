@@ -45,6 +45,7 @@ public abstract class CodeGenerator {
     private DomainModel domainModel;
     private File destDirectory;
     private File destDirectoryBase;
+    private String collectionToUse;
 
     public CodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         this.compArgs = compArgs;
@@ -54,6 +55,15 @@ public abstract class CodeGenerator {
                                                      ? compArgs.destDirectory
                                                      : compArgs.destDirectoryBase,
                                                      compArgs.packageName);
+        if (compArgs.collectionClassName == "") {
+            this.collectionToUse = "java.util.HashSet";
+        } else {
+            this.collectionToUse = compArgs.collectionClassName;
+        }
+    }
+    
+    public void setCollectionToUse(String newCollectionName) {
+	this.collectionToUse = newCollectionName;
     }
 
     public DomainModel getDomainModel() {
@@ -624,7 +634,7 @@ public abstract class CodeGenerator {
 //     }
 
     protected String getDefaultCollectionFor(String type) {
-	return makeGenericType("java.util.HashSet", type);
+	return makeGenericType(collectionToUse, type);
     }
     
     protected String getNewRoleStarSlotExpression(Role role) {
@@ -759,9 +769,11 @@ public abstract class CodeGenerator {
 
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateSlotGetter(slot.getName(), slot.getTypeName(), out);
-        // also generate the get unsafe methods 
-        generateSlotUnsafeGetter(slot.getName(), slot.getTypeName(), out);
-        generateEmptyRegisterGet(slot.getName(), out);
+        // also generate the get unsafe methods
+        if (generateUnsafeMethods()) {
+            generateSlotUnsafeGetter(slot.getName(), slot.getTypeName(), out);
+            generateEmptyRegisterGet(slot.getName(), out);
+        }
         generateSlotSetter(domainClass, slot, out);
     }
 
@@ -904,8 +916,10 @@ public abstract class CodeGenerator {
 
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
-        generateGetter("public", "get" + capitalize(slotName) + "Unsafe", slotName, typeName, out);
-        generateEmptyRegisterGet(slotName, out);
+        if (generateUnsafeMethods()) {
+            generateGetter("public", "get" + capitalize(slotName) + "Unsafe", slotName, typeName, out);
+            generateEmptyRegisterGet(slotName, out);
+        }
     }
     
     protected void generateRoleSlotMethodsMultOneSetter(Role role, PrintWriter out) {
@@ -980,6 +994,10 @@ public abstract class CodeGenerator {
 
     protected String getMethodModifiers() {
         return (compArgs.generateFinals ? "public final" : "public");
+    }
+    
+    protected boolean generateUnsafeMethods() {
+	return compArgs.generateUnsafeAccesses;
     }
 
     protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
@@ -1127,11 +1145,11 @@ public abstract class CodeGenerator {
 
     protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
 	generateRelationGetter("get" + capitalize(role.getName()), role, out);
-	generateRelationGetter("get" + capitalize(role.getName() + "Unsafe"), role, out);
-	generateEmptyRegisterGet(role.getName(), out);
+	if (generateUnsafeMethods()) {
+	    generateRelationGetter("get" + capitalize(role.getName() + "Unsafe"), role, out);
+	    generateEmptyRegisterGet(role.getName(), out);
+	}
 	generateIteratorMethod(role, out);
-	generateIteratorUnsafeMethod(role, out);
-	generateEmptyRegisterGet(role.getName() + "UnsafeIterator", out);
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out) {

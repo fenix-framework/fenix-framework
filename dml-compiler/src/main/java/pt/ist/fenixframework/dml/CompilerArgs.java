@@ -79,7 +79,9 @@ public class CompilerArgs {
     List<URL> localDomainSpecs = new ArrayList<URL>();
     List<URL> externalDomainSpecs = new ArrayList<URL>();
     Class<? extends CodeGenerator> generatorClass = DefaultCodeGenerator.class;
+    String collectionClassName;
     Map<String,String> params = new HashMap<String,String>();
+    boolean generateUnsafeAccesses = false;
 
     /*
      * This is not part of the API
@@ -90,14 +92,16 @@ public class CompilerArgs {
     private boolean addToLocalDomainSpecs = true; 
 
     private CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
-	    Class<? extends CodeGenerator> generatorClass, Map<String,String> params) {
+	    Class<? extends CodeGenerator> generatorClass, Map<String,String> params, String collectionClassName, boolean generateUnsafeAccesses) {
 
 	this.destDirectory = destDirectory;
 	this.destDirectoryBase = destDirectoryBase;
 	this.packageName = packageName;
 	this.generateFinals = generateFinals;
 	this.generatorClass = generatorClass != null ? generatorClass : DefaultCodeGenerator.class;
+	this.collectionClassName = collectionClassName;
 	this.params = new HashMap<String,String>(params);
+	this.generateUnsafeAccesses = generateUnsafeAccesses;
     }
 
     /**
@@ -105,9 +109,10 @@ public class CompilerArgs {
      */
     public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName,
                         Boolean generateFinals, Class<? extends CodeGenerator> generatorClass,
-                        List<URL> localDomainSpecs, List<URL> externalDomainSpecs, Map<String,String> params) {
+                        String collectionClassName, List<URL> localDomainSpecs, 
+                        List<URL> externalDomainSpecs, Map<String,String> params, boolean generateUnsafeAccesses) {
 
-        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params);
+        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params, collectionClassName, generateUnsafeAccesses);
 	if (localDomainSpecs != null) { this.localDomainSpecs.addAll(localDomainSpecs); }
         if (externalDomainSpecs != null) {this.externalDomainSpecs.addAll(externalDomainSpecs); }
 	checkArguments();
@@ -121,7 +126,8 @@ public class CompilerArgs {
                         Boolean generateFinals, Class<? extends CodeGenerator> generatorClass,
                         String projectName, Map<String,String> params) throws DmlCompilerException {
 
-        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params);
+        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params, 
+        	"", false /* This constructor seems unused, so the collection will be the default one */);
         try {
             setDmlSpecsFromProjectName(projectName);
         } catch (Exception e) {
@@ -218,6 +224,10 @@ public class CompilerArgs {
 	    error("option " + args[pos] + " requires argument");
 	}
 	return null;
+    }
+    
+    public String getCollectionClassName() {
+	return this.collectionClassName;
     }
 
     void addToDomainSpecs(String domainSpecFilename, boolean addToLocal) {

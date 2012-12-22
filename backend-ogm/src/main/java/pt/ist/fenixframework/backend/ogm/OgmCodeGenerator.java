@@ -44,6 +44,9 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
     public OgmCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
+        if (compArgs.getCollectionClassName() == "") {
+            setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
+        }
     }
 
     @Override
@@ -72,7 +75,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         println(out, "import pt.ist.fenixframework.backend.ogm.OgmBackEnd;");
         println(out, "import pt.ist.fenixframework.backend.ogm.OgmOID;");
         println(out, "import pt.ist.fenixframework.core.Externalization;");
-        println(out, "import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;");
         println(out, "import " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ";");
         println(out, "import static " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ".*;");
         newline(out);
@@ -163,10 +165,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
             print(out, "this." + makeForeignKeyName(role.getName()) + " = new " +
         	    getDefaultCollectionFor(role.getType().getFullName()) + "().getExternalId();");
         }
-    }
-
-    protected String getDefaultCollectionFor(String type) {
-	return makeGenericType("BPlusTree", type);
     }
 
     protected void generateDefaultConstructor(DomainClass domClass, PrintWriter out) {
@@ -465,7 +463,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
 	startMethodBody(out);
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-        println(out, "BPlusTree internalSet = OgmBackEnd.getInstance().getDomainObject(" +
+        String collectionType = getDefaultCollectionFor(role.getType().getFullName());
+        println(out, collectionType + " internalSet = OgmBackEnd.getInstance().getDomainObject(" +
                 makeForeignKeyName(role.getName()) + ");");
 
         print(out, "return new " + getRelationAwareBaseTypeFor(role) + "(this, " + getRelationSlotNameFor(role) + ", internalSet);");

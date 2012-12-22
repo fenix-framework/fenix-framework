@@ -15,6 +15,9 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 
     public JVSTMMemCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
 	super(compArgs, domainModel);
+        if (compArgs.getCollectionClassName() == "") {
+            setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
+        }
     }
 
     @Override
@@ -40,7 +43,6 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateFilePreamble(String subPackageName, PrintWriter out) {
 	super.generateFilePreamble(subPackageName, out);
-	println(out, "import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;");
 	println(out, "import jvstm.VBox;");
 	newline(out);
     }
@@ -74,18 +76,31 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     
     @Override
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
-	generateVBoxSlotGetter(slot, out);
+	generateVBoxSlotGetter("get" + capitalize(slot.getName()), slot, out);
+        // also generate the get unsafe methods
+        if (generateUnsafeMethods()) {
+            generateVBoxSlotGetter("get" + capitalize(slot.getName()) + "Unsafe", slot, out);
+            generateVBoxRegisterGet("", "registerGet" + capitalize(slot.getName()), out);
+        }
 	generateVBoxSlotSetter(slot, out);
     }
 
-    protected void generateVBoxSlotGetter(Slot slot, PrintWriter out) {
+    protected void generateVBoxSlotGetter(String methodName, Slot slot, PrintWriter out) {
 	newline(out);
-	printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName()));
+	printFinalMethod(out, "public", slot.getTypeName(), methodName);
 	startMethodBody(out);
 	printWords(out, "return", getSlotExpression(slot.getName()) + ".get();");
 	endMethodBody(out);
     }
 
+    protected void generateVBoxRegisterGet(String access, String methodName, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", "void", methodName);
+        startMethodBody(out);
+        // empty for now
+        endMethodBody(out);
+    }
+    
     protected void generateVBoxSlotSetter(Slot slot, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
@@ -94,11 +109,6 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	endMethodBody(out);
     }
 
-    @Override
-    protected String getDefaultCollectionFor(String type) {
-	return makeGenericType("BPlusTree", type);
-    }
-    
     @Override
     protected String getNewRoleStarSlotExpression(Role role) {
 	StringBuilder buf = new StringBuilder();
@@ -119,7 +129,12 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	String capitalizedSlotName = capitalize(slotName);
 	String methodModifiers = getMethodModifiers();
 
-	generateRoleSlotMethodsMultStarGetter(role, out);
+	generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
+        // also generate the get unsafe methods
+        if (generateUnsafeMethods()) {
+            generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()) + "Unsafe", role, out);
+            generateVBoxRegisterGet("", "registerGet" + capitalize(role.getName()), out);
+        }
 	generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
 	generateRoleSlotMethodsMultStarRemover(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
 	generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, typeName);
@@ -129,9 +144,9 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	generateIteratorMethod(role, out);
     }
 
-    protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out) {
+    protected void generateRoleSlotMethodsMultStarGetter(String methodName, Role role, PrintWriter out) {
 	newline(out);
-	printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()));
+	printFinalMethod(out, "public", getSetTypeDeclarationFor(role), methodName);
 	startMethodBody(out);
 	print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", this." + role.getName() + ");");
 	endMethodBody(out);
@@ -213,7 +228,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
 	// call the DAP CodeGen which is overridden in this method
-	super.generateGetterBody(slotName, typeName, out);
+	generateGetterDAPStatement(dC, slotName, typeName, out);
         printWords(out, "return", getSlotExpression(slotName) + ".get();");
     }
     

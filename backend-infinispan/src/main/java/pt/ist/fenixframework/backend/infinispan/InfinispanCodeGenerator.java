@@ -26,6 +26,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     public InfinispanCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
+        if (compArgs.getCollectionClassName() == "") {
+            setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
+        }
      }
 
     @Override
@@ -54,7 +57,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         println(out, "import pt.ist.fenixframework.backend.infinispan.InfinispanBackEnd;");
         println(out, "import pt.ist.fenixframework.backend.infinispan.OID;");
         println(out, "import pt.ist.fenixframework.core.Externalization;");
-        println(out, "import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;");
         println(out, "import " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ";");
         println(out, "import static " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ".*;");
         newline(out);
@@ -86,10 +88,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
-    protected String getDefaultCollectionFor(String type) {
-	return makeGenericType("BPlusTree", type);
-    }
-    
     @Override
     protected void generateStaticRoleSlotsMultOne(Role role, Role otherRole, PrintWriter out) {
         generateRoleMethodAdd(role, otherRole, out);
@@ -140,9 +138,11 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateInfinispanGetter(domainClass, slot, out);
-        // also generate the get unsafe methods 
-        generateInfinispanUnsafeGetter(domainClass, slot, out);
-        generateInfinispanRegisterGet(domainClass, slot, out);
+        // also generate the get unsafe methods
+        if (generateUnsafeMethods()) {
+            generateInfinispanUnsafeGetter(domainClass, slot, out);
+            generateInfinispanRegisterGet(slot.getName(), "registerGet" + capitalize(slot.getName()), out);
+        }
         generateInfinispanSetter(domainClass, slot, out);
     }
 
@@ -162,11 +162,11 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
     
-    protected void generateInfinispanRegisterGet(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateInfinispanRegisterGet(String access, String methodName, PrintWriter out) {
         newline(out);
-        printFinalMethod(out, "public", "void", "registerGet" + capitalize(slot.getName()));
+        printFinalMethod(out, "public", "void", methodName);
         startMethodBody(out);
-        print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + slot.getName() + "\");");
+        print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + access + "\");");
         endMethodBody(out);
     }
 
@@ -268,20 +268,22 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
         
         // also generate the Unsafe getter
-        newline(out);
-        printFinalMethod(out, "public", typeName, "get" + capitalize(slotName) + "Unsafe");
-        startMethodBody(out);
-        generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
-        println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGetUnsafe(getOid().getFullId() + \":" + slotName + "\");");
-        print(out, "return (oid == null || oid instanceof Externalization.NullClass ? null : (" + typeName + ")InfinispanBackEnd.getInstance().fromOid(oid));");
-        endMethodBody(out);
-        
-        // and the register method
-        newline(out);
-        printFinalMethod(out, "public", "void", "registerGet" + capitalize(slotName));
-        startMethodBody(out);
-        print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + slotName + "\");");
-        endMethodBody(out);
+        if (generateUnsafeMethods()) {
+            newline(out);
+            printFinalMethod(out, "public", typeName, "get" + capitalize(slotName) + "Unsafe");
+            startMethodBody(out);
+            generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
+            println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGetUnsafe(getOid().getFullId() + \":" + slotName + "\");");
+            print(out, "return (oid == null || oid instanceof Externalization.NullClass ? null : (" + typeName + ")InfinispanBackEnd.getInstance().fromOid(oid));");
+            endMethodBody(out);
+
+            // and the register method
+            newline(out);
+            printFinalMethod(out, "public", "void", "registerGet" + capitalize(slotName));
+            startMethodBody(out);
+            print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + slotName + "\");");
+            endMethodBody(out);
+        }
     }
 
     @Override
@@ -293,8 +295,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         String methodModifiers = getMethodModifiers();
 
         generateRoleSlotMethodsMultStarGetter(role, out, false);
-        generateRoleSlotMethodsMultStarGetter(role, out, true);
-        generateRoleSlotMethodsMultStarRegisterUnsafeGet(role, out);
+        if (generateUnsafeMethods()) {
+            generateRoleSlotMethodsMultStarGetter(role, out, true);
+            generateRoleSlotMethodsMultStarRegisterUnsafeGet(role, out);
+        }
         generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
         generateRoleSlotMethodsMultStarRemover(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
         generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, typeName);
@@ -311,16 +315,17 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 
-        println(out, "BPlusTree internalSet;");
+        String collectionType = getDefaultCollectionFor(role.getType().getFullName());
+        println(out, collectionType + " internalSet;");
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet" + (unsafe ? "Unsafe" : "") + "(getOid().getFullId() + \":" + role.getName() + "\");");
         print(out, "if (oid == null || oid instanceof Externalization.NullClass)");
         newBlock(out);
-        println(out, "internalSet = new BPlusTree();");
+        println(out, "internalSet = new " + collectionType + "();");
         print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + role.getName() + "\", internalSet.getOid());");
         closeBlock(out, false);
         print(out, " else");
         newBlock(out);
-        print(out, "internalSet = (BPlusTree)InfinispanBackEnd.getInstance().fromOid(oid);");
+        print(out, "internalSet = (" + collectionType + ")InfinispanBackEnd.getInstance().fromOid(oid);");
         // print(out, "// no need to test for null.  The entry must exist for sure.");
         closeBlock(out);
         print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", internalSet);");
@@ -407,7 +412,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     protected void generateIteratorMethod(Role role, PrintWriter out) {
 	generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "Iterator", "get" + capitalize(role.getName()) + "()");
-	generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "UnsafeIterator", "get" + capitalize(role.getName()) + "Unsafe()");
     }
     
     protected void generateIteratorMethod(Role role, PrintWriter out, String methodName, final String slotAccessExpression) {
@@ -421,7 +425,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, ".iterator();");
         endMethodBody(out);
     }
-
+    
     @Override
     protected String getNewRoleStarSlotExpression(Role role) {
         return getNewRoleStarSlotExpressionWithBackingSet(role, role.getName());
