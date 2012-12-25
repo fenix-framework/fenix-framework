@@ -71,3 +71,13 @@ relation ListNodeHasNext {
     ListNode playsRole;
     ListNode playsRole next;
 }
+
+
+/* Unsafe Linked List */
+
+class LinkedListUnsafe {}
+
+relation LinkedListUnsafeHasHeadNode {
+    LinkedListUnsafe playsRole;
+    ListNode playsRole head;
+}

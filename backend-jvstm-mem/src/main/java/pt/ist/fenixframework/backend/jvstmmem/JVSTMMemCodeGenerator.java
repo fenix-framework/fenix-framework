@@ -76,20 +76,20 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     
     @Override
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
-	generateVBoxSlotGetter("get" + capitalize(slot.getName()), slot, out);
+	generateVBoxSlotGetter("get" + capitalize(slot.getName()), "get", slot, out);
         // also generate the get unsafe methods
         if (generateUnsafeMethods()) {
-            generateVBoxSlotGetter("get" + capitalize(slot.getName()) + "Unsafe", slot, out);
+            generateVBoxSlotGetter("get" + capitalize(slot.getName()) + "Unsafe", "getUnsafe", slot, out);
             generateVBoxRegisterGet("", "registerGet" + capitalize(slot.getName()), out);
         }
 	generateVBoxSlotSetter(slot, out);
     }
 
-    protected void generateVBoxSlotGetter(String methodName, Slot slot, PrintWriter out) {
+    protected void generateVBoxSlotGetter(String methodName, String accessToVBox, Slot slot, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", slot.getTypeName(), methodName);
 	startMethodBody(out);
-	printWords(out, "return", getSlotExpression(slot.getName()) + ".get();");
+	printWords(out, "return", getSlotExpression(slot.getName()) + "." + accessToVBox + "();");
 	endMethodBody(out);
     }
 
@@ -132,6 +132,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
         // also generate the get unsafe methods
         if (generateUnsafeMethods()) {
+            // We do not have a VBox around the collection, so accessing it is already a normal read
             generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()) + "Unsafe", role, out);
             generateVBoxRegisterGet("", "registerGet" + capitalize(role.getName()), out);
         }

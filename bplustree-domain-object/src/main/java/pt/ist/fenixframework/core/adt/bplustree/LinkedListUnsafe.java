@@ -1,28 +1,30 @@
 package pt.ist.fenixframework.core.adt.bplustree;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base implements Set<T> {
+public class LinkedListUnsafe<T extends AbstractDomainObject> extends LinkedListUnsafe_Base implements Set<T> {
 
-    public  LinkedList() {
+    public  LinkedListUnsafe() {
 	super();
 	setHead(new ListNode<T>(null, null));
     }
 
     public boolean insert(T value) {
-	ListNode<T> previous = getHead();
-	ListNode<T> next = previous.getNext();
+	ListNode<T> previous = getHeadUnsafe();
+	ListNode<T> next = previous.getNextUnsafe();
 	Comparable toInsert = value.getOid();
 	Comparable oid = null;
-	while (next != null && (oid = next.getValue().getOid()).compareTo(toInsert) < 0) {
+	while (next != null && (oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
 	    previous = next;
-	    next = previous.getNext();
+	    next = previous.getNextUnsafe();
 	}
+	previous.registerGetNext();
 	if (next == null || toInsert.compareTo(oid) != 0) {
 	    previous.setNext(new ListNode(value, next));
 	    return true;
@@ -31,14 +33,15 @@ public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base 
     }
 
     public boolean remove(T value) {
-	ListNode<T> previous = getHead();
-	ListNode<T> next = previous.getNext();
+	ListNode<T> previous = getHeadUnsafe();
+	ListNode<T> next = previous.getNextUnsafe();
 	Comparable toInsert = value.getOid();
 	Comparable oid = null;
-	while (next != null && (oid = next.getValue().getOid()).compareTo(toInsert) < 0) {
+	while (next != null && (oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
 	    previous = next;
 	    next = previous.getNext();
 	}
+	previous.registerGetNext();
 	if (toInsert.compareTo(oid) == 0) {
 	    if (next != null) { 
 		previous.setNext(next.getNext());
@@ -51,17 +54,18 @@ public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base 
     }
 
     public boolean contains(T value) {
-	ListNode<T> previous = getHead();
-	ListNode<T> next = previous.getNext();
+	ListNode<T> previous = getHeadUnsafe();
+	ListNode<T> next = previous.getNextUnsafe();
 	Comparable toInsert = value.getOid();
 	Comparable oid = false;
-	while (next != null && (oid = next.getValue().getOid()).compareTo(toInsert) < 0) {
+	while (next != null && (oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
 	    previous = next;
-	    next = previous.getNext();
+	    next = previous.getNextUnsafe();
 	}
+	previous.registerGetNext();
 	return next != null && toInsert.compareTo(oid) == 0;
     }
-
+    
     public int size() {
 	ListNode<T> iter = getHead();
 	int size = 0;
@@ -71,7 +75,7 @@ public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base 
 	}
 	return size;
     }
-
+    
     public Iterator<T> iterator() {
 	return new Iterator<T>() {
 
