@@ -82,7 +82,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
             generateVBoxSlotGetter("get" + capitalize(slot.getName()) + "Unsafe", "getUnsafe", slot, out);
             generateVBoxRegisterGet("", "registerGet" + capitalize(slot.getName()), out);
         }
-	generateVBoxSlotSetter(slot, out);
+	generateVBoxSlotSetter(domainClass, slot, out);
     }
 
     protected void generateVBoxSlotGetter(String methodName, String accessToVBox, Slot slot, PrintWriter out) {
@@ -101,10 +101,15 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
     
-    protected void generateVBoxSlotSetter(Slot slot, PrintWriter out) {
+    protected void generateVBoxSlotSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
 	startMethodBody(out);
+
+	generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
+        generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
+        generateIndexationInSetter(domainClass, slot, out); // Indexes
+	
 	printWords(out, getSlotExpression(slot.getName()) + ".put(" + slot.getName() + ");");
 	endMethodBody(out);
     }
