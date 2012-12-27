@@ -25,7 +25,7 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     /** Cannot refer directly to the BPlusTree.class because that would load the class into the VM, and thus load the base class.
      * That is a problem because this class (the CodeGenerator) is loaded when passed to the DmlCompiler. And only after that, will 
      * the base class ever be generated. Thus we have a cyclic dependency and must break it by only using the BPlusTree name. */
-    public static final String BPLUS_TREE_FULL_CLASS = "pt.ist.fenixframework.adt.bplustree.BPlusTree";
+    public static final String BPLUS_TREE_FULL_CLASS = "pt.ist.fenixframework.adt.bplustree.BPlusTreeUnsafe";
     public static final String INTERFACE_BPLUS_TREE_FULL_CLASS = IBPlusTree.class.getName();
     public static final String INITIALIZER_BPLUS_TREE_FULL_CLASS = InitializerBPlusTree.class.getName();
 

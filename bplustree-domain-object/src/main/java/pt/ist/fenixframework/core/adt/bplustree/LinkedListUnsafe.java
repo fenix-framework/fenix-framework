@@ -42,7 +42,7 @@ public class LinkedListUnsafe<T extends AbstractDomainObject> extends LinkedList
 	    next = previous.getNext();
 	}
 	previous.registerGetNext();
-	if (toInsert.compareTo(oid) == 0) {
+	if (oid != null && toInsert.compareTo(oid) == 0) {
 	    if (next != null) { 
 		previous.setNext(next.getNext());
 	    } else {
