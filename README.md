@@ -128,10 +128,7 @@ In the future, we plan to add more documentation to this section.
 
 ### Indexes
 
-Please refer to the documentation in
-[docs/dml-reference.md](docs/dml-reference.md). [here][lnke].
-
-[lnke]: http://www.google.com
+Please refer to the documentation in docs/dml-reference.md.
 
 
 ### Data Access Patterns
