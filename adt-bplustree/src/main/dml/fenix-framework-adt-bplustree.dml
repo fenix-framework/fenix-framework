@@ -48,3 +48,34 @@ relation AdtLeafNodeHasSibling {
     LeafNode playsRole previous;
     LeafNode playsRole next;
 }
+
+
+// BPlusTree with unsafe reads
+class BPlusTreeUnsafe {}
+
+class AbstractNodeUnsafe {}
+
+class LeafNodeUnsafe extends AbstractNodeUnsafe {
+    GenericTreeMap<Comparable,java.io.Serializable> entries;
+}
+
+class InnerNodeUnsafe extends AbstractNodeUnsafe {
+    GenericTreeMap<Comparable,AbstractNodeUnsafe> subNodes;
+}
+
+relation AdtBPlusTreeUnsafeHasRootNode {
+    BPlusTreeUnsafe playsRole;
+    AbstractNodeUnsafe playsRole root;
+}
+
+relation AdtNodeUnsafeHasParent {
+    AbstractNodeUnsafe playsRole {
+	multiplicity *;
+    }
+    InnerNodeUnsafe playsRole parent;
+}
+
+relation AdtLeafNodeUnsafeHasSibling {
+    LeafNodeUnsafe playsRole previous;
+    LeafNodeUnsafe playsRole next;
+}
