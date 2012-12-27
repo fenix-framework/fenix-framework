@@ -14,6 +14,7 @@ import pt.ist.fenixframework.FenixFramework;
  * at the start of each setter and getter method an invocation to a static method in the DAP framework
  * that updates the statistical information regarding that particular read/write access operation.
  * @author syg
+ * @see pt.ist.fenixframework.dap.FFDAPConfig
  */
 public class DAPCodeGenerator extends DefaultCodeGenerator {
     
