@@ -39,7 +39,7 @@ public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base 
 	    previous = next;
 	    next = previous.getNext();
 	}
-	if (toInsert.compareTo(oid) == 0) {
+	if (oid != null && toInsert.compareTo(oid) == 0) {
 	    if (next != null) { 
 		previous.setNext(next.getNext());
 	    } else {

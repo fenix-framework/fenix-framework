@@ -50,6 +50,36 @@ relation LeafNodeHasSibling {
     LeafNode playsRole next;
 }
 
+/* BPlusTree with unsafe reads */
+class BPlusTreeUnsafe {}
+
+class AbstractNodeUnsafe {}
+
+class LeafNodeUnsafe extends AbstractNodeUnsafe {
+    TreeMapWithKeyOID<Comparable,pt.ist.fenixframework.core.AbstractDomainObject> entries;
+}
+
+class InnerNodeUnsafe extends AbstractNodeUnsafe {
+    TreeMapWithKeyOID<Comparable,AbstractNodeUnsafe> subNodes;
+}
+
+relation BPlusTreeUnsafeHasRootNode {
+    BPlusTreeUnsafe playsRole;
+    AbstractNodeUnsafe playsRole root;
+}
+
+relation NodeUnsafeHasParent {
+    AbstractNodeUnsafe playsRole {
+    multiplicity *;
+    }
+    InnerNodeUnsafe playsRole parent;
+}
+
+relation LeafNodeUnsafeHasSibling {
+    LeafNodeUnsafe playsRole previous;
+    LeafNodeUnsafe playsRole next;
+}
+
 
 /* Linked List */
 

@@ -39,7 +39,7 @@ public class LinkedListUnsafe<T extends AbstractDomainObject> extends LinkedList
 	Comparable oid = null;
 	while (next != null && (oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
 	    previous = next;
-	    next = previous.getNext();
+	    next = previous.getNextUnsafe();
 	}
 	previous.registerGetNext();
 	if (oid != null && toInsert.compareTo(oid) == 0) {
