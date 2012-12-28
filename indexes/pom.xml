@@ -69,5 +69,9 @@
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-txintrospector</artifactId>
         </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-hibernate-search</artifactId>
+        </dependency>
     </dependencies>
 </project>

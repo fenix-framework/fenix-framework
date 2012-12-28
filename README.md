@@ -103,7 +103,7 @@ dependencies.  You can check for dependencies using the
 
 [1]: http://www.google.com/search?q=maven+dependency+plugin
 
-Then, you need to invoke the DML-Compiler (class
+Then, you need to invoke the DML Compiler (class
 `pt.ist.fenixframework.DmlCompiler`) to generate the source base classes,
 before compiling your own code.  After compilation you need to run the
 post-processor (class
@@ -117,4 +117,72 @@ Domain Modelling Language, which you need to use to describe your domain
 entities.  Please refer to that documentation.
 
 In the future, we plan to add more documentation to this section.
+
+## Backends
+
+### Hibernate OGM
+
+### Infinispan Direct Mapper
+
+## Other Modules
+
+### Indexes
+
+Please refer to the documentation in docs/dml-reference.md.
+
+
+### Data Access Patterns
+
+This module adds the possibility of collecting information about the data
+access patterns performed by any target application built with the
+fenix-framework.  When active, the code generator in this module adds, at the
+start of each setter and getter method, an invocation to a static method in
+the DAP framework that updates the statistical information regarding that
+particular read/write access operation.
+
+To activate this module, the DML Compiler needs to be invoked with the
+property `ptIstDapEnable` set to `true`.  This can be achieved either (1) via
+the command line by adding the switch `-param ptIstDapEnable=true` (no spaces
+around `=`) to the invocation of the compiler, or (2) via the maven plugin by
+adding that same parameter to the code generation phase as shown in the
+following example:
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>dml-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <configuration>
+                    <codeGeneratorClassName>${fenixframework.code.generator}</codeGeneratorClassName>
+                    <params>
+                        <ptIstDapEnable>true</ptIstDapEnable>
+                    </params>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-domain</goal>
+                            <goal>post-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+When this module is active it can be configured via a properties file named
+`dap.properties`.  If such file is used, it must be available in the CLASSPATH
+as a resource (at `/dap.properties`).  If such file is not found, the Data
+Access Patterns module is still started with the default configuration, which
+does not have statistics collection active, and thus, the only performance
+penalty incurred is on a conditional test (which evaluates to `false`) on
+every get/set operation.  Later, the data collection can be activated,
+e.g. via JMX.
+
+### Transaction Introspector
+
+
+### Hibernate Search
+
 

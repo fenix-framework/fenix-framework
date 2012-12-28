@@ -85,13 +85,6 @@ public class OgmBackEnd implements BackEnd {
 
     public void save(AbstractDomainObject obj) {
         logger.debug("Saving " + obj.getClass());
-        // Hibernate may create instances during setup just to understand what their unsaved-value
-        // is.  This causes ensureOid to run, which in turn runs save().  But we want to ignore
-        // these cases.
-        if (transactionManager.isBooting()) {
-            logger.debug("Ignoring save() request while bootstrapping OgmBackEnd.");
-            return;
-        }
         transactionManager.getEntityManager().persist(obj);
     }
 

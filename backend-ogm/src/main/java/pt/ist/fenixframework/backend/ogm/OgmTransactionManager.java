@@ -33,13 +33,10 @@ import pt.ist.fenixframework.util.Misc;
 public class OgmTransactionManager extends TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(OgmTransactionManager.class);
 
-    private boolean booting = false;
     private javax.transaction.TransactionManager delegateTxManager;
     EntityManagerFactory emf;
 
     void setupTxManager(OgmConfig config) {
-        booting = true;
-
         if (logger.isTraceEnabled()) {
             Misc.traceClassLoaderHierarchy(logger);
         }
@@ -54,11 +51,6 @@ public class OgmTransactionManager extends TransactionManager {
             (SessionFactoryImplementor)((HibernateEntityManagerFactory)emf).getSessionFactory();
         delegateTxManager = sessionFactory.getServiceRegistry().getService(JtaPlatform.class).
             retrieveTransactionManager();
-        booting = false;
-    }
-
-    boolean isBooting() {
-        return booting;
     }
 
     private final ThreadLocal<EntityManager> currentEntityManager = new ThreadLocal<EntityManager>();
@@ -87,10 +79,10 @@ public class OgmTransactionManager extends TransactionManager {
         logger.trace("Commit transaction");
 
         EntityManager em = currentEntityManager.get();
-        em.flush();
-        em.close();
 
+        em.flush();
         delegateTxManager.commit();
+        em.close();
 
         currentEntityManager.set(null);
     }
