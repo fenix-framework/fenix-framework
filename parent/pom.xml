@@ -126,6 +126,16 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-linkedlist-domain-object</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-skiplist-domain-object</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
                 <artifactId>fenix-framework-indexes</artifactId>
                 <version>${project.version}</version>
             </dependency>

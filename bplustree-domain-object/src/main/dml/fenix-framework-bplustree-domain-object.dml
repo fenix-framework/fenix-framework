@@ -80,34 +80,40 @@ relation LeafNodeUnsafeHasSibling {
     LeafNodeUnsafe playsRole next;
 }
 
+/* BPlusTree backed by Arrays */
 
-/* Linked List */
-
-class LinkedList {}
-
-class ListNode {}
-
-relation LinkedListHasHeadNode {
-    LinkedList playsRole;
-    ListNode playsRole head;
+valueType pt.ist.fenixframework.core.adt.bplustree.DoubleArray as BackingArrays {
+    externalizeWith {
+        Serializable pt.ist.fenixframework.core.adt.bplustree.AbstractNodeArray.externalizeArrays();
+    }
+    internalizeWith pt.ist.fenixframework.core.adt.bplustree.AbstractNodeArray.internalizeArrays();
 }
 
-relation ListNodeHasValue {
-    ListNode playsRole;
-    .pt.ist.fenixframework.core.AbstractDomainObject playsRole value;
+class BPlusTreeArray {}
+
+class AbstractNodeArray {}
+
+class LeafNodeArray extends AbstractNodeArray {
+    BackingArrays<pt.ist.fenixframework.core.AbstractDomainObject> entries;
 }
 
-relation ListNodeHasNext {
-    ListNode playsRole;
-    ListNode playsRole next;
+class InnerNodeArray extends AbstractNodeArray {
+    BackingArrays<AbstractNodeArray> subNodes;
 }
 
+relation BPlusTreeArrayHasRootNode {
+    BPlusTreeArray playsRole;
+    AbstractNodeArray playsRole root;
+}
 
-/* Unsafe Linked List */
+relation NodeArrayHasParent {
+    AbstractNodeArray playsRole {
+    multiplicity *;
+    }
+    InnerNodeArray playsRole parent;
+}
 
-class LinkedListUnsafe {}
-
-relation LinkedListUnsafeHasHeadNode {
-    LinkedListUnsafe playsRole;
-    ListNode playsRole head;
+relation LeafNodeArrayHasSibling {
+    LeafNodeArray playsRole previous;
+    LeafNodeArray playsRole next;
 }

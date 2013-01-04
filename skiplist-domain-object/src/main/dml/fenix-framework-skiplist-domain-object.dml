@@ -1,0 +1,58 @@
+/* Abstract Data Type: Skip List */
+
+package pt.ist.fenixframework.core.adt.skiplist;
+
+valueType pt.ist.fenixframework.core.adt.skiplist.ForwardArray as NodeArray {
+	externalizeWith {
+		Serializable pt.ist.fenixframework.core.adt.skiplist.Externalizer.externalizeNodeArray();
+	}
+	internalizeWith pt.ist.fenixframework.core.adt.skiplist.Externalizer.internalizeNodeArray();
+}
+
+valueType pt.ist.fenixframework.core.adt.skiplist.ForwardArrayUnsafe as NodeArrayUnsafe {
+	externalizeWith {
+		Serializable pt.ist.fenixframework.core.adt.skiplist.Externalizer.externalizeNodeArrayUnsafe();
+	}
+	internalizeWith pt.ist.fenixframework.core.adt.skiplist.Externalizer.internalizeNodeArrayUnsafe();
+}
+
+
+
+class SkipList {
+	int level;
+}
+
+class SkipListNode {
+	NodeArray forward;
+}
+
+relation SkipListHasHead {
+	SkipList playsRole;
+	SkipListNode playsRole head;
+}
+
+relation SkipListNodeHasValue {
+	SkipListNode playsRole;
+	.pt.ist.fenixframework.core.AbstractDomainObject playsRole value;
+}
+
+
+/* Unsafe Skip List */
+
+class SkipListUnsafe {
+	int level;
+}
+
+class SkipListNodeUnsafe {
+	NodeArrayUnsafe forward;
+}
+
+relation SkipListUnsafeHasHead {
+	SkipListUnsafe playsRole;
+	SkipListNodeUnsafe playsRole head;
+}
+
+relation SkipListNodeUnsafeHasValue {
+	SkipListNodeUnsafe playsRole;
+	.pt.ist.fenixframework.core.AbstractDomainObject playsRole value;
+}

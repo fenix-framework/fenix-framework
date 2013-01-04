@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.core.adt.bplustree;
+package pt.ist.fenixframework.core.adt.linkedlist;
 
 import java.util.Collection;
 import java.util.Comparator;

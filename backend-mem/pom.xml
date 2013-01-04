@@ -55,6 +55,18 @@
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-indexes</artifactId>
         </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-bplustree-domain-object</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-linkedlist-domain-object</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-skiplist-domain-object</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
