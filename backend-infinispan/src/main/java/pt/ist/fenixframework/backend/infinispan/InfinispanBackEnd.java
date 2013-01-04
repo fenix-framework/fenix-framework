@@ -14,6 +14,7 @@ import javax.transaction.SystemException;
 
 import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
+import org.infinispan.context.Flag;
 import org.infinispan.manager.CacheContainer;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.manager.DefaultCacheManager;
@@ -158,7 +159,7 @@ public class InfinispanBackEnd implements BackEnd {
      * This method is used by the code generated in the Domain Objects.
      */
     public final <T> T cacheGetUnsafe(String key) {
-	Object obj = domainCache.getAdvancedCache().withFlags(/* TODO FILL IN FLAG */).get(key);
+	Object obj = domainCache.getAdvancedCache().withFlags(Flag.READ_WITHOUT_REGISTERING).get(key);
         return (T)(obj instanceof Externalization.NullClass ? null : obj);
     }
     
