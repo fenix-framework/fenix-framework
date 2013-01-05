@@ -1,9 +1,6 @@
 package pt.ist.fenixframework.core.adt.bplustree;
 
 import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.SortedMap;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
@@ -109,18 +106,23 @@ public class InnerNodeArray extends InnerNodeArray_Base {
     // replaced. Corollary: the deleted key was not the first key in its leaf
     // node
     AbstractNodeArray underflowFromLeaf(Comparable deletedKey, Comparable replacementKey) {
-    	Iterator<Map.Entry<Comparable,AbstractNodeArray>> it = this.getSubNodes().entrySet().iterator();
-    	Map.Entry<Comparable,AbstractNodeArray> previousEntry = null;
-    	Map.Entry<Comparable,AbstractNodeArray> entry = it.next();
-    	Map.Entry<Comparable,AbstractNodeArray> nextEntry = null;;
+	DoubleArray<AbstractNodeArray> subNodes = this.getSubNodes();
+	int iter = 0;
+	// first, identify the deletion point
+	while (BPlusTreeArray.COMPARATOR_SUPPORTING_LAST_KEY.compare(subNodes.keys[iter], deletedKey) <= 0) {
+	    iter++;
+	}
+	
+    	// Now, 'entryValue' holds the child where the deletion occurred.
+	Comparable entryKey = subNodes.keys[iter];
+	AbstractNodeArray entryValue = subNodes.values[iter];
+	
+	Comparable previousEntryKey = iter > 0 ? subNodes.keys[iter - 1] : null;
+	AbstractNodeArray previousEntryValue = iter > 0 ? subNodes.values[iter - 1] : null;
 
-    	// first, identify the deletion point
-    	while (BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY.compare(entry.getKey(), deletedKey) <= 0) {
-    	    previousEntry = entry;
-    	    entry = it.next();
-    	}
-    	// Now, the value() of 'entry' holds the child where the deletion occurred.
-
+	Comparable nextEntryKey = null;
+	AbstractNodeArray nextEntryValue = null;
+	
     	/*
     	 * Decide whether to shift or merge, and whether to use the left
     	 * or the right sibling.  We prefer merging to shifting.
@@ -129,26 +131,28 @@ public class InnerNodeArray extends InnerNodeArray_Base {
     	 * (namely when the key was deleted from the left side of a node
     	 * AND that side was not changed by a merge/move with/from the left.
     	 */
-    	if (previousEntry == null) { // the deletedKey was removed from the first sub-node
-    	    nextEntry = it.next(); // always exists because of LAST_KEY
-    	    if (nextEntry.getValue().shallowSize() == BPlusTree.LOWER_BOUND) { // can we merge with the right?
-    		rightLeafMerge(entry, nextEntry);
+    	if (iter == 0) { // the deletedKey was removed from the first sub-node
+    	    nextEntryKey = subNodes.keys[iter + 1]; // always exists because of LAST_KEY
+    	    nextEntryValue = subNodes.values[iter + 1];
+    	    
+    	    if (nextEntryValue.shallowSize() == BPlusTreeArray.LOWER_BOUND) { // can we merge with the right?
+    		rightLeafMerge(entryKey, entryValue, nextEntryValue);
     	    } else { // cannot merge with the right. We have to move an element from the right to here
-    		moveChildFromRightToLeft(entry, nextEntry);
+    		moveChildFromRightToLeft(entryKey, entryValue, nextEntryValue);
     	    }
     	    if (replacementKey != null && this.getParent() != null) { // the deletedKey occurs somewhere atop only
     		this.getParent().replaceDeletedKey(deletedKey, replacementKey);
     	    }
-    	} else if (previousEntry.getValue().shallowSize() == BPlusTree.LOWER_BOUND) { // can we merge with the left?
-    	    leftLeafMerge(previousEntry, entry);
+    	} else if (previousEntryValue.shallowSize() == BPlusTreeArray.LOWER_BOUND) { // can we merge with the left?
+    	    leftLeafMerge(previousEntryKey, previousEntryValue, entryValue);
     	} else {  // cannot merge with the left
-    	    if (!it.hasNext() || (nextEntry = it.next()).getValue().shallowSize() > BPlusTree.LOWER_BOUND) { // caution: tricky test!!
+    	    if (iter >= (subNodes.length() - 1) || (nextEntryValue = subNodes.values[iter + 1]).shallowSize() > BPlusTreeArray.LOWER_BOUND) { // caution: tricky test!!
     		// either there is no next or the next is above the lower bound
-    		moveChildFromLeftToRight(previousEntry, entry);
+    		moveChildFromLeftToRight(previousEntryKey, previousEntryValue, entryValue);
     	    } else {
-    		rightLeafMerge(entry, nextEntry);
+    		rightLeafMerge(entryKey, entryValue, nextEntryValue);
     		if (replacementKey != null) { // the deletedKey occurs anywhere (or at this level ONLY?)
-    		    this.replaceDeletedKey(deletedKey, replacementKey, previousEntry.getValue());
+    		    this.replaceDeletedKey(deletedKey, replacementKey, previousEntryValue);
     		}
     	    }
     	}
@@ -156,15 +160,15 @@ public class InnerNodeArray extends InnerNodeArray_Base {
     }
 
     private AbstractNodeArray checkForUnderflow() {
-    	TreeMap<Comparable,AbstractNodeArray> localSubNodes = this.getSubNodes();
+	DoubleArray<AbstractNodeArray> localSubNodes = this.getSubNodes();
 
     	// Now, just check for underflow in this node.   The LAST_KEY is fake, so it does not count for the total.
-    	if (localSubNodes.size() < BPlusTree.LOWER_BOUND_WITH_LAST_KEY) {
+    	if (localSubNodes.length() < BPlusTreeArray.LOWER_BOUND_WITH_LAST_KEY) {
     	    // the LAST_KEY is merely an indirection.  This only occurs in the root node.  We can reduce one depth.
-    	    if (localSubNodes.size() == 1) { // This only occurs in the root node
+    	    if (localSubNodes.length() == 1) { // This only occurs in the root node
     		// (size == 1) => (parent == null), but NOT the inverse
     		assert(this.getParent() == null);
-    		AbstractNodeArray child = localSubNodes.firstEntry().getValue();
+    		AbstractNodeArray child = localSubNodes.firstValue();
     		child.setParent(null);
     		return child;
     	    } else if (this.getParent() != null) {
@@ -174,69 +178,49 @@ public class InnerNodeArray extends InnerNodeArray_Base {
     	return getRoot();
     }
 
-    private void rightLeafMerge(Map.Entry<Comparable,AbstractNodeArray> entry, Map.Entry<Comparable,AbstractNodeArray> nextEntry) {
-    	leftLeafMerge(entry, nextEntry);
+    private void rightLeafMerge(Comparable entryKey , AbstractNodeArray entryValue, AbstractNodeArray nextEntryValue) {
+    	leftLeafMerge(entryKey, entryValue, nextEntryValue);
     }
 
-    private void leftLeafMerge(Map.Entry<Comparable,AbstractNodeArray> previousEntry, Map.Entry<Comparable,AbstractNodeArray> entry) {
-    	entry.getValue().mergeWithLeftNode(previousEntry.getValue(), null);
+    private void leftLeafMerge(Comparable previousEntryKey, AbstractNodeArray previousEntryValue, AbstractNodeArray entryValue) {
+    	entryValue.mergeWithLeftNode(previousEntryValue, null);
     	// remove the superfluous node
-    	TreeMap<Comparable,AbstractNodeArray> newMap = duplicateMap();
-    	newMap.remove(previousEntry.getKey());
-        setSubNodes(newMap);
+    	setSubNodes(getSubNodes().removeKey(previousEntryKey));
     }
 
     void mergeWithLeftNode(AbstractNodeArray leftNode, Comparable splitKey) {
     	InnerNodeArray left = (InnerNodeArray)leftNode;  // this node does not know how to merge with another kind
 
-    	TreeMap<Comparable,AbstractNodeArray> newMap = duplicateMap();
-    	TreeMap<Comparable,AbstractNodeArray> newLeftSubNodes = left.duplicateMap();
-
     	// change the parent of all the left sub-nodes
-    	InnerNodeArray uncle = newMap.get(BPlusTree.LAST_KEY).getParent();
-    	for (AbstractNodeArray leftSubNode : newLeftSubNodes.values()) {
-    	    leftSubNode.setParent(uncle);
+    	DoubleArray<AbstractNodeArray> subNodes = this.getSubNodes();
+    	DoubleArray<AbstractNodeArray> leftSubNodes = left.getSubNodes();
+    	InnerNodeArray uncle = subNodes.values[subNodes.length()].getParent();
+    	for (int i = 0; i < leftSubNodes.length(); i++) {
+    	    leftSubNodes.values[i].setParent(uncle);
     	}
-
-    	// remove the entry for left's LAST_KEY
-    	Map.Entry<Comparable,AbstractNodeArray> higherLeftValue = newLeftSubNodes.pollLastEntry();
-
-    	// add the higher left value associated with the split-key
-    	newMap.put(splitKey, higherLeftValue.getValue());
-
-    	// merge the remaining left sub-nodes
-    	newMap.putAll(newLeftSubNodes);
-        setSubNodes(newMap);
+    	
+    	DoubleArray<AbstractNodeArray> newArr = subNodes.mergeWith(splitKey, leftSubNodes);
+        setSubNodes(newArr);
     }
 
     // Get the rightmost key-value pair from the left sub-node and move it to the given sub-node.  Update the split key
-    private void moveChildFromLeftToRight(Map.Entry<Comparable,AbstractNodeArray> leftEntry, Map.Entry<Comparable,AbstractNodeArray> rightEntry) {
-    	AbstractNodeArray leftSubNode = leftEntry.getValue();
-
-    	Map.Entry<Comparable,AbstractDomainObject> leftBiggestKeyValue = leftSubNode.removeBiggestKeyValue();
-    	rightEntry.getValue().addKeyValue(leftBiggestKeyValue);
+    private void moveChildFromLeftToRight(Comparable leftEntryKey, AbstractNodeArray leftEntryValue, AbstractNodeArray rightEntryValue) {
+    	DoubleArray<AbstractDomainObject>.KeyVal leftBiggestKeyValue = leftEntryValue.removeBiggestKeyValue();
+    	rightEntryValue.addKeyValue(leftBiggestKeyValue);
 
     	// update the split key to be the key we just moved
-    	TreeMap<Comparable,AbstractNodeArray> newMap = duplicateMap();
-    	newMap.remove(leftEntry.getKey());
-    	newMap.put(leftBiggestKeyValue.getKey(), leftSubNode);
-        setSubNodes(newMap);
+    	setSubNodes(this.getSubNodes().replaceKey(leftEntryKey, leftBiggestKeyValue.key, leftEntryValue));
     }
 
     // Get the leftmost key-value pair from the right sub-node and move it to the given sub-node.  Update the split key
-    private void moveChildFromRightToLeft(Map.Entry<Comparable,AbstractNodeArray> leftEntry, Map.Entry<Comparable,AbstractNodeArray> rightEntry) {
-    	AbstractNodeArray rightSubNode = rightEntry.getValue();
-
-    	Map.Entry<Comparable,AbstractDomainObject> rightSmallestKeyValue = rightSubNode.removeSmallestKeyValue();
-    	AbstractNodeArray leftSubNode = leftEntry.getValue();
-    	leftSubNode.addKeyValue(rightSmallestKeyValue);
+    private void moveChildFromRightToLeft(Comparable leftEntryKey , AbstractNodeArray leftValue, AbstractNodeArray rightValue) {
+	DoubleArray<AbstractDomainObject>.KeyVal rightSmallestKeyValue = rightValue.removeSmallestKeyValue();
+    	leftValue.addKeyValue(rightSmallestKeyValue);
 
     	// update the split key to be the key after the one we just moved
-    	Comparable rightNextSmallestKey = rightSubNode.getSmallestKey();
-    	TreeMap<Comparable,AbstractNodeArray> newMap = duplicateMap();
-    	newMap.remove(leftEntry.getKey());
-    	newMap.put(rightNextSmallestKey, leftSubNode);
-        setSubNodes(newMap);
+    	Comparable rightNextSmallestKey = rightValue.getSmallestKey();
+    	DoubleArray<AbstractNodeArray> entries = this.getSubNodes();
+    	setSubNodes(entries.replaceKey(leftEntryKey, rightNextSmallestKey, leftValue));
     }
 
     /*
@@ -244,120 +228,118 @@ public class InnerNodeArray extends InnerNodeArray_Base {
      */
 
     AbstractNodeArray underflowFromInner(InnerNodeArray deletedNode) {
-    	Iterator<Map.Entry<Comparable,AbstractNodeArray>> it = this.getSubNodes().entrySet().iterator();
-    	Map.Entry<Comparable,AbstractNodeArray> previousEntry = null;
-    	Map.Entry<Comparable,AbstractNodeArray> entry = null;
-    	Map.Entry<Comparable,AbstractNodeArray> nextEntry = null;;
+	DoubleArray<AbstractNodeArray> subNodes = this.getSubNodes();
+	int iter = 0;
 
+	Comparable entryKey = null;
+	AbstractNodeArray entryValue = null;
+	
     	// first, identify the deletion point
     	do {
-    	    previousEntry = entry;
-    	    entry = it.next();
-    	} while (entry.getValue() != deletedNode);
+    	    entryValue = subNodes.values[iter];
+    	    iter++;
+    	} while (entryValue != deletedNode);
     	// Now, the value() of 'entry' holds the child where the deletion occurred.
-    
+    	iter--;
+
+	Comparable previousEntryKey = iter > 0 ? subNodes.keys[iter - 1] : null;
+	AbstractNodeArray previousEntryValue = iter > 0 ? subNodes.values[iter - 1] : null;
+    	Comparable nextEntryKey = null;
+    	AbstractNodeArray nextEntryValue = null;
+
     	/*
     	 * Decide whether to shift or merge, and whether to use the left
     	 * or the right sibling.  We prefer merging to shifting.
     	 */
-    	if (previousEntry == null) { // the deletion occurred in the first sub-node
-    	    nextEntry = it.next(); // always exists because of LAST_KEY
-    	    if (nextEntry.getValue().shallowSize() == BPlusTree.LOWER_BOUND_WITH_LAST_KEY) { // can we merge with the right?
-    		rightInnerMerge(entry, nextEntry);
+    	if (iter == 0) { // the deletion occurred in the first sub-node
+    	    nextEntryKey = subNodes.keys[iter + 1]; // always exists because of LAST_KEY
+    	    nextEntryValue = subNodes.values[iter + 1];
+    	    
+    	    if (nextEntryValue.shallowSize() == BPlusTreeArray.LOWER_BOUND_WITH_LAST_KEY) { // can we merge with the right?
+    		rightInnerMerge(entryKey, entryValue, nextEntryValue);
     	    } else { // cannot merge with the right. We have to move an element from the right to here
-    		rotateRightToLeft((Map.Entry)entry, (Map.Entry)nextEntry);
+    		rotateRightToLeft(entryKey, (InnerNodeArray)entryValue, (InnerNodeArray)nextEntryValue);
     	    }
-    	} else if (previousEntry.getValue().shallowSize() == BPlusTree.LOWER_BOUND_WITH_LAST_KEY) { // can we merge with the left?
-    	    leftInnerMerge(previousEntry, entry);
+    	} else if (previousEntryValue.shallowSize() == BPlusTreeArray.LOWER_BOUND_WITH_LAST_KEY) { // can we merge with the left?
+    	    leftInnerMerge(previousEntryKey, previousEntryValue, entryValue);
     	} else {  // cannot merge with the left
-    	    if (!it.hasNext() || (nextEntry = it.next()).getValue().shallowSize() > BPlusTree.LOWER_BOUND_WITH_LAST_KEY) { // caution: tricky test!!
+    	    if (iter >= (subNodes.length() - 1) || (nextEntryValue = subNodes.values[iter + 1]).shallowSize() > BPlusTreeArray.LOWER_BOUND_WITH_LAST_KEY) { // caution: tricky test!!
     		// either there is no next or the next is above the lower bound
-    		rotateLeftToRight((Map.Entry)previousEntry, (Map.Entry)entry);
+    		rotateLeftToRight(previousEntryKey, (InnerNodeArray)previousEntryValue, (InnerNodeArray)entryValue);
     	    } else {
-    		rightInnerMerge(entry, nextEntry);
+    		rightInnerMerge(entryKey, entryValue, nextEntryValue);
     	    }
     	}
 
     	return checkForUnderflow();
     }
 
-    private void rightInnerMerge(Map.Entry<Comparable,AbstractNodeArray> entry, Map.Entry<Comparable,AbstractNodeArray> nextEntry) {
-    	leftInnerMerge(entry, nextEntry);
+    private void rightInnerMerge(Comparable entryKey, AbstractNodeArray entryValue, AbstractNodeArray nextEntryValue) {
+    	leftInnerMerge(entryKey, entryValue, nextEntryValue);
     }
 
-    private void leftInnerMerge(Map.Entry<Comparable,AbstractNodeArray> previousEntry, Map.Entry<Comparable,AbstractNodeArray> entry) {
-    	Comparable splitKey = previousEntry.getKey();
-    	entry.getValue().mergeWithLeftNode(previousEntry.getValue(), splitKey);
+    private void leftInnerMerge(Comparable previousEntryKey, AbstractNodeArray previousEntryValue, AbstractNodeArray entryValue) {
+    	entryValue.mergeWithLeftNode(previousEntryValue, previousEntryKey);
     	// remove the superfluous node
-    	TreeMap<Comparable,AbstractNodeArray> newMap = duplicateMap();
-    	newMap.remove(splitKey);
-        setSubNodes(newMap);
+    	setSubNodes(getSubNodes().removeKey(previousEntryKey));
     }
 
-    private void rotateLeftToRight(Map.Entry<Comparable,InnerNodeArray> leftEntry, Map.Entry<Comparable,InnerNodeArray> rightEntry) {
-    	InnerNodeArray leftSubNode = leftEntry.getValue();
-    	InnerNodeArray rightSubNode = rightEntry.getValue();
-
-    	TreeMap<Comparable,AbstractNodeArray> newLeftSubNodeSubNodes = leftSubNode.duplicateMap();
-    	TreeMap<Comparable,AbstractNodeArray> newRightSubNodeSubNodes = rightSubNode.duplicateMap();
+    private void rotateLeftToRight(Comparable leftEntryKey, InnerNodeArray leftSubNode, InnerNodeArray rightSubNode) {
+	DoubleArray<AbstractNodeArray> leftSubNodes = leftSubNode.getSubNodes();
+	DoubleArray<AbstractNodeArray> rightSubNodes = rightSubNode.getSubNodes();
 	
-    	Comparable leftHighestKey = newLeftSubNodeSubNodes.lowerKey(BPlusTree.LAST_KEY);
-    	AbstractNodeArray leftHighestValue = newLeftSubNodeSubNodes.get(BPlusTree.LAST_KEY);
+    	Comparable leftHighestKey = leftSubNodes.lowerKeyThanHighest();
+    	AbstractNodeArray leftHighestValue = leftSubNodes.lastValue();
 
     	// move the highest value from the left to the right.  Use the split-key as the index.
-    	newRightSubNodeSubNodes.put(leftEntry.getKey(), leftHighestValue);
+    	DoubleArray<AbstractNodeArray> newRightSubNodes = rightSubNodes.addKeyValue(leftEntryKey, leftHighestValue);
     	leftHighestValue.setParent(rightSubNode);
 	
     	// shift a new child to the last entry on the left
-    	leftHighestValue = newLeftSubNodeSubNodes.remove(leftHighestKey);
-    	newLeftSubNodeSubNodes.put(BPlusTree.LAST_KEY, leftHighestValue);
+    	leftHighestValue = leftSubNodes.get(leftHighestKey);
+    	DoubleArray<AbstractNodeArray> newLeftSubNodes = leftSubNodes.removeKey(leftHighestKey);
+	// this is already a duplicated array, no need to go through that process again
+	newLeftSubNodes.values[newLeftSubNodes.length() - 1] = leftHighestValue;
 
-        leftSubNode.setSubNodes(newLeftSubNodeSubNodes);
-        rightSubNode.setSubNodes(newRightSubNodeSubNodes);
+        leftSubNode.setSubNodes(newLeftSubNodes);
+        rightSubNode.setSubNodes(newRightSubNodes);
 
     	// update the split-key to be the key we just removed from the left
-    	TreeMap<Comparable,AbstractNodeArray> newMap = duplicateMap();
-    	newMap.remove(leftEntry.getKey());
-    	newMap.put(leftHighestKey, leftSubNode);
-        setSubNodes(newMap);
+        setSubNodes(getSubNodes().replaceKey(leftEntryKey, leftHighestKey, leftSubNode));
     }
 
-    private void rotateRightToLeft(Map.Entry<Comparable,InnerNodeArray> leftEntry, Map.Entry<Comparable,InnerNodeArray> rightEntry) {
-    	InnerNodeArray leftSubNode = leftEntry.getValue();
-    	InnerNodeArray rightSubNode = rightEntry.getValue();
-
-    	TreeMap<Comparable,AbstractNodeArray> newLeftSubNodeSubNodes = leftSubNode.duplicateMap();
-    	TreeMap<Comparable,AbstractNodeArray> newRightSubNodeSubNodes = rightSubNode.duplicateMap();
-
-    	// re-index the left highest value under the split-key, which is moved down
-    	AbstractNodeArray leftHighestValue = newLeftSubNodeSubNodes.get(BPlusTree.LAST_KEY);
-    	newLeftSubNodeSubNodes.put(leftEntry.getKey(), leftHighestValue);
-
-    	// remove right's lowest entry
-    	Map.Entry<Comparable,AbstractNodeArray> rightLowestEntry = newRightSubNodeSubNodes.pollFirstEntry();
+    private void rotateRightToLeft(Comparable leftEntryKey, InnerNodeArray leftSubNode, InnerNodeArray rightSubNode) {
+	DoubleArray<AbstractNodeArray> leftSubNodes = leftSubNode.getSubNodes();
+	DoubleArray<AbstractNodeArray> rightSubNodes = rightSubNode.getSubNodes();
 	
-    	// set its value on the left
-    	AbstractNodeArray rightLowestValue = rightLowestEntry.getValue();
-    	newLeftSubNodeSubNodes.put(BPlusTree.LAST_KEY, rightLowestValue);
+	// remove right's lowest entry
+	DoubleArray<AbstractNodeArray>.KeyVal rightLowestEntry = rightSubNodes.getSmallestKeyValue();
+	DoubleArray<AbstractNodeArray> newRightSubNodes = rightSubNodes.removeSmallestKeyValue();
+	
+    	// re-index the left highest value under the split-key, which is moved down
+	AbstractNodeArray leftHighestValue = leftSubNodes.lastValue();
+	DoubleArray<AbstractNodeArray> newLeftSubNodes = leftSubNodes.addKeyValue(leftEntryKey, leftHighestValue);
+	// and add the right's lowest entry on the left
+	AbstractNodeArray rightLowestValue = rightLowestEntry.val;
+	// this is already a duplicated array, no need to go through that process again
+	newLeftSubNodes.values[newLeftSubNodes.length() - 1] = rightLowestValue;
+    	
     	rightLowestValue.setParent(leftSubNode);
 
-        leftSubNode.setSubNodes(newLeftSubNodeSubNodes);
-        rightSubNode.setSubNodes(newRightSubNodeSubNodes);
+        leftSubNode.setSubNodes(newLeftSubNodes);
+        rightSubNode.setSubNodes(newRightSubNodes);
 
     	// update the split-key to be the key we just removed from the right
-    	TreeMap<Comparable,AbstractNodeArray> newMap = duplicateMap();
-    	newMap.remove(leftEntry.getKey());
-    	newMap.put(rightLowestEntry.getKey(), leftSubNode);
-        setSubNodes(newMap);
+        setSubNodes(getSubNodes().replaceKey(leftEntryKey, rightLowestEntry.key, leftSubNode));
     }
 
     @Override
-    Map.Entry removeBiggestKeyValue() {
+    DoubleArray.KeyVal removeBiggestKeyValue() {
     	throw new UnsupportedOperationException("not yet implemented: removeBiggestKeyValue from inner node");
     }
 
     @Override
-    Map.Entry removeSmallestKeyValue() {
+    DoubleArray.KeyVal removeSmallestKeyValue() {
     	throw new UnsupportedOperationException("not yet implemented: removeSmallestKeyValue from inner node");
     }
 
@@ -367,7 +349,7 @@ public class InnerNodeArray extends InnerNodeArray_Base {
     }
 
     @Override
-    void addKeyValue(Map.Entry keyValue) {
+    void addKeyValue(DoubleArray.KeyVal keyValue) {
     	throw new UnsupportedOperationException("not yet implemented: addKeyValue to inner node should account for LAST_KEY ?!?");
     }
 
@@ -379,13 +361,13 @@ public class InnerNodeArray extends InnerNodeArray_Base {
     // travels to the leftmost leaf and goes from there;
     @Override
     public AbstractDomainObject getIndex(int index) {
-    	return this.getSubNodes().firstEntry().getValue().getIndex(index);
+    	return this.getSubNodes().firstValue().getIndex(index);
     }
 
     // travels to the leftmost leaf and goes from there;
     @Override
     public AbstractNodeArray removeIndex(int index) {
-    	return this.getSubNodes().firstEntry().getValue().removeIndex(index);
+    	return this.getSubNodes().firstValue().removeIndex(index);
     }
 
     @Override
@@ -394,44 +376,47 @@ public class InnerNodeArray extends InnerNodeArray_Base {
     }
 
     private AbstractNodeArray findSubNode(Comparable key) {
-    	for (Map.Entry<Comparable,AbstractNodeArray> subNode : this.getSubNodes().entrySet()) {
-    	    Comparable splitKey = subNode.getKey();
-    	    if (BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY.compare(splitKey, key) > 0) { // this will eventually be true because the LAST_KEY is greater than all
-    		return subNode.getValue();
-    	    }
-    	}
+	DoubleArray<AbstractNodeArray> subNodes = this.getSubNodes();
+	for (int i = 0; i < subNodes.length(); i++) {
+	    Comparable splitKey = subNodes.keys[i];
+	    if (BPlusTreeArray.COMPARATOR_SUPPORTING_LAST_KEY.compare(splitKey, key) > 0) { // this will eventually be true because the LAST_KEY is greater than all
+		return subNodes.values[i];
+	    }
+	}
     	throw new RuntimeException("findSubNode() didn't find a suitable sub-node!?");
     }
     
     @Override
     int shallowSize() {
-    	return this.getSubNodes().size();
+    	return this.getSubNodes().length();
     }
 
     @Override
     public int size() {
     	int total = 0;
-    	for (AbstractNodeArray subNode : this.getSubNodes().values()) {
-    	    total += subNode.size();
-    	}
+    	DoubleArray<AbstractNodeArray> subNodes = this.getSubNodes();
+	for (int i = 0; i < subNodes.length(); i++) {
+	    total += subNodes.values[i].size();
+	}
     	return total;
     }
 
     @Override
     public Iterator iterator() {
-    	return this.getSubNodes().firstEntry().getValue().iterator();
+    	return this.getSubNodes().firstValue().iterator();
     }
 
     @Override
     public String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds) {
     	StringBuilder str = new StringBuilder();
-    	StringBuilder spaces = BPlusTree.spaces(level);
+    	StringBuilder spaces = BPlusTreeArray.spaces(level);
     	str.append(spaces);
     	str.append("[" + (dumpNodeIds ? this : "") + ": ");
 
-    	for (Map.Entry<Comparable, AbstractNodeArray> entry : this.getSubNodes().entrySet()) {
-    	    Comparable key = entry.getKey();
-    	    AbstractNodeArray value = entry.getValue();
+    	DoubleArray<AbstractNodeArray> subNodes = this.getSubNodes();
+	for (int i = 0; i < subNodes.length(); i++) {
+    	    Comparable key = subNodes.keys[i];
+    	    AbstractNodeArray value = subNodes.values[i];
     	    str.append("\n");
     	    str.append(value.dump(level + 4, dumpKeysOnly, dumpNodeIds));
     	    str.append(spaces);

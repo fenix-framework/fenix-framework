@@ -53,10 +53,10 @@ public abstract class AbstractNodeArray<T extends AbstractDomainObject> extends 
 	return thisParent == null ? this : thisParent.getRoot();
     }
 
-    abstract Map.Entry<Comparable,T> removeBiggestKeyValue();
-    abstract Map.Entry<Comparable,T> removeSmallestKeyValue();
+    abstract DoubleArray.KeyVal removeBiggestKeyValue();
+    abstract DoubleArray.KeyVal removeSmallestKeyValue();
     abstract Comparable getSmallestKey();
-    abstract void addKeyValue(Map.Entry keyValue);
+    abstract void addKeyValue(DoubleArray.KeyVal keyValue);
     // merge elements from the left node into this node. smf: maybe LeafNodeArray can be a subclass of InnerNodeArray
     abstract void mergeWithLeftNode(AbstractNodeArray leftNode, Comparable splitKey);
     // the number of _elements_ in this node (not counting sub-nodes)

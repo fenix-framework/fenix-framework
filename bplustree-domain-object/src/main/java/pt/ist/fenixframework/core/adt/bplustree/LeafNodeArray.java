@@ -1,16 +1,10 @@
 package pt.ist.fenixframework.core.adt.bplustree;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.SortedMap;
-import java.util.TreeMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
@@ -18,29 +12,25 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     private static final Logger logger = LoggerFactory.getLogger(LeafNodeArray.class);
     
     public LeafNodeArray() {
-	setEntries(new TreeMap<Comparable,AbstractDomainObject>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY));
+	setEntries(new DoubleArray<AbstractDomainObject>());
     }
 
-    private LeafNodeArray(TreeMap<Comparable,AbstractDomainObject> entries) {
+    private LeafNodeArray(DoubleArray<AbstractDomainObject> entries) {
 	setEntries(entries);
     }
 
-    private TreeMap<Comparable,AbstractDomainObject> duplicateMap() {
-        return new TreeMap<Comparable,AbstractDomainObject>(getEntries());
-    }
-
     public AbstractNodeArray insert(Comparable key, AbstractDomainObject value) {
-	TreeMap<Comparable,AbstractDomainObject> localMap = justInsert(key, value);
+	DoubleArray<AbstractDomainObject> localArr = justInsert(key, value);
 
-	if (localMap.size() <= BPlusTree.MAX_NUMBER_OF_ELEMENTS) { // it still fits :-)
+	if (localArr.length() <= BPlusTreeArray.MAX_NUMBER_OF_ELEMENTS) { // it still fits :-)
 	    return getRoot();
 	} else { // must split this node
 	    // find middle position
-	    Comparable keyToSplit = findRightMiddlePosition(localMap.keySet());
+	    Comparable keyToSplit = localArr.findRightMiddlePosition();
 
 	    // split node in two
-	    LeafNodeArray leftNode = new LeafNodeArray(new TreeMap<Comparable,AbstractDomainObject>(localMap.headMap(keyToSplit)));
-	    LeafNodeArray rightNode = new LeafNodeArray(new TreeMap<Comparable,AbstractDomainObject>(localMap.tailMap(keyToSplit)));
+	    LeafNodeArray leftNode = new LeafNodeArray(localArr.leftPart());
+	    LeafNodeArray rightNode = new LeafNodeArray(localArr.rightPart());
 	    fixLeafNodeArraysListAfterSplit(leftNode, rightNode);
 
 	    // propagate split to parent
@@ -48,38 +38,26 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 		InnerNodeArray newRoot = new InnerNodeArray(leftNode, rightNode, keyToSplit);
 		return newRoot;
 	    } else {
-		// leftNode.parent = getParent();
-		// rightNode.parent = getParent();
 		return getParent().rebase(leftNode, rightNode, keyToSplit);
 	    }
 	}
     }
     
-    private Comparable findRightMiddlePosition(Collection<Comparable> keys) {
-	Iterator<Comparable> keysIterator = keys.iterator();
-
-	for (int i = 0; i < BPlusTree.LOWER_BOUND + 1; i++) {
-	    keysIterator.next();
-	}
-	return keysIterator.next();
-    }
-
-    private TreeMap<Comparable,AbstractDomainObject> justInsert(Comparable key, AbstractDomainObject value) {
+    private DoubleArray<AbstractDomainObject> justInsert(Comparable key, AbstractDomainObject value) {
         logger.trace("Getting 'entries' slot");
-	TreeMap<Comparable,AbstractDomainObject> localEntries = this.getEntries();
+        DoubleArray<AbstractDomainObject> localEntries = this.getEntries();
 
 	// this test is performed because we need to return a new structure in
 	// case an update occurs.  Value types must be immutable.
 	AbstractDomainObject currentValue = localEntries.get(key);
-	if (currentValue == value && localEntries.containsKey(key)) {
+	if (currentValue != null && currentValue == value ) {
             logger.trace("Existing key. No change required");
 	    return localEntries;
 	} else {
             logger.trace("Will add new entry. Must duplicate 'entries'.");
-	    TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
-	    newMap.put(key, value);
-            setEntries(newMap);
-	    return newMap;
+            DoubleArray<AbstractDomainObject> newArr = localEntries.addKeyValue(key, value);
+            setEntries(newArr);
+            return newArr;
 	}
     }
 
@@ -90,7 +68,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     }
 
     public AbstractNodeArray remove(Comparable key) {
-	TreeMap<Comparable,AbstractDomainObject> localMap = justRemove(key);
+	DoubleArray<AbstractDomainObject> localArr = justRemove(key);
 
 	if (getParent() == null) {
 	    return this;
@@ -98,7 +76,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	    // if the removed key was the first we need to replace it in some parent's index
 	    Comparable replacementKey = getReplacementKeyIfNeeded(key);
 
-	    if (localMap.size() < BPlusTree.LOWER_BOUND) {
+	    if (localArr.length() < BPlusTreeArray.LOWER_BOUND) {
 		return getParent().underflowFromLeaf(key, replacementKey);
 	    } else if (replacementKey != null) {
 		return getParent().replaceDeletedKey(key, replacementKey);
@@ -108,18 +86,17 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	}
     }
 
-    private TreeMap<Comparable,AbstractDomainObject> justRemove(Comparable key) {
-	TreeMap<Comparable,AbstractDomainObject> localEntries = this.getEntries();
+    private DoubleArray<AbstractDomainObject> justRemove(Comparable key) {
+	DoubleArray<AbstractDomainObject> localEntries = this.getEntries();
 
 	// this test is performed because we need to return a new structure in
 	// case an update occurs.  Value types must be immutable.
 	if (!localEntries.containsKey(key)) {
 	    return localEntries;
 	} else {
-	    TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
-	    newMap.remove(key);
-            setEntries(newMap);
-	    return newMap;
+	    DoubleArray<AbstractDomainObject> newArr = localEntries.removeKey(key);
+	    setEntries(newArr);
+	    return newArr;
 	}
     }
 
@@ -127,24 +104,24 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     // always true if this is not the root node)
     private Comparable getReplacementKeyIfNeeded(Comparable deletedKey) {
 	Comparable firstKey = this.getEntries().firstKey();
-	if (BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY.compare(deletedKey, firstKey) < 0) {
+	if (BPlusTreeArray.COMPARATOR_SUPPORTING_LAST_KEY.compare(deletedKey, firstKey) < 0) {
 	    return firstKey;
 	} else {
 	    return null; // null means that key does not need replacement
 	}
     }
 
-    Map.Entry<Comparable,AbstractDomainObject> removeBiggestKeyValue() {
-	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
-	Map.Entry<Comparable,AbstractDomainObject> lastEntry = newMap.pollLastEntry();
-        setEntries(newMap);
+    DoubleArray<AbstractDomainObject>.KeyVal removeBiggestKeyValue() {
+	DoubleArray<AbstractDomainObject> entries = this.getEntries();
+	DoubleArray<AbstractDomainObject>.KeyVal lastEntry = entries.getBiggestKeyValue();
+	setEntries(entries.removeBiggestKeyValue());
 	return lastEntry;
     }
 
-    Map.Entry<Comparable,AbstractDomainObject> removeSmallestKeyValue() {
-	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
-	Map.Entry<Comparable,AbstractDomainObject> firstEntry = newMap.pollFirstEntry();
-        setEntries(newMap);
+    DoubleArray<AbstractDomainObject>.KeyVal removeSmallestKeyValue() {
+	DoubleArray<AbstractDomainObject> entries = this.getEntries();
+	DoubleArray<AbstractDomainObject>.KeyVal firstEntry = entries.getSmallestKeyValue();
+	setEntries(entries.removeSmallestKeyValue());
 	return firstEntry;
     }
 
@@ -152,21 +129,15 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	return this.getEntries().firstKey();
     }
 
-    void addKeyValue(Map.Entry keyValue) {
-	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
-	newMap.put((Comparable)keyValue.getKey(), (AbstractDomainObject)keyValue.getValue());
-        setEntries(newMap);
+    void addKeyValue(DoubleArray.KeyVal keyValue) {
+	setEntries(this.getEntries().addKeyValue(keyValue));
     }
 
     void mergeWithLeftNode(AbstractNodeArray leftNode, Comparable splitKey) {
 	LeafNodeArray left = (LeafNodeArray)leftNode; // this node does not know how to merge with another kind
-	
-	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
-	newMap.putAll(left.getEntries());
-        setEntries(newMap);
+        setEntries(getEntries().mergeWith(left.getEntries()));
 
 	LeafNodeArray nodeBefore = left.getPrevious();
-
 	this.setPrevious(nodeBefore);
 	if (nodeBefore != null) {
 	    nodeBefore.setNext(this);
@@ -186,11 +157,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	}
 
 	if (index < shallowSize()) { // the required position is here
-    	    Iterator<AbstractDomainObject> values = this.getEntries().values().iterator();
-    	    for (int i = 0; i < index; i++) {
-    	    	values.next();
-    	    }
-	    return values.next();
+	    return this.getEntries().values[index];
 	} else {
 	    LeafNodeArray next = this.getNext();
 	    if (next == null) {
@@ -206,11 +173,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	}
 
 	if (index < shallowSize()) { // the required position is here
-	    Iterator<Comparable> keys = this.getEntries().keySet().iterator();
-	    for (int i = 0; i < index; i++) {
-		keys.next();
-	    }
-	    return this.remove(keys.next());
+	    return remove(this.getEntries().keys[index]);
 	} else {
 	    LeafNodeArray next = this.getNext();
 	    if (next == null) {
@@ -225,11 +188,11 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     }
 
     int shallowSize() {
-	return this.getEntries().size();
+	return this.getEntries().length();
     }
 
     public int size() {
-	return this.getEntries().size();
+	return this.getEntries().length();
     }
 
     public Iterator<AbstractDomainObject> iterator() {
@@ -237,17 +200,19 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     }
 
     private class LeafNodeArrayIterator implements Iterator<AbstractDomainObject> {
-	private Iterator<AbstractDomainObject> iterator;
+	private int index;
+	private AbstractDomainObject[] values;
 	private LeafNodeArray current;
 	
 
 	LeafNodeArrayIterator(LeafNodeArray LeafNodeArray) {
-	    this.iterator = LeafNodeArray.getEntries().values().iterator();
+	    this.index = 0;
+	    this.values = LeafNodeArray.getEntries().values;
 	    this.current = LeafNodeArray;
 	}
 
 	public boolean hasNext() {
-	    if (this.iterator.hasNext()) {
+	    if (index < values.length) {
 		return true;
 	    } else {
 		return this.current.getNext() != null;
@@ -255,16 +220,18 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	}
 
         public AbstractDomainObject next() {
-	    if (!this.iterator.hasNext()) {
+	    if (index >= values.length) {
 		LeafNodeArray nextNode = this.current.getNext();
 		if (nextNode != null) {
 		    this.current = nextNode;
-		    this.iterator = this.current.getEntries().values().iterator();
+		    this.index = 0;
+		    this.values = this.current.getEntries().values;
 		} else {
 		    throw new NoSuchElementException();
 		}
 	    }
-	    return this.iterator.next();
+	    index++;
+	    return values[index - 1];
 	}
 
         public void remove() {
@@ -275,16 +242,17 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 
     public String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds) {
 	StringBuilder str = new StringBuilder();
-	str.append(BPlusTree.spaces(level));
+	str.append(BPlusTreeArray.spaces(level));
 	if (dumpNodeIds) {
 	    str.append(this.getPrevious() + "<-[" + this + ": ");
 	} else {
 	    str.append("[: ");
 	}
 
-	for (Map.Entry<Comparable, AbstractDomainObject> entry : this.getEntries().entrySet()) {
-	    Comparable key = entry.getKey();
-	    AbstractDomainObject value = entry.getValue();
+    	DoubleArray<AbstractDomainObject> subNodes = this.getEntries();
+	for (int i = 0; i < subNodes.length(); i++) {
+    	    Comparable key = subNodes.keys[i];
+    	    AbstractDomainObject value = subNodes.values[i];
 	    str.append("(" + key);
 	    str.append(dumpKeysOnly ? ") " : "," + value.getOid() + ") ");
 	}
