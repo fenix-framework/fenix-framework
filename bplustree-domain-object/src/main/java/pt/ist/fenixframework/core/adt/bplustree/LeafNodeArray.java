@@ -12,7 +12,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     private static final Logger logger = LoggerFactory.getLogger(LeafNodeArray.class);
     
     public LeafNodeArray() {
-	setEntries(new DoubleArray<AbstractDomainObject>());
+	setEntries(new DoubleArray<AbstractDomainObject>(AbstractDomainObject.class));
     }
 
     private LeafNodeArray(DoubleArray<AbstractDomainObject> entries) {

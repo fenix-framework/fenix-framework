@@ -1,10 +1,12 @@
 package pt.ist.fenixframework.core.adt.bplustree;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
+@SuppressWarnings({"unchecked", "rawtypes", "serial"})
 public class DoubleArray<T extends AbstractDomainObject> implements Serializable {
 
     // Can this be final? Is it a problem due to deserialization?
@@ -12,37 +14,50 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
     // as the slots of the arrays are always mutable
     public Comparable[] keys;
     public T[] values;
+    protected Class<T> valuesClazz;
 
-    public DoubleArray() {
+    public DoubleArray(Class<T> valuesClazz) {
 	this.keys = new Comparable[0];
-	this.values = (T[]) new Object[0];
+	this.values = (T[]) Array.newInstance(valuesClazz, 0);
+	this.valuesClazz = valuesClazz;
     }
     
-    public DoubleArray(Comparable key, T value, T lastValue) {
+    public DoubleArray(Class<T> valuesClazz, Comparable key, T value, T lastValue) {
 	this.keys = new Comparable[2];
-	this.values = (T[])new Object[2];
+	this.values = (T[]) Array.newInstance(valuesClazz, 2);
 
 	this.keys[0] = key;
 	this.values[0] = value;
 
 	this.keys[1] = BPlusTreeArray.LAST_KEY;
 	this.values[1] = lastValue;
+	this.valuesClazz = valuesClazz;
     }
 
-    public DoubleArray(Comparable[] keys, T[] values) {
+    public DoubleArray(Class<T> valuesClazz, Comparable[] keys, T[] values) {
 	this.keys = keys;
 	this.values = values;
+	this.valuesClazz = valuesClazz;
     }
 
     public int length() {
 	return keys.length;
     }
 
+    private <E> int binarySearchForInsertion(E[] array, Comparable key) {
+	int result = Arrays.binarySearch(array, key, null);
+	if (result < 0) {
+	    result *= -1;
+	    result--;
+	}
+	return result;
+    }
+    
     public DoubleArray<T> duplicateAndAddKey(Comparable midKey, T left, T right) {
 	Comparable[] newKeys = new Comparable[keys.length + 1];
-	T[] newValues = (T[])new Object[values.length + 1];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, values.length + 1);
 
-	int midKeyIndex = Arrays.binarySearch(newKeys, midKey, null);
+	int midKeyIndex = binarySearchForInsertion(keys, midKey);
 	// copy as many items as up to the new insertion spot 
 	System.arraycopy(keys, 0, newKeys, 0, midKeyIndex);
 	System.arraycopy(values, 0, newValues, 0, midKeyIndex);
@@ -55,13 +70,13 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 
 	newValues[midKeyIndex + 1] = right;
 
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
 
     // Up to and excluding key at 'index' (and we place the LAST_KEY on its spot)
     public DoubleArray<T> duplicateLeftOf(int index, T val) {
 	Comparable[] newKeys = new Comparable[index];
-	T[] newValues = (T[]) new Object[index];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, index);
 
 	System.arraycopy(keys, 0, newKeys, 0, index - 1);
 	System.arraycopy(values, 0, newValues, 0, index - 1);
@@ -69,18 +84,18 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	newKeys[index - 1] = BPlusTreeArray.LAST_KEY;
 	newValues[index - 1] = val;
 
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
 
     // Up to and including key at 'index'
     public DoubleArray<T> duplicateRightOf(int index) {
 	Comparable[] newKeys = new Comparable[keys.length - index];
-	T[] newValues = (T[]) new Object[values.length - index];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, keys.length - index);
 
 	System.arraycopy(keys, index, newKeys, 0, keys.length - index);
 	System.arraycopy(values, index, newValues, 0, values.length - index);
 
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
 
     public T get(Comparable key) {
@@ -98,14 +113,14 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 
     // assumes the deletedKey exists
     public DoubleArray<T> replaceKey(Comparable deletedKey, Comparable replacementKey, T subNode) {
-	int remKeyIndex = Arrays.binarySearch(keys, deletedKey, null);
-	int newKeyIndex = Arrays.binarySearch(keys, replacementKey, null);
+	int remKeyIndex = binarySearchForInsertion(keys, deletedKey);
+	int newKeyIndex = binarySearchForInsertion(keys, replacementKey);
 
 	int lowerIndex = remKeyIndex < newKeyIndex ? remKeyIndex : newKeyIndex;
 	int higherIndex = remKeyIndex > newKeyIndex ? remKeyIndex : newKeyIndex;
 
 	Comparable[] newKeys = new Comparable[keys.length];
-	T[] newValues = (T[]) new Object[values.length];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, keys.length);
 
 	// copy up to (excluding) the lower index changed
 	// does nothing if the lower index is zero
@@ -158,7 +173,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	    }
 	}
 
-	return new DoubleArray<T>(keys, values);
+	return new DoubleArray<T>(valuesClazz, keys, values);
     }
 
     public T firstValue() {
@@ -179,7 +194,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	int thisSize = this.length();
 	
 	Comparable[] newKeys = new Comparable[thisSize + leftSize];
-	T[] newValues = (T[]) new Object[thisSize + leftSize];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, thisSize + leftSize);
 	
 	System.arraycopy(left.keys, 0, newKeys, 0, leftSize);
 	System.arraycopy(left.values, 0, newValues, 0, leftSize);
@@ -195,7 +210,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	// sort both arrays according to the keys
 	quicksort(newKeys, newValues);
 	
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
     
     // produces a new double array
@@ -204,7 +219,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	int thisSize = this.length();
 	
 	Comparable[] newKeys = new Comparable[thisSize + otherSize];
-	T[] newValues = (T[]) new Object[thisSize + otherSize];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, thisSize + otherSize);
 	
 	System.arraycopy(other.keys, 0, newKeys, 0, otherSize);
 	System.arraycopy(other.values, 0, newValues, 0, otherSize);
@@ -214,7 +229,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	// sort both arrays according to the keys
 	quicksort(newKeys, newValues);
 	
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
 
     // adapted a quicksort algorithm to simultaneously sort both arrays based on the keys' order
@@ -279,27 +294,27 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
     
     public DoubleArray<T> removeSmallestKeyValue() {
 	Comparable[] newKeys = new Comparable[this.length() - 1];
-	T[] newValues = (T[]) new Object[this.length() - 1];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, this.length() - 1);
 	
 	System.arraycopy(keys, 1, newKeys, 0, keys.length - 1);
 	System.arraycopy(values, 1, newValues, 0, values.length - 1);
 	
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
     
     public DoubleArray<T> removeBiggestKeyValue() {
 	Comparable[] newKeys = new Comparable[this.length() - 1];
-	T[] newValues = (T[]) new Object[this.length() - 1];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, this.length() - 1);
 	
 	System.arraycopy(keys, 0, newKeys, 0, keys.length - 1);
 	System.arraycopy(values, 0, newValues, 0, values.length - 1);
 	
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
     
     public DoubleArray<T> removeKey(Comparable key) {
 	Comparable[] newKeys = new Comparable[this.length() - 1];
-	T[] newValues = (T[]) new Object[this.length() - 1];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, this.length() - 1);
 	
 	int indexToRemove = Arrays.binarySearch(keys, key, null);
 	
@@ -309,7 +324,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	System.arraycopy(keys, indexToRemove + 1, newKeys, indexToRemove, keys.length - indexToRemove - 1);
 	System.arraycopy(values, indexToRemove + 1, newValues, indexToRemove, values.length - indexToRemove - 1);
 	
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
     
     public DoubleArray<T> addKeyValue(KeyVal keyVal) {
@@ -318,9 +333,9 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
     
     public DoubleArray<T> addKeyValue(Comparable keyToInsert, T valToInsert) {
 	Comparable[] newKeys = new Comparable[this.length() + 1];
-	T[] newValues = (T[]) new Object[this.length() + 1];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, this.length() + 1);
 	
-	int indexToInsert = Arrays.binarySearch(keys, keyToInsert, null);
+	int indexToInsert = binarySearchForInsertion(keys, keyToInsert);
 	
 	System.arraycopy(keys, 0, newKeys, 0, indexToInsert);
 	System.arraycopy(values, 0, newValues, 0, indexToInsert);
@@ -331,7 +346,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	System.arraycopy(keys, indexToInsert, newKeys, indexToInsert + 1, keys.length - indexToInsert);
 	System.arraycopy(values, indexToInsert, newValues, indexToInsert + 1, values.length - indexToInsert);
 	
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
     
     public Comparable lowerKeyThanHighest() {
@@ -345,22 +360,22 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
     // Left part up to the "findRightMiddlePosition"
     public DoubleArray<T> leftPart() {
 	Comparable[] newKeys = new Comparable[BPlusTreeArray.LOWER_BOUND];
-	T[] newValues = (T[]) new Object[BPlusTreeArray.LOWER_BOUND];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, BPlusTreeArray.LOWER_BOUND);
 	
 	System.arraycopy(keys, 0, newKeys, 0, BPlusTreeArray.LOWER_BOUND);
 	System.arraycopy(values, 0, newValues, 0, BPlusTreeArray.LOWER_BOUND);
 	
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
     
     // Left part from the "findRightMiddlePosition" (including) until the end
     public DoubleArray<T> rightPart() {
 	Comparable[] newKeys = new Comparable[keys.length - BPlusTreeArray.LOWER_BOUND];
-	T[] newValues = (T[]) new Object[values.length - BPlusTreeArray.LOWER_BOUND];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, keys.length - BPlusTreeArray.LOWER_BOUND);
 	
 	System.arraycopy(keys, BPlusTreeArray.LOWER_BOUND, newKeys, 0, keys.length - BPlusTreeArray.LOWER_BOUND);
 	System.arraycopy(values, BPlusTreeArray.LOWER_BOUND, newValues, 0, values.length - BPlusTreeArray.LOWER_BOUND);
 	
-	return new DoubleArray<T>(newKeys, newValues);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
 }

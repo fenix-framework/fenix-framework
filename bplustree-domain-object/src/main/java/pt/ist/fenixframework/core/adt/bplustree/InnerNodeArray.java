@@ -18,7 +18,7 @@ public class InnerNodeArray extends InnerNodeArray_Base {
     }
 
     InnerNodeArray(AbstractNodeArray leftNode, AbstractNodeArray rightNode, Comparable splitKey) {
-    	setSubNodes(new DoubleArray<AbstractNodeArray>(splitKey, leftNode, rightNode));
+    	setSubNodes(new DoubleArray<AbstractNodeArray>(AbstractNodeArray.class, splitKey, leftNode, rightNode));
     	leftNode.setParent(this);
     	rightNode.setParent(this);
     }
