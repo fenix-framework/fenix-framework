@@ -29,8 +29,8 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	    Comparable keyToSplit = localArr.findRightMiddlePosition();
 
 	    // split node in two
-	    LeafNodeArray leftNode = new LeafNodeArray(localArr.leftPart());
-	    LeafNodeArray rightNode = new LeafNodeArray(localArr.rightPart());
+	    LeafNodeArray leftNode = new LeafNodeArray(localArr.leftPart(BPlusTreeArray.LOWER_BOUND + 1));
+	    LeafNodeArray rightNode = new LeafNodeArray(localArr.rightPart(BPlusTreeArray.LOWER_BOUND + 1));
 	    fixLeafNodeArraysListAfterSplit(leftNode, rightNode);
 
 	    // propagate split to parent

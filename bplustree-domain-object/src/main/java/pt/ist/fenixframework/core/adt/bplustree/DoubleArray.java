@@ -73,31 +73,6 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
 
-    // Up to and excluding key at 'index' (and we place the LAST_KEY on its spot)
-    public DoubleArray<T> duplicateLeftOf(int index, T val) {
-	Comparable[] newKeys = new Comparable[index];
-	T[] newValues = (T[]) Array.newInstance(valuesClazz, index);
-
-	System.arraycopy(keys, 0, newKeys, 0, index - 1);
-	System.arraycopy(values, 0, newValues, 0, index - 1);
-
-	newKeys[index - 1] = BPlusTreeArray.LAST_KEY;
-	newValues[index - 1] = val;
-
-	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
-    }
-
-    // Up to and including key at 'index'
-    public DoubleArray<T> duplicateRightOf(int index) {
-	Comparable[] newKeys = new Comparable[keys.length - index];
-	T[] newValues = (T[]) Array.newInstance(valuesClazz, keys.length - index);
-
-	System.arraycopy(keys, index, newKeys, 0, keys.length - index);
-	System.arraycopy(values, index, newValues, 0, values.length - index);
-
-	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
-    }
-
     public T get(Comparable key) {
 	int index = Arrays.binarySearch(keys, key, null);
 	if (index >= 0) {
@@ -357,24 +332,29 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	return keys[BPlusTreeArray.LOWER_BOUND + 1];
     }
     
-    // Left part up to the "findRightMiddlePosition"
-    public DoubleArray<T> leftPart() {
-	Comparable[] newKeys = new Comparable[BPlusTreeArray.LOWER_BOUND];
-	T[] newValues = (T[]) Array.newInstance(valuesClazz, BPlusTreeArray.LOWER_BOUND);
+    // Used by Leafs that do not have a LAST_KEY
+    public DoubleArray<T> leftPart(int splitIndex) {
+	return leftPart(splitIndex, 0);
+    }
+    
+    // Left part up to the "splitIndex" (excluding)
+    public DoubleArray<T> leftPart(int splitIndex, int extraSlots) {
+	Comparable[] newKeys = new Comparable[splitIndex + extraSlots];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, splitIndex + extraSlots);
 	
-	System.arraycopy(keys, 0, newKeys, 0, BPlusTreeArray.LOWER_BOUND);
-	System.arraycopy(values, 0, newValues, 0, BPlusTreeArray.LOWER_BOUND);
+	System.arraycopy(keys, 0, newKeys, 0, splitIndex);
+	System.arraycopy(values, 0, newValues, 0, splitIndex);
 	
 	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
     
-    // Left part from the "findRightMiddlePosition" (including) until the end
-    public DoubleArray<T> rightPart() {
-	Comparable[] newKeys = new Comparable[keys.length - BPlusTreeArray.LOWER_BOUND];
-	T[] newValues = (T[]) Array.newInstance(valuesClazz, keys.length - BPlusTreeArray.LOWER_BOUND);
+    // Right part from the "splitIndex" (including)
+    public DoubleArray<T> rightPart(int splitIndex) {
+	Comparable[] newKeys = new Comparable[keys.length - splitIndex];
+	T[] newValues = (T[]) Array.newInstance(valuesClazz, keys.length - splitIndex);
 	
-	System.arraycopy(keys, BPlusTreeArray.LOWER_BOUND, newKeys, 0, keys.length - BPlusTreeArray.LOWER_BOUND);
-	System.arraycopy(values, BPlusTreeArray.LOWER_BOUND, newValues, 0, values.length - BPlusTreeArray.LOWER_BOUND);
+	System.arraycopy(keys, splitIndex, newKeys, 0, keys.length - splitIndex);
+	System.arraycopy(values, splitIndex, newValues, 0, values.length - splitIndex);
 	
 	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
