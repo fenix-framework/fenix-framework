@@ -10,8 +10,8 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class SkipList<T extends AbstractDomainObject> extends SkipList_Base implements Set<T>{
 
-    private transient final double probability = 0.25;
-    private transient final int maxLevel = 32;
+    private transient final static double probability = 0.25;
+    private transient final static int maxLevel = 32;
     private transient final static ThreadLocal<Random> random = new ThreadLocal<Random>() {
 	protected Random initialValue() {
 	    return new Random();

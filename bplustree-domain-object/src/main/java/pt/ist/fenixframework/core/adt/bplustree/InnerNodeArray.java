@@ -196,7 +196,7 @@ public class InnerNodeArray extends InnerNodeArray_Base {
 	// change the parent of all the left sub-nodes
 	DoubleArray<AbstractNodeArray> subNodes = this.getSubNodes();
 	DoubleArray<AbstractNodeArray> leftSubNodes = left.getSubNodes();
-	InnerNodeArray uncle = subNodes.values[subNodes.length()].getParent();
+	InnerNodeArray uncle = subNodes.values[subNodes.length() - 1].getParent();
 	for (int i = 0; i < leftSubNodes.length(); i++) {
 	    leftSubNodes.values[i].setParent(uncle);
 	}
@@ -242,6 +242,7 @@ public class InnerNodeArray extends InnerNodeArray_Base {
 	    iter++;
 	} while (entryValue != deletedNode);
 	// Now, the value() of 'entry' holds the child where the deletion occurred.
+	entryKey = subNodes.keys[iter - 1];
 	iter--;
 
 	Comparable previousEntryKey = iter > 0 ? subNodes.keys[iter - 1] : null;

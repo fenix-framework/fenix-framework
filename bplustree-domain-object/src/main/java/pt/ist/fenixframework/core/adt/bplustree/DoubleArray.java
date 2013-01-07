@@ -45,7 +45,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
     }
 
     private <E> int binarySearchForInsertion(E[] array, Comparable key) {
-	int result = Arrays.binarySearch(array, key, null);
+	int result = Arrays.binarySearch(array, key, BPlusTreeArray.COMPARATOR_SUPPORTING_LAST_KEY);
 	if (result < 0) {
 	    result *= -1;
 	    result--;
@@ -74,7 +74,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
     }
 
     public T get(Comparable key) {
-	int index = Arrays.binarySearch(keys, key, null);
+	int index = Arrays.binarySearch(keys, key, BPlusTreeArray.COMPARATOR_SUPPORTING_LAST_KEY);
 	if (index >= 0) {
 	    return values[index];
 	} else {
@@ -148,7 +148,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	    }
 	}
 
-	return new DoubleArray<T>(valuesClazz, keys, values);
+	return new DoubleArray<T>(valuesClazz, newKeys, newValues);
     }
 
     public T firstValue() {
@@ -237,7 +237,10 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
     }
 
     private boolean less(Comparable x, Comparable y) {
-	return (x.compareTo(y) < 0);
+	if (y == BPlusTreeArray.LAST_KEY) {
+	    return y.compareTo(x) > 0;
+	}
+	return x.compareTo(y) < 0;
     }
     
     private void exch(Comparable[] a, T[] index, int i, int j) {
@@ -291,7 +294,7 @@ public class DoubleArray<T extends AbstractDomainObject> implements Serializable
 	Comparable[] newKeys = new Comparable[this.length() - 1];
 	T[] newValues = (T[]) Array.newInstance(valuesClazz, this.length() - 1);
 	
-	int indexToRemove = Arrays.binarySearch(keys, key, null);
+	int indexToRemove = Arrays.binarySearch(keys, key, BPlusTreeArray.COMPARATOR_SUPPORTING_LAST_KEY);
 	
 	System.arraycopy(keys, 0, newKeys, 0, indexToRemove);
 	System.arraycopy(values, 0, newValues, 0, indexToRemove);
