@@ -19,7 +19,7 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.CommitListener;
 import pt.ist.fenixframework.TransactionManager;
-import pt.ist.fenixframework.backend.infinispan.util.TxMap;
+import pt.ist.fenixframework.util.TxMap;
 
 public class InfinispanTransactionManager implements TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanTransactionManager.class);
