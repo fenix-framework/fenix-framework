@@ -2,7 +2,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>pt.ist</groupId>
@@ -14,7 +14,7 @@
         This module provides the common configuration for all modules.
     </description>
     <packaging>pom</packaging>
-    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -32,6 +32,7 @@
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
         <!-- <version.hibernate.ogm>4.0.0-SNAPSHOT</version.hibernate.ogm> -->
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
+        <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
         <version.infinispan>5.1.6.FINAL</version.infinispan>
         <!-- <version.infinispan>5.2.0-SNAPSHOT</version.infinispan> -->
         <version.jboss.logging>3.1.0.GA</version.jboss.logging>
@@ -39,7 +40,7 @@
         <version.jodatime>1.5.2</version.jodatime>
         <version.jpa>1.0</version.jpa>
         <version.jta>1.1</version.jta>
-        <version.junit>3.8.1</version.junit>
+        <version.junit>4.10</version.junit>
         <version.jvstm-fenix>1.0</version.jvstm-fenix>
         <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
         <version.maven.build-helper-plugin>1.7</version.maven.build-helper-plugin>
@@ -67,38 +68,27 @@
                     <proc>none</proc>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>[3,)</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
-        <!-- Ignore issues with dml-maven-plugin in eclipse -->
-        <pluginManagement>
-            <plugins>
-                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                            <groupId>pt.ist</groupId>
-                                            <artifactId>dml-maven-plugin</artifactId>
-                                            <versionRange>[2.0-SNAPSHOT,)</versionRange>
-                                            <goals>
-                                                <goal>post-compile</goal>
-                                                <goal>generate-domain</goal>
-                                            </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore></ignore>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
 
     <!-- Dependency Management -->
@@ -175,8 +165,28 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-hibernate-search</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-test</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-test-txintrospector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
+                <version>${version.slf4j.api}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
                 <version>${version.slf4j.api}</version>
             </dependency>
             <dependency>
@@ -218,6 +228,11 @@
                 <groupId>org.hibernate.ogm</groupId>
                 <artifactId>hibernate-ogm-infinispan</artifactId>
                 <version>${version.hibernate.ogm.infinispan}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-search-engine</artifactId>
+                <version>${version.hibernate.search}</version>
             </dependency>
             <dependency>
                 <groupId>javax.transaction</groupId>

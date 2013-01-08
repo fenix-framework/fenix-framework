@@ -9,6 +9,10 @@ import pt.ist.fenixframework.DomainObject;
  * executed in the system.
  */
 public interface TxIntrospector {
+
+    public static final String TXINTROSPECTOR_ON_CONFIG_KEY = "ptIstTxIntrospectorEnable";
+    public static final String TXINTROSPECTOR_ON_CONFIG_VALUE = "true";
+
     /**
      * Returns a Collection containing new objects created during this
      * transaction.

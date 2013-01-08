@@ -16,7 +16,9 @@ import java.io.PrintWriter;
  */
 public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
     public static final String TXINTROSPECTOR_ON_CONFIG_KEY =
-        pt.ist.fenixframework.txintrospector.TxStats.TXINTROSPECTOR_ON_CONFIG_KEY;
+        pt.ist.fenixframework.txintrospector.TxIntrospector.TXINTROSPECTOR_ON_CONFIG_KEY;
+    public static final String TXINTROSPECTOR_ON_CONFIG_VALUE =
+        pt.ist.fenixframework.txintrospector.TxIntrospector.TXINTROSPECTOR_ON_CONFIG_VALUE;
 
     private static final String TXSTATS_FULL_CLASS =
         pt.ist.fenixframework.txintrospector.TxStats.class.getName();
@@ -28,7 +30,7 @@ public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
     public TxIntrospectorCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
         String param = compArgs.getParams().get(TXINTROSPECTOR_ON_CONFIG_KEY);
-        enabled = (param != null) && Boolean.parseBoolean(param);
+        enabled = (param != null) && param.trim().equalsIgnoreCase(TXINTROSPECTOR_ON_CONFIG_VALUE);
     }
 
     @Override
@@ -72,7 +74,7 @@ public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
             // add parameter in static initializer block
             newline(out);
             newBlock(out);
-            print(out, "setParam(\"" + TXINTROSPECTOR_ON_CONFIG_KEY + "\", \"true\");");
+            print(out, "setParam(\"" + TXINTROSPECTOR_ON_CONFIG_KEY + "\", \"" +TXINTROSPECTOR_ON_CONFIG_VALUE + "\");");
             closeBlock(out);
         }
         super.generateBackEndIdClassBody(out);
