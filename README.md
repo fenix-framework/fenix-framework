@@ -182,7 +182,12 @@ e.g. via JMX.
 
 ### Transaction Introspector
 
+The TxIntrospector module enables internal information gathering during a transaction. When enabled, the programmer may obtain a `pt.ist.fenixframework.txintrospector.TxIntrospector` instance, and use it to query what were the new/modified objects/relationships for a transaction.
+
+For more details, see txintrospector/README.md .
 
 ### Hibernate Search
 
+The hibernate-search module allows the indexing of domain objects for fast querying using the Hibernate Search framework.
 
+For more details, see hibernate-search/README.md .
