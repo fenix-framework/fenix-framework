@@ -1,36 +1,37 @@
 package pt.ist.fenixframework.backend.ogm;
 
-import java.util.concurrent.Callable;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
+import javax.transaction.InvalidTransactionException;
 import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 
+import org.hibernate.ejb.AvailableSettings;
+import org.hibernate.ejb.HibernateEntityManagerFactory;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.ogm.datastore.infinispan.impl.InfinispanDatastoreProvider;
+import org.hibernate.service.jta.platform.spi.JtaPlatform;
+import org.infinispan.CacheException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.ejb.AvailableSettings;
-import org.hibernate.ejb.HibernateEntityManagerFactory;
-import org.hibernate.ogm.datastore.infinispan.impl.InfinispanDatastoreProvider;
-import org.hibernate.service.jta.platform.spi.JtaPlatform;
-
-import org.infinispan.CacheException;
-
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
+import pt.ist.fenixframework.CommitListener;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.util.Misc;
+import pt.ist.fenixframework.util.TxMap;
 
-public class OgmTransactionManager extends TransactionManager {
+public class OgmTransactionManager implements TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(OgmTransactionManager.class);
 
     private javax.transaction.TransactionManager delegateTxManager;
@@ -60,7 +61,12 @@ public class OgmTransactionManager extends TransactionManager {
     }
 
     @Override
-    public void backendBegin(boolean readOnly) throws NotSupportedException, SystemException {
+    public void begin() throws NotSupportedException, SystemException {
+	begin(false);
+    }
+
+    @Override
+    public void begin(boolean readOnly) throws NotSupportedException, SystemException {
         if (readOnly) {
             logger.warn("OgmBackEnd does not enforce read-only transactions. Starting as normal transaction");
         }
@@ -74,26 +80,42 @@ public class OgmTransactionManager extends TransactionManager {
     }
 
     @Override
-    public void backendCommit() throws RollbackException, HeuristicMixedException,
+    public void commit() throws RollbackException, HeuristicMixedException,
                                 HeuristicRollbackException, SystemException {
         logger.trace("Commit transaction");
 
-        EntityManager em = currentEntityManager.get();
+	pt.ist.fenixframework.Transaction tx = getTransaction();
 
-        em.flush();
-        delegateTxManager.commit();
-        em.close();
+	for (CommitListener listener : listeners) {
+	    listener.beforeCommit(tx);
+	}
+	try {
+	    EntityManager em = currentEntityManager.get();
 
-        currentEntityManager.set(null);
+	    em.flush();
+	    delegateTxManager.commit();
+	    em.close();
+
+	    currentEntityManager.set(null);
+	} finally {
+	    for (CommitListener listener : listeners) {
+		listener.afterCommit(tx);
+	    }
+	}
     }
 
     @Override
-    public Transaction backendGetTransaction() throws SystemException {
-        return delegateTxManager.getTransaction();
+    public pt.ist.fenixframework.Transaction getTransaction() {
+	try {
+	    Transaction tx = delegateTxManager.getTransaction();
+	    return TxMap.getTx(tx);
+	} catch (Exception e) {
+	    return null;
+	}
     }
 
     @Override
-    public void backendRollback() throws SystemException {
+    public void rollback() throws SystemException {
         logger.trace("Rollback transaction");
         delegateTxManager.rollback();
 
@@ -101,7 +123,7 @@ public class OgmTransactionManager extends TransactionManager {
     }
 
     @Override
-    public <T> T backendWithTransaction(CallableWithoutException<T> command) {
+    public <T> T withTransaction(CallableWithoutException<T> command) {
         try {
             return withTransaction(command, null);
         } catch (Exception e) {
@@ -110,15 +132,15 @@ public class OgmTransactionManager extends TransactionManager {
     }
 
     @Override
-    public <T> T backendWithTransaction(Callable<T> command) throws Exception {
-        return withTransaction(command, null);
+    public <T> T withTransaction(Callable<T> command) throws Exception {
+	return withTransaction(command, null);
     }
 
     /**
      * For now, it ignores the value of the atomic parameter.
      */
     @Override
-    public <T> T backendWithTransaction(Callable<T> command, Atomic atomic) throws Exception {
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
         T result = null;
         boolean txFinished = false;
         while (!txFinished) {
@@ -196,6 +218,49 @@ public class OgmTransactionManager extends TransactionManager {
     private void logException(Exception e) {
         logger.info("Exception caught in transaction: " + e.getLocalizedMessage());
         logger.trace("Exception caught in transaction:", e);
+    }
+
+    @Override
+    public int getStatus() throws SystemException {
+	return delegateTxManager.getStatus();
+    }
+
+    @Override
+    public void resume(Transaction tx) throws InvalidTransactionException, IllegalStateException, SystemException {
+	delegateTxManager.resume(tx);
+    }
+
+    @Override
+    public void setRollbackOnly() throws IllegalStateException, SystemException {
+	delegateTxManager.setRollbackOnly();
+    }
+
+    @Override
+    public void setTransactionTimeout(int timeout) throws SystemException {
+	delegateTxManager.setTransactionTimeout(timeout);
+    }
+
+    @Override
+    public Transaction suspend() throws SystemException {
+	return delegateTxManager.suspend();
+    }
+
+    private final ConcurrentLinkedQueue<CommitListener> listeners = new ConcurrentLinkedQueue<CommitListener>();
+
+    /**
+     * @see pt.ist.fenixframework.TransactionManager#addCommitListener(pt.ist.fenixframework.CommitListener)
+     */
+    @Override
+    public void addCommitListener(CommitListener listener) {
+	listeners.add(listener);
+    }
+
+    /**
+     * @see pt.ist.fenixframework.TransactionManager#removeCommitListener(pt.ist.fenixframework.CommitListener)
+     */
+    @Override
+    public void removeCommitListener(CommitListener listener) {
+	listeners.remove(listener);
     }
 
 }
