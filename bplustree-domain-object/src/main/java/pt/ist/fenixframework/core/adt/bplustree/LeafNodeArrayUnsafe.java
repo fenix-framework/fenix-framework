@@ -8,37 +8,37 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class LeafNodeArray extends LeafNodeArray_Base {
-    private static final Logger logger = LoggerFactory.getLogger(LeafNodeArray.class);
+public class LeafNodeArrayUnsafe extends LeafNodeArrayUnsafe_Base {
+    private static final Logger logger = LoggerFactory.getLogger(LeafNodeArrayUnsafe.class);
     
-    public LeafNodeArray() {
+    public LeafNodeArrayUnsafe() {
 	setEntries(new DoubleArray<AbstractDomainObject>(AbstractDomainObject.class));
     }
 
-    private LeafNodeArray(DoubleArray<AbstractDomainObject> entries) {
+    private LeafNodeArrayUnsafe(DoubleArray<AbstractDomainObject> entries) {
 	setEntries(entries);
     }
 
-    public AbstractNodeArray insert(Comparable key, AbstractDomainObject value) {
+    public AbstractNodeArrayUnsafe insert(Comparable key, AbstractDomainObject value) {
 	DoubleArray<AbstractDomainObject> localArr = justInsert(key, value);
 
 	if (localArr == null) {
 	    return null;	// insert will return false
 	}
 	if (localArr.length() <= BPlusTreeArray.MAX_NUMBER_OF_ELEMENTS) { // it still fits :-)
-	    return getRoot();
+	    return getRootUnsafe();
 	} else { // must split this node
 	    // find middle position
 	    Comparable keyToSplit = localArr.findRightMiddlePosition();
 
 	    // split node in two
-	    LeafNodeArray leftNode = new LeafNodeArray(localArr.leftPart(BPlusTreeArray.LOWER_BOUND + 1));
-	    LeafNodeArray rightNode = new LeafNodeArray(localArr.rightPart(BPlusTreeArray.LOWER_BOUND + 1));
-	    fixLeafNodeArraysListAfterSplit(leftNode, rightNode);
+	    LeafNodeArrayUnsafe leftNode = new LeafNodeArrayUnsafe(localArr.leftPart(BPlusTreeArray.LOWER_BOUND + 1));
+	    LeafNodeArrayUnsafe rightNode = new LeafNodeArrayUnsafe(localArr.rightPart(BPlusTreeArray.LOWER_BOUND + 1));
+	    fixLeafNodeArrayUnsafesListAfterSplit(leftNode, rightNode);
 
 	    // propagate split to parent
 	    if (getParent() == null) {  // make new root node
-		InnerNodeArray newRoot = new InnerNodeArray(leftNode, rightNode, keyToSplit);
+		InnerNodeArrayUnsafe newRoot = new InnerNodeArrayUnsafe(leftNode, rightNode, keyToSplit);
 		return newRoot;
 	    } else {
 		return getParent().rebase(leftNode, rightNode, keyToSplit);
@@ -64,19 +64,19 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	}
     }
 
-    private void fixLeafNodeArraysListAfterSplit(LeafNodeArray leftNode, LeafNodeArray rightNode) {
+    private void fixLeafNodeArrayUnsafesListAfterSplit(LeafNodeArrayUnsafe leftNode, LeafNodeArrayUnsafe rightNode) {
 	leftNode.setPrevious(this.getPrevious());
 	rightNode.setNext(this.getNext());
 	leftNode.setNext(rightNode);
     }
 
-    public AbstractNodeArray remove(Comparable key) {
+    public AbstractNodeArrayUnsafe remove(Comparable key) {
 	DoubleArray<AbstractDomainObject> localArr = justRemove(key);
 
 	if (localArr == null) {
 	    return null;	// remove will return false
 	}
-	if (getParent() == null) {
+	if (getParentUnsafe() == null) {
 	    return this;
 	} else {
 	    // if the removed key was the first we need to replace it in some parent's index
@@ -87,7 +87,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	    } else if (replacementKey != null) {
 		return getParent().replaceDeletedKey(key, replacementKey);
 	    } else {
-		return getParent().getRoot();  // maybe a tiny faster than just getRoot() ?!
+		return getParentUnsafe().getRootUnsafe();  // maybe a tiny faster than just getRoot() ?!
 	    }
 	}
     }
@@ -139,11 +139,11 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	setEntries(this.getEntries().addKeyValue(keyValue));
     }
 
-    void mergeWithLeftNode(AbstractNodeArray leftNode, Comparable splitKey) {
-	LeafNodeArray left = (LeafNodeArray)leftNode; // this node does not know how to merge with another kind
+    void mergeWithLeftNode(AbstractNodeArrayUnsafe leftNode, Comparable splitKey) {
+	LeafNodeArrayUnsafe left = (LeafNodeArrayUnsafe)leftNode; // this node does not know how to merge with another kind
         setEntries(getEntries().mergeWith(left.getEntries()));
 
-	LeafNodeArray nodeBefore = left.getPrevious();
+	LeafNodeArrayUnsafe nodeBefore = left.getPrevious();
 	this.setPrevious(nodeBefore);
 	if (nodeBefore != null) {
 	    nodeBefore.setNext(this);
@@ -165,7 +165,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	if (index < shallowSize()) { // the required position is here
 	    return this.getEntries().values[index];
 	} else {
-	    LeafNodeArray next = this.getNext();
+	    LeafNodeArrayUnsafe next = this.getNext();
 	    if (next == null) {
 		throw new IndexOutOfBoundsException();
 	    }
@@ -173,7 +173,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	}
     }
 
-    public AbstractNodeArray removeIndex(int index) {
+    public AbstractNodeArrayUnsafe removeIndex(int index) {
 	if (index < 0) {
 	    throw new IndexOutOfBoundsException();
 	}
@@ -181,7 +181,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	if (index < shallowSize()) { // the required position is here
 	    return remove(this.getEntries().keys[index]);
 	} else {
-	    LeafNodeArray next = this.getNext();
+	    LeafNodeArrayUnsafe next = this.getNext();
 	    if (next == null) {
 		throw new IndexOutOfBoundsException();
 	    }
@@ -202,19 +202,19 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     }
 
     public Iterator<AbstractDomainObject> iterator() {
-	return new LeafNodeArrayIterator(this);
+	return new LeafNodeArrayUnsafeIterator(this);
     }
 
-    private class LeafNodeArrayIterator implements Iterator<AbstractDomainObject> {
+    private class LeafNodeArrayUnsafeIterator implements Iterator<AbstractDomainObject> {
 	private int index;
 	private AbstractDomainObject[] values;
-	private LeafNodeArray current;
+	private LeafNodeArrayUnsafe current;
 	
 
-	LeafNodeArrayIterator(LeafNodeArray LeafNodeArray) {
+	LeafNodeArrayUnsafeIterator(LeafNodeArrayUnsafe LeafNodeArrayUnsafe) {
 	    this.index = 0;
-	    this.values = LeafNodeArray.getEntries().values;
-	    this.current = LeafNodeArray;
+	    this.values = LeafNodeArrayUnsafe.getEntries().values;
+	    this.current = LeafNodeArrayUnsafe;
 	}
 
 	public boolean hasNext() {
@@ -227,7 +227,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 
         public AbstractDomainObject next() {
 	    if (index >= values.length) {
-		LeafNodeArray nextNode = this.current.getNext();
+		LeafNodeArrayUnsafe nextNode = this.current.getNext();
 		if (nextNode != null) {
 		    this.current = nextNode;
 		    this.index = 0;

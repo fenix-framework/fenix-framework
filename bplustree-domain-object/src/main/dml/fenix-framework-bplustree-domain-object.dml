@@ -117,3 +117,34 @@ relation LeafNodeArrayHasSibling {
     LeafNodeArray playsRole previous;
     LeafNodeArray playsRole next;
 }
+
+/* Unsafe BPlusTree backed by Arrays */
+
+class BPlusTreeArrayUnsafe {}
+
+class AbstractNodeArrayUnsafe {}
+
+class LeafNodeArrayUnsafe extends AbstractNodeArrayUnsafe {
+    BackingArrays<pt.ist.fenixframework.core.AbstractDomainObject> entries;
+}
+
+class InnerNodeArrayUnsafe extends AbstractNodeArrayUnsafe {
+    BackingArrays<AbstractNodeArrayUnsafe> subNodes;
+}
+
+relation BPlusTreeArrayUnsafeHasRootNode {
+    BPlusTreeArrayUnsafe playsRole;
+    AbstractNodeArrayUnsafe playsRole root;
+}
+
+relation NodeArrayUnsafeHasParent {
+    AbstractNodeArrayUnsafe playsRole {
+    multiplicity *;
+    }
+    InnerNodeArrayUnsafe playsRole parent;
+}
+
+relation LeafNodeArrayUnsafeHasSibling {
+    LeafNodeArrayUnsafe playsRole previous;
+    LeafNodeArrayUnsafe playsRole next;
+}
