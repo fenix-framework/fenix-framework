@@ -16,8 +16,6 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
     protected abstract File getDmlSourceDirectory();
     protected abstract File getClassesDirectory();
     protected abstract String getCodeGeneratorClassName();
-    protected abstract String getCollectionClassName();
-    protected abstract boolean generateUnsafeAccesses();
     protected abstract boolean verbose();
     protected abstract List<String> getClasspathElements();
 

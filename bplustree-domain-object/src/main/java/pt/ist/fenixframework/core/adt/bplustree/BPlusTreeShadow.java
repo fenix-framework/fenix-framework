@@ -14,7 +14,7 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
  * instances of {@link AbstractDomainObject}.  This implementation is modelled in DML and can be
  * used with any backend.
  */
-public class BPlusTreeArrayUnsafe<T extends AbstractDomainObject> extends BPlusTreeArrayUnsafe_Base implements Set<T>{
+public class BPlusTreeShadow<T extends AbstractDomainObject> extends BPlusTreeShadow_Base implements Set<T>{
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
         private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
@@ -80,30 +80,25 @@ public class BPlusTreeArrayUnsafe<T extends AbstractDomainObject> extends BPlusT
 
     // non-static part start here
 
-    public BPlusTreeArrayUnsafe() {
+    public BPlusTreeShadow() {
 	initRoot();
     }
 
     private void initRoot() {
-	this.setRoot(new LeafNodeArrayUnsafe());
+	this.setRoot(new LeafNodeShadow());
     }
 
     /** Inserts the given value. */
-    public boolean insert(T value) {
+    public void insert(T value) {
         if (value == null) {
             throw new UnsupportedOperationException("This B+Tree does not support nulls");
         }
-	AbstractNodeArrayUnsafe rootNode = this.getRootUnsafe();
-	AbstractNodeArrayUnsafe resultNode = rootNode.insert(value.getOid(), value);
-	
-	if (resultNode == null) {
-	    return false;
-	}
+	AbstractNodeShadow rootNode = this.getRootShadow();
+	AbstractNodeShadow resultNode = rootNode.insert(value.getOid(), value);
 	if (rootNode != resultNode) {
 	    this.registerGetRoot();
 	    this.setRoot(resultNode);
 	}
-	return true;
     }
 
     // /** Removes the given element */
@@ -112,31 +107,26 @@ public class BPlusTreeArrayUnsafe<T extends AbstractDomainObject> extends BPlusT
     // }
 
     /** Removes the element with the given key */
-    public boolean remove(Comparable key) {
-	AbstractNodeArrayUnsafe rootNode = this.getRootUnsafe();
-	AbstractNodeArrayUnsafe resultNode = rootNode.remove(key);
-	
-	if (resultNode == null) {
-	    return false;
-	}
+    public void remove(Comparable key) {
+	AbstractNodeShadow rootNode = this.getRootShadow();
+	AbstractNodeShadow resultNode = rootNode.remove(key);
 	if (rootNode != resultNode) {
 	    this.registerGetRoot();
 	    this.setRoot(resultNode);
 	}
-	return true;
     }
 
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
      * contains no mapping for the key. */
     public T get(Comparable key) {
-	return ((AbstractNodeArrayUnsafe<T>)this.getRootUnsafe()).get(key);
+	return ((AbstractNodeShadow<T>)this.getRootShadow()).get(key);
     }
 
     /**
      * Return the value at the index-th position (zero-based).
      */
     public T getIndex(int index) {
-	return ((AbstractNodeArrayUnsafe<T>)this.getRootUnsafe()).getIndex(index);
+	return ((AbstractNodeShadow<T>)this.getRootShadow()).getIndex(index);
     }
 
     /**
@@ -145,8 +135,8 @@ public class BPlusTreeArrayUnsafe<T extends AbstractDomainObject> extends BPlusT
     public T removeIndex(int index) {
 	T value = getIndex(index);
 
-	AbstractNodeArrayUnsafe rootNode = this.getRoot();
-	AbstractNodeArrayUnsafe resultNode = rootNode.removeIndex(index);
+	AbstractNodeShadow rootNode = this.getRoot();
+	AbstractNodeShadow resultNode = rootNode.removeIndex(index);
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
@@ -156,7 +146,7 @@ public class BPlusTreeArrayUnsafe<T extends AbstractDomainObject> extends BPlusT
 
     /** Returns <code>true</code> if this map contains a mapping for the specified key.  */
     public boolean containsKey(Comparable key) {
-	return this.getRootUnsafe().containsKey(key);
+	return this.getRootShadow().containsKey(key);
     }
 
     /** Returns the number of key-value mappings in this map */
@@ -172,7 +162,7 @@ public class BPlusTreeArrayUnsafe<T extends AbstractDomainObject> extends BPlusT
 	return this.getRoot().iterator();
     }
     
-    public boolean myEquals(BPlusTreeArrayUnsafe other) {
+    public boolean myEquals(BPlusTreeShadow other) {
 	Iterator<AbstractDomainObject> it1 = this.iterator();
 	Iterator<AbstractDomainObject> it2 = other.iterator();
 	
@@ -189,7 +179,12 @@ public class BPlusTreeArrayUnsafe<T extends AbstractDomainObject> extends BPlusT
 
     @Override
     public boolean add(T e) {
-	return insert(e);
+        if (contains(e)) {
+            return false;
+        } else {
+            insert(e);
+            return true;
+        }
     }
 
     @Override
@@ -197,7 +192,12 @@ public class BPlusTreeArrayUnsafe<T extends AbstractDomainObject> extends BPlusT
         if (! (o instanceof AbstractDomainObject)) {
             return false;
         }
-        return remove(((T)o).getOid());
+        if (contains(o)) {
+            remove(((T)o).getOid());
+            return true;
+        } else {
+            return false;
+        }
     }
     
     @Override

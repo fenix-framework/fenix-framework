@@ -10,13 +10,13 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.Externalization;
 
 /** The keys comparison function should be consistent with equals. */
-public abstract class AbstractNodeArrayUnsafe<T extends AbstractDomainObject> extends AbstractNodeArrayUnsafe_Base implements Iterable {
+public abstract class AbstractNodeArrayShadow<T extends AbstractDomainObject> extends AbstractNodeArrayShadow_Base implements Iterable {
     /* Node Interface */
 
     /** Inserts the given key-value pair and returns the (possibly new) root node */
-    abstract AbstractNodeArrayUnsafe insert(Comparable key, T value);
+    abstract AbstractNodeArrayShadow insert(Comparable key, T value);
     /** Removes the element with the given key */
-    abstract AbstractNodeArrayUnsafe remove(Comparable key);
+    abstract AbstractNodeArrayShadow remove(Comparable key);
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key. */
     abstract T get(Comparable key);
     /** Returns the value at the given index 
@@ -24,7 +24,7 @@ public abstract class AbstractNodeArrayUnsafe<T extends AbstractDomainObject> ex
     abstract T getIndex(int index);
     /** Returns the value that was removed from  the given index 
      * @throws IndexOutOfBoundsException if the index is out of range (index < 0 || index >= size()) */
-    abstract AbstractNodeArrayUnsafe removeIndex(int index);
+    abstract AbstractNodeArrayShadow removeIndex(int index);
     /** Returns <code>true</code> if this map contains a mapping for the specified key.  */
     abstract boolean containsKey(Comparable key);
     /** Returns the number os key-value mappings in this map */
@@ -44,26 +44,26 @@ public abstract class AbstractNodeArrayUnsafe<T extends AbstractDomainObject> ex
     /* *********** */
 
     
-    public  AbstractNodeArrayUnsafe() {
+    public  AbstractNodeArrayShadow() {
         super();
     }
 
-    AbstractNodeArrayUnsafe getRoot() {
-	InnerNodeArrayUnsafe thisParent = this.getParent();
+    AbstractNodeArrayShadow getRoot() {
+	InnerNodeArrayShadow thisParent = this.getParent();
 	return thisParent == null ? this : thisParent.getRoot();
     }
     
-    AbstractNodeArrayUnsafe getRootUnsafe() {
-	InnerNodeArrayUnsafe thisParent = this.getParentUnsafe();
-	return thisParent == null ? this : thisParent.getRootUnsafe();
+    AbstractNodeArrayShadow getRootShadow() {
+	InnerNodeArrayShadow thisParent = this.getParentShadow();
+	return thisParent == null ? this : thisParent.getRootShadow();
     }
 
     abstract DoubleArray.KeyVal removeBiggestKeyValue();
     abstract DoubleArray.KeyVal removeSmallestKeyValue();
     abstract Comparable getSmallestKey();
     abstract void addKeyValue(DoubleArray.KeyVal keyValue);
-    // merge elements from the left node into this node. smf: maybe LeafNodeArrayUnsafe can be a subclass of InnerNodeArrayUnsafe
-    abstract void mergeWithLeftNode(AbstractNodeArrayUnsafe leftNode, Comparable splitKey);
+    // merge elements from the left node into this node. smf: maybe LeafNodeArrayShadow can be a subclass of InnerNodeArrayShadow
+    abstract void mergeWithLeftNode(AbstractNodeArrayShadow leftNode, Comparable splitKey);
     // the number of _elements_ in this node (not counting sub-nodes)
     abstract int shallowSize();
 

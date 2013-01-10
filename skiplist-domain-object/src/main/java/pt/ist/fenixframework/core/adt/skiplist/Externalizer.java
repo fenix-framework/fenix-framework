@@ -27,25 +27,25 @@ public class Externalizer {
         }
     }
     
-    public static Serializable externalizeNodeArrayUnsafe(ForwardArrayUnsafe nodeArray) {
-        return new NodeArrayUnsafeExternalization(nodeArray);
+    public static Serializable externalizeNodeArrayShadow(ForwardArrayShadow nodeArray) {
+        return new NodeArrayShadowExternalization(nodeArray);
     }
 
-    public static ForwardArrayUnsafe internalizeNodeArrayUnsafe(Serializable externalizedNodeArray) {
-        return ((NodeArrayUnsafeExternalization)externalizedNodeArray).toNodeArray();
+    public static ForwardArrayShadow internalizeNodeArrayShadow(Serializable externalizedNodeArray) {
+        return ((NodeArrayShadowExternalization)externalizedNodeArray).toNodeArray();
     }
 
-    private static class NodeArrayUnsafeExternalization implements Serializable {
+    private static class NodeArrayShadowExternalization implements Serializable {
         private static final long serialVersionUID = 1L;
 
         private byte[] serializedNodeArray;
 
-        NodeArrayUnsafeExternalization(ForwardArrayUnsafe nodeArray) {
+        NodeArrayShadowExternalization(ForwardArrayShadow nodeArray) {
             this.serializedNodeArray = Externalization.externalizeSerializable(nodeArray);
         }
 
-        ForwardArrayUnsafe toNodeArray() {
-            return (ForwardArrayUnsafe)Externalization.internalizeSerializable(serializedNodeArray);
+        ForwardArrayShadow toNodeArray() {
+            return (ForwardArrayShadow)Externalization.internalizeSerializable(serializedNodeArray);
         }
     }
 }

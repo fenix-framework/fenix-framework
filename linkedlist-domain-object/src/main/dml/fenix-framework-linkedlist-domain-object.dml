@@ -22,11 +22,11 @@ relation ListNodeHasNext {
 }
 
 
-/* Unsafe Linked List */
+/* Shadow Linked List */
 
-class LinkedListUnsafe {}
+class LinkedListShadow {}
 
-relation LinkedListUnsafeHasHeadNode {
-    LinkedListUnsafe playsRole;
+relation LinkedListShadowHasHeadNode {
+    LinkedListShadow playsRole;
     ListNode playsRole head;
 }

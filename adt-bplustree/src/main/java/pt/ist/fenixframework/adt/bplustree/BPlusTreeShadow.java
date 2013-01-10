@@ -1,20 +1,22 @@
-package pt.ist.fenixframework.core.adt.bplustree;
+package pt.ist.fenixframework.adt.bplustree;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
-import pt.ist.fenixframework.core.AbstractDomainObject;
-
 /**
- * Implementation of a persistence-independent B+Tree that is specifically optimized to store
- * instances of {@link AbstractDomainObject}.  This implementation is modelled in DML and can be
- * used with any backend.
+ * Implementation of a persistence-independent B+Tree.  This implementation is modelled in DML and
+ * can be used with any backend.  This B+Tree can store any value (except nulls) associated with any
+ * key as long as the following restrictions are followed: Both the key and the value need to be
+ * {@link java.io.Serializable}; the key also needs to be {@link Comparable}; and keys must
+ * comparable to each other (e.g. the same BPlusTree instance cannot simultaneously support keys of
+ * type Integer and String).
  */
-public class BPlusTreeUnsafe<T extends AbstractDomainObject> extends BPlusTreeUnsafe_Base implements Set<T>{
+public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Base implements IBPlusTree<T> {
+    
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
         private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
@@ -80,21 +82,21 @@ public class BPlusTreeUnsafe<T extends AbstractDomainObject> extends BPlusTreeUn
 
     // non-static part start here
 
-    public BPlusTreeUnsafe() {
+    public BPlusTreeShadow() {
 	initRoot();
     }
 
     private void initRoot() {
-	this.setRoot(new LeafNodeUnsafe());
+	this.setRoot(new LeafNodeShadow());
     }
 
-    /** Inserts the given value. */
-    public void insert(T value) {
+    /** Inserts the given key-value pair, overwriting any previous entry for the same key */
+    public void insert(Comparable key, T value) {
         if (value == null) {
             throw new UnsupportedOperationException("This B+Tree does not support nulls");
         }
-	AbstractNodeUnsafe rootNode = this.getRootUnsafe();
-	AbstractNodeUnsafe resultNode = rootNode.insert(value.getOid(), value);
+	AbstractNodeShadow rootNode = this.getRootShadow();
+	AbstractNodeShadow resultNode = rootNode.insert(key, value);
 	if (rootNode != resultNode) {
 	    this.registerGetRoot();
 	    this.setRoot(resultNode);
@@ -108,8 +110,8 @@ public class BPlusTreeUnsafe<T extends AbstractDomainObject> extends BPlusTreeUn
 
     /** Removes the element with the given key */
     public void remove(Comparable key) {
-	AbstractNodeUnsafe rootNode = this.getRootUnsafe();
-	AbstractNodeUnsafe resultNode = rootNode.remove(key);
+	AbstractNodeShadow rootNode = this.getRootShadow();
+	AbstractNodeShadow resultNode = rootNode.remove(key);
 	if (rootNode != resultNode) {
 	    this.registerGetRoot();
 	    this.setRoot(resultNode);
@@ -119,14 +121,14 @@ public class BPlusTreeUnsafe<T extends AbstractDomainObject> extends BPlusTreeUn
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
      * contains no mapping for the key. */
     public T get(Comparable key) {
-	return ((AbstractNodeUnsafe<T>)this.getRootUnsafe()).get(key);
+	return ((AbstractNodeShadow<T>)this.getRootShadow()).get(key);
     }
 
     /**
      * Return the value at the index-th position (zero-based).
      */
     public T getIndex(int index) {
-	return ((AbstractNodeUnsafe<T>)this.getRootUnsafe()).getIndex(index);
+	return ((AbstractNodeShadow<T>)this.getRoot()).getIndex(index);
     }
 
     /**
@@ -135,8 +137,8 @@ public class BPlusTreeUnsafe<T extends AbstractDomainObject> extends BPlusTreeUn
     public T removeIndex(int index) {
 	T value = getIndex(index);
 
-	AbstractNodeUnsafe rootNode = this.getRoot();
-	AbstractNodeUnsafe resultNode = rootNode.removeIndex(index);
+	AbstractNodeShadow rootNode = this.getRoot();
+	AbstractNodeShadow resultNode = rootNode.removeIndex(index);
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
@@ -146,7 +148,7 @@ public class BPlusTreeUnsafe<T extends AbstractDomainObject> extends BPlusTreeUn
 
     /** Returns <code>true</code> if this map contains a mapping for the specified key.  */
     public boolean containsKey(Comparable key) {
-	return this.getRootUnsafe().containsKey(key);
+	return this.getRootShadow().containsKey(key);
     }
 
     /** Returns the number of key-value mappings in this map */
@@ -162,92 +164,30 @@ public class BPlusTreeUnsafe<T extends AbstractDomainObject> extends BPlusTreeUn
 	return this.getRoot().iterator();
     }
     
-    public boolean myEquals(BPlusTreeUnsafe other) {
-	Iterator<AbstractDomainObject> it1 = this.iterator();
-	Iterator<AbstractDomainObject> it2 = other.iterator();
+    public boolean myEquals(BPlusTree other) {
+	Iterator<T> it1 = this.iterator();
+	Iterator<T> it2 = other.iterator();
 	
 	while (it1.hasNext() && it2.hasNext()) {
-	    AbstractDomainObject o1 = it1.next();
-	    AbstractDomainObject o2 = it2.next();
+	    T o1 = it1.next();
+	    T o2 = it2.next();
 
 	    if (!((o1 == null && o2 == null) || (o1.equals(o2)))) {
-		    return false;
+                return false;
 	    }
 	}
 	return true;
     }
-
-    @Override
-    public boolean add(T e) {
-        if (contains(e)) {
-            return false;
-        } else {
-            insert(e);
-            return true;
-        }
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        if (! (o instanceof AbstractDomainObject)) {
-            return false;
-        }
-        if (contains(o)) {
-            remove(((T)o).getOid());
-            return true;
-        } else {
-            return false;
-        }
-    }
     
-    @Override
-    public boolean contains(Object o) {
-        if (! (o instanceof AbstractDomainObject)) {
-            return false;
+    /** Returns the set of keys mapped by this tree*/
+    public <T extends Comparable> Set<T> getKeys() {
+        Set<T> keys = new LinkedHashSet<T>();
+        Iterator<T> iter = this.getRoot().keysIterator();
+        while (iter.hasNext()) {
+            T key = iter.next();
+            keys.add(key);
         }
-        return containsKey(((T)o).getOid());
-    }
-
-    /* The following methods are not needed at the moment but we need to implement Set */
-    
-    @Override
-    public boolean addAll(Collection<? extends T> c) {
-	throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-	throw new UnsupportedOperationException();
-    }
-    
-    @Override
-    public boolean containsAll(Collection<?> c) {
-	throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isEmpty() {
-	throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-	throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-	throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Object[] toArray() {
-	throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> T[] toArray(T[] a) {
-	throw new UnsupportedOperationException();
+        return keys;
     }
 
 }

@@ -28,10 +28,6 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
 	protected abstract String getCodeGeneratorClassName();
 	
-	protected abstract String getCollectionClassName();
-
-	protected abstract boolean generateUnsafeAccesses();
-	
 	protected abstract File getDmlSourceDirectory();
 
 	protected abstract File getGeneratedSourcesDirectory();
@@ -136,8 +132,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 		Map<String,String> realParams = getParams() == null ? new HashMap<String,String>() : getParams();
 
 		compArgs = new CompilerArgs(getSourcesDirectory(), getGeneratedSourcesDirectory(), getPackageName(),
-                                            generateFinals(), getCodeGeneratorClass(), getCollectionClassName(), 
-                                            localDmls, externalDmls, realParams, generateUnsafeAccesses());
+                                            generateFinals(), getCodeGeneratorClass(), localDmls, externalDmls, realParams);
 
                 DmlCompiler.compile(compArgs);
 	    } else {

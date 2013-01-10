@@ -9,11 +9,11 @@ valueType pt.ist.fenixframework.core.adt.skiplist.ForwardArray as NodeArray {
 	internalizeWith pt.ist.fenixframework.core.adt.skiplist.Externalizer.internalizeNodeArray();
 }
 
-valueType pt.ist.fenixframework.core.adt.skiplist.ForwardArrayUnsafe as NodeArrayUnsafe {
+valueType pt.ist.fenixframework.core.adt.skiplist.ForwardArrayShadow as NodeArrayShadow {
 	externalizeWith {
-		Serializable pt.ist.fenixframework.core.adt.skiplist.Externalizer.externalizeNodeArrayUnsafe();
+		Serializable pt.ist.fenixframework.core.adt.skiplist.Externalizer.externalizeNodeArrayShadow();
 	}
-	internalizeWith pt.ist.fenixframework.core.adt.skiplist.Externalizer.internalizeNodeArrayUnsafe();
+	internalizeWith pt.ist.fenixframework.core.adt.skiplist.Externalizer.internalizeNodeArrayShadow();
 }
 
 
@@ -37,22 +37,22 @@ relation SkipListNodeHasValue {
 }
 
 
-/* Unsafe Skip List */
+/* Shadow Skip List */
 
-class SkipListUnsafe {
+class SkipListShadow {
 	int level;
 }
 
-class SkipListNodeUnsafe {
-	NodeArrayUnsafe forward;
+class SkipListNodeShadow {
+	NodeArrayShadow forward;
 }
 
-relation SkipListUnsafeHasHead {
-	SkipListUnsafe playsRole;
-	SkipListNodeUnsafe playsRole head;
+relation SkipListShadowHasHead {
+	SkipListShadow playsRole;
+	SkipListNodeShadow playsRole head;
 }
 
-relation SkipListNodeUnsafeHasValue {
-	SkipListNodeUnsafe playsRole;
+relation SkipListNodeShadowHasValue {
+	SkipListNodeShadow playsRole;
 	.pt.ist.fenixframework.core.AbstractDomainObject playsRole value;
 }

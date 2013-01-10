@@ -59,23 +59,6 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     private String codeGeneratorClassName;
 
     /**
-     * Collection Class Name built on top of DML to be used in the code generation  
-     * @parameter expression="${generate-domain.collectionClassName}"
-     */
-    private String collectionClassName = "";
-    
-    /**
-     * Generate unsafe methods to access data in a transactional and consistent way, but 
-     * not by taking those accesses into account when validating the transaction. It is 
-     * left to the backend to implement this accordingly, which might not even make sense 
-     * in a pessimistic concurrency control backend. 
-     * This only guarantees that the methods are generated, but does not guarantee their 
-     * semantics.
-     * @parameter expression="${generate-domain.generateUnsafeAccesses}" default-value="false"
-     */
-    private boolean generateUnsafeAccesses;
-    
-    /**
      * Package name
      * @parameter expression="${generate-domain.packageName}"
      */
@@ -119,16 +102,6 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     @Override
     protected String getCodeGeneratorClassName() {
         return codeGeneratorClassName;
-    }
-    
-    @Override
-    protected String getCollectionClassName() {
-	return collectionClassName;
-    }
-
-    @Override
-    protected boolean generateUnsafeAccesses() {
-	return generateUnsafeAccesses;
     }
     
     @Override

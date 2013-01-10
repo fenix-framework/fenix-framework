@@ -9,13 +9,13 @@ import pt.ist.fenixframework.core.Externalization;
 // import java.util.concurrent.atomic.AtomicInteger;
 
 /** The keys comparison function should be consistent with equals. */
-public abstract class AbstractNodeUnsafe<T extends AbstractDomainObject> extends AbstractNodeUnsafe_Base implements Iterable {
+public abstract class AbstractNodeShadow<T extends AbstractDomainObject> extends AbstractNodeShadow_Base implements Iterable {
     /* Node Interface */
 
     /** Inserts the given key-value pair and returns the (possibly new) root node */
-    abstract AbstractNodeUnsafe insert(Comparable key, T value);
+    abstract AbstractNodeShadow insert(Comparable key, T value);
     /** Removes the element with the given key */
-    abstract AbstractNodeUnsafe remove(Comparable key);
+    abstract AbstractNodeShadow remove(Comparable key);
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key. */
     abstract T get(Comparable key);
     /** Returns the value at the given index 
@@ -23,7 +23,7 @@ public abstract class AbstractNodeUnsafe<T extends AbstractDomainObject> extends
     abstract T getIndex(int index);
     /** Returns the value that was removed from  the given index 
      * @throws IndexOutOfBoundsException if the index is out of range (index < 0 || index >= size()) */
-    abstract AbstractNodeUnsafe removeIndex(int index);
+    abstract AbstractNodeShadow removeIndex(int index);
     /** Returns <code>true</code> if this map contains a mapping for the specified key.  */
     abstract boolean containsKey(Comparable key);
     /** Returns the number os key-value mappings in this map */
@@ -43,26 +43,26 @@ public abstract class AbstractNodeUnsafe<T extends AbstractDomainObject> extends
     /* *********** */
 
     
-    public  AbstractNodeUnsafe() {
+    public  AbstractNodeShadow() {
         super();
     }
 
-    AbstractNodeUnsafe getRoot() {
-	InnerNodeUnsafe thisParent = this.getParent();
+    AbstractNodeShadow getRoot() {
+	InnerNodeShadow thisParent = this.getParent();
 	return thisParent == null ? this : thisParent.getRoot();
     }
 
-    AbstractNodeUnsafe getRootUnsafe() {
-	InnerNodeUnsafe thisParent = this.getParentUnsafe();
-	return thisParent == null ? this : thisParent.getRootUnsafe();
+    AbstractNodeShadow getRootShadow() {
+	InnerNodeShadow thisParent = this.getParentShadow();
+	return thisParent == null ? this : thisParent.getRootShadow();
     }
     
     abstract Map.Entry<Comparable,T> removeBiggestKeyValue();
     abstract Map.Entry<Comparable,T> removeSmallestKeyValue();
     abstract Comparable getSmallestKey();
     abstract void addKeyValue(Map.Entry keyValue);
-    // merge elements from the left node into this node. smf: maybe LeafNode can be a subclass of InnerNodeUnsafe
-    abstract void mergeWithLeftNode(AbstractNodeUnsafe leftNode, Comparable splitKey);
+    // merge elements from the left node into this node. smf: maybe LeafNode can be a subclass of InnerNodeShadow
+    abstract void mergeWithLeftNode(AbstractNodeShadow leftNode, Comparable splitKey);
     // the number of _elements_ in this node (not counting sub-nodes)
     abstract int shallowSize();
 
@@ -93,7 +93,7 @@ public abstract class AbstractNodeUnsafe<T extends AbstractDomainObject> extends
     }
 
     ///////////////////////////////////////////////////////////////////////
-    //  Buggy implementation because not all Comparables are OIDs.  In the InnerNodeUnsafe instances the
+    //  Buggy implementation because not all Comparables are OIDs.  In the InnerNodeShadow instances the
     //  last is an instance of LAST_KEY.
 
     // private static class TreeMapExternalization implements Serializable {

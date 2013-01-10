@@ -15,7 +15,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 
     public JVSTMMemCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
 	super(compArgs, domainModel);
-        if (compArgs.getCollectionClassName() == "") {
+        if (compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY) == "") {
             setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
         }
     }
@@ -77,8 +77,8 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
 	generateVBoxSlotGetter("get" + capitalize(slotName), "get", slotName, typeName, out);
-        if (generateUnsafeMethods()) {
-            generateVBoxSlotGetter("get" + capitalize(slotName) + "Unsafe", "getUnsafe", slotName, typeName, out);
+        if (generateShadowMethods()) {
+            generateVBoxSlotGetter("get" + capitalize(slotName) + "Shadow", "getShadow", slotName, typeName, out);
             generateVBoxRegisterGet(slotName, "registerGet" + capitalize(slotName), out);
         }
     }
@@ -86,9 +86,9 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
 	generateVBoxSlotGetter("get" + capitalize(slot.getName()), "get", slot.getName(), slot.getTypeName(), out);
-        // also generate the get unsafe methods
-        if (generateUnsafeMethods()) {
-            generateVBoxSlotGetter("get" + capitalize(slot.getName()) + "Unsafe", "getUnsafe", slot.getName(), slot.getTypeName(), out);
+        // also generate the get shadow methods
+        if (generateShadowMethods()) {
+            generateVBoxSlotGetter("get" + capitalize(slot.getName()) + "Shadow", "getShadow", slot.getName(), slot.getTypeName(), out);
             generateVBoxRegisterGet(slot.getName(), "registerGet" + capitalize(slot.getName()), out);
         }
 	generateVBoxSlotSetter(domainClass, slot, out);
@@ -144,10 +144,10 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	String methodModifiers = getMethodModifiers();
 
 	generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
-        // also generate the get unsafe methods
-        if (generateUnsafeMethods()) {
+        // also generate the get shadow methods
+        if (generateShadowMethods()) {
             // We do not have a VBox around the collection, so accessing it is already a normal read
-            generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()) + "Unsafe", role, out);
+            generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()) + "Shadow", role, out);
             generateEmptyRegisterGet(role.getName(), out);
         }
 	generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);

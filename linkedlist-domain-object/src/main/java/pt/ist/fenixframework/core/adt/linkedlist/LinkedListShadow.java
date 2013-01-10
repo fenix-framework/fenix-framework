@@ -8,21 +8,21 @@ import java.util.Set;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class LinkedListUnsafe<T extends AbstractDomainObject> extends LinkedListUnsafe_Base implements Set<T> {
+public class LinkedListShadow<T extends AbstractDomainObject> extends LinkedListShadow_Base implements Set<T> {
 
-    public  LinkedListUnsafe() {
+    public  LinkedListShadow() {
 	super();
 	setHead(new ListNode<T>(null, null));
     }
 
     public boolean insert(T value) {
-	ListNode<T> previous = getHeadUnsafe();
-	ListNode<T> next = previous.getNextUnsafe();
+	ListNode<T> previous = getHeadShadow();
+	ListNode<T> next = previous.getNextShadow();
 	Comparable toInsert = value.getOid();
 	Comparable oid = null;
-	while (next != null && (oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
+	while (next != null && (oid = next.getValueShadow().getOid()).compareTo(toInsert) < 0) {
 	    previous = next;
-	    next = previous.getNextUnsafe();
+	    next = previous.getNextShadow();
 	}
 	previous.registerGetNext();
 	if (next == null || toInsert.compareTo(oid) != 0) {
@@ -33,13 +33,13 @@ public class LinkedListUnsafe<T extends AbstractDomainObject> extends LinkedList
     }
 
     public boolean remove(T value) {
-	ListNode<T> previous = getHeadUnsafe();
-	ListNode<T> next = previous.getNextUnsafe();
+	ListNode<T> previous = getHeadShadow();
+	ListNode<T> next = previous.getNextShadow();
 	Comparable toInsert = value.getOid();
 	Comparable oid = null;
-	while (next != null && (oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
+	while (next != null && (oid = next.getValueShadow().getOid()).compareTo(toInsert) < 0) {
 	    previous = next;
-	    next = previous.getNextUnsafe();
+	    next = previous.getNextShadow();
 	}
 	previous.registerGetNext();
 	if (oid != null && toInsert.compareTo(oid) == 0) {
@@ -54,13 +54,13 @@ public class LinkedListUnsafe<T extends AbstractDomainObject> extends LinkedList
     }
 
     public boolean contains(T value) {
-	ListNode<T> previous = getHeadUnsafe();
-	ListNode<T> next = previous.getNextUnsafe();
+	ListNode<T> previous = getHeadShadow();
+	ListNode<T> next = previous.getNextShadow();
 	Comparable toInsert = value.getOid();
 	Comparable oid = false;
-	while (next != null && (oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
+	while (next != null && (oid = next.getValueShadow().getOid()).compareTo(toInsert) < 0) {
 	    previous = next;
-	    next = previous.getNextUnsafe();
+	    next = previous.getNextShadow();
 	}
 	previous.registerGetNext();
 	return next != null && toInsert.compareTo(oid) == 0;

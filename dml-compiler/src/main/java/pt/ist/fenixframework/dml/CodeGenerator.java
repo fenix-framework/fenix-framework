@@ -17,6 +17,8 @@ public abstract class CodeGenerator {
     public static final String ABSTRACT_BACKEND_ID_CLASS = "BackEndId";
     public static final String CURRENT_BACKEND_ID_CLASS = "CurrentBackEndId";
     public static final String CURRENT_BACKEND_ID_FULL_CLASS = BACKEND_PACKAGE + "." + CURRENT_BACKEND_ID_CLASS;
+    public static final String COLLECTION_CLASS_NAME_KEY = "collectionClassName";
+    public static final String UNSAFE_GETTERS_KEY = "generateShadowAccesses";
 
     protected static class PrimitiveToWrapperEntry {
 	public final String primitiveType;
@@ -55,10 +57,11 @@ public abstract class CodeGenerator {
                                                      ? compArgs.destDirectory
                                                      : compArgs.destDirectoryBase,
                                                      compArgs.packageName);
-        if (compArgs.collectionClassName == "") {
+        String param = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
+        if (param == null || param == "") {
             this.collectionToUse = "java.util.HashSet";
         } else {
-            this.collectionToUse = compArgs.collectionClassName;
+            this.collectionToUse = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
         }
     }
     
@@ -769,9 +772,9 @@ public abstract class CodeGenerator {
 
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateSlotGetter(slot.getName(), slot.getTypeName(), out);
-        // also generate the get unsafe methods
-        if (generateUnsafeMethods()) {
-            generateSlotUnsafeGetter(slot.getName(), slot.getTypeName(), out);
+        // also generate the get shadow methods
+        if (generateShadowMethods()) {
+            generateSlotShadowGetter(slot.getName(), slot.getTypeName(), out);
             generateEmptyRegisterGet(slot.getName(), out);
         }
         generateSlotSetter(domainClass, slot, out);
@@ -785,8 +788,8 @@ public abstract class CodeGenerator {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
     }
 
-    protected void generateSlotUnsafeGetter(String slotName, String typeName, PrintWriter out) {
-        generateGetter("public", "get" + capitalize(slotName) + "Unsafe", slotName, typeName, out);
+    protected void generateSlotShadowGetter(String slotName, String typeName, PrintWriter out) {
+        generateGetter("public", "get" + capitalize(slotName) + "Shadow", slotName, typeName, out);
     }
     
     protected void generateEmptyRegisterGet(String suffixName, PrintWriter out) {
@@ -916,8 +919,8 @@ public abstract class CodeGenerator {
 
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
-        if (generateUnsafeMethods()) {
-            generateGetter("public", "get" + capitalize(slotName) + "Unsafe", slotName, typeName, out);
+        if (generateShadowMethods()) {
+            generateGetter("public", "get" + capitalize(slotName) + "Shadow", slotName, typeName, out);
             generateEmptyRegisterGet(slotName, out);
         }
     }
@@ -996,8 +999,9 @@ public abstract class CodeGenerator {
         return (compArgs.generateFinals ? "public final" : "public");
     }
     
-    protected boolean generateUnsafeMethods() {
-	return compArgs.generateUnsafeAccesses;
+    protected boolean generateShadowMethods() {
+	String param = compArgs.getParams().get(UNSAFE_GETTERS_KEY);
+	return  (param != null) && param.trim().equalsIgnoreCase("true");
     }
 
     protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
@@ -1145,8 +1149,8 @@ public abstract class CodeGenerator {
 
     protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
 	generateRelationGetter("get" + capitalize(role.getName()), role, out);
-	if (generateUnsafeMethods()) {
-	    generateRelationGetter("get" + capitalize(role.getName() + "Unsafe"), role, out);
+	if (generateShadowMethods()) {
+	    generateRelationGetter("get" + capitalize(role.getName() + "Shadow"), role, out);
 	    generateEmptyRegisterGet(role.getName(), out);
 	}
 	generateIteratorMethod(role, out);
@@ -1156,8 +1160,8 @@ public abstract class CodeGenerator {
 	generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "()");
     }
     
-    protected void generateIteratorUnsafeMethod(Role role, PrintWriter out) {
-	generateIteratorUnsafeMethod(role, out, "get" + capitalize(role.getName()) + "()");
+    protected void generateIteratorShadowMethod(Role role, PrintWriter out) {
+	generateIteratorShadowMethod(role, out, "get" + capitalize(role.getName()) + "()");
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {
@@ -1170,10 +1174,10 @@ public abstract class CodeGenerator {
 	endMethodBody(out);
     }
     
-    protected void generateIteratorUnsafeMethod(Role role, PrintWriter out, final String slotAccessExpression) {
+    protected void generateIteratorShadowMethod(Role role, PrintWriter out, final String slotAccessExpression) {
 	newline(out);
 	printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
-		+ capitalize(role.getName()) + "UnsafeIterator");
+		+ capitalize(role.getName()) + "ShadowIterator");
 	startMethodBody(out);
 	printWords(out, "return", slotAccessExpression);
 	print(out, ".iterator();");

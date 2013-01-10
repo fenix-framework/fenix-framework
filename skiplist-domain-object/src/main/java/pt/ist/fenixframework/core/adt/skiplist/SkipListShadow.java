@@ -8,7 +8,7 @@ import java.util.Set;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class SkipListUnsafe<T extends AbstractDomainObject> extends SkipListUnsafe_Base implements Set<T>{
+public class SkipListShadow<T extends AbstractDomainObject> extends SkipListShadow_Base implements Set<T>{
 
     private transient final static double probability = 0.25;
     private transient final static int maxLevel = 32;
@@ -30,11 +30,11 @@ public class SkipListUnsafe<T extends AbstractDomainObject> extends SkipListUnsa
 	};
     };
 
-    public SkipListUnsafe() {
+    public SkipListShadow() {
 	super();
 	setLevel(0);
-	SkipListNodeUnsafe head = new SkipListNodeUnsafe(maxLevel, minValue);
-	SkipListNodeUnsafe tail = new SkipListNodeUnsafe(maxLevel, maxValue);
+	SkipListNodeShadow head = new SkipListNodeShadow(maxLevel, minValue);
+	SkipListNodeShadow tail = new SkipListNodeShadow(maxLevel, maxValue);
 	setHead(head);
 	for (int i = 0; i <= maxLevel; i++) {
 	    head.setForward(i, tail);
@@ -51,16 +51,16 @@ public class SkipListUnsafe<T extends AbstractDomainObject> extends SkipListUnsa
     public boolean insert(T value) {
 	boolean result;
 
-	SkipListNodeUnsafe[] update = new SkipListNodeUnsafe[maxLevel + 1];
-	SkipListNodeUnsafe node = getHeadUnsafe();
-	int level = getLevelUnsafe();
+	SkipListNodeShadow[] update = new SkipListNodeShadow[maxLevel + 1];
+	SkipListNodeShadow node = getHeadShadow();
+	int level = getLevelShadow();
 
 	Comparable toInsert = value.getOid();
 	Comparable oid = node.getOid();
 
 	for (int i = level; i >= 0; i--) {
-	    SkipListNodeUnsafe next = node.getForward(i);
-	    while ((oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
+	    SkipListNodeShadow next = node.getForward(i);
+	    while ((oid = next.getValueShadow().getOid()).compareTo(toInsert) < 0) {
 		node = next;
 		next = node.getForward(i);
 	    }
@@ -69,17 +69,17 @@ public class SkipListUnsafe<T extends AbstractDomainObject> extends SkipListUnsa
 	node.registerGetForward();
 	node = node.getForward(0);
 
-	if (node.getValueUnsafe().getOid().compareTo(toInsert) == 0) {
+	if (node.getValueShadow().getOid().compareTo(toInsert) == 0) {
 	    result = false;
 	} else {
 	    int newLevel = randomLevel();
 	    if (newLevel > level) {
 		for (int i = level + 1; i <= level; i++)
-		    update[i] = getHeadUnsafe();
+		    update[i] = getHeadShadow();
 		registerGetLevel();
 		setLevel(level);
 	    }
-	    node = new SkipListNodeUnsafe(level, value);
+	    node = new SkipListNodeShadow(level, value);
 	    for (int i = 0; i <= level; i++) {
 		node.setForward(i, update[i].getForward(i));
 		update[i].registerGetForward();
@@ -94,17 +94,17 @@ public class SkipListUnsafe<T extends AbstractDomainObject> extends SkipListUnsa
     public boolean remove(T value) {
 	boolean result;
 
-	SkipListNodeUnsafe[] update = new SkipListNodeUnsafe[maxLevel + 1];
-	SkipListNodeUnsafe node = getHeadUnsafe();
+	SkipListNodeShadow[] update = new SkipListNodeShadow[maxLevel + 1];
+	SkipListNodeShadow node = getHeadShadow();
 
-	int level = getLevelUnsafe();
+	int level = getLevelShadow();
 
 	Comparable toInsert = value.getOid();
 	Comparable oid = node.getOid();
 
 	for (int i = level; i >= 0; i--) {
-	    SkipListNodeUnsafe next = node.getForward(i);
-	    while ((oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
+	    SkipListNodeShadow next = node.getForward(i);
+	    while ((oid = next.getValueShadow().getOid()).compareTo(toInsert) < 0) {
 		node = next;
 		next = node.getForward(i);
 	    }
@@ -113,7 +113,7 @@ public class SkipListUnsafe<T extends AbstractDomainObject> extends SkipListUnsa
 	node.registerGetForward();
 	node = node.getForward(0);
 
-	if (node.getValueUnsafe().getOid().compareTo(toInsert) != 0) {
+	if (node.getValueShadow().getOid().compareTo(toInsert) != 0) {
 	    result = false;
 	} else {
 	    for (int i = 0; i <= level; i++) {
@@ -124,7 +124,7 @@ public class SkipListUnsafe<T extends AbstractDomainObject> extends SkipListUnsa
 		}
 	    }
 	    boolean changedLevel = false;
-	    while (level > 0 && getHeadUnsafe().getForward(level).getForward(0) == null) {
+	    while (level > 0 && getHeadShadow().getForward(level).getForward(0) == null) {
 		changedLevel = true;
 		level--;
 	    }
@@ -141,15 +141,15 @@ public class SkipListUnsafe<T extends AbstractDomainObject> extends SkipListUnsa
     public boolean contains(T value) {
 	boolean result;
 
-	SkipListNodeUnsafe node = getHeadUnsafe();
-	int level = getLevelUnsafe();
+	SkipListNodeShadow node = getHeadShadow();
+	int level = getLevelShadow();
 
 	Comparable toInsert = value.getOid();
 	Comparable oid = node.getOid();
 
 	for (int i = level; i >= 0; i--) {
-	    SkipListNodeUnsafe next = node.getForward(i);
-	    while ((oid = next.getValueUnsafe().getOid()).compareTo(toInsert) < 0) {
+	    SkipListNodeShadow next = node.getForward(i);
+	    while ((oid = next.getValueShadow().getOid()).compareTo(toInsert) < 0) {
 		node = next;
 		next = node.getForward(i);
 	    }
@@ -165,7 +165,7 @@ public class SkipListUnsafe<T extends AbstractDomainObject> extends SkipListUnsa
     public Iterator<T> iterator() {
 	return new Iterator<T>() {
 
-	    private SkipListNodeUnsafe iter = getHeadUnsafe().getForward(0); // skip head tomb
+	    private SkipListNodeShadow iter = getHeadShadow().getForward(0); // skip head tomb
 
 	    @Override
 	    public boolean hasNext() {

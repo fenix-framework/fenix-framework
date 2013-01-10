@@ -50,34 +50,34 @@ relation LeafNodeHasSibling {
     LeafNode playsRole next;
 }
 
-/* BPlusTree with unsafe reads */
-class BPlusTreeUnsafe {}
+/* BPlusTree with shadow reads */
+class BPlusTreeShadow {}
 
-class AbstractNodeUnsafe {}
+class AbstractNodeShadow {}
 
-class LeafNodeUnsafe extends AbstractNodeUnsafe {
+class LeafNodeShadow extends AbstractNodeShadow {
     TreeMapWithKeyOID<Comparable,pt.ist.fenixframework.core.AbstractDomainObject> entries;
 }
 
-class InnerNodeUnsafe extends AbstractNodeUnsafe {
-    TreeMapWithKeyOID<Comparable,AbstractNodeUnsafe> subNodes;
+class InnerNodeShadow extends AbstractNodeShadow {
+    TreeMapWithKeyOID<Comparable,AbstractNodeShadow> subNodes;
 }
 
-relation BPlusTreeUnsafeHasRootNode {
-    BPlusTreeUnsafe playsRole;
-    AbstractNodeUnsafe playsRole root;
+relation BPlusTreeShadowHasRootNode {
+    BPlusTreeShadow playsRole;
+    AbstractNodeShadow playsRole root;
 }
 
-relation NodeUnsafeHasParent {
-    AbstractNodeUnsafe playsRole {
+relation NodeShadowHasParent {
+    AbstractNodeShadow playsRole {
     multiplicity *;
     }
-    InnerNodeUnsafe playsRole parent;
+    InnerNodeShadow playsRole parent;
 }
 
-relation LeafNodeUnsafeHasSibling {
-    LeafNodeUnsafe playsRole previous;
-    LeafNodeUnsafe playsRole next;
+relation LeafNodeShadowHasSibling {
+    LeafNodeShadow playsRole previous;
+    LeafNodeShadow playsRole next;
 }
 
 /* BPlusTree backed by Arrays */
@@ -118,33 +118,33 @@ relation LeafNodeArrayHasSibling {
     LeafNodeArray playsRole next;
 }
 
-/* Unsafe BPlusTree backed by Arrays */
+/* Shadow BPlusTree backed by Arrays */
 
-class BPlusTreeArrayUnsafe {}
+class BPlusTreeArrayShadow {}
 
-class AbstractNodeArrayUnsafe {}
+class AbstractNodeArrayShadow {}
 
-class LeafNodeArrayUnsafe extends AbstractNodeArrayUnsafe {
+class LeafNodeArrayShadow extends AbstractNodeArrayShadow {
     BackingArrays<pt.ist.fenixframework.core.AbstractDomainObject> entries;
 }
 
-class InnerNodeArrayUnsafe extends AbstractNodeArrayUnsafe {
-    BackingArrays<AbstractNodeArrayUnsafe> subNodes;
+class InnerNodeArrayShadow extends AbstractNodeArrayShadow {
+    BackingArrays<AbstractNodeArrayShadow> subNodes;
 }
 
-relation BPlusTreeArrayUnsafeHasRootNode {
-    BPlusTreeArrayUnsafe playsRole;
-    AbstractNodeArrayUnsafe playsRole root;
+relation BPlusTreeArrayShadowHasRootNode {
+    BPlusTreeArrayShadow playsRole;
+    AbstractNodeArrayShadow playsRole root;
 }
 
-relation NodeArrayUnsafeHasParent {
-    AbstractNodeArrayUnsafe playsRole {
+relation NodeArrayShadowHasParent {
+    AbstractNodeArrayShadow playsRole {
     multiplicity *;
     }
-    InnerNodeArrayUnsafe playsRole parent;
+    InnerNodeArrayShadow playsRole parent;
 }
 
-relation LeafNodeArrayUnsafeHasSibling {
-    LeafNodeArrayUnsafe playsRole previous;
-    LeafNodeArrayUnsafe playsRole next;
+relation LeafNodeArrayShadowHasSibling {
+    LeafNodeArrayShadow playsRole previous;
+    LeafNodeArrayShadow playsRole next;
 }

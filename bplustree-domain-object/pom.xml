@@ -16,10 +16,6 @@
     <artifactId>fenix-framework-bplustree-domain-object</artifactId>
     <name>Fenix Framework B+Tree (DomainObjects)</name>
 
-    <properties>
-            <fenixframework.unsafe>true</fenixframework.unsafe>
-    </properties>
-
     <build>
         <plugins>
             
@@ -29,7 +25,9 @@
                 <artifactId>dml-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
-                    <generateUnsafeAccesses>${fenixframework.unsafe}</generateUnsafeAccesses>
+                	<params>
+                    	<generateShadowAccesses>true</generateShadowAccesses>
+                    </params>
                 </configuration>
                 <executions>
                     <execution>

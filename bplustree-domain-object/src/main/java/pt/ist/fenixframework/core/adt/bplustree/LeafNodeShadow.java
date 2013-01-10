@@ -1,43 +1,51 @@
-package pt.ist.fenixframework.adt.bplustree;
+package pt.ist.fenixframework.core.adt.bplustree;
 
-import java.io.Serializable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
+import pt.ist.fenixframework.core.AbstractDomainObject;
+
+public class LeafNodeShadow extends LeafNodeShadow_Base {
+    private static final Logger logger = LoggerFactory.getLogger(LeafNodeShadow.class);
     
-    public LeafNodeUnsafe() {
-	setEntries(new TreeMap<Comparable,Serializable>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY));
+    public LeafNodeShadow() {
+	setEntries(new TreeMap<Comparable,AbstractDomainObject>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY));
     }
 
-    private LeafNodeUnsafe(TreeMap<Comparable,Serializable> entries) {
+    private LeafNodeShadow(TreeMap<Comparable,AbstractDomainObject> entries) {
 	setEntries(entries);
     }
 
-    private TreeMap<Comparable,Serializable> duplicateMap() {
-        return new TreeMap<Comparable,Serializable>(getEntries());
+    private TreeMap<Comparable,AbstractDomainObject> duplicateMap() {
+        return new TreeMap<Comparable,AbstractDomainObject>(getEntries());
     }
 
-    public AbstractNodeUnsafe insert(Comparable key, Serializable value) {
-	TreeMap<Comparable,Serializable> localMap = justInsert(key, value);
+    public AbstractNodeShadow insert(Comparable key, AbstractDomainObject value) {
+	TreeMap<Comparable,AbstractDomainObject> localMap = justInsert(key, value);
 
 	if (localMap.size() <= BPlusTree.MAX_NUMBER_OF_ELEMENTS) { // it still fits :-)
-	    return getRootUnsafe();
+	    return getRootShadow();
 	} else { // must split this node
 	    // find middle position
 	    Comparable keyToSplit = findRightMiddlePosition(localMap.keySet());
 
 	    // split node in two
-	    LeafNodeUnsafe leftNode = new LeafNodeUnsafe(new TreeMap<Comparable,Serializable>(localMap.headMap(keyToSplit)));
-	    LeafNodeUnsafe rightNode = new LeafNodeUnsafe(new TreeMap<Comparable,Serializable>(localMap.tailMap(keyToSplit)));
-	    fixLeafNodeUnsafesListAfterSplit(leftNode, rightNode);
+	    LeafNodeShadow leftNode = new LeafNodeShadow(new TreeMap<Comparable,AbstractDomainObject>(localMap.headMap(keyToSplit)));
+	    LeafNodeShadow rightNode = new LeafNodeShadow(new TreeMap<Comparable,AbstractDomainObject>(localMap.tailMap(keyToSplit)));
+	    fixLeafNodeShadowsListAfterSplit(leftNode, rightNode);
 
 	    // propagate split to parent
 	    if (getParent() == null) {  // make new root node
-		InnerNodeUnsafe newRoot = new InnerNodeUnsafe(leftNode, rightNode, keyToSplit);
+		InnerNodeShadow newRoot = new InnerNodeShadow(leftNode, rightNode, keyToSplit);
 		return newRoot;
 	    } else {
 		// leftNode.parent = getParent();
@@ -47,8 +55,8 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	}
     }
     
-    private <T extends Comparable> Comparable findRightMiddlePosition(Collection<T> keys) {
-	Iterator<T> keysIterator = keys.iterator();
+    private Comparable findRightMiddlePosition(Collection<Comparable> keys) {
+	Iterator<Comparable> keysIterator = keys.iterator();
 
 	for (int i = 0; i < BPlusTree.LOWER_BOUND + 1; i++) {
 	    keysIterator.next();
@@ -56,32 +64,35 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	return keysIterator.next();
     }
 
-    private TreeMap<Comparable,Serializable> justInsert(Comparable key, Serializable value) {
-	TreeMap<Comparable,Serializable> localEntries = this.getEntries();
+    private TreeMap<Comparable,AbstractDomainObject> justInsert(Comparable key, AbstractDomainObject value) {
+        logger.trace("Getting 'entries' slot");
+	TreeMap<Comparable,AbstractDomainObject> localEntries = this.getEntries();
 
 	// this test is performed because we need to return a new structure in
 	// case an update occurs.  Value types must be immutable.
-	Serializable currentValue = localEntries.get(key);
+	AbstractDomainObject currentValue = localEntries.get(key);
 	if (currentValue == value && localEntries.containsKey(key)) {
+            logger.trace("Existing key. No change required");
 	    return localEntries;
 	} else {
-	    TreeMap<Comparable,Serializable> newMap = duplicateMap();
+            logger.trace("Will add new entry. Must duplicate 'entries'.");
+	    TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
 	    newMap.put(key, value);
             setEntries(newMap);
 	    return newMap;
 	}
     }
 
-    private void fixLeafNodeUnsafesListAfterSplit(LeafNodeUnsafe leftNode, LeafNodeUnsafe rightNode) {
+    private void fixLeafNodeShadowsListAfterSplit(LeafNodeShadow leftNode, LeafNodeShadow rightNode) {
 	leftNode.setPrevious(this.getPrevious());
 	rightNode.setNext(this.getNext());
 	leftNode.setNext(rightNode);
     }
 
-    public AbstractNodeUnsafe remove(Comparable key) {
-	TreeMap<Comparable,Serializable> localMap = justRemove(key);
+    public AbstractNodeShadow remove(Comparable key) {
+	TreeMap<Comparable,AbstractDomainObject> localMap = justRemove(key);
 
-	if (getParentUnsafe() == null) {
+	if (getParentShadow() == null) {
 	    return this;
 	} else {
 	    // if the removed key was the first we need to replace it in some parent's index
@@ -92,20 +103,20 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	    } else if (replacementKey != null) {
 		return getParent().replaceDeletedKey(key, replacementKey);
 	    } else {
-		return getParentUnsafe().getRootUnsafe();  // maybe a tiny faster than just getRoot() ?!
+		return getParentShadow().getRootShadow();  // maybe a tiny faster than just getRoot() ?!
 	    }
 	}
     }
 
-    private TreeMap<Comparable,Serializable> justRemove(Comparable key) {
-	TreeMap<Comparable,Serializable> localEntries = this.getEntries();
+    private TreeMap<Comparable,AbstractDomainObject> justRemove(Comparable key) {
+	TreeMap<Comparable,AbstractDomainObject> localEntries = this.getEntries();
 
 	// this test is performed because we need to return a new structure in
 	// case an update occurs.  Value types must be immutable.
 	if (!localEntries.containsKey(key)) {
 	    return localEntries;
 	} else {
-	    TreeMap<Comparable,Serializable> newMap = duplicateMap();
+	    TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
 	    newMap.remove(key);
             setEntries(newMap);
 	    return newMap;
@@ -123,16 +134,16 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	}
     }
 
-    Map.Entry<Comparable,Serializable> removeBiggestKeyValue() {
-	TreeMap<Comparable,Serializable> newMap = duplicateMap();
-	Map.Entry<Comparable,Serializable> lastEntry = newMap.pollLastEntry();
+    Map.Entry<Comparable,AbstractDomainObject> removeBiggestKeyValue() {
+	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
+	Map.Entry<Comparable,AbstractDomainObject> lastEntry = newMap.pollLastEntry();
         setEntries(newMap);
 	return lastEntry;
     }
 
-    Map.Entry<Comparable,Serializable> removeSmallestKeyValue() {
-	TreeMap<Comparable,Serializable> newMap = duplicateMap();
-	Map.Entry<Comparable,Serializable> firstEntry = newMap.pollFirstEntry();
+    Map.Entry<Comparable,AbstractDomainObject> removeSmallestKeyValue() {
+	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
+	Map.Entry<Comparable,AbstractDomainObject> firstEntry = newMap.pollFirstEntry();
         setEntries(newMap);
 	return firstEntry;
     }
@@ -142,19 +153,19 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
     }
 
     void addKeyValue(Map.Entry keyValue) {
-	TreeMap<Comparable,Serializable> newMap = duplicateMap();
-	newMap.put((Comparable)keyValue.getKey(), (Serializable)keyValue.getValue());
+	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
+	newMap.put((Comparable)keyValue.getKey(), (AbstractDomainObject)keyValue.getValue());
         setEntries(newMap);
     }
 
-    void mergeWithLeftNode(AbstractNodeUnsafe leftNode, Comparable splitKey) {
-	LeafNodeUnsafe left = (LeafNodeUnsafe)leftNode; // this node does not know how to merge with another kind
+    void mergeWithLeftNode(AbstractNodeShadow leftNode, Comparable splitKey) {
+	LeafNodeShadow left = (LeafNodeShadow)leftNode; // this node does not know how to merge with another kind
 	
-	TreeMap<Comparable,Serializable> newMap = duplicateMap();
+	TreeMap<Comparable,AbstractDomainObject> newMap = duplicateMap();
 	newMap.putAll(left.getEntries());
         setEntries(newMap);
 
-	LeafNodeUnsafe nodeBefore = left.getPrevious();
+	LeafNodeShadow nodeBefore = left.getPrevious();
 
 	this.setPrevious(nodeBefore);
 	if (nodeBefore != null) {
@@ -165,23 +176,23 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	assert(this.getParent() == leftNode.getParent());
     }
 
-    public Serializable get(Comparable key) {
+    public AbstractDomainObject get(Comparable key) {
 	return this.getEntries().get(key);
     }
 
-    public Serializable getIndex(int index) {
+    public AbstractDomainObject getIndex(int index) {
 	if (index < 0) {
 	    throw new IndexOutOfBoundsException();
 	}
 
 	if (index < shallowSize()) { // the required position is here
-    	    Iterator<Serializable> values = this.getEntries().values().iterator();
+    	    Iterator<AbstractDomainObject> values = this.getEntries().values().iterator();
     	    for (int i = 0; i < index; i++) {
     	    	values.next();
     	    }
 	    return values.next();
 	} else {
-	    LeafNodeUnsafe next = this.getNext();
+	    LeafNodeShadow next = this.getNext();
 	    if (next == null) {
 		throw new IndexOutOfBoundsException();
 	    }
@@ -189,7 +200,7 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	}
     }
 
-    public AbstractNodeUnsafe removeIndex(int index) {
+    public AbstractNodeShadow removeIndex(int index) {
 	if (index < 0) {
 	    throw new IndexOutOfBoundsException();
 	}
@@ -201,7 +212,7 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	    }
 	    return this.remove(keys.next());
 	} else {
-	    LeafNodeUnsafe next = this.getNext();
+	    LeafNodeShadow next = this.getNext();
 	    if (next == null) {
 		throw new IndexOutOfBoundsException();
 	    }
@@ -221,26 +232,19 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	return this.getEntries().size();
     }
 
-    @Override
-    Iterator<? extends Comparable> keysIterator() {
-        return new LeafNodeUnsafeKeysIterator(this);
+    public Iterator<AbstractDomainObject> iterator() {
+	return new LeafNodeShadowIterator(this);
     }
 
-    public Iterator<Serializable> iterator() {
-	return new LeafNodeUnsafeValuesIterator(this);
-    }
-
-    protected abstract class GenericLeafNodeUnsafeIterator<T> implements Iterator<T> {
-	private Iterator<T> iterator;
-	private LeafNodeUnsafe current;
+    private class LeafNodeShadowIterator implements Iterator<AbstractDomainObject> {
+	private Iterator<AbstractDomainObject> iterator;
+	private LeafNodeShadow current;
 	
 
-	GenericLeafNodeUnsafeIterator(LeafNodeUnsafe LeafNodeUnsafe) {
-            this.iterator = getInternalIterator(LeafNodeUnsafe);
-	    this.current = LeafNodeUnsafe;
+	LeafNodeShadowIterator(LeafNodeShadow LeafNodeShadow) {
+	    this.iterator = LeafNodeShadow.getEntries().values().iterator();
+	    this.current = LeafNodeShadow;
 	}
-
-        protected abstract Iterator<T> getInternalIterator(LeafNodeUnsafe LeafNodeUnsafe);
 
 	public boolean hasNext() {
 	    if (this.iterator.hasNext()) {
@@ -250,12 +254,12 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	    }
 	}
 
-        public T next() {
+        public AbstractDomainObject next() {
 	    if (!this.iterator.hasNext()) {
-		LeafNodeUnsafe nextNode = this.current.getNext();
+		LeafNodeShadow nextNode = this.current.getNext();
 		if (nextNode != null) {
 		    this.current = nextNode;
-		    this.iterator = getInternalIterator(this.current);
+		    this.iterator = this.current.getEntries().values().iterator();
 		} else {
 		    throw new NoSuchElementException();
 		}
@@ -269,30 +273,6 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 
     }
 
-    private class LeafNodeUnsafeValuesIterator extends GenericLeafNodeUnsafeIterator<Serializable> {
-
-	LeafNodeUnsafeValuesIterator(LeafNodeUnsafe LeafNodeUnsafe) {
-            super(LeafNodeUnsafe);
-	}
-
-        protected Iterator<Serializable> getInternalIterator(LeafNodeUnsafe LeafNodeUnsafe) {
-            return LeafNodeUnsafe.getEntries().values().iterator();
-        }
-
-    }
-
-    private class LeafNodeUnsafeKeysIterator extends GenericLeafNodeUnsafeIterator<Comparable> {
-
-	LeafNodeUnsafeKeysIterator(LeafNodeUnsafe LeafNodeUnsafe) {
-            super(LeafNodeUnsafe);
-	}
-
-        protected Iterator<Comparable> getInternalIterator(LeafNodeUnsafe LeafNodeUnsafe) {
-            return LeafNodeUnsafe.getEntries().keySet().iterator();
-        }
-
-    }
-
     public String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds) {
 	StringBuilder str = new StringBuilder();
 	str.append(BPlusTree.spaces(level));
@@ -302,11 +282,11 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	    str.append("[: ");
 	}
 
-	for (Map.Entry<Comparable, Serializable> entry : this.getEntries().entrySet()) {
+	for (Map.Entry<Comparable, AbstractDomainObject> entry : this.getEntries().entrySet()) {
 	    Comparable key = entry.getKey();
-	    Serializable value = entry.getValue();
+	    AbstractDomainObject value = entry.getValue();
 	    str.append("(" + key);
-	    str.append(dumpKeysOnly ? ") " : "," + value + ") ");
+	    str.append(dumpKeysOnly ? ") " : "," + value.getOid() + ") ");
 	}
 	if (dumpNodeIds) {
 	    str.append("]->" + this.getNext() + " ^" + getParent() + "\n");
@@ -315,11 +295,6 @@ public class LeafNodeUnsafe extends LeafNodeUnsafe_Base {
 	}
 
 	return str.toString();
-    }
-
-    @Override
-    Collection<? extends Comparable> getKeys() {
-	return this.getEntries().keySet();
     }
 
 }
