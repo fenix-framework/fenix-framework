@@ -55,7 +55,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
     private String codeGeneratorClassName;
-    
+
     /**
      * Verbose Mode Flag
      * @parameter expression="${generate-domain.verbose}"

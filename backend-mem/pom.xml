@@ -55,10 +55,6 @@
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-indexes</artifactId>
         </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-bplustree-domain-object</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

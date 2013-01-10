@@ -910,7 +910,7 @@ public abstract class CodeGenerator {
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
     }
-    
+
     protected void generateRoleSlotMethodsMultOneSetter(Role role, PrintWriter out) {
         String typeName = getTypeFullName(role.getType());
         String slotName = role.getName();
@@ -984,7 +984,7 @@ public abstract class CodeGenerator {
     protected String getMethodModifiers() {
         return (compArgs.generateFinals ? "public final" : "public");
     }
-    
+
     protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
         String indexProp = role.getIndexProperty();
         boolean isIndexed = (indexProp != null);
@@ -1146,7 +1146,7 @@ public abstract class CodeGenerator {
 	print(out, ".iterator();");
 	endMethodBody(out);
     }
-    
+
     protected void generateRelationGetter(String getterName, Role role, PrintWriter out) {
 	String paramListType = makeGenericType("java.util.Set", getTypeFullName(role.getType()));
 	generateRelationGetter(getterName, role, paramListType, out);

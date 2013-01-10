@@ -76,7 +76,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
     protected String getCodeGeneratorClassName() {
         return codeGeneratorClassName;
     }
-    
+
     @Override
     protected boolean verbose() {
         return verbose;

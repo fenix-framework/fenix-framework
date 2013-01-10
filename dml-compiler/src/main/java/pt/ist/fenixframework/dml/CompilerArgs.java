@@ -219,7 +219,7 @@ public class CompilerArgs {
 	}
 	return null;
     }
-    
+
     void addToDomainSpecs(String domainSpecFilename, boolean addToLocal) {
         URL url = Converter.filenameToURL(domainSpecFilename);
         if (addToLocal) {

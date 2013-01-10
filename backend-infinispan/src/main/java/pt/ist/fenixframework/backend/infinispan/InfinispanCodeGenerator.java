@@ -71,10 +71,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
         generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
-        
         // Index method generation
         super.generateIndexMethods(domClass, out);
-        
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
     }
 
@@ -148,7 +146,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         generateInfinispanGetterBody(domainClass, slot, out);
         endMethodBody(out);
     }
-    
+
     protected void generateInfinispanSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
@@ -183,7 +181,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         returnExpression += ";";
         print(out, returnExpression);
     }
-    
+
     protected void generateInfinispanSetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
         generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
@@ -241,7 +239,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printFinalMethod(out, "public", typeName, "get" + capitalize(slotName));
         startMethodBody(out);
+        
         generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
+        
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + slotName + "\");");
         print(out, "return (oid == null || oid instanceof Externalization.NullClass ? null : (" + typeName + ")InfinispanBackEnd.getInstance().fromOid(oid));");
         endMethodBody(out);

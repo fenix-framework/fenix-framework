@@ -27,7 +27,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 	protected abstract MavenProject getMavenProject();
 
 	protected abstract String getCodeGeneratorClassName();
-	
+
 	protected abstract File getDmlSourceDirectory();
 
 	protected abstract File getGeneratedSourcesDirectory();

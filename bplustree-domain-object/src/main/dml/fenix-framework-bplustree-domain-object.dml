@@ -40,7 +40,7 @@ relation BPlusTreeHasRootNode {
 
 relation NodeHasParent {
     AbstractNode playsRole {
-	   multiplicity *;
+  multiplicity *;
     }
     InnerNode playsRole parent;
 }
