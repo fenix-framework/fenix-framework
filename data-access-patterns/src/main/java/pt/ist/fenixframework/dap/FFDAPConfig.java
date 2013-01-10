@@ -30,59 +30,39 @@ import pt.ist.dap.implementation.simple.*;
 // one that directly extends from Config).
 public abstract class FFDAPConfig extends Config {
     private static final Logger logger = LoggerFactory.getLogger(FFDAPConfig.class);
-    /**
-     * This <strong>optional</strong> parameter specifies whether the DAP framework is enabled.  If
-     * this configuration property is not explicitly set, its default value is obtained from the
-     * parameters given to the DML compiler (off by default).
-     */
-    protected boolean ptIstDapEnable = decideDapOnFromBackendDefaults();
 
-    private boolean decideDapOnFromBackendDefaults() {
-        String param = BackEndId.getBackEndId().getParam(DAPCodeGenerator.DAP_ON_CONFIG_KEY);
-        boolean result = (param != null) &&
-            param.trim().equalsIgnoreCase(DAPCodeGenerator.DAP_ON_CONFIG_VALUE);
-        return result;
+    /**
+     * This well-known name specifies the location of the properties file used to configure the
+     * <strong>Data Access Patterns</strong> framework.  This file should be available in the
+     * application's classpath.
+     */
+    public static final String CONFIG_FILE = "dap.properties";
+
+    protected boolean dapEnabled = isDAPEnabled();
+
+    private boolean isDAPEnabled() {
+        String dap = BackEndId.getBackEndId().getParam(DAPCodeGenerator.DAP_ON_CONFIG_KEY);
+        return (dap != null) && dap.trim().equalsIgnoreCase(DAPCodeGenerator.DAP_ON_CONFIG_VALUE);
     }
     
-    /**
-     * This <strong>optional</strong> parameter specifies the location of the properties file used
-     * to configure DAP.  This file should be available in the application's classpath.
-     */
-    protected String dapConfigFile = null;
-
-    // If the config property is explicitly provided, this method overrides the default definition
-    // protected void dataAccessPatternsOnFromString(String value) {
-    //     dataAccessPatternsOn = (value != null) && value.trim().equalsIgnoreCase("true");
-    // }
-    
-    protected void ptIstDapEnableFromString(String value) {
-        ptIstDapEnable = (value != null) && value.trim().equalsIgnoreCase("true");
-    }
-
     /*
      * Registers the DAP JMX interface so that it is available for invocation from external sources.
      */
     @Override
     protected void init() {
         try {
-            if (!ptIstDapEnable) return;
+            if (!dapEnabled) return;
 
-            logger.info("Initialing Data Access Patterns module.");
+            logger.debug("Initialing Data Access Patterns module.");
             DAPConfig dapConfig;
-            if (dapConfigFile == null) {
-                logger.warn("No property 'dapConfigFile' given. Will use default values.");
+            URL dapConfigURL = Thread.currentThread().getContextClassLoader().
+                getResource(CONFIG_FILE);
+            if (dapConfigURL == null) {
+                logger.info("Resource '" + CONFIG_FILE + "' not found.  Using default values.");
                 dapConfig = new DAPConfig();
             } else {
-                URL dapConfigURL = Thread.currentThread().getContextClassLoader().
-                    getResource(dapConfigFile);
-                if (dapConfigURL == null) {
-                    logger.warn("DAP config file not found (" + dapConfigFile +
-                                "). Will use default values.");
-                    dapConfig = new DAPConfig();
-                } else {
-                    logger.trace("Using DAP config file: " + dapConfigURL);
-                    dapConfig = DAPConfig.loadConfig(dapConfigURL);
-                }
+                logger.info("Using config resource '" + dapConfigURL + "'.");
+                dapConfig = DAPConfig.loadConfig(dapConfigURL);
             }
 
             // Get the Platform MBean Server
@@ -93,15 +73,11 @@ public abstract class FFDAPConfig extends Config {
             pt.ist.dap.jmx.DapRemoteManager mbean = new pt.ist.dap.jmx.DapRemoteManager();
             // Register the MBean
             mbs.registerMBean(mbean, name);
-            //loadConfig(config.getClass().getResource("/dap.properties"));
-            //DAPConfig dapConfig = DAPConfig.loadConfig((new File("./config/dap.properties")).toURI().toURL());
-            // DAPConfig dapConfig = DAPConfig.loadConfig(Thread.currentThread().
-            //                                            getContextClassLoader().
-            //                                            getResource(dapConfigFile));
             mbean.initDap(dapConfig, FenixFramework.getDomainModel());
             mbean.enableDap();
         } catch (Exception ex) {
-            logger.warn("MBeanRegistration (DapRemoteManager) threw exception", ex);
+            logger.error("Unable to initialize Data Access Patterns module", ex);
+            dapEnabled = false;
         }
     }
     

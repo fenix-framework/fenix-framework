@@ -566,6 +566,9 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         buf.append("    version=\"2.0\">\n\n");
 
         buf.append("    <mapped-superclass class=\"" + getDomainClassRoot() + "\" access=\"FIELD\" metadata-complete=\"false\">\n");
+        buf.append("        <attributes>\n");
+        buf.append("            <id name=\"hibernate$primaryKey\" />\n");
+        buf.append("        </attributes>\n");
         buf.append("    </mapped-superclass>\n\n");
         this.ormWriter.print(buf.toString());
     }

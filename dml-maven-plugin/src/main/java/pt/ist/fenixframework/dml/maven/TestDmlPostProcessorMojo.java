@@ -25,6 +25,13 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
     private MavenProject mavenProject;
 
     /**
+     * Setting this to 'true' skips post-processing of dml compiled test classes.
+     *
+     * @parameter expression="${maven.test.skip}"
+     */
+    private boolean skip;
+
+    /**
      * File Source Directory
      *
      * @parameter default-value="${basedir}/src/test/dml"
@@ -75,7 +82,11 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        super.execute();
+        if(skip) {
+            getLog().info("Not post-processing test sources");
+        } else {
+            super.execute();
+        }
     }
 
     @Override

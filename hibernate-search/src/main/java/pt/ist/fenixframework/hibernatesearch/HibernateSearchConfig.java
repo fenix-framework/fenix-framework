@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionListener;
 import pt.ist.fenixframework.dap.FFDAPConfig;
+import pt.ist.fenixframework.txintrospector.TxStats;
 
 public abstract class HibernateSearchConfig extends FFDAPConfig {
 
@@ -31,16 +32,24 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
 
         URL hibernateSearchConfigURL = Thread.currentThread().getContextClassLoader().getResource(CONFIG_FILE);
         if (hibernateSearchConfigURL == null) {
-            logger.info("Cannot access resource '" + CONFIG_FILE + "'. Hibernate Search disabled");
+            logger.info("Resource '" + CONFIG_FILE + "' not found. Hibernate Search disabled");
             return;
         }
+        logger.info("Using config resource: " + hibernateSearchConfigURL);
 
-        logger.trace("Using Hibernate Search config file: " + hibernateSearchConfigURL);
         Properties properties = new Properties();
         try {
             properties.load(hibernateSearchConfigURL.openStream());
         } catch (IOException e) {
             logger.error("Hibernate Search unable to create properties. Hibernate Search disabled", e);
+        }
+
+        // Ensure TxIntrospector is available
+        if (! TxStats.ENABLED) {
+            logger.error("TxIntrospector is disabled!" +
+                         " -> Module Hibernate-search will not be available." +
+                         " Please enable TxIntrospector and rebuild your application");
+            return;
         }
 
         HibernateSearchSupport.initializeSearchFactory(properties);
