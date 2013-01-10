@@ -50,16 +50,31 @@
 
     <repositories>
         <repository>
-            <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
+            <id>cloudtm-maven-repository</id>
+            <url>http://cloudtm.ist.utl.pt:8083/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
         </repository>
     </repositories>
 
     <pluginRepositories>
         <pluginRepository>
-            <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
+            <id>cloudtm-maven-repository</id>
+            <url>http://cloudtm.ist.utl.pt:8083/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
         </pluginRepository>
     </pluginRepositories>
-
 </project>
