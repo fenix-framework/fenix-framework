@@ -138,11 +138,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateInfinispanGetter(domainClass, slot, out);
-        // also generate the get shadow methods
-        if (generateShadowMethods()) {
-            generateInfinispanShadowGetter(domainClass, slot, out);
-            generateInfinispanRegisterGet(slot.getName(), "registerGet" + capitalize(slot.getName()), out);
-        }
         generateInfinispanSetter(domainClass, slot, out);
     }
 
@@ -154,22 +149,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
     
-    protected void generateInfinispanShadowGetter(DomainClass domainClass, Slot slot, PrintWriter out) {
-        newline(out);
-        printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName() + "Shadow"));
-        startMethodBody(out);
-        generateInfinispanGetterBody(domainClass, slot, out, "cacheGetShadow");
-        endMethodBody(out);
-    }
-    
-    protected void generateInfinispanRegisterGet(String access, String methodName, PrintWriter out) {
-        newline(out);
-        printFinalMethod(out, "public", "void", methodName);
-        startMethodBody(out);
-        print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + access + "\");");
-        endMethodBody(out);
-    }
-
     protected void generateInfinispanSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
@@ -266,24 +245,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + slotName + "\");");
         print(out, "return (oid == null || oid instanceof Externalization.NullClass ? null : (" + typeName + ")InfinispanBackEnd.getInstance().fromOid(oid));");
         endMethodBody(out);
-        
-        // also generate the Shadow getter
-        if (generateShadowMethods()) {
-            newline(out);
-            printFinalMethod(out, "public", typeName, "get" + capitalize(slotName) + "Shadow");
-            startMethodBody(out);
-            generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
-            println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGetShadow(getOid().getFullId() + \":" + slotName + "\");");
-            print(out, "return (oid == null || oid instanceof Externalization.NullClass ? null : (" + typeName + ")InfinispanBackEnd.getInstance().fromOid(oid));");
-            endMethodBody(out);
-
-            // and the register method
-            newline(out);
-            printFinalMethod(out, "public", "void", "registerGet" + capitalize(slotName));
-            startMethodBody(out);
-            print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + slotName + "\");");
-            endMethodBody(out);
-        }
     }
 
     @Override
@@ -294,11 +255,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         String capitalizedSlotName = capitalize(slotName);
         String methodModifiers = getMethodModifiers();
 
-        generateRoleSlotMethodsMultStarGetter(role, out, false);
-        if (generateShadowMethods()) {
-            generateRoleSlotMethodsMultStarGetter(role, out, true);
-            generateRoleSlotMethodsMultStarRegisterShadowGet(role, out);
-        }
+        generateRoleSlotMethodsMultStarGetter(role, out);
         generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
         generateRoleSlotMethodsMultStarRemover(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
         generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, typeName);
@@ -308,16 +265,16 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         generateIteratorMethod(role, out);
     }
 
-    protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out, boolean shadow) {
+    protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out) {
         newline(out);
-        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()) + (shadow ? "Shadow" : ""));
+        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()));
         startMethodBody(out);
         
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 
         String collectionType = getDefaultCollectionFor(role.getType().getFullName());
         println(out, collectionType + " internalSet;");
-        println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet" + (shadow ? "Shadow" : "") + "(getOid().getFullId() + \":" + role.getName() + "\");");
+        println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + role.getName() + "\");");
         print(out, "if (oid == null || oid instanceof Externalization.NullClass)");
         newBlock(out);
         println(out, "internalSet = new " + collectionType + "();");
@@ -332,14 +289,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
-    protected void generateRoleSlotMethodsMultStarRegisterShadowGet(Role role, PrintWriter out) {
-        newline(out);
-        printFinalMethod(out, "public", "void", "registerGet" + capitalize(role.getName()));
-        startMethodBody(out);
-        print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + role.getName() + "\");");
-        endMethodBody(out);
-    }
-    
     protected void generateRoleSlotMethodsMultStarSetter(Role role, PrintWriter out, String methodModifiers,
                                                          String capitalizedSlotName, String typeName, String slotName) {
         newline(out);
