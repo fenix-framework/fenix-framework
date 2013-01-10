@@ -24,8 +24,6 @@
                 <groupId>pt.ist</groupId>
                 <artifactId>dml-maven-plugin</artifactId>
                 <version>${project.version}</version>
-                <configuration>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>

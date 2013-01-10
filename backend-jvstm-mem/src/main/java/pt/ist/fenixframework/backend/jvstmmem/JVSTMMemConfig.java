@@ -13,8 +13,8 @@ public class JVSTMMemConfig extends IndexesConfig {
 
     @Override
     protected void init() {
-        DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
-        super.init();
+	DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
+	super.init();
     }
 
     @Override

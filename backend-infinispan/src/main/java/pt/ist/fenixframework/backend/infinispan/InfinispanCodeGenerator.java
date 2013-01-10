@@ -145,7 +145,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName()));
         startMethodBody(out);
-        generateInfinispanGetterBody(domainClass, slot, out, "cacheGet");
+        generateInfinispanGetterBody(domainClass, slot, out);
         endMethodBody(out);
     }
     
@@ -157,10 +157,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
-    protected void generateInfinispanGetterBody(DomainClass domainClass, Slot slot, PrintWriter out, String cacheGetMethod) {
+    protected void generateInfinispanGetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateGetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP read stats update statement
 
-        println(out, "Object obj = InfinispanBackEnd.getInstance()." + cacheGetMethod + "(getOid().getFullId() + \":" + slot.getName() + "\");");
+        println(out, "Object obj = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + slot.getName() + "\");");
         
         String defaultValue;
         PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(slot.getTypeName());
