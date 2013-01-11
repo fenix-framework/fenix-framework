@@ -44,6 +44,10 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
     public OgmCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
+        String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
+        if (collectionName == null || collectionName.isEmpty()) {
+            setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
+        }
     }
 
     @Override
@@ -72,7 +76,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         println(out, "import pt.ist.fenixframework.backend.ogm.OgmBackEnd;");
         println(out, "import pt.ist.fenixframework.backend.ogm.OgmOID;");
         println(out, "import pt.ist.fenixframework.core.Externalization;");
-        println(out, "import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;");
         println(out, "import " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ";");
         println(out, "import static " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ".*;");
         newline(out);
@@ -125,7 +128,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
-        generateIndexMethods(domClass, out);
+        // Generate the index methods
+        super.generateIndexMethods(domClass, out);
     }
 
     @Override
@@ -156,11 +160,11 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
     @Override
     protected void generateInitRoleSlot(Role role, PrintWriter out) {
-        // create the B+Tree and initialize its foreign key slot
+        // create the default collection and initialize its foreign key slot
         if (role.getMultiplicityUpper() != 1) {
             onNewline(out);
-            print(out, "this." + makeForeignKeyName(role.getName()) +
-                  " = new BPlusTree().getExternalId();");
+            print(out, "this." + makeForeignKeyName(role.getName()) + " = new " +
+        	    getDefaultCollectionFor(role.getType().getFullName()) + "().getExternalId();");
         }
     }
 
@@ -363,13 +367,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         // return makeGenericType(getRelationAwareBaseTypeFor(role), thisType, elemType);
     }
 
-    protected String getConcreteSetTypeDeclarationFor(Role role) {
-        String elemType = getTypeFullName(role.getType());
-        // return makeGenericType("java.util.Set", elemType);
-        String thisType = getTypeFullName(role.getOtherRole().getType());
-        return makeGenericType(getRelationAwareBaseTypeFor(role), thisType, elemType);
-    }
-
     @Override
     protected void generateRoleSlotMethodsMultOne(Role role, PrintWriter out) {
         super.generateRoleSlotMethodsMultOne(role, out);
@@ -467,7 +464,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
 	startMethodBody(out);
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-        println(out, "BPlusTree internalSet = OgmBackEnd.getInstance().getDomainObject(" +
+        String collectionType = getDefaultCollectionFor(role.getType().getFullName());
+        println(out, collectionType + " internalSet = OgmBackEnd.getInstance().getDomainObject(" +
                 makeForeignKeyName(role.getName()) + ");");
 
         print(out, "return new " + getRelationAwareBaseTypeFor(role) + "(this, " + getRelationSlotNameFor(role) + ", internalSet);");
@@ -555,13 +553,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     protected String getRoleOneBaseType() {
         return "pt.ist.fenixframework.dml.runtime.Role";
     }
-
-    @Override
-    protected String getRelationAwareBaseTypeFor(Role role) {
-        // FIXME: handle other types of collections other than sets
-        return "pt.ist.fenixframework.backend.ogm.RelationSet";
-    }
-
 
     ///////////////////////////////////////////////////////////////////////////
     // Below are methods specific to the generation of the ORM mapping XML file
