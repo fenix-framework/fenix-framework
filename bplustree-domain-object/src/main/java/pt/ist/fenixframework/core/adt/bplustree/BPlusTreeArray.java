@@ -14,7 +14,7 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
  * instances of {@link AbstractDomainObject}.  This implementation is modelled in DML and can be
  * used with any backend.
  */
-public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base implements Set<T>{
+public class BPlusTreeArray<T extends AbstractDomainObject> extends BPlusTreeArray_Base implements Set<T>{
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
         private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
@@ -80,24 +80,29 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
 
     // non-static part start here
 
-    public BPlusTree() {
+    public BPlusTreeArray() {
 	initRoot();
     }
 
     private void initRoot() {
-	this.setRoot(new LeafNode());
+	this.setRoot(new LeafNodeArray());
     }
 
     /** Inserts the given value. */
-    public void insert(T value) {
+    public boolean insert(T value) {
         if (value == null) {
             throw new UnsupportedOperationException("This B+Tree does not support nulls");
         }
-	AbstractNode rootNode = this.getRoot();
-	AbstractNode resultNode = rootNode.insert(value.getOid(), value);
+	AbstractNodeArray rootNode = this.getRoot();
+	AbstractNodeArray resultNode = rootNode.insert(value.getOid(), value);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
+	return true;
     }
 
     // /** Removes the given element */
@@ -106,25 +111,30 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
     // }
 
     /** Removes the element with the given key */
-    public void removeKey(Comparable key) {
-	AbstractNode rootNode = this.getRoot();
-	AbstractNode resultNode = rootNode.remove(key);
+    public boolean removeKey(Comparable key) {
+	AbstractNodeArray rootNode = this.getRoot();
+	AbstractNodeArray resultNode = rootNode.remove(key);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
+	return true;
     }
 
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
      * contains no mapping for the key. */
     public T get(Comparable key) {
-	return ((AbstractNode<T>)this.getRoot()).get(key);
+	return ((AbstractNodeArray<T>)this.getRoot()).get(key);
     }
 
     /**
      * Return the value at the index-th position (zero-based).
      */
     public T getIndex(int index) {
-	return ((AbstractNode<T>)this.getRoot()).getIndex(index);
+	return ((AbstractNodeArray<T>)this.getRoot()).getIndex(index);
     }
 
     /**
@@ -133,8 +143,8 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
     public T removeIndex(int index) {
 	T value = getIndex(index);
 
-	AbstractNode rootNode = this.getRoot();
-	AbstractNode resultNode = rootNode.removeIndex(index);
+	AbstractNodeArray rootNode = this.getRoot();
+	AbstractNodeArray resultNode = rootNode.removeIndex(index);
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
@@ -160,7 +170,7 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
 	return this.getRoot().iterator();
     }
     
-    public boolean myEquals(BPlusTree other) {
+    public boolean myEquals(BPlusTreeArray other) {
 	Iterator<AbstractDomainObject> it1 = this.iterator();
 	Iterator<AbstractDomainObject> it2 = other.iterator();
 	
@@ -177,12 +187,7 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
 
     @Override
     public boolean add(T e) {
-        if (contains(e)) {
-            return false;
-        } else {
-            insert(e);
-            return true;
-        }
+	return insert(e);
     }
 
     @Override
@@ -190,12 +195,7 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
         if (! (o instanceof AbstractDomainObject)) {
             return false;
         }
-        if (contains(o)) {
-            removeKey(((T)o).getOid());
-            return true;
-        } else {
-            return false;
-        }
+        return removeKey(((T)o).getOid());
     }
     
     @Override

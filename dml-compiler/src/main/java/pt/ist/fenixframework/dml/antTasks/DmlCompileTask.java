@@ -145,8 +145,8 @@ public class DmlCompileTask extends Task {
 		System.out.println("Using generator: " + getCodeGeneratorClass().getName());
 
 		compArgs = new CompilerArgs(getDestDirectoryFile(), destDirectoryBaseFile, getPackageName(), isGenerateFinals(),
-                                            getCodeGeneratorClass(),
-                                            CompilerArgs.convertFilenamesToURLs(localDomainSpecFileNames), new ArrayList<URL>(), new HashMap<String,String>());
+                        getCodeGeneratorClass(),
+                        CompilerArgs.convertFilenamesToURLs(localDomainSpecFileNames), new ArrayList<URL>(), new HashMap<String,String>());
 
 		DmlCompiler.compile(compArgs);
 
