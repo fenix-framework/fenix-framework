@@ -44,7 +44,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
     public OgmCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
-        if (compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY) == "") {
+        String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
+        if (collectionName == null || collectionName.isEmpty()) {
             setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
         }
     }

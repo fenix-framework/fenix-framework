@@ -56,8 +56,8 @@ public abstract class CodeGenerator {
                                                      ? compArgs.destDirectory
                                                      : compArgs.destDirectoryBase,
                                                      compArgs.packageName);
-        String param = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
-        if (param == null || param == "") {
+        String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
+        if (collectionName == null || collectionName.isEmpty()) {
             this.collectionToUse = "java.util.HashSet";
         } else {
             this.collectionToUse = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
@@ -782,14 +782,6 @@ public abstract class CodeGenerator {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
     }
 
-    protected void generateEmptyRegisterGet(String suffixName, PrintWriter out) {
-        newline(out);
-        printFinalMethod(out, "public", "void", "registerGet" + capitalize(suffixName));
-        startMethodBody(out);
-        // empty method on purpose
-        endMethodBody(out);
-    }
-    
     protected void generateGetter(String visibility, String getterName, String slotName, String typeName, PrintWriter out) {
         newline(out);
         printFinalMethod(out, visibility, typeName, getterName);

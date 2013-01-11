@@ -30,7 +30,7 @@ public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base 
 	return false;
     }
 
-    public boolean remove(T value) {
+    public boolean removeObject(T value) {
 	ListNode<T> previous = getHead();
 	ListNode<T> next = previous.getNext();
 	Comparable toInsert = value.getOid();
@@ -110,7 +110,7 @@ public class LinkedList<T extends AbstractDomainObject> extends LinkedList_Base 
         if (! (o instanceof AbstractDomainObject)) {
             return false;
         }
-        return remove((T)o);
+        return removeObject((T)o);
     }
     
     @Override

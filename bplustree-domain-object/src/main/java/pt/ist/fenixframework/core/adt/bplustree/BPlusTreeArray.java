@@ -111,7 +111,7 @@ public class BPlusTreeArray<T extends AbstractDomainObject> extends BPlusTreeArr
     // }
 
     /** Removes the element with the given key */
-    public boolean remove(Comparable key) {
+    public boolean removeKey(Comparable key) {
 	AbstractNodeArray rootNode = this.getRoot();
 	AbstractNodeArray resultNode = rootNode.remove(key);
 	
@@ -195,7 +195,7 @@ public class BPlusTreeArray<T extends AbstractDomainObject> extends BPlusTreeArr
         if (! (o instanceof AbstractDomainObject)) {
             return false;
         }
-        return remove(((T)o).getOid());
+        return removeKey(((T)o).getOid());
     }
     
     @Override

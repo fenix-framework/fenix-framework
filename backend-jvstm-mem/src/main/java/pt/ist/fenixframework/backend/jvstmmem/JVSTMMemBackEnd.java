@@ -30,7 +30,11 @@ public class JVSTMMemBackEnd implements BackEnd {
     public DomainRoot getDomainRoot() {
 	DomainRoot root = fromOid(1L);
 	if (root == null) {
-	    root = new DomainRoot();
+	    root = new DomainRoot(); // which automatically caches this instance, but does not
+	    // ensure that it is the first, as a concurrent request
+	    // might create another
+	    
+	    // so we get it again from the cache before returning it
 	    root = fromOid(1L);
 	    assert root != null;
 	}

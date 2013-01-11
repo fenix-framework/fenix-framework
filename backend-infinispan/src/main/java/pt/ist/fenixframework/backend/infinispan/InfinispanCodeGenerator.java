@@ -26,7 +26,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     public InfinispanCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
-        if (compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY) == "") {
+        String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
+        if (collectionName == null || collectionName.isEmpty()) {
             setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
         }
      }
@@ -360,21 +361,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     }
 
     protected void generateIteratorMethod(Role role, PrintWriter out) {
-	generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "Iterator", "get" + capitalize(role.getName()) + "()");
+	generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "()");
     }
-    
-    protected void generateIteratorMethod(Role role, PrintWriter out, String methodName, final String slotAccessExpression) {
-        newline(out);
-        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), methodName);
-        startMethodBody(out);
-        
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-        
-        printWords(out, "return", slotAccessExpression);
-        print(out, ".iterator();");
-        endMethodBody(out);
-    }
-    
+
     @Override
     protected String getNewRoleStarSlotExpression(Role role) {
         return getNewRoleStarSlotExpressionWithBackingSet(role, role.getName());

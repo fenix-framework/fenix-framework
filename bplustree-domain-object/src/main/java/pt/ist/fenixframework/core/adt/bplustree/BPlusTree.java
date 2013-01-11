@@ -106,7 +106,7 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
     // }
 
     /** Removes the element with the given key */
-    public void remove(Comparable key) {
+    public void removeKey(Comparable key) {
 	AbstractNode rootNode = this.getRoot();
 	AbstractNode resultNode = rootNode.remove(key);
 	if (rootNode != resultNode) {
@@ -191,7 +191,7 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base im
             return false;
         }
         if (contains(o)) {
-            remove(((T)o).getOid());
+            removeKey(((T)o).getOid());
             return true;
         } else {
             return false;

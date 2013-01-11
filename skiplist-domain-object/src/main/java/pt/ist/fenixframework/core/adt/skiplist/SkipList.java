@@ -88,7 +88,7 @@ public class SkipList<T extends AbstractDomainObject> extends SkipList_Base impl
 	return result;
     }
 
-    public boolean remove(T value) {
+    public boolean removeObject(T value) {
 	boolean result;
 
 	SkipListNode[] update = new SkipListNode[maxLevel + 1];
@@ -187,7 +187,7 @@ public class SkipList<T extends AbstractDomainObject> extends SkipList_Base impl
 	if (! (o instanceof AbstractDomainObject)) {
 	    return false;
 	}
-	return remove((T)o);
+	return removeObject((T)o);
     }
 
     @Override

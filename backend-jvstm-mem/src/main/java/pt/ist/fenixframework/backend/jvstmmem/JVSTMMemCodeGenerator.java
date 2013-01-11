@@ -15,7 +15,8 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 
     public JVSTMMemCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
 	super(compArgs, domainModel);
-	if (compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY) == "") {
+        String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
+        if (collectionName == null || collectionName.isEmpty()) {
 	    setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
 	}
     }
@@ -93,14 +94,6 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	endMethodBody(out);
     }
 
-    protected void generateVBoxRegisterGet(String slotName, String methodName, PrintWriter out) {
-	newline(out);
-	printFinalMethod(out, "public", "void", methodName);
-	startMethodBody(out);
-	printWords(out, getSlotExpression(slotName) + ".registerGet();");
-	endMethodBody(out);
-    }
-
     protected void generateVBoxSlotSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
@@ -112,18 +105,6 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 
 	printWords(out, getSlotExpression(slot.getName()) + ".put(" + slot.getName() + ");");
 	endMethodBody(out);
-    }
-
-    @Override
-    protected String getNewRoleStarSlotExpression(Role role) {
-	StringBuilder buf = new StringBuilder();
-
-	// generate the relation aware collection
-	buf.append("new ");
-	buf.append(getDefaultCollectionFor(role.getType().getFullName()));
-	buf.append("()");
-
-	return buf.toString();
     }
 
     @Override
@@ -148,6 +129,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	newline(out);
 	printFinalMethod(out, "public", getSetTypeDeclarationFor(role), methodName);
 	startMethodBody(out);
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", this." + role.getName() + ");");
 	endMethodBody(out);
     }
@@ -212,16 +194,6 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	startMethodBody(out);
 
 	printWords(out, "return (get" + capitalizedSlotName + "().size() != 0);");
-	endMethodBody(out);
-    }
-
-    protected void generateIteratorMethod(Role role, PrintWriter out) {
-	newline(out);
-	printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
-		+ capitalize(role.getName()) + "Iterator");
-	startMethodBody(out);
-
-	printWords(out, "return get" + capitalize(role.getName()) + "().iterator();");
 	endMethodBody(out);
     }
 
