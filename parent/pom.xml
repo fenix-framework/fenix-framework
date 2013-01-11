@@ -33,8 +33,8 @@
         <!-- <version.hibernate.ogm>4.0.0-SNAPSHOT</version.hibernate.ogm> -->
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
         <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
-        <version.infinispan>5.1.6.FINAL</version.infinispan>
-        <!-- <version.infinispan>5.2.0-SNAPSHOT</version.infinispan> -->
+        <!-- <version.infinispan>5.1.6.FINAL</version.infinispan> -->
+        <version.infinispan>5.2.0-cloudtm-SNAPSHOT</version.infinispan>
         <version.jboss.logging>3.1.0.GA</version.jboss.logging>
         <version.jbossjta>4.16.3.Final</version.jbossjta>
         <version.jodatime>1.5.2</version.jodatime>
@@ -303,79 +303,30 @@
     <!-- Repositories -->
     <repositories>
         <repository>
-            <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url>
-        </repository>
-        <repository>
-            <id>thirdparty</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/thirdparty</url>
-        </repository>
-
-        <repository>
-            <id>jboss-public-repository-group</id>
-            <name>JBoss Public Maven Repository Group</name>
-            <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-            <layout>default</layout>
+            <id>cloudtm-maven-repository</id>
+            <url>http://cloudtm.ist.utl.pt:8083/nexus/content/groups/public/</url>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>guice-maven</id>
-            <name>guice maven</name>
-            <url>http://guice-maven.googlecode.com/svn/trunk</url>
-        </repository>
-
-        <repository>
-            <id>jboss-deprecated-repository</id>
-            <name>JBoss Deprecated Maven Repository</name>
-            <url>https://repository.jboss.org/nexus/content/repositories/deprecated/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>jboss-thirdparty-releases</id>
-            <name>JBoss Third Party Maven Repository</name>
-            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>never</updatePolicy>
+                <updatePolicy>daily</updatePolicy>
             </snapshots>
         </repository>
     </repositories>
 
     <pluginRepositories>
         <pluginRepository>
-            <id>jboss-public-repository-group</id>
-            <name>JBoss Public Maven Repository Group</name>
-            <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-            <layout>default</layout>
+            <id>cloudtm-maven-repository</id>
+            <url>http://cloudtm.ist.utl.pt:8083/nexus/content/groups/public/</url>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
+                <updatePolicy>daily</updatePolicy>
             </snapshots>
         </pluginRepository>
     </pluginRepositories>

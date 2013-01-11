@@ -2,3 +2,7 @@
 target
 bin
 transaction.log
+
+## IDEA STUFF ##
+.idea
+*.iml
