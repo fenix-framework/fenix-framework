@@ -1,20 +1,19 @@
 package pt.ist.fenixframework.hibernatesearch;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Properties;
-
-import javax.transaction.RollbackException;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionListener;
 import pt.ist.fenixframework.dap.FFDAPConfig;
 import pt.ist.fenixframework.txintrospector.TxStats;
+import pt.ist.fenixframework.util.FileLookup;
+
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
+import javax.transaction.Transaction;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Properties;
 
 public abstract class HibernateSearchConfig extends FFDAPConfig {
 
@@ -24,15 +23,16 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
      * This well-known name specifies the location of the properties file used to configure
      * Hibernate Search.  This file should be available in the application's classpath.
      */
-    public static final String CONFIG_FILE = "fenix-framework-hibernate-search.properties";
+    private static final String DEFAULT_CONFIG_FILE = "fenix-framework-hibernate-search.properties";
+    private static final String CONFIG_FILE_PROPERTY = "fenix-framework-hibernate-search-config-file";
 
     @Override
     protected void init() {
         super.init();
 
-        URL hibernateSearchConfigURL = Thread.currentThread().getContextClassLoader().getResource(CONFIG_FILE);
+        URL hibernateSearchConfigURL = FileLookup.find(CONFIG_FILE_PROPERTY, DEFAULT_CONFIG_FILE);
         if (hibernateSearchConfigURL == null) {
-            logger.info("Resource '" + CONFIG_FILE + "' not found. Hibernate Search disabled");
+            logger.info("Resource '" + DEFAULT_CONFIG_FILE + "' not found. Hibernate Search disabled");
             return;
         }
         logger.info("Using config resource: " + hibernateSearchConfigURL);
@@ -47,8 +47,8 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
         // Ensure TxIntrospector is available
         if (! TxStats.ENABLED) {
             logger.error("TxIntrospector is disabled!" +
-                         " -> Module Hibernate-search will not be available." +
-                         " Please enable TxIntrospector and rebuild your application");
+                    " -> Module Hibernate-search will not be available." +
+                    " Please enable TxIntrospector and rebuild your application");
             return;
         }
 
