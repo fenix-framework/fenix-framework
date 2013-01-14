@@ -34,7 +34,7 @@
         <module>hibernate-search</module>
         <module>indexes</module>
         <module>bplustree-domain-object</module>
-		<module>linkedlist-domain-object</module>
+        <module>linkedlist-domain-object</module>
         <module>skiplist-domain-object</module>
     	<module>backend-mem</module>
         <module>backend-infinispan</module>
