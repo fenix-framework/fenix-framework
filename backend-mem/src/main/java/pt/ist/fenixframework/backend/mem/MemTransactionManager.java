@@ -2,60 +2,122 @@ package pt.ist.fenixframework.backend.mem;
 
 import java.util.concurrent.Callable;
 
-import javax.transaction.*;
-import javax.transaction.xa.XAResource;
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.InvalidTransactionException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.Transaction;
-import pt.ist.fenixframework.TransactionManager;
+import pt.ist.fenixframework.core.AbstractTransactionManager;
 
-public class MemTransactionManager extends TransactionManager {
+public class MemTransactionManager extends AbstractTransactionManager {
 
-    // Dummy transaction instance
-    private static final Transaction TRANSACTION = new Transaction() {
-        @Override public void commit() { }
-        @Override public boolean delistResource(XAResource a, int b) { return false; }
-        @Override public boolean enlistResource(XAResource a) { return false; }
-        @Override public int getStatus() { return 0; }
-        @Override public void registerSynchronization(Synchronization a) { }
-        @Override public void rollback() { }
-        @Override public void setRollbackOnly() { }
-    };
+    private MemTransaction transaction;
 
     @Override
-    public void backendBegin(boolean readOnly) {}
-
-    @Override
-    public void backendCommit() {}
-
-    @Override
-    public Transaction backendGetTransaction() { return TRANSACTION; }
-
-    @Override
-    public void backendRollback() {}
-
-    @Override
-    public <T> T backendWithTransaction(CallableWithoutException<T> command) {
-        try {
-            return withTransaction(command, null);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public Transaction getTransaction() {
+	return this.transaction;
     }
 
     @Override
-    public <T> T backendWithTransaction(Callable<T> command) throws Exception {
-        return withTransaction(command, null);
+    public <T> T withTransaction(CallableWithoutException<T> command) {
+	if (transaction != null)
+	    return command.call();
+
+	try {
+	    T ret = null;
+	    begin();
+	    ret = command.call();
+	    commit();
+	    return ret;
+	} catch (RuntimeException e) {
+	    try {
+		rollback();
+	    } catch (Exception ex) {
+		throw new RuntimeException(ex);
+	    }
+	    throw e;
+	} catch (Exception e) {
+	    throw new RuntimeException(e);
+	}
     }
 
-    /**
-     * Directly calls the command with no added behaviour, ignoring the given <code>atomic</code>
-     * configuration.
-     */
     @Override
-    public <T> T backendWithTransaction(Callable<T> command, Atomic atomic) throws Exception {
-        return command.call();
+    public <T> T withTransaction(Callable<T> command) throws Exception {
+	if (transaction != null)
+	    return command.call();
+
+	try {
+	    T ret = null;
+	    begin();
+	    ret = command.call();
+	    commit();
+	    return ret;
+	} catch (Exception e) {
+	    rollback();
+	    throw e;
+	}
+    }
+
+    @Override
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
+	if (transaction != null)
+	    return command.call();
+
+	try {
+	    T ret = null;
+	    begin();
+	    ret = command.call();
+	    commit();
+	    return ret;
+	} catch (Exception e) {
+	    rollback();
+	    throw e;
+	}
+    }
+
+    @Override
+    public void begin(boolean readOnly) throws NotSupportedException, SystemException {
+	this.transaction = new MemTransaction();
+    }
+
+    @Override
+    public void resume(javax.transaction.Transaction tobj) throws InvalidTransactionException, IllegalStateException,
+	    SystemException {
+	if (!(tobj instanceof MemTransaction))
+	    throw new InvalidTransactionException(String.valueOf(tobj));
+
+	this.transaction = (MemTransaction) tobj;
+    }
+
+    @Override
+    public void setTransactionTimeout(int seconds) throws SystemException {
+	throw new UnsupportedOperationException("Timeouts are not supported.");
+    }
+
+    @Override
+    public javax.transaction.Transaction suspend() throws SystemException {
+	Transaction tx = this.transaction;
+
+	this.transaction = null;
+
+	return tx;
+    }
+
+    @Override
+    protected void doCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException,
+	    IllegalStateException, SystemException {
+	this.transaction.commit();
+	this.transaction = null;
+    }
+
+    @Override
+    protected void doRollback() throws SecurityException, SystemException {
+	this.transaction.rollback();
+	this.transaction = null;
     }
 }
-
