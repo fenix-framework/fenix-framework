@@ -20,6 +20,7 @@
     <modules>
         <module>test-txintrospector</module>
         <module>test-hibernate-search</module>
+        <module>test-backend-ogm</module>
     </modules>
 
 </project>

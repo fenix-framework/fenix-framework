@@ -13,7 +13,7 @@
     <artifactId>fenix-framework-test-ogm-does-not-instantiate</artifactId>
     <packaging>jar</packaging>
 
-    <name>Test that the OGM backend does not instantiate a domain class when booting</name>
+    <name>Fenix Framework Tests for Backend OGM</name>
 
     <build>
         <plugins>
