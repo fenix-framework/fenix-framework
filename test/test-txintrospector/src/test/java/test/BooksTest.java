@@ -1,18 +1,21 @@
 package test;
 
-import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.DomainRoot;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.txintrospector.TxIntrospector;
-
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.*;
+import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.DomainRoot;
+import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
 @RunWith(JUnit4.class)
 public class BooksTest {
@@ -40,7 +43,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test01() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book\n\t"
                 + "(New: ['" + ECLIPSE + "']; DM: []; M: []; RCL: [nothing relevant])");
 
@@ -65,7 +68,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test02() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and directly modify it\n\t"
                 +"(New: [ '" + ECLIPSE + "']; DM: []; M: []; RCL: [nothing relevant])");
 
@@ -83,7 +86,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test03() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and modify its 1-1 relation with '" + FEW_MOON + "'\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + FEW_MOON + "']; RCL: ['VampireBookToVampireBook'])");
 
@@ -102,7 +105,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test04() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and modify its 1-1 relation with '" + FEW_MOON + "' twice\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + FEW_MOON + "']; RCL: ['VampireBookToVampireBook'])");
 
@@ -122,7 +125,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test05() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and 1) add a relation with '" + FEW_MOON + "', 2) remove it, and 3) add it again\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + FEW_MOON + "']; RCL: ['VampireBookToVampireBook'])");
 
@@ -143,7 +146,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test06() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book, add a relation between the new book and '" + FEW_MOON + "', and then remove the relation\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: []; RCL: [])");
 
@@ -163,7 +166,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test07() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book, add a relation between the new book and '" + FEW_MOON + "', and then change relation to '" + DRACULA + "'\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + DRACULA + "']; RCL: ['VampireBookToVampireBook'])");
 
@@ -186,7 +189,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test08() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and modify its 1-* relation with '" + LITTLE + "'\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + LITTLE + "']; RCL: ['PublisherWithBooks'])");
 
@@ -205,7 +208,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test09() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and modify its 1-* relation with '" + LITTLE + "' twice\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + LITTLE + "']; RCL: ['PublisherWithBooks'])");
 
@@ -225,7 +228,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test10() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and 1) add a 1-* relation with '" + LITTLE + "', 2) remove it, and 3) add it again\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + LITTLE + "']; RCL: ['PublisherWithBooks'])");
 
@@ -246,7 +249,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test11() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book, add a 1-* relation between the new book and '" + LITTLE + "', and then remove the relation\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + LITTLE + "']; RCL: [])");
 
@@ -266,7 +269,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test12() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book, add a 1-* relation between the new book and '" + LITTLE + "', and then change relation to '" + ARCHIBALD + "'\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + ARCHIBALD + "']; RCL: ['PublisherWithBooks'])");
 
@@ -289,7 +292,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test13() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and modify its *-* relation with '" + STEPH + "' and '" + MEH + "'\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + STEPH + "," + MEH + "']; RCL: ['2*AuthorsWithBooks'])");
 
@@ -312,7 +315,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test14() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and modify its *-* relation with '" + STEPH + "' and '" + MEH + "' twice\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + STEPH + "," + MEH + "']; RCL: ['2*AuthorsWithBooks'])");
 
@@ -337,7 +340,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test15() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and 1) add a *-* relation with '" + STEPH + "' and '" + MEH + "', 2) remove it, and 3) add it again\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + STEPH + "," + MEH + "']; RCL: ['2*AuthorsWithBooks'])");
 
@@ -364,7 +367,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test16() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book and add a *-* relation with '" + STEPH + "' and '" + MEH + "' and then remove the relation\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: []; RCL: [])");
 
@@ -389,7 +392,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test17() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Create a new book, add a *-* relation with '" + STEPH + "' and '" + MEH + "', and then change relation to '" + BRAM_STOKER + "'\n\t"
                 + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + BRAM_STOKER + "']; RCL: ['AuthorsWithBooks'])");
 
@@ -418,7 +421,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test18() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Change the relation between '" + FEW_MOON + "' and '" + TWOLIGHTS + "' to '" + FEW_MOON + "' and '" + DRACULA + "'\n\t"
                 + "(New: []; DM: []; M: ['" + FEW_MOON + "', '" + DRACULA + "', '" + TWOLIGHTS + "']; "
                 + "RCL: ['VampireBookToVampireBook' (removed), 'VampireBookToVampireBook' (changed)])");
@@ -442,7 +445,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test19() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Change the relation between '" + FEW_MOON + "' and '" + TWOLIGHTS + "' to '" + FEW_MOON + "' and '" + DRACULA + "'. "
                 + "Then change the name of '" + TWOLIGHTS + "' to tWoLiGhTs\n\t"
                 + "(New: []; DM: []; M: ['" + FEW_MOON + "', '" + DRACULA + "', '" + TWOLIGHTS + "']; "
@@ -468,7 +471,7 @@ public class BooksTest {
     @Test
     @Atomic
     public void test20() {
-        TxIntrospector txIntrospector = TxIntrospector.getTxIntrospector();
+	TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
         printTest("Change the relation '" + FEW_MOON + "' <-> '" + TWOLIGHTS + "' to '" + FEW_MOON + "' <-> '" + DRACULA + "' "
                 + "and then back again to '" + FEW_MOON + "' <-> '" + TWOLIGHTS + "'. Finally change the name of '" + TWOLIGHTS + "' to tWoLiGhTs\n\t"
                 + "(New: []; DM: ['" + TWOLIGHTS + "']; M: ['" + TWOLIGHTS + "']; RCL: [])");
