@@ -109,14 +109,14 @@ public class MemTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    protected void doCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException,
+    protected void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException,
 	    IllegalStateException, SystemException {
 	this.transaction.commit();
 	this.transaction = null;
     }
 
     @Override
-    protected void doRollback() throws SecurityException, SystemException {
+    protected void backendRollback() throws SecurityException, SystemException {
 	this.transaction.rollback();
 	this.transaction = null;
     }

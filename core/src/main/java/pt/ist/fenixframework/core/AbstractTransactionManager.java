@@ -49,7 +49,7 @@ public abstract class AbstractTransactionManager implements TransactionManager {
 	    throw new RollbackException(e.getMessage());
 	}
 
-	doCommit();
+	backendCommit();
 
 	for (CommitListener listener : listeners) {
 	    listener.afterCommit(toCommit);
@@ -92,7 +92,7 @@ public abstract class AbstractTransactionManager implements TransactionManager {
 	if (toRollback == null)
 	    throw new IllegalStateException();
 
-	doRollback();
+	backendRollback();
 
 	for (CommitListener listener : listeners) {
 	    listener.afterCommit(toRollback);
@@ -107,9 +107,9 @@ public abstract class AbstractTransactionManager implements TransactionManager {
 	this.getTransaction().setRollbackOnly();
     }
 
-    protected abstract void doCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
+    protected abstract void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
 	    SecurityException, IllegalStateException, SystemException;
 
-    protected abstract void doRollback() throws SecurityException, SystemException;
+    protected abstract void backendRollback() throws SecurityException, SystemException;
 
 }
