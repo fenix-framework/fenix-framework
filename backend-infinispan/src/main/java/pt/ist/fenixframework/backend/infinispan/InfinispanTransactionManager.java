@@ -52,8 +52,17 @@ public class InfinispanTransactionManager implements TransactionManager {
 
 	pt.ist.fenixframework.Transaction tx = getTransaction();
 
-	for (CommitListener listener : listeners) {
-	    listener.beforeCommit(tx);
+	try {
+	    for (CommitListener listener : listeners) {
+		listener.beforeCommit(tx);
+	    }
+	} catch (RuntimeException e) {
+	    /**
+	     * As specified in CommitListener.beforeCommit(), any unchecked
+	     * exception will cause the transaction to be rolled back.
+	     */
+	    rollback();
+	    throw new RollbackException(e.getMessage());
 	}
 	try {
 	    delegateTxManager.commit();

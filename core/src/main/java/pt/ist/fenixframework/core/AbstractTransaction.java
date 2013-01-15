@@ -69,6 +69,9 @@ public abstract class AbstractTransaction implements Transaction {
 	} catch (Exception e) {
 	    rollback();
 	    return;
+	} catch (CommitError e) {
+	    rollback();
+	    return;
 	}
 	notifyAfterCommit();
     }
