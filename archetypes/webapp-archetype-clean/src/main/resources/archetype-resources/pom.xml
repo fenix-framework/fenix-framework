@@ -1,77 +1,110 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>${groupId}</groupId>
-  <artifactId>${artifactId}</artifactId>
-  <version>${version}</version>
-  <packaging>war</packaging>
+    <groupId>${groupId}</groupId>
+    <artifactId>${artifactId}</artifactId>
+    <version>${version}</version>
+    <packaging>war</packaging>
 
-  <name>${artifactId}</name>
+    <name>${artifactId}</name>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <version.fenixframework>${fenixFrameworkVersion}</version.fenixframework>
+        <fenixframework.code.generator>${codeGeneratorClassName}</fenixframework.code.generator>
+    </properties>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>dml</groupId>
-        <artifactId>dml-maven-plugin</artifactId>
-        <version>${dmlMavenPluginVersion}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>generate-domain</goal>
-              <goal>post-compile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>dml-maven-plugin</artifactId>
+                <version>${version.fenixframework}</version>
+                <configuration>
+                    <codeGeneratorClassName>${fenixframework.code.generator}</codeGeneratorClassName>
+                    <params>
+                        <ptIstTxIntrospectorEnable>false</ptIstTxIntrospectorEnable>
+                        <ptIstDapEnable>false</ptIstDapEnable>
+                    </params>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-domain</goal>
+                            <goal>post-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-  <dependencies>
-    <dependency>
-      <groupId>pt.ist</groupId>
-      <artifactId>fenix-framework-core</artifactId>
-      <version>${fenixFrameworkCoreVersion}</version>
-    </dependency>
-#if(!($backEndArtifactId == "fenix-framework-core" && $backEndGroupId == "pt.ist"))
-    <dependency>
-      <groupId>${backEndGroupId}</groupId>
-      <artifactId>${backEndArtifactId}</artifactId>
-      <version>${backEndVersion}</version>
-    </dependency>
-#end
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <type>jar</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>add-resource</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>add-resource</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>target/generated-sources/dml-maven-plugin</directory>
+                                    <excludes>
+                                        <exclude>**/*.java</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-  <repositories>
-    <repository>
-      <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/maven-repository</url>
-    </repository>
-  </repositories>
+        </plugins>
+    </build>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>fenix-ashes-maven-repository</id>
-      <url>https://fenix-ashes.ist.utl.pt/maven-repository</url>
-    </pluginRepository>
-  </pluginRepositories>
+    <dependencies>
+        <dependency>
+            <groupId>${backEndGroupId}</groupId>
+            <artifactId>${backEndArtifactId}</artifactId>
+            <version>${backEndVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.2</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>fenix-framework-releases</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>fenix-framework-releases</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+        </pluginRepository>
+    </pluginRepositories>
 
 </project>
