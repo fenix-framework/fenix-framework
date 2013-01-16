@@ -91,15 +91,15 @@
 
     <repositories>
         <repository>
-            <id>fenix-framework-releases</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+            <id>fenix-ashes-maven-repository</id>
+            <url>https://fenix-ashes.ist.utl.pt/maven-public</url>
         </repository>
     </repositories>
 
     <pluginRepositories>
         <pluginRepository>
-            <id>fenix-framework-releases</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+            <id>fenix-ashes-maven-repository</id>
+            <url>https://fenix-ashes.ist.utl.pt/maven-public</url>
         </pluginRepository>
     </pluginRepositories>
 

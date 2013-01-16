@@ -108,14 +108,6 @@
     </dependencies>
 
     <repositories>
-        <!-- <repository> -->
-        <!--     <id>fenix-ashes-maven-repository</id> -->
-        <!--     <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-ashes-maven-repository</url> -->
-        <!-- </repository> -->
-        <!-- <repository> -->
-        <!--     <id>thirdparty</id> -->
-        <!--     <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/thirdparty</url> -->
-        <!-- </repository> -->
         <repository>
             <id>jboss-public-repository-group</id>
             <name>JBoss Public Maven Repository Group</name>

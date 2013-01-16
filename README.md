@@ -5,7 +5,7 @@
 To create a sample application pre-configured with the FF, execute the
 following Maven command and follow the interactive mode:
 
-    mvn archetype:generate -DarchetypeGroupId=pt.ist -DarchetypeArtifactId=fenix-framework-application-archetype-clean -DarchetypeVersion=2.0 -DarchetypeRepository=https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases
+    mvn archetype:generate -DarchetypeGroupId=pt.ist -DarchetypeArtifactId=fenix-framework-application-archetype-clean -DarchetypeVersion=2.0 -DarchetypeRepository=https://fenix-ashes.ist.utl.pt/maven-public
 
 The parameters that you can give to the clean application archetype (using the
 `-D` switch) are:
