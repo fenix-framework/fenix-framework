@@ -67,7 +67,6 @@
                             <resources>
                                 <resource>
                                     <directory>target/generated-test-sources/dml-maven-plugin</directory>
-                                    <!-- <targetPath>target/classes</targetPath> -->
                                     <excludes>
                                         <exclude>**/*.java</exclude>
                                     </excludes>
@@ -81,18 +80,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-dml-compiler</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-txintrospector</artifactId>
-        </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-hibernate-search</artifactId>

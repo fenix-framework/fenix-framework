@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Set;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
@@ -13,7 +14,7 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
  * instances of {@link AbstractDomainObject}.  This implementation is modelled in DML and can be
  * used with any backend.
  */
-public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
+public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base implements Set<T>{
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
         private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
@@ -105,7 +106,7 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
     // }
 
     /** Removes the element with the given key */
-    public void remove(Comparable key) {
+    public void removeKey(Comparable key) {
 	AbstractNode rootNode = this.getRoot();
 	AbstractNode resultNode = rootNode.remove(key);
 	if (rootNode != resultNode) {
@@ -173,4 +174,78 @@ public class BPlusTree<T extends AbstractDomainObject> extends BPlusTree_Base {
 	}
 	return true;
     }
+
+    @Override
+    public boolean add(T e) {
+        if (contains(e)) {
+            return false;
+        } else {
+            insert(e);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        if (! (o instanceof AbstractDomainObject)) {
+            return false;
+        }
+        if (contains(o)) {
+            removeKey(((T)o).getOid());
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean contains(Object o) {
+        if (! (o instanceof AbstractDomainObject)) {
+            return false;
+        }
+        return containsKey(((T)o).getOid());
+    }
+
+    /* The following methods are not needed at the moment but we need to implement Set */
+    
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+	throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public boolean containsAll(Collection<?> c) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isEmpty() {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object[] toArray() {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+	throw new UnsupportedOperationException();
+    }
+
 }

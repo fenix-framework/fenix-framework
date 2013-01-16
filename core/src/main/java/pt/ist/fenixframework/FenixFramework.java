@@ -176,8 +176,11 @@ public class FenixFramework {
         try {
             config = createConfigFromResourceStream(in);
         } catch (IOException e) {
-            logger.debug("Failed auto initialization with " + resourceName, e);
+            logger.info("Failed auto initialization with " + resourceName, e);
             return false;
+        } catch (ConfigError e) {
+            logger.info("ConfigError", e);
+            throw e;
         }
         FenixFramework.initialize(config);
         return true;
@@ -264,6 +267,11 @@ public class FenixFramework {
                 FenixFramework.config.initialize();
             } catch (RuntimeException e) {
                 logger.error("Could not initialize Fenix Framework", e);
+                e.printStackTrace();
+                throw e;
+            } catch (ConfigError e) {
+                logger.error("Could not initialize Fenix Framework", e);
+                e.printStackTrace();
                 throw e;
             }
 	    // DataAccessPatterns.init(FenixFramework.config);
@@ -329,6 +337,10 @@ public class FenixFramework {
 
     public static TransactionManager getTransactionManager() {
         return getConfig().getBackEnd().getTransactionManager();
+    }
+    
+    public static Transaction getTransaction() {
+        return getTransactionManager().getTransaction();
     }
 
     /**

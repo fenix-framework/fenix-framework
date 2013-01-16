@@ -26,6 +26,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     public InfinispanCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
+        String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
+        if (collectionName == null || collectionName.isEmpty()) {
+            setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
+        }
      }
 
     @Override
@@ -54,7 +58,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         println(out, "import pt.ist.fenixframework.backend.infinispan.InfinispanBackEnd;");
         println(out, "import pt.ist.fenixframework.backend.infinispan.OID;");
         println(out, "import pt.ist.fenixframework.core.Externalization;");
-        println(out, "import pt.ist.fenixframework.core.adt.bplustree.BPlusTree;");
         println(out, "import " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ";");
         println(out, "import static " + ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME + ".*;");
         newline(out);
@@ -69,6 +72,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
         generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
+        // Index method generation
         super.generateIndexMethods(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
     }
@@ -269,19 +273,20 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 
-        println(out, "BPlusTree internalSet;");
+        String collectionType = getDefaultCollectionFor(role.getType().getFullName());
+        println(out, collectionType + " internalSet;");
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + role.getName() + "\");");
         print(out, "if (oid == null || oid instanceof Externalization.NullClass)");
         newBlock(out);
-        println(out, "internalSet = new BPlusTree();");
+        println(out, "internalSet = new " + collectionType + "();");
         print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + role.getName() + "\", internalSet.getOid());");
         closeBlock(out, false);
         print(out, " else");
         newBlock(out);
-        print(out, "internalSet = (BPlusTree)InfinispanBackEnd.getInstance().fromOid(oid);");
+        print(out, "internalSet = (" + collectionType + ")InfinispanBackEnd.getInstance().fromOid(oid);");
         // print(out, "// no need to test for null.  The entry must exist for sure.");
         closeBlock(out);
-        print(out, "return new " + getRelationAwareBaseTypeFor(role) + "(this, " + getRelationSlotNameFor(role) + ", internalSet);");
+        print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", internalSet);");
         endMethodBody(out);
     }
 
@@ -386,12 +391,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected String getRoleOneBaseType() {
         return "pt.ist.fenixframework.dml.runtime.Role";
-    }
-
-    @Override
-    protected String getRelationAwareBaseTypeFor(Role role) {
-        // FIXME: handle other types of collections other than sets
-        return "pt.ist.fenixframework.backend.infinispan.RelationSet";
     }
 
 }

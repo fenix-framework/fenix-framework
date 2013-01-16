@@ -40,7 +40,7 @@ relation BPlusTreeHasRootNode {
 
 relation NodeHasParent {
     AbstractNode playsRole {
-	multiplicity *;
+  multiplicity *;
     }
     InnerNode playsRole parent;
 }
@@ -49,3 +49,42 @@ relation LeafNodeHasSibling {
     LeafNode playsRole previous;
     LeafNode playsRole next;
 }
+
+/* BPlusTree backed by Arrays */
+
+valueType pt.ist.fenixframework.core.adt.bplustree.DoubleArray as BackingArrays {
+    externalizeWith {
+        Serializable pt.ist.fenixframework.core.adt.bplustree.AbstractNodeArray.externalizeArrays();
+    }
+    internalizeWith pt.ist.fenixframework.core.adt.bplustree.AbstractNodeArray.internalizeArrays();
+}
+
+class BPlusTreeArray {}
+
+class AbstractNodeArray {}
+
+class LeafNodeArray extends AbstractNodeArray {
+    BackingArrays<pt.ist.fenixframework.core.AbstractDomainObject> entries;
+}
+
+class InnerNodeArray extends AbstractNodeArray {
+    BackingArrays<AbstractNodeArray> subNodes;
+}
+
+relation BPlusTreeArrayHasRootNode {
+    BPlusTreeArray playsRole;
+    AbstractNodeArray playsRole root;
+}
+
+relation NodeArrayHasParent {
+    AbstractNodeArray playsRole {
+    multiplicity *;
+    }
+    InnerNodeArray playsRole parent;
+}
+
+relation LeafNodeArrayHasSibling {
+    LeafNodeArray playsRole previous;
+    LeafNodeArray playsRole next;
+}
+
