@@ -6,14 +6,14 @@
     <groupId>pt.ist</groupId>
     <artifactId>old-fenix-framework-core</artifactId>
     <name>Fenix Framework Core</name>
-    <version>2.0-cloudtm-SNAPSHOT</version>
+    <version>2.0-cloudtm</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jvstm.version>1.0</jvstm.version>
-        <dml.fenix.version>2.0-cloudtm-SNAPSHOT</dml.fenix.version>
-        <dml.maven.plugin.version>2.0-cloudtm-SNAPSHOT</dml.maven.plugin.version>
+        <dml.fenix.version>2.0-cloudtm</dml.fenix.version>
+        <dml.maven.plugin.version>2.0-cloudtm</dml.maven.plugin.version>
     </properties>
 
     <build>
