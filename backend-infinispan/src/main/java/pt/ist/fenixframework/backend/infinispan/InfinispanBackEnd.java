@@ -148,4 +148,14 @@ public class InfinispanBackEnd implements BackEnd {
         Object obj = domainCache.get(key);
         return (T)(obj instanceof Externalization.NullClass ? null : obj);
     }
+
+    /**
+     * WARNING: This is a backend-specific method.  It was added as an hack to enable some tests by
+     * Algorithmica and will be removed later.  The programmer should not use this method directly,
+     * because by doing so the code becomes backend-dependent.
+     */
+    @Deprecated
+    public final Cache getInfinispanCache() {
+        return this.domainCache;
+    }
 }
