@@ -234,7 +234,6 @@ public abstract class Config {
      */
     protected void appNameFromString(String value) {
         this.appName = value;
-        
         try {
             List<DmlFile> dmlFiles = Project.fromName(value).getFullDmlSortedList();
             if (dmlFiles.size() > 0) {
