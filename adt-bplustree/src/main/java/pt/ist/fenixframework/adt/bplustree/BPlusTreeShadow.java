@@ -210,7 +210,7 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
     @Override
     public boolean remove(Comparable key) {
         if (contains(key)) {
-            remove(key);
+            removeKey(key);
             return true;
         } else {
             return false;

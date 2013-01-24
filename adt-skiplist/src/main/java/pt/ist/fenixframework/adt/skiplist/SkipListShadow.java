@@ -16,16 +16,9 @@ public class SkipListShadow<T extends Serializable> extends SkipListShadow_Base 
 	    return new Random();
 	}
     };
-    private transient final static Comparable minValue = new Comparable() {
-	public int compareTo(Object arg0) {
-	    return -1;
-	}
-    };
-    private transient final static Comparable maxValue = new Comparable() {
-	public int compareTo(Object o) {
-	    return 1;
-	}
-    };
+    
+    private transient final static Comparable minValue = new TombKey(-1);
+    private transient final static Comparable maxValue = new TombKey(1);
 
     public SkipListShadow() {
 	super();

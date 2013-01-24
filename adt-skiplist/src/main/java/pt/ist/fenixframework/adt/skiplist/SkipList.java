@@ -16,17 +16,10 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
 	    return new Random();
 	}
     };
-    private transient final static Comparable minValue = new Comparable() {
-	public int compareTo(Object arg0) {
-	    return -1;
-	}
-    };
-    private transient final static Comparable maxValue = new Comparable() {
-	public int compareTo(Object o) {
-	    return 1;
-	}
-    };
-
+    
+    private transient final static Comparable minValue = new TombKey(-1);
+    private transient final static Comparable maxValue = new TombKey(1);
+    
     public SkipList() {
 	super();
 	setLevel(0);

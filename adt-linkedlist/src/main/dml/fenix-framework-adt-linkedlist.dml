@@ -2,7 +2,7 @@
 
 package pt.ist.fenixframework.adt.linkedlist;
 
-valueType pt.ist.fenixframework.adt.linkedlist.KeyValue as KeyVal {
+valueType pt.ist.fenixframework.adt.linkedlist.KeyValue as NodeKeyVal {
 	externalizeWith {
 		Serializable pt.ist.fenixframework.adt.linkedlist.KeyValue.externalizeKeyValue();
 	}
@@ -12,7 +12,7 @@ valueType pt.ist.fenixframework.adt.linkedlist.KeyValue as KeyVal {
 class LinkedList {}
 
 class ListNode {
-	KeyVal keyValue;
+	NodeKeyVal keyValue;
 }
 
 relation LinkedListHasHeadNode {
