@@ -58,7 +58,7 @@
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-bplustree-domain-object</artifactId>
+            <artifactId>fenix-framework-adt-bplustree</artifactId>
         </dependency>
         <dependency>
             <groupId>jvstm</groupId>

@@ -7,8 +7,8 @@ public interface IBPlusTree<T extends Serializable> {
 
     public T get(Comparable key);
     
-    public void insert(Comparable key, T value);
+    public void insertKeyValue(Comparable key, T value);
     
-    public void remove(Comparable key);
+    public boolean remove(Comparable key);
     
 }

@@ -8,6 +8,9 @@ import java.util.LinkedHashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import pt.ist.fenixframework.core.AbstractDomainObject;
+import pt.ist.fenixframework.dml.runtime.DomainBasedSet;
+
 /**
  * Implementation of a persistence-independent B+Tree.  This implementation is modelled in DML and
  * can be used with any backend.  This B+Tree can store any value (except nulls) associated with any
@@ -16,7 +19,7 @@ import java.util.Set;
  * comparable to each other (e.g. the same BPlusTree instance cannot simultaneously support keys of
  * type Integer and String).
  */
-public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements IBPlusTree<T> {
+public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements IBPlusTree<T>, DomainBasedSet<T> {
     
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
@@ -91,6 +94,11 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
 	this.setRoot(new LeafNode());
     }
 
+    @Override
+    public void insertKeyValue(Comparable key, T value) {
+	insert(key, value);
+    }
+    
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
     public void insert(Comparable key, T value) {
         if (value == null) {
@@ -109,7 +117,7 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     // }
 
     /** Removes the element with the given key */
-    public void remove(Comparable key) {
+    public void removeKey(Comparable key) {
 	AbstractNode rootNode = this.getRoot();
 	AbstractNode resultNode = rootNode.remove(key);
 	if (rootNode != resultNode) {
@@ -187,6 +195,31 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
             keys.add(key);
         }
         return keys;
+    }
+    
+    @Override
+    public boolean add(Comparable key, T e) {
+        if (contains(key)) {
+            return false;
+        } else {
+            insert(key, e);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean remove(Comparable key) {
+        if (contains(key)) {
+            removeKey(key);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean contains(Comparable key) {
+        return containsKey(key);
     }
 
 }

@@ -121,12 +121,12 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-bplustree-domain-object</artifactId>
+                <artifactId>fenix-framework-adt-bplustree</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-linkedlist-domain-object</artifactId>
+                <artifactId>fenix-framework-adt-linkedlist</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -157,11 +157,6 @@
             <dependency>
                 <groupId>pt.ist</groupId>
                 <artifactId>fenix-framework-backend-mem</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-adt-bplustree</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

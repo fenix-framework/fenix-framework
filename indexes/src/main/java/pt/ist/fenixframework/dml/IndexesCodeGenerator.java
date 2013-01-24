@@ -76,7 +76,7 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
 	}
 	onNewline(out);
 	print(out, getStaticFieldName(slot.getName()));
-	print(out, ".insert(");
+	print(out, ".insertKeyValue(");
 	print(out, slot.getName());
 	print(out, ", (");
 	print(out, domainClass.getFullName());

@@ -5,24 +5,25 @@ import java.util.Iterator;
 import java.util.Set;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class RelationAwareSet<E1 extends DomainObject,E2 extends DomainObject> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
-    private Set<E2> set;
+public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends AbstractDomainObject> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
+    private DomainBasedSet<E2> set;
     private E1 owner;
     private Relation<E1,E2> relation;
 
-    public RelationAwareSet(E1 owner, Relation<E1,E2> relation, Set<E2> set) {
+    public RelationAwareSet(E1 owner, Relation<E1,E2> relation, DomainBasedSet<E2> set) {
         this.owner = owner;
         this.relation = relation;
         this.set = set;
     }
 
     public void justAdd(E2 elem) {
-        set.add(elem);
+        set.add(elem.getOid(), elem);
     }
 
     public void justRemove(E2 elem) {
-        set.remove(elem);
+        set.remove(elem.getOid());
     }
 
     public int size() {
@@ -30,17 +31,21 @@ public class RelationAwareSet<E1 extends DomainObject,E2 extends DomainObject> e
     }
 
     public boolean contains(Object o) {
-        return set.contains(o);
+	if (o instanceof AbstractDomainObject) {
+	    return set.contains(((AbstractDomainObject)o).getOid());
+	} else {
+	    return false;
+	}
     }
 
     @Override
     public Iterator<E2> iterator() {
-        return new RelationAwareIterator(set);
+        return new RelationAwareIterator();
     }
 
     @Override
     public boolean add(E2 o) {
-        if (set.contains(o)) {
+        if (contains(o)) {
             return false;
         } else {
             relation.add(owner, o);
@@ -50,7 +55,7 @@ public class RelationAwareSet<E1 extends DomainObject,E2 extends DomainObject> e
 
     @Override
     public boolean remove(Object o) {
-        if (set.contains(o)) {
+        if (contains(o)) {
             relation.remove(owner, (E2)o);
             return true;
         } else {
@@ -63,8 +68,8 @@ public class RelationAwareSet<E1 extends DomainObject,E2 extends DomainObject> e
         private E2 current = null;
         private boolean canRemove = false;
 
-        RelationAwareIterator(Set<E2> set) {
-            this.iterator = set.iterator();
+        RelationAwareIterator() {
+            this.iterator = RelationAwareSet.this.set.iterator();
         }
 
         @Override

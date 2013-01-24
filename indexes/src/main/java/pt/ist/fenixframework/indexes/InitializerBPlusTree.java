@@ -31,13 +31,13 @@ public class InitializerBPlusTree<T extends Serializable> implements IBPlusTree<
     }
 
     @Override
-    public void insert(Comparable key, T value) {
+    public void insertKeyValue(Comparable key, T value) {
 	initialize().insert(key, value);
     }
 
     @Override
-    public void remove(Comparable key) {
-	initialize().remove(key);
+    public boolean remove(Comparable key) {
+	return initialize().remove(key);
     }
 
     private BPlusTree<T> initialize() {

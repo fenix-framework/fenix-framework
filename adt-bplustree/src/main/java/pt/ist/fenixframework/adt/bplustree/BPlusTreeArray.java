@@ -4,9 +4,8 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
+import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.dml.runtime.DomainBasedSet;
 
 /**
@@ -17,8 +16,7 @@ import pt.ist.fenixframework.dml.runtime.DomainBasedSet;
  * comparable to each other (e.g. the same BPlusTree instance cannot simultaneously support keys of
  * type Integer and String).
  */
-public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Base implements IBPlusTree<T>, DomainBasedSet<T> {
-    
+public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base implements IBPlusTree<T>, DomainBasedSet<T>{
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
         private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
@@ -84,12 +82,12 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
 
     // non-static part start here
 
-    public BPlusTreeShadow() {
+    public BPlusTreeArray() {
 	initRoot();
     }
 
     private void initRoot() {
-	this.setRoot(new LeafNodeShadow());
+	this.setRoot(new LeafNodeArray());
     }
 
     @Override
@@ -98,16 +96,20 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
     }
     
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
-    public void insert(Comparable key, T value) {
+    public boolean insert(Comparable key, T value) {
         if (value == null) {
             throw new UnsupportedOperationException("This B+Tree does not support nulls");
         }
-	AbstractNodeShadow rootNode = this.getRootShadow();
-	AbstractNodeShadow resultNode = rootNode.insert(key, value);
+	AbstractNodeArray rootNode = this.getRoot();
+	AbstractNodeArray resultNode = rootNode.insert(key, value);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
-	    this.registerGetRoot();
 	    this.setRoot(resultNode);
 	}
+	return true;
     }
 
     // /** Removes the given element */
@@ -116,26 +118,30 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
     // }
 
     /** Removes the element with the given key */
-    public void removeKey(Comparable key) {
-	AbstractNodeShadow rootNode = this.getRootShadow();
-	AbstractNodeShadow resultNode = rootNode.remove(key);
+    public boolean removeKey(Comparable key) {
+	AbstractNodeArray rootNode = this.getRoot();
+	AbstractNodeArray resultNode = rootNode.remove(key);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
-	    this.registerGetRoot();
 	    this.setRoot(resultNode);
 	}
+	return true;
     }
 
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
      * contains no mapping for the key. */
     public T get(Comparable key) {
-	return ((AbstractNodeShadow<T>)this.getRootShadow()).get(key);
+	return ((AbstractNodeArray<T>)this.getRoot()).get(key);
     }
 
     /**
      * Return the value at the index-th position (zero-based).
      */
     public T getIndex(int index) {
-	return ((AbstractNodeShadow<T>)this.getRoot()).getIndex(index);
+	return ((AbstractNodeArray<T>)this.getRoot()).getIndex(index);
     }
 
     /**
@@ -144,8 +150,8 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
     public T removeIndex(int index) {
 	T value = getIndex(index);
 
-	AbstractNodeShadow rootNode = this.getRoot();
-	AbstractNodeShadow resultNode = rootNode.removeIndex(index);
+	AbstractNodeArray rootNode = this.getRoot();
+	AbstractNodeArray resultNode = rootNode.removeIndex(index);
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
@@ -155,7 +161,7 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
 
     /** Returns <code>true</code> if this map contains a mapping for the specified key.  */
     public boolean containsKey(Comparable key) {
-	return this.getRootShadow().containsKey(key);
+	return this.getRoot().containsKey(key);
     }
 
     /** Returns the number of key-value mappings in this map */
@@ -171,55 +177,34 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
 	return this.getRoot().iterator();
     }
     
-    public boolean myEquals(BPlusTree other) {
-	Iterator<T> it1 = this.iterator();
-	Iterator<T> it2 = other.iterator();
+    public boolean myEquals(BPlusTreeArray other) {
+	Iterator<AbstractDomainObject> it1 = this.iterator();
+	Iterator<AbstractDomainObject> it2 = other.iterator();
 	
 	while (it1.hasNext() && it2.hasNext()) {
-	    T o1 = it1.next();
-	    T o2 = it2.next();
+	    AbstractDomainObject o1 = it1.next();
+	    AbstractDomainObject o2 = it2.next();
 
 	    if (!((o1 == null && o2 == null) || (o1.equals(o2)))) {
-                return false;
+		    return false;
 	    }
 	}
 	return true;
     }
-    
-    /** Returns the set of keys mapped by this tree*/
-    public <T extends Comparable> Set<T> getKeys() {
-        Set<T> keys = new LinkedHashSet<T>();
-        Iterator<T> iter = this.getRoot().keysIterator();
-        while (iter.hasNext()) {
-            T key = iter.next();
-            keys.add(key);
-        }
-        return keys;
-    }
-    
+
     @Override
     public boolean add(Comparable key, T e) {
-        if (contains(key)) {
-            return false;
-        } else {
-            insert(key, e);
-            return true;
-        }
+        return insert(key, e);
     }
 
     @Override
     public boolean remove(Comparable key) {
-        if (contains(key)) {
-            remove(key);
-            return true;
-        } else {
-            return false;
-        }
+	return removeKey(key);
     }
     
     @Override
     public boolean contains(Comparable key) {
         return containsKey(key);
     }
-
+    
 }
