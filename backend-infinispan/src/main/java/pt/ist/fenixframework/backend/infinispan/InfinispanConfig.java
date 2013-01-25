@@ -19,6 +19,8 @@ import pt.ist.fenixframework.indexes.IndexesConfig;
 public class InfinispanConfig extends IndexesConfig {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
 
+    private static final String FAILED_INIT = "Failed to initialize Backend Infinispan";
+
     // /**
     //  * This enumeration lists the possible options for the behaviour of the domain object's {@link
     //  * IdentityMap}.
@@ -53,6 +55,7 @@ public class InfinispanConfig extends IndexesConfig {
 
     protected final InfinispanBackEnd backEnd;
 
+
     public InfinispanConfig() {
         this.backEnd = InfinispanBackEnd.getInstance();
     }
@@ -76,7 +79,12 @@ public class InfinispanConfig extends IndexesConfig {
 
     @Override
     protected void init() {
-        this.backEnd.configInfinispan(this);
+        try {
+            this.backEnd.configInfinispan(this);
+        } catch (Exception e) {
+            throw new ConfigError(FAILED_INIT, e);
+        }
+
         // DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
         super.init();
     }

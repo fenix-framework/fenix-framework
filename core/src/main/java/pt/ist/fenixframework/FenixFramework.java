@@ -362,7 +362,7 @@ public class FenixFramework {
     private static synchronized NodeBarrier getNodeBarrier() throws Exception {
         //TODO: add jgroups configuration file to config
         if (barrier == null) {
-            barrier = new NodeBarrier("udp-jgroups.xml");
+            barrier = new NodeBarrier(getConfig().getJGroupsConfigFile());
         }
         return barrier;
     }
