@@ -97,6 +97,8 @@ import pt.ist.fenixframework.util.NodeBarrier;
 public class FenixFramework {
     private static final Logger logger = LoggerFactory.getLogger(FenixFramework.class);
 
+    public static final String FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX = "fenixframework.";
+
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_DEFAULT = "fenix-framework.properties";
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX = "fenix-framework-";
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX = ".properties";
@@ -194,7 +196,21 @@ public class FenixFramework {
         Properties props = new Properties();
         props.load(in);
         try { in.close(); } catch (Throwable ignore) {}
-        
+        logger.debug("Fenix Framework properties provided from config file:" + props.toString());
+
+        // Override with system properties
+        Properties systemProps = System.getProperties();
+        for (String propertyName : systemProps.stringPropertyNames()) {
+            if (propertyName.startsWith(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX)) {
+                String value = systemProps.getProperty(propertyName);
+                String realPropertyName = propertyName.substring(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX.length());
+                logger.debug("Enforcing property from system: " + realPropertyName + "=" + value);
+                props.setProperty(realPropertyName, value);
+            }
+        }
+
+        logger.debug("Final Fenix Framework properties provided:" + props.toString());
+
         // get the config instance
         Config config = null;
         try {
