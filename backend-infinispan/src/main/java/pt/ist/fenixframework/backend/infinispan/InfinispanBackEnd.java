@@ -17,6 +17,7 @@ import org.infinispan.manager.DefaultCacheManager;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -98,9 +99,10 @@ public class InfinispanBackEnd implements BackEnd {
         manager.stop();
     }
 
-    protected void configInfinispan(InfinispanConfig config) {
+    protected void configInfinispan(InfinispanConfig config) throws Exception {
         setupCache(config);
         setupTxManager(config);
+        config.waitForExpectedInitialNodes("backend-infinispan-init-barrier");
     }
 
     

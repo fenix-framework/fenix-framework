@@ -113,6 +113,22 @@ public abstract class Config {
      */
     protected String appName = null;
 
+    /**
+     * This <strong>optional</strong> parameter specifies the number of nodes that are expected to
+     * be deployed.  This can be used by the backends to perform some setup, e.g. to wait for some
+     * number of nodes to become live in order to complete the initialization process.  The default
+     * value for this parameter is <code>1</code>.
+     */
+    protected int expectedInitialNodes = 1;
+
+    /**
+     * This <strong>optional</strong> parameter specifies the JGroups configuration file.  This
+     * configuration will used to create channels between Fenix Framework nodes.  The default value
+     * for this parameter is <code>fenix-framework-udp-jgroups.xml</code>, which is the default
+     * configuration file that ships with the framework.
+     */
+    protected String jGroupsConfigFile = "fenix-framework-udp-jgroups.xml";
+
     protected void checkRequired(Object obj, String fieldName) {
 	if (obj == null) {
 	    missingRequired(fieldName);
@@ -278,7 +294,27 @@ public abstract class Config {
         domainModelURLs = urls;
     }
 
+    protected void expectedInitialNodesFromString(String value) {
+        try {
+            expectedInitialNodes = Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            throw new ConfigError(e);
+        }
+    }
+
     protected abstract void init();
+
+    /**
+     * Utility method to wait for the number of expected initial nodes to be up.
+     */
+    public void waitForExpectedInitialNodes(String barrierName) throws Exception {
+        logger.debug("expectedInitialNodes=" + expectedInitialNodes);
+        if (expectedInitialNodes > 1) {
+            logger.debug("Waiting until " + expectedInitialNodes + " nodes are up");
+            FenixFramework.barrier(barrierName, expectedInitialNodes);
+            logger.debug("All nodes are up.");
+        }
+    }
 
     /**
      * Get the current {@link BackEnd} in use.
@@ -287,6 +323,14 @@ public abstract class Config {
 
     public URL[] getDomainModelURLs() {
 	return domainModelURLs;
+    }
+
+    public int getExpectedInitialNodes() {
+        return expectedInitialNodes;
+    }
+
+    public String getJGroupsConfigFile() {
+        return jGroupsConfigFile;
     }
 
     public String getAppName() {

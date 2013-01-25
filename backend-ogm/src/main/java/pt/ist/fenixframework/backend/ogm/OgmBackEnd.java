@@ -79,8 +79,9 @@ public class OgmBackEnd implements BackEnd {
         transactionManager.emf.close();
     }
 
-    protected void configOgm(OgmConfig config) {
+    protected void configOgm(OgmConfig config) throws Exception {
         transactionManager.setupTxManager(config);
+        config.waitForExpectedInitialNodes("backend-ogm-init-barrier");
     }
 
     public void save(AbstractDomainObject obj) {

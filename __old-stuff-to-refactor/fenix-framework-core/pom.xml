@@ -6,7 +6,13 @@
     <groupId>pt.ist</groupId>
     <artifactId>old-fenix-framework-core</artifactId>
     <name>Fenix Framework Core</name>
+<<<<<<< variant A
     <version>2.1-cloudtm-SNAPSHOT</version>
+>>>>>>> variant B
+    <version>2.1-SNAPSHOT</version>
+####### Ancestor
+    <version>2.0-SNAPSHOT</version>
+======= end
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
