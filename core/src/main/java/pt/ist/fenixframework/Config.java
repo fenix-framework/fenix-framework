@@ -93,6 +93,8 @@ import pt.ist.fenixframework.util.Converter;
 public abstract class Config {
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
 
+    protected static final String NO_DOMAIN_MODEL = "Fenix Framework cannot proceed without a domain model!.  Either provide \"appName\" (for which there is a project.properties file) or explicitly set \"domainModelURLs\".";
+
     protected static final String PROPERTY_CONFIG_CLASS = "config.class";
     // the suffix of the method that sets a property from a String property
     protected static final String SETTER_FROM_STRING = "FromString";
@@ -140,6 +142,7 @@ public abstract class Config {
      */
     protected void checkForDomainModelURLs() {
 	if ((domainModelURLs == null) || (domainModelURLs.length == 0)) {
+            logger.error(NO_DOMAIN_MODEL);
 	    missingRequired("domainModelURLs");
 	}
     }
