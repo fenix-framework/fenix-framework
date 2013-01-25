@@ -27,16 +27,14 @@
         <version.commons.lang>2.6</version.commons.lang>
         <version.dap-framework>2.0</version.dap-framework>
         <version.hibernate>4.0.1.Final</version.hibernate>
-        <!-- <version.hibernate>4.1.2.Final</version.hibernate> -->
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
-        <!-- <version.hibernate.ogm>4.0.0-SNAPSHOT</version.hibernate.ogm> -->
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
         <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
         <version.infinispan>5.1.6.FINAL</version.infinispan>
-        <!-- <version.infinispan>5.2.0-SNAPSHOT</version.infinispan> -->
         <version.jboss.logging>3.1.0.GA</version.jboss.logging>
         <version.jbossjta>4.16.3.Final</version.jbossjta>
+        <version.jgroups>3.2.5.Final</version.jgroups>
         <version.jodatime>1.5.2</version.jodatime>
         <version.jpa>1.0</version.jpa>
         <version.jta>1.1</version.jta>
@@ -302,6 +300,11 @@
                 <artifactId>junit</artifactId>
                 <version>${version.junit}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jgroups</groupId>
+                <artifactId>jgroups</artifactId>
+                <version>${version.jgroups}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
