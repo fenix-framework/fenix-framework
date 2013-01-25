@@ -39,6 +39,7 @@
     	<module>backend-mem</module>
         <module>backend-infinispan</module>
         <module>backend-ogm</module>
+        <module>backend-jvstm-ojb</module>
         <module>backend-jvstm-mem</module>
         <module>test</module>
         <module>archetypes</module>
