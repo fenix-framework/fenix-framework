@@ -37,6 +37,7 @@
         <!-- <version.infinispan>5.2.0-SNAPSHOT</version.infinispan> -->
         <version.jboss.logging>3.1.0.GA</version.jboss.logging>
         <version.jbossjta>4.16.3.Final</version.jbossjta>
+        <verion.jgroups>3.2.5.Final</verion.jgroups>
         <version.jodatime>1.5.2</version.jodatime>
         <version.jpa>1.0</version.jpa>
         <version.jta>1.1</version.jta>
@@ -302,6 +303,11 @@
                 <artifactId>junit</artifactId>
                 <version>${version.junit}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jgroups</groupId>
+                <artifactId>jgroups</artifactId>
+                <version>${verion.jgroups}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

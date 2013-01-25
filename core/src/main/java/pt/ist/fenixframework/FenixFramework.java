@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.dml.DmlCompilerException;
 import pt.ist.fenixframework.dml.DomainModel;
+import pt.ist.fenixframework.util.NodeBarrier;
 
 /**
  * <p>This is the main class for the Fenix Framework.  It is the central point for obtaining most of
@@ -111,6 +112,8 @@ public class FenixFramework {
     /** This is initialized on first invocation of {@link FenixFramework#getDomainModel()}, which
      * can only be invoked after the framework is initialized. */
     private static DomainModel domainModel = null;
+
+    private static NodeBarrier barrier;
 
     // private static Logger logger = null;
     static {
@@ -350,6 +353,17 @@ public class FenixFramework {
      * guarantee that the Fenix Framework is able to provide any more services.
      */
     public static void shutdown() {
+        if (barrier != null) {
+            barrier.shutdown();
+        }
         getConfig().shutdown();
+    }
+
+    public static void barrier(String barrierName, int expectedMembers) throws Exception {        
+        //TODO: add jgroups configuration file to config
+        if (barrier == null) {
+            barrier = new NodeBarrier("udp-jgroups.xml");
+        }
+        barrier.blockUntil(barrierName, expectedMembers);
     }
 }
