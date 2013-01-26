@@ -13,7 +13,7 @@ public class ConfigError extends Error {
 
     public static final String MISSING_REQUIRED_FIELD = "A required configuration of the Fenix Framework was not specified: ";
 
-    public static final String UNKNOWN_PROPERTY = "Unknown configuration property.";
+    public static final String UNKNOWN_PROPERTY = "Unknown runtime configuration property: ";
 
     public static final String COULD_NOT_SET_PROPERTY = "No method <propName>" + Config.SETTER_FROM_STRING
         + "(String) given, and property is not assignable from String: ";

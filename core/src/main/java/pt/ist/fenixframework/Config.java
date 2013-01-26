@@ -93,6 +93,8 @@ import pt.ist.fenixframework.util.Converter;
 public abstract class Config {
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
 
+    protected static final String NO_DOMAIN_MODEL = "Fenix Framework cannot proceed without a domain model!.  Either provide \"appName\" (for which there is a project.properties file) or explicitly set \"domainModelURLs\".";
+
     protected static final String PROPERTY_CONFIG_CLASS = "config.class";
     // the suffix of the method that sets a property from a String property
     protected static final String SETTER_FROM_STRING = "FromString";
@@ -140,6 +142,7 @@ public abstract class Config {
      */
     protected void checkForDomainModelURLs() {
 	if ((domainModelURLs == null) || (domainModelURLs.length == 0)) {
+            logger.error(NO_DOMAIN_MODEL);
 	    missingRequired("domainModelURLs");
 	}
     }
@@ -176,11 +179,20 @@ public abstract class Config {
 
     protected final void setProperty(String propName, String value) {
         // first check if it really exists
-        Field field = getField(this.getClass(), propName);
+        Field field = null;
+        try {
+            field = getField(this.getClass(), propName);
+        } catch (ConfigError e) {
+            // we choose to ignore unknown config properties, but we do give a loud warning
+            logger.warn(e.getMessage());
+            logger.debug(e.getMessage(), e);
+            return;
+        }
 
-        // note that the OR lazy evaluation is used on purpose!
-        boolean success = attemptSetPropertyUsingMethod(getSetterFor(this.getClass(), propName + SETTER_FROM_STRING), value)
-            || attemptSetPropertyUsingField(field, value);
+        // note that lazy evaluation is used on purpose!
+        boolean success = attemptSetPropertyUsingMethod(getSetterFor(this.getClass(), propName +
+                                                                     SETTER_FROM_STRING), value) ||
+            attemptSetPropertyUsingField(field, value);
 
         if (! success) {
             throw new ConfigError(ConfigError.COULD_NOT_SET_PROPERTY, propName);
@@ -196,7 +208,7 @@ public abstract class Config {
             if (Config.class.isAssignableFrom(superclass)) {
                 return getField((Class<? extends Config>)superclass, fieldName);
             } else {
-                throw new ConfigError(ConfigError.UNKNOWN_PROPERTY, e);
+                throw new ConfigError(ConfigError.UNKNOWN_PROPERTY + fieldName, e);
             }
         }
     }
