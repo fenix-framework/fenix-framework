@@ -3,15 +3,16 @@ package pt.ist.fenixframework.pstm.dml;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
+import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.dml.ValueType;
+import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RoleOne;
 import pt.ist.fenixframework.pstm.repository.DbUtil;
-import dml.CompilerArgs;
 
 public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
@@ -20,12 +21,8 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     protected DomainClass currentClass;
 
-    // used by the value-type generator
-    protected FenixValueTypeSerializationGenerator valueTypeGenerator;
-
     public FenixCodeGeneratorOneBoxPerObject(CompilerArgs compArgs, DomainModel domainModel) {
 	super(compArgs, domainModel);
-	this.valueTypeGenerator = new FenixValueTypeSerializationGenerator(compArgs, domainModel);
     }
 
     @Override
@@ -58,7 +55,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	startMethodBody(out);
 
 	for (Role role : domClass.getRoleSlotsList()) {
-	    if ((role.getName() != null) && (role.getMultiplicityUpper() != 1)) {
+	    if (role.getName() != null && role.getMultiplicityUpper() != 1) {
 		print(out, "if (attrName.equals(\"");
 		print(out, role.getName());
 		print(out, "\")) return ");
@@ -123,7 +120,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
     @Override
     protected String getSlotExpression(String slotName) {
 	Role role = currentClass.findRoleSlot(slotName);
-	if ((role != null) && (role.getMultiplicityUpper() != 1)) {
+	if (role != null && role.getMultiplicityUpper() != 1) {
 	    return makeRelationListGetterName(slotName) + "()";
 	} else {
 	    return "((DO_State)this.get$obj$state(false))." + slotName;
@@ -135,11 +132,11 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
     }
 
     @Override
-    protected void generateSetterBody(String setterName, String slotName, String typeName, PrintWriter out) {
+    protected void generateSetterBody(DomainClass domainClass, String setterName, Slot slot, PrintWriter out) {
 	print(out, "((DO_State)this.get$obj$state(true)).");
-	print(out, slotName);
+	print(out, slot.getName());
 	print(out, " = ");
-	print(out, slotName);
+	print(out, slot.getName());
 	print(out, ";");
     }
 
@@ -148,7 +145,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	print(out, "protected static class DO_State extends ");
 
 	String superclassName = getEntityFullName(domClass.getSuperclass());
-	printWords(out, (superclassName == null) ? getDomainClassRoot() : superclassName);
+	printWords(out, superclassName == null ? getDomainClassRoot() : superclassName);
 	print(out, ".DO_State");
 
 	newBlock(out);
@@ -159,7 +156,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	}
 
 	for (Role role : domClass.getRoleSlotsList()) {
-	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+	    if (role.getName() != null && role.getMultiplicityUpper() == 1) {
 		generateSlotDeclaration(out, getTypeFullName(role.getType()), role.getName());
 	    }
 	}
@@ -175,7 +172,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	}
 
 	for (Role role : domClass.getRoleSlotsList()) {
-	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+	    if (role.getName() != null && role.getMultiplicityUpper() == 1) {
 		printWords(out, "newCasted." + role.getName(), "=", "this." + role.getName());
 		println(out, ";");
 	    }
@@ -185,28 +182,19 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	closeBlock(out);
     }
 
-    /* Override the main generation method to create an additional generation instance.  It will
-     * generate the class for value-type serialization.
-     */
-    @Override
-    public void generateCode() {
-	this.valueTypeGenerator.generateCode();
-	super.generateCode();
-    }
-
     protected void generateSerializationCode(DomainClass domClass, PrintWriter out) {
 	newline(out);
 	println(out, "// serialization code");
 	generateWriteReplace(out);
-	
+
 	newline(out);
 	print(out, "protected static class SerializedForm extends ");
 	String superclassName = getEntityFullName(domClass.getSuperclass());
-	printWords(out, (superclassName == null) ? getDomainClassRoot() : superclassName);
+	printWords(out, superclassName == null ? getDomainClassRoot() : superclassName);
 	print(out, ".DO_State.SerializedForm");
 
 	newBlock(out);
-	
+
 	onNewline(out);
 	println(out, "private static final long serialVersionUID = 1L;");
 
@@ -214,14 +202,14 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	newline(out);
 	for (Slot slot : domClass.getSlotsList()) {
 	    ValueType vt = slot.getSlotType();
- 	    if (vt.isBuiltin() || vt.isEnum()) { // declare the same type
+	    if (vt.isBuiltin() || vt.isEnum()) { // declare the same type
 		generateSlotDeclaration(out, slot.getTypeName(), slot.getName());
- 	    } else {
-		generateSlotDeclaration(out, this.valueTypeGenerator.makeSerializationValueTypeName(vt), slot.getName());
- 	    }
+	    } else {
+		generateSlotDeclaration(out, ValueTypeSerializationGenerator.makeSerializationValueTypeName(vt), slot.getName());
+	    }
 	}
 	for (Role role : domClass.getRoleSlotsList()) {
-	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+	    if (role.getName() != null && role.getMultiplicityUpper() == 1) {
 		generateSlotDeclaration(out, getTypeFullName(role.getType()), role.getName());
 	    }
 	}
@@ -234,7 +222,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     protected void generateWriteReplace(PrintWriter out) {
 	printMethod(out, "protected", "Object", "writeReplace");
- 	print(out, " throws java.io.ObjectStreamException");
+	print(out, " throws java.io.ObjectStreamException");
 	startMethodBody(out);
 	print(out, "return new SerializedForm(this);");
 	endMethodBody(out);
@@ -243,7 +231,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
     protected void generateSerializedFormConstructor(DomainClass domClass, PrintWriter out) {
 	newline(out);
 	printMethod(out, "protected", "", "SerializedForm", makeArg("DO_State", "obj"));
-        startMethodBody(out);
+	startMethodBody(out);
 	print(out, "super(obj);");
 
 	onNewline(out);
@@ -252,7 +240,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	    generateSlotSerializedForm(slot, out);
 	}
 	for (Role role : domClass.getRoleSlotsList()) {
-	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+	    if (role.getName() != null && role.getMultiplicityUpper() == 1) {
 		printWords(out, "this." + role.getName(), "=", "obj." + role.getName());
 		println(out, ";");
 	    }
@@ -261,15 +249,17 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
     }
 
     protected void generateSlotSerializedForm(Slot slot, PrintWriter out) {
-	// value types have to be externalized.  others are simply copied
+	// value types have to be externalized. others are simply copied
 	ValueType vt = slot.getSlotType();
 	printWords(out, "this." + slot.getName(), "=");
 	if (vt.isBuiltin() || vt.isEnum()) {
 	    printWords(out, "obj." + slot.getName());
 	} else {
-	    printWords(out, "pt.ist.fenixframework.ValueTypeSerializationGenerator."
-		       + this.valueTypeGenerator.SERIALIZATION_METHOD_PREFIX
-		       + this.valueTypeGenerator.makeSafeValueTypeName(vt));
+	    printWords(
+		    out,
+		    "pt.ist.fenixframework.ValueTypeSerializationGenerator."
+			    + ValueTypeSerializationGenerator.SERIALIZATION_METHOD_PREFIX
+			    + ValueTypeSerializationGenerator.makeSafeValueTypeName(vt));
 	    print(out, "(obj." + slot.getName() + ")");
 	}
 	println(out, ";");
@@ -278,7 +268,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
     protected void generateSerializedFormReadResolve(DomainClass domClass, PrintWriter out) {
 	newline(out);
 	printMethod(out, "", "Object", "readResolve");
- 	print(out, " throws java.io.ObjectStreamException");
+	print(out, " throws java.io.ObjectStreamException");
 	startMethodBody(out);
 	println(out, "DO_State newState = new DO_State();");
 	println(out, "fillInState(newState);");
@@ -288,27 +278,30 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     protected void generateSerializedFormFillInState(DomainClass domClass, PrintWriter out) {
 	newline(out);
-	printMethod(out, "protected", "void", "fillInState", makeArg("pt.ist.fenixframework.pstm.OneBoxDomainObject.DO_State", "obj"));
+	printMethod(out, "protected", "void", "fillInState",
+		makeArg("pt.ist.fenixframework.pstm.OneBoxDomainObject.DO_State", "obj"));
 	startMethodBody(out);
 	println(out, "super.fillInState(obj);");
 	println(out, "DO_State state = (DO_State)obj;");
 
-	// value types have to be internalized.  others are simply copied
+	// value types have to be internalized. others are simply copied
 	for (Slot slot : domClass.getSlotsList()) {
 	    ValueType vt = slot.getSlotType();
 	    printWords(out, "state." + slot.getName(), "=");
 	    if (vt.isBuiltin() || vt.isEnum()) {
 		printWords(out, "this." + slot.getName());
 	    } else {
-		printWords(out, "pt.ist.fenixframework.ValueTypeSerializationGenerator."
-			   + this.valueTypeGenerator.DESERIALIZATION_METHOD_PREFIX
-			   + this.valueTypeGenerator.makeSafeValueTypeName(vt));
+		printWords(
+			out,
+			"pt.ist.fenixframework.ValueTypeSerializationGenerator."
+				+ ValueTypeSerializationGenerator.DESERIALIZATION_METHOD_PREFIX
+				+ ValueTypeSerializationGenerator.makeSafeValueTypeName(vt));
 		print(out, "(this." + slot.getName() + ")");
 	    }
 	    println(out, ";");
 	}
 	for (Role role : domClass.getRoleSlotsList()) {
-	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+	    if (role.getName() != null && role.getMultiplicityUpper() == 1) {
 		printWords(out, "state." + role.getName(), "=", "this." + role.getName());
 		println(out, ";");
 	    }
@@ -329,7 +322,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	println(out, "super.create$allLists();");
 
 	for (Role role : domClass.getRoleSlotsList()) {
-	    if ((role.getName() != null) && (role.getMultiplicityUpper() != 1)) {
+	    if (role.getName() != null && role.getMultiplicityUpper() != 1) {
 		print(out, "get$$relationList(\"");
 		print(out, role.getName());
 		print(out, "\", ");
@@ -344,8 +337,8 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
     @Override
     protected void generateDatabaseReader(DomainClass domClass, PrintWriter out) {
 	newline(out);
-	printMethod(out, "protected", "void", "readStateFromResultSet", makeArg("java.sql.ResultSet", "rs"), makeArg(
-		DO_STATE_SUPER, "state"));
+	printMethod(out, "protected", "void", "readStateFromResultSet", makeArg("java.sql.ResultSet", "rs"),
+		makeArg(DO_STATE_SUPER, "state"));
 	print(out, " throws java.sql.SQLException");
 	startMethodBody(out);
 
@@ -360,7 +353,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	}
 
 	for (Role role : domClass.getRoleSlotsList()) {
-	    if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+	    if (role.getName() != null && role.getMultiplicityUpper() == 1) {
 		generateOneRoleSlotRsReader(out, role.getName());
 	    }
 	}
@@ -439,33 +432,54 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
     }
 
     @Override
-    protected void generateRoleClassGetter(Role role, Role otherRole, PrintWriter out) {
-
+    protected void generateStaticRoleSlotsMultOne(Role role, Role otherRole, PrintWriter out) {
 	String rType = getTypeFullName(role.getType());
 	String oType = getTypeFullName(otherRole.getType());
 
-	if (role.getMultiplicityUpper() == 1) {
-	    printMethod(out, "public", rType, "getValue", makeArg(oType, "o1"));
-	    startMethodBody(out);
-	    print(out, "return ");
-	    print(out, getReadExpression(otherRole.getType().getBaseName(), "o1", role.getName()));
-	    print(out, ";");
-	    endMethodBody(out);
+	printWords(out, "@Override");
+	newline(out);
+	printMethod(out, "public", rType, "getValue", makeArg(oType, "o1"));
+	startMethodBody(out);
+	print(out, "return ");
+	print(out, getReadExpression(otherRole.getType().getBaseName(), "o1", role.getName()));
+	print(out, ";");
+	endMethodBody(out);
 
-	    printMethod(out, "public", "void", "setValue", makeArg(oType, "o1"), makeArg(rType, "o2"));
-	    startMethodBody(out);
-	    print(out, getLValueExpression(otherRole.getType().getBaseName(), "o1", role.getName()));
-	    print(out, " = o2;");
-	    endMethodBody(out);
-	} else {
-	    printMethod(out, "public", makeGenericType("dml.runtime.RelationBaseSet", rType), "getSet", makeArg(oType, "o1"));
-	    startMethodBody(out);
-	    print(out, "return ((");
-	    print(out, otherRole.getType().getBaseName());
-	    print(out, ")o1).");
-	    print(out, makeRelationListGetterName(role.getName()) + "()");
-	    print(out, ";");
-	    endMethodBody(out);
-	}
+	printWords(out, "@Override");
+	newline(out);
+	printMethod(out, "public", "void", "setValue", makeArg(oType, "o1"), makeArg(rType, "o2"));
+	startMethodBody(out);
+	print(out, getLValueExpression(otherRole.getType().getBaseName(), "o1", role.getName()));
+	print(out, " = o2;");
+	endMethodBody(out);
+    }
+
+    @Override
+    protected void generateStaticRoleSlotsMultStar(Role role, Role otherRole, PrintWriter out) {
+	String rType = getTypeFullName(role.getType());
+	String oType = getTypeFullName(otherRole.getType());
+
+	printMethod(out, "public", makeGenericType("pt.ist.fenixframework.dml.runtime.RelationBaseSet", rType), "getSet",
+		makeArg(oType, "o1"));
+	startMethodBody(out);
+	print(out, "return ((");
+	print(out, otherRole.getType().getBaseName());
+	print(out, ")o1).");
+	print(out, makeRelationListGetterName(role.getName()) + "()");
+	print(out, ";");
+	endMethodBody(out);
+
+    }
+
+    @Override
+    protected void generateRoleSlotMethodsMultStarSet(Role role, PrintWriter out, String methodModifiers,
+	    String capitalizedSlotName, String slotAccessExpression, String slotName, String typeName) {
+	newline(out);
+	printMethod(out, methodModifiers, makeGenericType("java.util.Set", typeName), "get" + capitalizedSlotName + "Set");
+	startMethodBody(out);
+	print(out, "return ");
+	print(out, makeRelationListGetterName(role.getName()));
+	print(out, "();");
+	endMethodBody(out);
     }
 }

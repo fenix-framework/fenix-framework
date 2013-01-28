@@ -15,7 +15,7 @@ import pt.ist.fenixframework.pstm.DomainClassInfo;
 public class JvstmOJBBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(JvstmOJBBackEnd.class);
 
-    private static final String BACKEND_NAME = "jvstm-ojb";
+    public static final String BACKEND_NAME = "jvstm-ojb";
 
     private final TransactionManager transactionManager;
 

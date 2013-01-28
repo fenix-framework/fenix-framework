@@ -48,8 +48,12 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
     @Override
     public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
-	// TODO Auto-generated method stub
-	return null;
+	jvstm.Transaction.begin();
+	try {
+	    return command.call();
+	} finally {
+	    jvstm.Transaction.commit();
+	}
     }
 
     @Override

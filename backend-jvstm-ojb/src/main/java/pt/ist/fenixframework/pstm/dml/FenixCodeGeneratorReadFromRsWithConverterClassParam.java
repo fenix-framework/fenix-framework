@@ -7,8 +7,8 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
+import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainModel;
-import dml.CompilerArgs;
 
 public class FenixCodeGeneratorReadFromRsWithConverterClassParam extends FenixCodeGenerator {
 
@@ -19,7 +19,8 @@ public class FenixCodeGeneratorReadFromRsWithConverterClassParam extends FenixCo
 	InputStream inputStream;
 	try {
 	    inputStream = getClass().getResourceAsStream("/.dmlProjectPackageMapper");
-	    final String contents = FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject.read(new InputStreamReader(inputStream));
+	    final String contents = FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject
+		    .read(new InputStreamReader(inputStream));
 	    for (final String line : contents.split("\n")) {
 		final int sindex = line.indexOf(' ');
 		final String packageName = line.substring(0, sindex);

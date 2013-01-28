@@ -7,14 +7,15 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
+import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainModel;
-import dml.CompilerArgs;
 
 public class FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject extends FenixCodeGeneratorOneBoxPerObject {
 
     private static final Map<String, File> packageMapper = new HashMap<String, File>();
 
-    public FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject(final CompilerArgs compilerArgs, final DomainModel domainModel) {
+    public FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject(final CompilerArgs compilerArgs,
+	    final DomainModel domainModel) {
 	super(compilerArgs, domainModel);
 	InputStream inputStream;
 	try {
@@ -41,8 +42,9 @@ public class FenixCodeGeneratorReadFromRsWithConverterClassParamOneBoxPerObject 
 	try {
 	    char[] buffer = new char[4096];
 	    final StringBuilder fileContents = new StringBuilder();
-	    for (int n = 0; (n = fileReader.read(buffer)) != -1; fileContents.append(buffer, 0, n))
+	    for (int n = 0; (n = fileReader.read(buffer)) != -1; fileContents.append(buffer, 0, n)) {
 		;
+	    }
 	    return fileContents.toString();
 	} finally {
 	    fileReader.close();
