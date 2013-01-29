@@ -1,16 +1,10 @@
 package pt.ist.fenixframework.backend.jvstmojb;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.pstm.DataAccessPatterns;
+import pt.ist.fenixframework.pstm.DomainClassInfo;
 import pt.ist.fenixframework.pstm.MetadataManager;
-import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
 import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
 
 /**
@@ -159,6 +153,8 @@ public class JvstmOJBConfig extends Config {
 	MetadataManager.init(this);
 	new RepositoryBootstrap(this).updateDataRepositoryStructureIfNeeded();
 	DataAccessPatterns.init(this);
+	DomainClassInfo.initializeClassInfos(0);
+	DomainClassInfo.ensureDomainRoot();
     }
 
     @Override
@@ -193,6 +189,10 @@ public class JvstmOJBConfig extends Config {
 
 	    this.dbAlias = prefix + encodingParams + '&' + rest;
 	}
+    }
+
+    protected void updateRepositoryStructureIfNeededFromString(String value) {
+	updateRepositoryStructureIfNeeded = Boolean.parseBoolean(value);
     }
 
     public String getDbUsername() {

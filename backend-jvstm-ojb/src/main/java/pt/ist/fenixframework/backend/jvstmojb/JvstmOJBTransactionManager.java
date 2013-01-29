@@ -48,11 +48,11 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
     @Override
     public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
-	jvstm.Transaction.begin();
+	pt.ist.fenixframework.pstm.Transaction.begin();
 	try {
 	    return command.call();
 	} finally {
-	    jvstm.Transaction.commit();
+	    pt.ist.fenixframework.pstm.Transaction.commit();
 	}
     }
 

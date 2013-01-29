@@ -16,6 +16,7 @@ import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
@@ -27,7 +28,7 @@ public class DomainClassInfo implements Serializable {
     private volatile static DomainClassInfo[] classInfoById;
     private volatile static long serverOidBase;
 
-    static void initializeClassInfos(int serverId) {
+    public static void initializeClassInfos(int serverId) {
         serverOidBase = (long)serverId << 48;  // the server id provides de 16 most significant bits of the OID
 
 	PersistenceBroker broker = null;
@@ -164,7 +165,10 @@ public class DomainClassInfo implements Serializable {
     }
 
     private static Class mapIdToClass(int cid) {
-	if ((cid < 1) || (cid >= classInfoById.length)) {
+	if (cid == 0) {
+	    return DomainRoot.class;
+	}
+	if (cid < 1 || cid >= classInfoById.length) {
 	    return null;
 	} else {
 	    return classInfoById[cid].domainClass;
@@ -175,7 +179,7 @@ public class DomainClassInfo implements Serializable {
 	if (oid == 1) {
 	    return 0;
 	} else {
-	    return (((int) (oid >> 32)) & 0x0000FFFF); // shift class id to
+	    return (int) (oid >> 32) & 0x0000FFFF; // shift class id to
 						       // rightmost position and
 						       // clear server id bits
 	}
@@ -298,8 +302,8 @@ public class DomainClassInfo implements Serializable {
     private static class SerializedForm implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private String className;
-	private int classId;
+	private final String className;
+	private final int classId;
 
 	SerializedForm(DomainClassInfo obj) {
 	    this.className = obj.domainClassName;
@@ -308,6 +312,41 @@ public class DomainClassInfo implements Serializable {
 
 	Object readResolve() throws ObjectStreamException, ClassNotFoundException {
 	    return new DomainClassInfo(this.className, this.classId);
+	}
+    }
+
+    public static void ensureDomainRoot() {
+	PersistenceBroker broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+	try {
+	    broker.beginTransaction();
+	    
+	    Connection conn = broker.serviceConnectionManager().getConnection();
+	    conn.setAutoCommit(false);
+	    
+	    Statement stm = conn.createStatement();
+
+	    ResultSet rs = stm.executeQuery("SELECT * FROM DOMAIN_ROOT WHERE OID = 1");
+
+	    boolean hasRoot = rs.next();
+	    rs.close();
+
+	    if (!hasRoot) {
+		logger.info("DomainRoot not found. Initializing...");
+		int value = stm.executeUpdate("INSERT INTO DOMAIN_ROOT (OID, ID_INTERNAL) VALUES (1,1)");
+
+		if (value == 0) {
+		    logger.error("Could not initialize DomainRoot!");
+		} else {
+		    logger.info("DomainRoot initialized successfully!");
+		}
+	    }
+	    broker.commitTransaction();
+	    stm.close();
+	    conn.close();
+	} catch (Throwable e) {
+	    throw new Error(e);
+	} finally {
+	    broker.close();
 	}
     }
 }

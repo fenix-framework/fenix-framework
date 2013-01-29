@@ -27,7 +27,7 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     protected static final String RESULT_SET_READER_CLASS = "pt.ist.fenixframework.pstm.ResultSetReader";
 
-    protected static final String IMPORTS_COMMA_SEPARATED = "pt.ist.fenixframework.pstm.VBox,pt.ist.fenixframework.pstm.RelationList,pt.ist.fenixframework.pstm.OJBFunctionalSetWrapper";
+    protected static final String IMPORTS_COMMA_SEPARATED = "pt.ist.fenixframework.pstm.RelationList,pt.ist.fenixframework.pstm.OJBFunctionalSetWrapper";
     protected static final String DOMAIN_CLASS_ROOT = "pt.ist.fenixframework.pstm.AbstractDomainObject";
     protected static final String DIRECT_RELATION_TYPE_CLASS = "pt.ist.fenixframework.pstm.LoggingRelation";
     protected static final String TRANSACTION_CLASS = "pt.ist.fenixframework.pstm.Transaction";
@@ -168,7 +168,6 @@ public class FenixCodeGenerator extends CodeGenerator {
 	}
     }
 
-    @Override
     protected void generateInitSlot(Slot slot, PrintWriter out) {
 	onNewline(out);
 	printWords(out, slot.getName());
