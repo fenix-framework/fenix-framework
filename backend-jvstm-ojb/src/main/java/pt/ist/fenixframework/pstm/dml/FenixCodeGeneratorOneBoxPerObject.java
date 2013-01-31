@@ -205,7 +205,13 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	    if (vt.isBuiltin() || vt.isEnum()) { // declare the same type
 		generateSlotDeclaration(out, slot.getTypeName(), slot.getName());
 	    } else {
-		generateSlotDeclaration(out, ValueTypeSerializationGenerator.makeSerializationValueTypeName(vt), slot.getName());
+		if (vt.getExternalizationElements().size() == 1) {
+		    generateSlotDeclaration(out, vt.getExternalizationElements().get(0).getType().getFullname(),
+			    slot.getName());
+		} else {
+		    generateSlotDeclaration(out, ValueTypeSerializationGenerator.makeSerializationValueTypeName(vt),
+			    slot.getName());
+		}
 	    }
 	}
 	for (Role role : domClass.getRoleSlotsList()) {
@@ -257,7 +263,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	} else {
 	    printWords(
 		    out,
-		    "pt.ist.fenixframework.ValueTypeSerializationGenerator."
+		    "pt.ist.fenixframework.ValueTypeSerializer."
 			    + ValueTypeSerializationGenerator.SERIALIZATION_METHOD_PREFIX
 			    + ValueTypeSerializationGenerator.makeSafeValueTypeName(vt));
 	    print(out, "(obj." + slot.getName() + ")");
@@ -293,7 +299,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 	    } else {
 		printWords(
 			out,
-			"pt.ist.fenixframework.ValueTypeSerializationGenerator."
+			"pt.ist.fenixframework.ValueTypeSerializer."
 				+ ValueTypeSerializationGenerator.DESERIALIZATION_METHOD_PREFIX
 				+ ValueTypeSerializationGenerator.makeSafeValueTypeName(vt));
 		print(out, "(this." + slot.getName() + ")");

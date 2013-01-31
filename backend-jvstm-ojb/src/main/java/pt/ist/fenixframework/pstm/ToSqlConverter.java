@@ -1,10 +1,13 @@
 package pt.ist.fenixframework.pstm;
 
-import org.joda.time.DateTimeZone;
+import java.io.Serializable;
+
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.Partial;
+
+import pt.ist.fenixframework.core.Externalization;
 
 public class ToSqlConverter {
 
@@ -116,6 +119,10 @@ public class ToSqlConverter {
 
     public static String getValueForPartial(Partial value) {
         return (value == null) ? null : PartialExternalization.partialToString(value);
+    }
+
+    public static Object getValueForSerializable(Serializable value) {
+	return (value == null) ? null : Externalization.externalizeSerializable(value);
     }
 
 //     public static Period readPeriod(ResultSet rs, String columnName) throws SQLException {

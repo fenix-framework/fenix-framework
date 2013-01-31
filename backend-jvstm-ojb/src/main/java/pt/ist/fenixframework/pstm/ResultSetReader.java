@@ -1,20 +1,20 @@
 package pt.ist.fenixframework.pstm;
 
+import java.io.Serializable;
 import java.sql.Blob;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.Partial;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.core.Externalization;
 
 
 public class ResultSetReader {
@@ -165,6 +165,11 @@ public class ResultSetReader {
     public static Partial readPartial(ResultSet rs, String columnName) throws SQLException {
         String partialAsString = rs.getString(columnName);
         return (partialAsString == null) ? null : PartialExternalization.partialFromString(partialAsString);
+    }
+
+    public static Serializable readSerializable(ResultSet rs, String columnName) throws SQLException {
+	byte[] bytes = rs.getBytes(columnName);
+	return (bytes == null) ? null : Externalization.<Serializable> internalizeSerializable(bytes);
     }
 
 //     public static Period readPeriod(ResultSet rs, String columnName) throws SQLException {
