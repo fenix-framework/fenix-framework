@@ -24,6 +24,7 @@ public class JvstmOJBBackEnd implements BackEnd {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends DomainObject> T fromOid(Object oid) {
 	if (logger.isTraceEnabled()) {
 	    logger.trace("fromOid(" + oid + ")");
@@ -46,13 +47,7 @@ public class JvstmOJBBackEnd implements BackEnd {
 
     @Override
     public DomainRoot getDomainRoot() {
-	DomainRoot root = fromOid(1L);
-	if (root == null) {
-	    root = new DomainRoot();
-	    root = fromOid(1L);
-	    assert root != null;
-	}
-	return root;
+	return fromOid(1L);
     }
 
     @Override

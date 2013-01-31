@@ -68,9 +68,11 @@ public class DomainClassInfo implements Serializable {
 		    DomainModel model = FenixFramework.getDomainModel();
 
 		    for (DomainClass domClass : model.getDomainClasses()) {
+			boolean isDomainRoot = domClass.getFullName().equals(DomainRoot.class.getName());
+
 			Class javaClass = Class.forName(domClass.getFullName());
 			if (!map.containsKey(javaClass)) {
-			    DomainClassInfo classInfo = new DomainClassInfo(javaClass, ++maxId);
+			    DomainClassInfo classInfo = new DomainClassInfo(javaClass, isDomainRoot ? 0 : ++maxId);
 			    addNewInfo(map, array, classInfo);
 
 			    if (logger.isInfoEnabled()) {
@@ -165,10 +167,7 @@ public class DomainClassInfo implements Serializable {
     }
 
     private static Class mapIdToClass(int cid) {
-	if (cid == 0) {
-	    return DomainRoot.class;
-	}
-	if (cid < 1 || cid >= classInfoById.length) {
+	if (cid < 0 || cid >= classInfoById.length) {
 	    return null;
 	} else {
 	    return classInfoById[cid].domainClass;
