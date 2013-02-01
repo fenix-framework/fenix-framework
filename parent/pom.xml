@@ -136,41 +136,6 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-linkedlist-domain-object</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-skiplist-domain-object</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-indexes</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-backend-infinispan</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-backend-ogm</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-backend-jvstm-ojb</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-backend-mem</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
                 <artifactId>fenix-framework-data-access-patterns</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -186,12 +151,47 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-test</artifactId>
+                <artifactId>fenix-framework-indexes</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-test-txintrospector</artifactId>
+                <artifactId>fenix-framework-bplustree-domain-object</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-linkedlist-domain-object</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-skiplist-domain-object</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-data-access-patterns</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-txintrospector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-backend-ogm</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-backend-jvstm-ojb</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-test</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

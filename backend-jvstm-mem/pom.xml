@@ -62,8 +62,7 @@
         </dependency>
         <dependency>
             <groupId>jvstm</groupId>
-            <artifactId>jvstm</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>jvstm-fenix</artifactId>
         </dependency>
     </dependencies>
 

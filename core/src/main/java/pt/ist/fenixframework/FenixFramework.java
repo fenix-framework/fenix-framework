@@ -24,7 +24,8 @@ import pt.ist.fenixframework.util.NodeBarrier;
  *
  * <li><strong>By convention</strong>: When the FenixFramework class is loaded, its static
  * initialization code will check for the presence of a properties file that provides the
- * configuration information.</li>
+ * configuration information or the existence of system properties (given through the
+ * <code>-D</code> switch).</li>
  *
  * <li><strong>Explicitly</strong>: The programmer either creates a {@link Config} or {@link
  * MultiConfig} instance and then explicitly calls the corresponding initialization method: {@link
@@ -32,15 +33,17 @@ import pt.ist.fenixframework.util.NodeBarrier;
  *
  * </ul>
  *
- * <p>Using the configuration by convention, the framework will first look up the name of the {@link
- * pt.ist.fenixframework.backend.BackEnd} that generated the domain-specific code (this is done by
- * instantiating the class {@link pt.ist.fenixframework.backend.CurrentBackEndId} and by requesting
- * {@link pt.ist.fenixframework.backend.BackEndId#getBackEndName}) and then use that name to check
- * for the presence of the file '<code>fenix-framework-&lt;NNN&gt;.properties</code>' in the
- * classpath using <code>Thread.currentThread().getContextClassLoader().getResource()</code> (where
- * <code>&lt;NNN&gt;</code> is the name of the BackEnd).  If this file is found, and contains the
- * correct content, the framework will create the appropriate Config instance and automatically
- * invoke {@link FenixFramework#initialize(Config)}.
+ * <p>Using the configuration by convention, the framework will first load the properties from the
+ * file <code>fenix-framework.properties</code> if it exists.  Then it will load the properties from
+ * the file <code>fenix-framework-&lt;NNN&gt;.properties</code>, if it exists (where
+ * <code>&lt;NNN&gt;</code> is the name of the BackEnd that generated the domain-specific code).
+ * Files are looked up in the application's classpath using
+ * <code>Thread.currentThread().getContextClassLoader().getResource()</code>.  Finally, it will load
+ * any system properties that start with the prefix <code>fenixframework.</code> (and discard that
+ * prefix).  Whenever the same property is defined more than once, the last setting prevails.  After
+ * the previous steps have been taken, if there is any property set, then the framework will attempt
+ * to create a {@link Config} instance and automatically invoke {@link
+ * FenixFramework#initialize(Config)}.
  *
  * The syntax for the configuration file is to have each line in the form:
  *
@@ -50,7 +53,8 @@ import pt.ist.fenixframework.util.NodeBarrier;
  *
  * </blockquote>
  *
- * where each <code>property</code> must be the name of an existing configuration field.
+ * where each <code>property</code> must be the name of an existing configuration field (when
+ * providind the properties via a system property use <code>-Dfenixframework.property=value</code>).
  * Additionally, there is one optional special property named <code>config.class</code>.  By
  * default, the config parser creates an instance of the {@link BackEndId#getDefaultConfigClass()}
  * provided by the current BackEndId, but this property can be used to choose a different (albeit
@@ -59,8 +63,8 @@ import pt.ist.fenixframework.util.NodeBarrier;
  *
  * <ol>
  *
- * <li> Confirm that the config has a field with the same name as the <code>property</code>.  If not
- * a {@link ConfigError} is thrown.</li>
+ * <li> Confirm that the config has a field with the same name as the <code>property</code>.  If
+ * not, ignore the property with a warning.</li>
  *
  * <li> If the config class provides a method (can be private) in the format
  * <code>&lt;property&gt;FromString(String)</code>, then such method will be invoked to set the
@@ -69,7 +73,7 @@ import pt.ist.fenixframework.util.NodeBarrier;
  * <li> Else, attempt to directly set the property on the field assigning it the <code>value</code>
  * String.</li>
  *
- * <li> If all previous attempts have failed, throw a {@link ConfigError}.</li>
+ * <li> If the previous attempts to set the value fail, throw a {@link ConfigError}.</li>
  *
  * </ol>
  *
@@ -151,38 +155,81 @@ public class FenixFramework {
      * initialization process gives up.
      */
     private static void tryAutoInit() {
-        // look up current backend's name
+        /* first load the default configuration if it exists */
+        Properties props = loadProperties(FENIX_FRAMEWORK_CONFIG_RESOURCE_DEFAULT, new Properties());
+        logger.debug("Fenix Framework properties after reading default config file:" +
+                     props.toString());
+
+        /* look up current backend's name */
         String currentBackEndName = BackEndId.getBackEndId().getBackEndName();
         logger.debug("CurrentBackEndName = " + currentBackEndName);
+        /* then override with the backend-specific config file */
+        props = loadProperties(FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX + currentBackEndName +
+                               FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX, props);
+        logger.debug("Fenix Framework properties after reading backend config file:" +
+                     props.toString());
 
-        // try auto init for the given backend
-        boolean success = tryAutoInit(FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX + currentBackEndName
-                                      + FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX);
-        if (!success) {
-            // try auto init with default resource name
-            if (!tryAutoInit(FENIX_FRAMEWORK_CONFIG_RESOURCE_DEFAULT)) {
-                logger.info("Skipping configuration by convention.");
-            }
+        /* finally, enforce any system properties */
+        props = loadSystemProperties(props);
+        logger.debug("Fenix Framework properties after enforcing system properties:" +
+                     props.toString());
+
+        // try auto init for the given properties.  If none exists just skip
+        if (props.isEmpty() || ! tryAutoInit(props)) {
+            logger.info("Skipping configuration by convention.");
         }
     }
 
-    /** Attempts to automatically initialize the framework by reading the
-     * configuration parameters from a named resource. */
-    private static boolean tryAutoInit(String resourceName) {
+    /** 
+     * Return a Properties setup from the given resourceName, backed by the default values if
+     * any.
+     */
+    private static Properties loadProperties(String resourceName, Properties defaults) {
+        Properties props = new Properties();
+        props.putAll(defaults);
+
         InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
         if (in == null) {
             logger.info("Resource '" + resourceName + "' not found");
-            return false;
+            return props;
         }
 
         logger.info("Found configuration by convention in resource '" + resourceName + "'.");
 
+        // add the new properties
+        try {
+            props.load(in);
+        } catch (IOException e) {
+            logger.warn("Failed auto initialization with " + resourceName, e);
+            return defaults;
+        } finally {
+            try { in.close(); } catch (Throwable ignore) {}
+        }
+        return props;
+    }
+
+    private static Properties loadSystemProperties(Properties props) {
+        Properties newProps = new Properties();
+        newProps.putAll(props);
+        Properties systemProps = System.getProperties();
+        for (String propertyName : systemProps.stringPropertyNames()) {
+            if (propertyName.startsWith(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX)) {
+                String value = systemProps.getProperty(propertyName);
+                String realPropertyName = propertyName.substring(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX.length());
+                logger.debug("Enforcing property from system: " + realPropertyName + "=" + value);
+                newProps.setProperty(realPropertyName, value);
+            }
+        }
+        return newProps;
+    }
+
+    /**
+     * Attempt to automatically initialize the framework with the given set of properties.
+     */
+    private static boolean tryAutoInit(Properties props) {
         Config config = null;
         try {
-            config = createConfigFromResourceStream(in);
-        } catch (IOException e) {
-            logger.info("Failed auto initialization with " + resourceName, e);
-            return false;
+            config = createConfigFromProperties(props);
         } catch (ConfigError e) {
             logger.info("ConfigError", e);
             throw e;
@@ -191,26 +238,7 @@ public class FenixFramework {
         return true;
     }
 
-    private static Config createConfigFromResourceStream(InputStream in) throws IOException {
-        // get the properties
-        Properties props = new Properties();
-        props.load(in);
-        try { in.close(); } catch (Throwable ignore) {}
-        logger.debug("Fenix Framework properties provided from config file:" + props.toString());
-
-        // Override with system properties
-        Properties systemProps = System.getProperties();
-        for (String propertyName : systemProps.stringPropertyNames()) {
-            if (propertyName.startsWith(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX)) {
-                String value = systemProps.getProperty(propertyName);
-                String realPropertyName = propertyName.substring(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX.length());
-                logger.debug("Enforcing property from system: " + realPropertyName + "=" + value);
-                props.setProperty(realPropertyName, value);
-            }
-        }
-
-        logger.debug("Final Fenix Framework properties provided:" + props.toString());
-
+    private static Config createConfigFromProperties(Properties props) {
         // get the config instance
         Config config = null;
         try {
@@ -223,6 +251,7 @@ public class FenixFramework {
                 } catch (ClassNotFoundException e) {
                     // here, we could ignore and attempt the default config class, but it's best if
                     // the programmer understands that the configuration is flawed
+                    logger.error(ConfigError.CONFIG_CLASS_NOT_FOUND + configClassName, e);
                     throw new ConfigError(ConfigError.CONFIG_CLASS_NOT_FOUND, configClassName);
                 }
             } else { // fallback to the current backend's default

@@ -26,9 +26,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     public InfinispanCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
-        String param = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
-        if (param == null || param.isEmpty()) {
-            setCollectionToUse("pt.ist.fenixframework.adt.bplustree.BPlusTree");
+        String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
+        if (collectionName == null || collectionName.isEmpty()) {
+            setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
         }
      }
 
@@ -72,10 +72,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
         generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
-        
         // Index method generation
         super.generateIndexMethods(domClass, out);
-        
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
     }
 
@@ -205,7 +203,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         returnExpression += ";";
         print(out, returnExpression);
     }
-    
+
     protected void generateInfinispanSetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
         generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
@@ -274,6 +272,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
             printFinalMethod(out, "public", typeName, "get" + capitalize(slotName) + "Shadow");
             startMethodBody(out);
             generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
+        
             println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGetShadow(getOid().getFullId() + \":" + slotName + "\");");
             print(out, "return (oid == null || oid instanceof Externalization.NullClass ? null : (" + typeName + ")InfinispanBackEnd.getInstance().fromOid(oid));");
             endMethodBody(out);
@@ -426,7 +425,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, ".iterator();");
         endMethodBody(out);
     }
-    
+
     @Override
     protected String getNewRoleStarSlotExpression(Role role) {
         return getNewRoleStarSlotExpressionWithBackingSet(role, role.getName());

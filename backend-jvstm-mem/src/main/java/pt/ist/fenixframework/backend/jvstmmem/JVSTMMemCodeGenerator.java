@@ -15,10 +15,10 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 
     public JVSTMMemCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
 	super(compArgs, domainModel);
-        String param = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
-        if (param == null || param.isEmpty()) {
-            setCollectionToUse("pt.ist.fenixframework.adt.bplustree.BPlusTree");
-        }
+        String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
+        if (collectionName == null || collectionName.isEmpty()) {
+	    setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
+	}
     }
 
     @Override
@@ -56,25 +56,25 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printWords(out, "private", getVBoxType(slot), slot.getName(), "= new", getVBoxType(slot), "(" + defaultValue + ")");
 	print(out, ";");
     }
-    
+
     @Override
     protected void generateRoleSlot(Role role, PrintWriter out) {
-        onNewline(out);
-        if (role.getMultiplicityUpper() == 1) {
-            PrimitiveToWrapperEntry w = findWrapperEntry(getTypeFullName(role.getType()));
-            String defaultValue = w != null ? w.defaultPrimitiveValue : "null";
-            String t = makeGenericType("VBox", getReferenceType(getTypeFullName(role.getType())));
-            printWords(out, "private", t, role.getName(), "= new", t, "(" + defaultValue + ")");
-        } else {
-            printWords(out, "private", getDefaultCollectionFor(role.getType().getFullName()), role.getName());
-        }
-        println(out, ";");
+	onNewline(out);
+	if (role.getMultiplicityUpper() == 1) {
+	    PrimitiveToWrapperEntry w = findWrapperEntry(getTypeFullName(role.getType()));
+	    String defaultValue = w != null ? w.defaultPrimitiveValue : "null";
+	    String t = makeGenericType("VBox", getReferenceType(getTypeFullName(role.getType())));
+	    printWords(out, "private", t, role.getName(), "= new", t, "(" + defaultValue + ")");
+	} else {
+	    printWords(out, "private", getDefaultCollectionFor(role.getType().getFullName()), role.getName());
+	}
+	println(out, ";");
     }
 
     private String getVBoxType(Slot slot) {
 	return makeGenericType("VBox", getReferenceType(slot.getTypeName()));
     }
-    
+
     @Override
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
 	generateVBoxSlotGetter("get" + capitalize(slotName), "get", slotName, typeName, out);
@@ -83,7 +83,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
             generateVBoxRegisterGet(slotName, "registerGet" + capitalize(slotName), out);
         }
     }
-    
+
     @Override
     protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
 	generateVBoxSlotGetter("get" + capitalize(slot.getName()), "get", slot.getName(), slot.getTypeName(), out);
@@ -117,9 +117,9 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	startMethodBody(out);
 
 	generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
-        generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
-        generateIndexationInSetter(domainClass, slot, out); // Indexes
-	
+	generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
+	generateIndexationInSetter(domainClass, slot, out); // Indexes
+
 	printWords(out, getSlotExpression(slot.getName()) + ".put(" + slot.getName() + ");");
 	endMethodBody(out);
     }
@@ -164,10 +164,11 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	newline(out);
 	printFinalMethod(out, "public", getSetTypeDeclarationFor(role), methodName);
 	startMethodBody(out);
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", this." + role.getName() + ");");
 	endMethodBody(out);
     }
-    
+
     protected void generateRoleSlotMethodsMultStarSetter(Role role, PrintWriter out, String methodModifiers,
 	    String capitalizedSlotName, String typeName, String slotName) {
 	newline(out);
@@ -220,7 +221,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printWords(out, "return get" + capitalizedSlotName + "().contains(" + slotName + ");");
 	endMethodBody(out);
     }
-    
+
     protected void generateRoleSlotMethodsMultStarHasAnyChild(Role role, PrintWriter out,
 	    String methodModifiers, String capitalizedSlotName) {
 	newline(out);
@@ -238,29 +239,29 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
         startMethodBody(out);
         
         printWords(out, "return get" + capitalize(role.getName()) + "().iterator();");
-        endMethodBody(out);
+	endMethodBody(out);
     }
 
     @Override
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
 	// call the DAP CodeGen which is overridden in this method
 	generateGetterDAPStatement(dC, slotName, typeName, out);
-        printWords(out, "return", getSlotExpression(slotName) + ".get();");
+	printWords(out, "return", getSlotExpression(slotName) + ".get();");
     }
-    
+
     @Override
     protected void generateStaticRoleSlotsMultOne(Role role, Role otherRole, PrintWriter out) {
-        printMethod(out, "public", getTypeFullName(role.getType()), "getValue", makeArg(getTypeFullName(otherRole.getType()), "o1"));
-        startMethodBody(out);
-        printWords(out, "return", "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + ".get();");
-        endMethodBody(out);
+	printMethod(out, "public", getTypeFullName(role.getType()), "getValue", makeArg(getTypeFullName(otherRole.getType()), "o1"));
+	startMethodBody(out);
+	printWords(out, "return", "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + ".get();");
+	endMethodBody(out);
 
-        printMethod(out, "public", "void",  "setValue",
-                    makeArg(getTypeFullName(otherRole.getType()), "o1"),
-                    makeArg(getTypeFullName(role.getType()), "o2"));
-        startMethodBody(out);
-        printWords(out, "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + ".put(o2);");
-        endMethodBody(out);
+	printMethod(out, "public", "void",  "setValue",
+		makeArg(getTypeFullName(otherRole.getType()), "o1"),
+		makeArg(getTypeFullName(role.getType()), "o2"));
+	startMethodBody(out);
+	printWords(out, "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + ".put(o2);");
+	endMethodBody(out);
     }
-    
+
 }

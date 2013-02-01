@@ -122,7 +122,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     protected String getCodeGeneratorClassName() {
         return codeGeneratorClassName;
     }
-    
+
     @Override
     protected File getGeneratedSourcesDirectory() {
         return generatedSourcesDirectory;
