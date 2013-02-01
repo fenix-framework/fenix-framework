@@ -10,7 +10,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import javax.transaction.SystemException;
+
+import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
+import org.infinispan.context.Flag;
 import org.infinispan.manager.CacheContainer;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.manager.DefaultCacheManager;
@@ -149,5 +153,24 @@ public class InfinispanBackEnd implements BackEnd {
     public final <T> T cacheGet(String key) {
         Object obj = domainCache.get(key);
         return (T)(obj instanceof Externalization.NullClass ? null : obj);
+    }
+    
+    /**
+     * Reads from Infinispan a value with a given key such that the transactional context does not keep 
+     * track of this key. This means that this read can never cause the trasactin to abort.
+     * This method is used by the code generated in the Domain Objects.
+     */
+    public final <T> T cacheGetShadow(String key) {
+	Object obj = domainCache.getAdvancedCache().withFlags(Flag.READ_WITHOUT_REGISTERING).get(key);
+        return (T)(obj instanceof Externalization.NullClass ? null : obj);
+    }
+    
+    public final void registerGet(String key) {
+	AdvancedCache advCache = domainCache.getAdvancedCache();
+	try {
+	    advCache.getTxTable().getLocalTransaction(advCache.getTransactionManager().getTransaction()).addReadKey(key);
+	} catch (SystemException e) {
+	    logger.error("Exception while getting the current JPA Transaction to register a key read", e);
+	}
     }
 }
