@@ -74,7 +74,7 @@ public class TxStats implements TxIntrospector {
 
     // Filter out internal Fenix Framework structures
     private boolean filter(DomainObject object) {
-	return FILTER && object.getClass().getPackage().getName().startsWith("pt.ist.fenixframework.core.adt.bplustree");
+	return FILTER && object.getClass().getPackage().getName().startsWith("pt.ist.fenixframework.adt.");
     }
 
     private static String collectionToStringSafe(Collection<? extends Object> collection) {

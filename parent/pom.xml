@@ -131,7 +131,7 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-skiplist-domain-object</artifactId>
+                <artifactId>fenix-framework-adt-skiplist</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -156,32 +156,22 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-bplustree-domain-object</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-linkedlist-domain-object</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-skiplist-domain-object</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-data-access-patterns</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>fenix-framework-txintrospector</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>pt.ist</groupId>
                 <artifactId>fenix-framework-backend-ogm</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-backend-infinispan</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-backend-jvstm-mem</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-backend-mem</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -24,6 +24,11 @@
                 <groupId>pt.ist</groupId>
                 <artifactId>dml-maven-plugin</artifactId>
                 <version>${project.version}</version>
+                <configuration>
+                    <params>
+                    	<generateShadowAccesses>true</generateShadowAccesses>
+                    </params>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

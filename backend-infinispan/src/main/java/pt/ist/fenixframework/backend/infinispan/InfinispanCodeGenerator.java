@@ -28,7 +28,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         super(compArgs, domainModel);
         String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
         if (collectionName == null || collectionName.isEmpty()) {
-            setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
+            setCollectionToUse("pt.ist.fenixframework.adt.bplustree.BPlusTree");
         }
      }
 
