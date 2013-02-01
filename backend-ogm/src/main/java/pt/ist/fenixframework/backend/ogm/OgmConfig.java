@@ -17,6 +17,8 @@ import pt.ist.fenixframework.indexes.IndexesConfig;
 public class OgmConfig extends IndexesConfig {
     private static final Logger logger = LoggerFactory.getLogger(OgmDomainObject.class);
 
+    private static final String FAILED_INIT = "Failed to initialize Backend OGM";
+
     /**
      * This <strong>required</strong> parameter specifies the location of the XML file used to
      * configure Infinispan.  This file should be available in the application's classpath.
@@ -37,7 +39,12 @@ public class OgmConfig extends IndexesConfig {
 
     @Override
     protected void init() {
-        this.backEnd.configOgm(this);
+        try {
+            this.backEnd.configOgm(this);
+        } catch (Exception e) {
+            throw new ConfigError(FAILED_INIT, e);
+        }
+
         super.init(); // do this only after having set up transaction manager
     }
 

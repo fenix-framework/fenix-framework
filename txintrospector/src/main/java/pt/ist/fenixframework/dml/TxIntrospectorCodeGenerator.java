@@ -9,6 +9,10 @@ import java.io.PrintWriter;
  *     <ptIstTxIntrospectorEnable>true</ptIstTxIntrospectorEnable>
  * </params>
  * to the configuration section of the dml-maven-plugin plugin in your pom.xml.
+ * 
+ * Note that this code generator will only work with backends which use TxStats
+ * as its TxIntrospector.
+ * 
  */
 public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
     public static final String TXINTROSPECTOR_ON_CONFIG_KEY =
@@ -18,8 +22,8 @@ public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
 
     private static final String TXSTATS_FULL_CLASS =
         pt.ist.fenixframework.txintrospector.TxStats.class.getName();
-    private static final String TX_STATS_INSTANCE =
-        pt.ist.fenixframework.Transaction.TxLocal.class.getCanonicalName() + ".getTxLocal().getTxStats()";
+    private static final String TX_STATS_INSTANCE = "((" + TXSTATS_FULL_CLASS + ")"
+	    + pt.ist.fenixframework.FenixFramework.class.getName() + ".getTransaction().getTxIntrospector())";
 
     private final boolean enabled;
 

@@ -12,16 +12,23 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <dml.maven.plugin.version>${dmlMavenPluginVersion}</dml.maven.plugin.version>
-        <fenix.framework.version>${fenixFrameworkVersion}</fenix.framework.version>
+        <version.fenixframework>${fenixFrameworkVersion}</version.fenixframework>
+        <fenixframework.code.generator>${codeGeneratorClassName}</fenixframework.code.generator>
     </properties>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>dml</groupId>
+                <groupId>pt.ist</groupId>
                 <artifactId>dml-maven-plugin</artifactId>
-                <version>${dml.maven.plugin.version}</version>
+                <version>${version.fenixframework}</version>
+                <configuration>
+                    <codeGeneratorClassName>${fenixframework.code.generator}</codeGeneratorClassName>
+                    <params>
+                        <ptIstTxIntrospectorEnable>false</ptIstTxIntrospectorEnable>
+                        <ptIstDapEnable>false</ptIstDapEnable>
+                    </params>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -31,10 +38,41 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>add-resource</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>add-resource</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>target/generated-sources/dml-maven-plugin</directory>
+                                    <excludes>
+                                        <exclude>**/*.java</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>${backEndGroupId}</groupId>
+            <artifactId>${backEndArtifactId}</artifactId>
+            <version>${backEndVersion}</version>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -42,23 +80,23 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core</artifactId>
-            <version>${fenix.framework.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.2</version>
         </dependency>
     </dependencies>
 
     <repositories>
         <repository>
             <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
+            <url>https://fenix-ashes.ist.utl.pt/maven-public</url>
         </repository>
     </repositories>
 
     <pluginRepositories>
         <pluginRepository>
             <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
+            <url>https://fenix-ashes.ist.utl.pt/maven-public</url>
         </pluginRepository>
     </pluginRepositories>
 

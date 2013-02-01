@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.dml.DmlCompilerException;
 import pt.ist.fenixframework.dml.DomainModel;
+import pt.ist.fenixframework.util.NodeBarrier;
 
 /**
  * <p>This is the main class for the Fenix Framework.  It is the central point for obtaining most of
@@ -96,6 +97,8 @@ import pt.ist.fenixframework.dml.DomainModel;
 public class FenixFramework {
     private static final Logger logger = LoggerFactory.getLogger(FenixFramework.class);
 
+    public static final String FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX = "fenixframework.";
+
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_DEFAULT = "fenix-framework.properties";
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX = "fenix-framework-";
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX = ".properties";
@@ -111,6 +114,8 @@ public class FenixFramework {
     /** This is initialized on first invocation of {@link FenixFramework#getDomainModel()}, which
      * can only be invoked after the framework is initialized. */
     private static DomainModel domainModel = null;
+
+    private static NodeBarrier barrier;
 
     // private static Logger logger = null;
     static {
@@ -176,8 +181,11 @@ public class FenixFramework {
         try {
             config = createConfigFromResourceStream(in);
         } catch (IOException e) {
-            logger.debug("Failed auto initialization with " + resourceName, e);
+            logger.info("Failed auto initialization with " + resourceName, e);
             return false;
+        } catch (ConfigError e) {
+            logger.info("ConfigError", e);
+            throw e;
         }
         FenixFramework.initialize(config);
         return true;
@@ -188,7 +196,21 @@ public class FenixFramework {
         Properties props = new Properties();
         props.load(in);
         try { in.close(); } catch (Throwable ignore) {}
-        
+        logger.debug("Fenix Framework properties provided from config file:" + props.toString());
+
+        // Override with system properties
+        Properties systemProps = System.getProperties();
+        for (String propertyName : systemProps.stringPropertyNames()) {
+            if (propertyName.startsWith(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX)) {
+                String value = systemProps.getProperty(propertyName);
+                String realPropertyName = propertyName.substring(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX.length());
+                logger.debug("Enforcing property from system: " + realPropertyName + "=" + value);
+                props.setProperty(realPropertyName, value);
+            }
+        }
+
+        logger.debug("Final Fenix Framework properties provided:" + props.toString());
+
         // get the config instance
         Config config = null;
         try {
@@ -264,6 +286,11 @@ public class FenixFramework {
                 FenixFramework.config.initialize();
             } catch (RuntimeException e) {
                 logger.error("Could not initialize Fenix Framework", e);
+                e.printStackTrace();
+                throw e;
+            } catch (ConfigError e) {
+                logger.error("Could not initialize Fenix Framework", e);
+                e.printStackTrace();
                 throw e;
             }
 	    // DataAccessPatterns.init(FenixFramework.config);
@@ -330,6 +357,10 @@ public class FenixFramework {
     public static TransactionManager getTransactionManager() {
         return getConfig().getBackEnd().getTransactionManager();
     }
+    
+    public static Transaction getTransaction() {
+        return getTransactionManager().getTransaction();
+    }
 
     /**
      * Inform the framework components that the application intends to shutdown.  This allows for an
@@ -337,7 +368,22 @@ public class FenixFramework {
      * backend the task of shutting down the framework.  After invoking this method there is no
      * guarantee that the Fenix Framework is able to provide any more services.
      */
-    public static void shutdown() {
+    public static synchronized void shutdown() {
+        if (barrier != null) {
+            barrier.shutdown();
+        }
         getConfig().shutdown();
+    }
+
+    private static synchronized NodeBarrier getNodeBarrier() throws Exception {
+        //TODO: add jgroups configuration file to config
+        if (barrier == null) {
+            barrier = new NodeBarrier(getConfig().getJGroupsConfigFile());
+        }
+        return barrier;
+    }
+
+    public static void barrier(String barrierName, int expectedMembers) throws Exception {
+        getNodeBarrier().blockUntil(barrierName, expectedMembers);
     }
 }

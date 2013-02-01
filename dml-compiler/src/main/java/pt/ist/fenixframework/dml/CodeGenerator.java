@@ -924,7 +924,7 @@ public abstract class CodeGenerator {
             generateEmptyRegisterGet(slotName, out);
         }
     }
-    
+
     protected void generateRoleSlotMethodsMultOneSetter(Role role, PrintWriter out) {
         String typeName = getTypeFullName(role.getType());
         String slotName = role.getName();
@@ -1163,7 +1163,7 @@ public abstract class CodeGenerator {
     protected void generateIteratorShadowMethod(Role role, PrintWriter out) {
 	generateIteratorShadowMethod(role, out, "get" + capitalize(role.getName()) + "()");
     }
-
+    
     protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {
 	newline(out);
 	printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
