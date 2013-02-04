@@ -11,7 +11,6 @@ import javax.transaction.SystemException;
 import javax.transaction.xa.XAResource;
 
 import pt.ist.fenixframework.Transaction;
-import pt.ist.fenixframework.txintrospector.TxStats;
 
 /**
  * Abstract implementation of {@link pt.ist.fenixframework.Transaction}. This
@@ -28,11 +27,6 @@ public abstract class AbstractTransaction implements Transaction {
     protected final ConcurrentLinkedQueue<Synchronization> synchronizations = new ConcurrentLinkedQueue<Synchronization>();
 
     /**
-     * TxIntrospector associated with this transaction.
-     */
-    private final TxStats introspector = TxStats.newInstance();
-
-    /**
      * Status of the Transaction.
      */
     protected int status = Status.STATUS_ACTIVE;
@@ -46,8 +40,9 @@ public abstract class AbstractTransaction implements Transaction {
 	    throw new RollbackException();
 	}
 
-	if (this.status != Status.STATUS_ACTIVE)
-	    throw new IllegalStateException();
+	if (this.status != Status.STATUS_ACTIVE) {
+		throw new IllegalStateException();
+	}
 
 	this.status = Status.STATUS_COMMITTING;
 
@@ -105,11 +100,13 @@ public abstract class AbstractTransaction implements Transaction {
 
     @Override
     public void registerSynchronization(Synchronization sync) throws RollbackException, IllegalStateException, SystemException {
-	if (this.status == Status.STATUS_MARKED_ROLLBACK)
-	    throw new RollbackException();
+	if (this.status == Status.STATUS_MARKED_ROLLBACK) {
+		throw new RollbackException();
+	}
 
-	if (this.status != Status.STATUS_ACTIVE)
-	    throw new IllegalStateException();
+	if (this.status != Status.STATUS_ACTIVE) {
+		throw new IllegalStateException();
+	}
 
 	synchronizations.offer(sync);
     }
@@ -117,8 +114,9 @@ public abstract class AbstractTransaction implements Transaction {
     @Override
     public void rollback() throws IllegalStateException, SystemException {
 	if (this.status == Status.STATUS_PREPARED || this.status == Status.STATUS_COMMITTED
-		|| this.status == Status.STATUS_ROLLEDBACK)
-	    throw new IllegalStateException();
+		|| this.status == Status.STATUS_ROLLEDBACK) {
+		throw new IllegalStateException();
+	}
 
 	this.status = Status.STATUS_ROLLING_BACK;
 	backendRollback();
@@ -130,11 +128,6 @@ public abstract class AbstractTransaction implements Transaction {
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {
 	this.status = Status.STATUS_MARKED_ROLLBACK;
-    }
-
-    @Override
-    public TxStats getTxIntrospector() {
-	return introspector;
     }
 
     /*
