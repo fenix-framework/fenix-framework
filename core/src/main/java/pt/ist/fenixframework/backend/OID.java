@@ -1,3 +1,10 @@
+/*
+ * Fenix Framework, a framework to develop Java Enterprise Applications.
+ *
+ * Copyright (C) 2013 Fenix Framework Team and/or its affiliates and other contributors as indicated by the @author tags.
+ *
+ * This file is part of the Fenix Framework.  Read the file COPYRIGHT.TXT for more copyright and licensing information.
+ */
 package pt.ist.fenixframework.backend;
 
 import org.slf4j.Logger;
@@ -26,6 +33,24 @@ public class OID implements Comparable<OID>, Serializable {
 
     private final Class objClass;
     private final String fullId; // includes class name to avoid repetitive computation
+
+    /**
+     * Create a new Object IDentifier for the given class.  For the special class {@link DomainRoot}, it will always return the
+     * same ROOT_OBJECT_ID
+     */
+    public static OID makeNew(Class objClass) {
+        if (objClass.equals(DomainRoot.class)) {
+            logger.debug("Returning well-known fixed OID for singleton DomainRoot instance: " + ROOT_OBJECT_ID);
+            return ROOT_OBJECT_ID;
+        } else {
+            return new OID(objClass);
+        }
+    }
+    
+    private OID(Class objClass) {
+        this.objClass = objClass;
+        this.fullId = objClass.getName() + OID_SEPARATOR + UUID.randomUUID().toString();
+    }
 
     public OID(Class objClass, String objId) {
         this.objClass = objClass;
