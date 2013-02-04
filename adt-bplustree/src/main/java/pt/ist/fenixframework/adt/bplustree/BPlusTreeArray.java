@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
-import pt.ist.fenixframework.dml.runtime.DomainBasedSet;
+import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 /**
  * Implementation of a persistence-independent B+Tree.  This implementation is modelled in DML and
@@ -17,7 +17,7 @@ import pt.ist.fenixframework.dml.runtime.DomainBasedSet;
  * comparable to each other (e.g. the same BPlusTree instance cannot simultaneously support keys of
  * type Integer and String).
  */
-public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base implements IBPlusTree<T>, DomainBasedSet<T>{
+public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base implements IBPlusTree<T>, DomainBasedMap<T>{
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
         private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
@@ -194,11 +194,6 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
     }
 
     @Override
-    public boolean add(Comparable key, T e) {
-        return insert(key, e);
-    }
-
-    @Override
     public boolean remove(Comparable key) {
 	return removeKey(key);
     }
@@ -208,4 +203,8 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
         return containsKey(key);
     }
     
+    @Override
+    public void put(Comparable key, T value) {
+	insert(key, value);
+    }
 }

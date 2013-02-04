@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import pt.ist.fenixframework.adt.linkedlist.LinkedList_Base;
-import pt.ist.fenixframework.dml.runtime.DomainBasedSet;
+import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
-public class LinkedList<T extends Serializable> extends LinkedList_Base implements DomainBasedSet<T> {
+public class LinkedList<T extends Serializable> extends LinkedList_Base implements DomainBasedMap<T> {
 
     public  LinkedList() {
 	super();
@@ -27,6 +27,21 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
 	    return true;
 	}
 	return false;
+    }
+    
+    public T get(Comparable key) {
+	ListNode<T> previous = getHead();
+	ListNode<T> next = previous.getNext();
+	Comparable oid = false;
+	while (next != null && (oid = next.getKeyValue().key).compareTo(key) < 0) {
+	    previous = next;
+	    next = previous.getNext();
+	}
+	if (next != null && key.compareTo(oid) == 0) {
+	    return (T) next.getKeyValue().value;
+	} else {
+	    return null;
+	}
     }
 
     public boolean removeKey(Comparable toRemove) {
@@ -49,14 +64,7 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
     }
 
     public boolean containsKey(Comparable key) {
-	ListNode<T> previous = getHead();
-	ListNode<T> next = previous.getNext();
-	Comparable oid = false;
-	while (next != null && (oid = next.getKeyValue().key).compareTo(key) < 0) {
-	    previous = next;
-	    next = previous.getNext();
-	}
-	return next != null && key.compareTo(oid) == 0;
+	return get(key) != null;
     }
 
     public int size() {
@@ -98,11 +106,6 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
     }
 
     @Override
-    public boolean add(Comparable key, T e) {
-        return insert(key, e);
-    }
-
-    @Override
     public boolean remove(Comparable key) {
         return removeKey(key);
     }
@@ -110,6 +113,11 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
     @Override
     public boolean contains(Comparable key) {
         return containsKey(key);
+    }
+    
+    @Override
+    public void put(Comparable key, T value) {
+	insert(key, value);
     }
 
 }

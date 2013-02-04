@@ -175,53 +175,39 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     
     /** END OF NMLD CODE **/
     
-    @Override
-    protected void generateStaticSlots(DomainClass domClass, PrintWriter out) {
-    	super.generateStaticSlots(domClass, out);
-    	
-    	for (Role role : domClass.getRoleSlotsList()) {
-    	    generateIndexedSlot(role, out);
-    	}
-    }
     
-    private void generateIndexedSlot(Role role, PrintWriter out) {
+    
+    @Override
+    protected void generateStaticKeyFunctionForRole(Role role, PrintWriter out) {
     	if (role.isIndexed()) {
-    		System.out.println("Generate indexed slot for " + role.getName());
     	    onNewline(out);
     	    Slot indexedSlot = getIndexedSlot(role);
-    	    //indexedSlot.addIndexedRole(role);
     	    String keyField = role.getIndexProperty();
     	    println(out, generateIndexKeyFunction(role.getName(), role.getType().getFullName(), indexedSlot.getSlotType()
     		    .getFullname(), keyField, role.getIndexCardinality() == Role.MULTIPLICITY_MANY));
     	    onNewline(out);
+    	} else {
+    	    super.generateStaticKeyFunctionForRole(role, out);
     	}
     }
     
     
-    private String generateIndexKeyFunction(String roleName, String valueType, String keyType, String keyField, boolean allowMultipleKeys) {
-    	String format = "private static pt.ist.fenixframework.indexes.KeyFunction<%keyType%,%valueType%> keyFunction$$%roleName% = new pt.ist.fenixframework.indexes.KeyFunction<%keyType%,%valueType%>() { public %keyType% getKey(%valueType% value) { return value.get%keyField%(); } public boolean allowMultipleKeys() {return %multKeys%; }};";
-    	return format.replaceAll("%roleName%", roleName).replaceAll("%valueType%", valueType).replaceAll("%keyType%", getReferenceType(keyType))
-    		.replaceAll("%keyField%", capitalize(keyField)).replaceAll("%multKeys%", allowMultipleKeys ? "true" : "false");
-    }
-    
-    /**
-     * 
-	 * String key = keyFunction$$<roleSlotName>.getKey(<parameterName>);
-	 * return this.<roleSlotName>.get(key) != null;
-	 */
     @Override
     protected void generateRoleSlotMethodsMultStarHasChildBody(Role role, PrintWriter out, String slotAccessExpression,
     		String slotName) {
-    	print(out,getIndexedSlot(role).getSlotType().getFullname());
-    	print(out, " key = keyFunction$$");
-    	print(out, slotName);
-    	print(out, ".getKey(");
-    	print(out, slotName);
-    	print(out, ");");
-    	onNewline(out);
-    	print(out, "return this.");
-    	print(out, slotName);
-    	print(out, ".get(key) != null;");
+	super.generateRoleSlotMethodsMultStarHasChildBody(role, out, slotAccessExpression, slotName);
+	
+	// TODO look into this in the case of multi value for a key
+//    	print(out,getIndexedSlot(role).getSlotType().getFullname());
+//    	print(out, " key = keyFunction$$");
+//    	print(out, slotAccessExpression);
+//    	print(out, ".getKey(");
+//    	print(out, slotName);
+//    	print(out, ");");
+//    	onNewline(out);
+//    	print(out, "return this.");
+//    	print(out, slotName);
+//    	print(out, ".get(key) != null;");
     }
     
     @Override

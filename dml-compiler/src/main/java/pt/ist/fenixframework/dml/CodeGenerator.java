@@ -387,8 +387,22 @@ public abstract class CodeGenerator {
             Role role = (Role) roleSlotsIter.next();
             if (role.getName() != null) {
                 generateStaticRelationSlots(role, out);
+                generateStaticKeyFunctionForRole(role, out);
             }
         }
+        
+    }
+
+    protected void generateStaticKeyFunctionForRole(Role role, PrintWriter out) {
+	if (role.getMultiplicityUpper() == Role.MULTIPLICITY_MANY) { 
+	    println(out, generateIndexKeyFunction(role.getName(), role.getType().getFullName(), "Comparable<?>", "Oid", false));
+	}
+    }
+    
+    protected String generateIndexKeyFunction(String roleName, String valueType, String keyType, String keyField, boolean allowMultipleKeys) {
+    	String format = "private static pt.ist.fenixframework.dml.runtime.KeyFunction<%keyType%,%valueType%> keyFunction$$%roleName% = new pt.ist.fenixframework.dml.runtime.KeyFunction<%keyType%,%valueType%>() { public %keyType% getKey(%valueType% value) { return value.get%keyField%(); } public boolean allowMultipleKeys() {return %multKeys%; }};";
+    	return format.replaceAll("%roleName%", roleName).replaceAll("%valueType%", valueType).replaceAll("%keyType%", getReferenceType(keyType))
+    		.replaceAll("%keyField%", capitalize(keyField)).replaceAll("%multKeys%", allowMultipleKeys ? "true" : "false");
     }
 
     protected void generateStaticRoleSlots(Role role, PrintWriter out) {
@@ -598,25 +612,8 @@ public abstract class CodeGenerator {
     }
 
     protected String getRelationAwareBaseTypeFor(Role role) {
-        // FIXME: handle other types of collections other than sets
         return "pt.ist.fenixframework.dml.runtime.RelationAwareSet";
     }
-
-//     protected String getBoxBaseType() {
-//         return "jvstm.VBox";
-//     }
-    
-//     protected String getBoxType(String elemType) {
-//         return makeGenericType(getBoxBaseType(), elemType);
-//     }
-
-//     protected String getBoxType(Slot slot) {
-//         return getBoxType(getReferenceType(slot.getTypeName()));
-//     }
-
-//     protected String getBoxType(Role role) {
-//         return getBoxType(getTypeFullName(role.getType()));
-//     }
 
     protected void generateRoleSlot(Role role, PrintWriter out) {
         onNewline(out);
@@ -627,14 +624,6 @@ public abstract class CodeGenerator {
         }
         println(out, ";");
     }
-
-//     protected String getNewSlotExpression(Slot slot) {
-//         return "new " + getBoxType(slot) + "()";
-//     }
-
-//     protected String getNewRoleOneSlotExpression(Role role) {
-//         return "new " + getBoxType(role) + "()";
-//     }
 
     protected String getDefaultCollectionFor(String type) {
 	return makeGenericType(collectionToUse, type);
@@ -877,44 +866,18 @@ public abstract class CodeGenerator {
     protected void generateRoleSlotMethodsMultOne(Role role, PrintWriter out) {
         String typeName = getTypeFullName(role.getType());
         String slotName = role.getName();
-        String capitalizedSlotName = capitalize(slotName);
-        String getterName = "get" + capitalizedSlotName;
-        String setterName = "set" + capitalizedSlotName;
-
-        String methodModifiers = getMethodModifiers();
 
         // public getter
         generateRoleSlotMethodsMultOneGetter(slotName, typeName, out);
-        // generateRoleGetter(slotName, typeName, out);
 
         // public setter
         generateRoleSlotMethodsMultOneSetter(role, out);
-        // newline(out);
-        // printMethod(out, methodModifiers, "void", setterName, makeArg(typeName, slotName));
-        // startMethodBody(out);
-        // generateRelationAddMethodCall(role, slotName, null, out);
-        // endMethodBody(out);
-        
         
         // hasXpto
         generateRoleSlotMethodsMultOneHas(role, out);
-        // newline(out);
-        // printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName);
-        // startMethodBody(out);
-        // print(out, "return (");
-        // print(out, getterName);
-        // print(out, "() != null);");
-        // endMethodBody(out);
-
                 
         // removeXpto
         generateRoleSlotMethodsMultOneRemove(role, out);
-        // newline(out);
-        // printMethod(out, methodModifiers, "void", "remove" + capitalizedSlotName);
-        // startMethodBody(out);
-        // print(out, setterName);
-        // print(out, "(null);");
-        // endMethodBody(out);
     }
 
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
@@ -1011,33 +974,17 @@ public abstract class CodeGenerator {
         String typeName = getTypeFullName(role.getType());
         String slotName = role.getName();
         String capitalizedSlotName = capitalize(slotName);
-        // String slotAccessExpression = getSlotExpression(slotName);
         String slotAccessExpression = "get" + capitalizedSlotName + "()";
-        String collectionType = getCollectionTypeFor(role);
-
         String methodModifiers = getMethodModifiers();
 
-
-//         int getChildCount() {
-//             return setOfChild.size();
-//         }
         // getXptoCount
         generateRoleSlotMethodsMultStarCount(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression);
         
-        
-//         boolean hasAnyChild() {
-//             return (! setOfChild.isEmpty());
-//         }
         // hasAnyXpto
         generateRoleSlotMethodsMultStarHasAnyChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression);
         
-        
-//         boolean hasChild(SiteElement child) {
-//             return setOfChild.contains(child);
-//         }
         // hasXpto
         generateRoleSlotMethodsMultStarHasChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName, isIndexed, "");
-
 
         if (isIndexed) {
             generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName);
@@ -1047,15 +994,9 @@ public abstract class CodeGenerator {
             generateRoleSlotMethodsMultStarOrdered(role, out, typeName,methodModifiers, capitalizedSlotName, slotAccessExpression);
         }
         
-        
-        
         // getXptoSet
-        // FIXME: This deals only with the normal case of a Set (without considering ordered or indexed by)
         generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, slotName, typeName);
         
-//         void addChild(SiteElement child) {
-//             SiteHierarchy.add(this, child);
-//         }
         // addXpto
         String adderMethodName = getAdderMethodName(role);
 
@@ -1066,9 +1007,6 @@ public abstract class CodeGenerator {
         endMethodBody(out);
         
         if (isOrdered) {
-            //         void addChild(SiteElement child, int index) {
-            //             SiteHierarchy.add(this, index, child);
-            //         }
             // addXpto
             String indexParam = (slotName.equals("index") ? "pos" : "index");
             newline(out);
@@ -1078,10 +1016,6 @@ public abstract class CodeGenerator {
             endMethodBody(out);
         }
 
-        
-//         void removeChild(SiteElement child) {
-//             SiteHierarchy.remove(this, child);
-//         }
         // removeXpto
         String removerMethodName = getRemoverMethodName(role);
 
@@ -1185,6 +1119,11 @@ public abstract class CodeGenerator {
 	printFinalMethod(out, "public", typeName, getterName);
 
 	startMethodBody(out);
+	generateRelationGetterBody(role, out);
+	endMethodBody(out);
+    }
+
+    protected void generateRelationGetterBody(Role role, PrintWriter out) {
 	print(out, "return ");
         print(out, "new ");
         print(out, getRelationAwareTypeFor(role));
@@ -1194,9 +1133,10 @@ public abstract class CodeGenerator {
         print(out, getRelationSlotNameFor(role));
         print(out, ", ");
         print(out, role.getName());
-        print(out, ")");
-	print(out, ";");
-	endMethodBody(out);
+        print(out, ", ");
+        print(out, "keyFunction$$");
+        print(out, role.getName());
+	print(out, ");");
     }
 
     protected void generateRoleSlotMethodsMultStarCount(Role role, PrintWriter out,
@@ -1331,7 +1271,7 @@ public abstract class CodeGenerator {
 		+ " key");
 	startMethodBody(out);
 	//printWords(out, "return", "java.util.Collections.unmodifiable"+ (returnTypeIsSet ? "Set" : "List")  + "(", "new ");
-	printWords(out, "return", getSearchForKey(slotName, haveMany ? collectionToUse : retType));
+	printWords(out, "return", getSearchForKey(role, haveMany ? collectionToUse : retType));
 	print(out, ";");
 	endMethodBody(out);
     }
@@ -1345,8 +1285,8 @@ public abstract class CodeGenerator {
     }
     
     
-    private String getSearchForKey(String slotName, String retType) {
-	return "(" + retType + ") "+ slotName + ".get(key)";
+    private String getSearchForKey(Role role, String retType) {
+	return "(" + retType + ") ((" + getRelationAwareTypeFor(role) + ") get"+ capitalize(role.getName()) + "()).get(key)";
     }
 
     public static String makeGenericType(String baseType, String... argTypes) {

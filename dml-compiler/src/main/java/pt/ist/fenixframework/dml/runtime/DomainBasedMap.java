@@ -3,9 +3,11 @@ package pt.ist.fenixframework.dml.runtime;
 import java.io.Serializable;
 import java.util.Iterator;
 
-public interface DomainBasedSet<T extends Serializable> {
+public interface DomainBasedMap<T extends Serializable> {
 
-    public boolean add(Comparable key, T e);
+    public T get(Comparable key);
+    
+    public void put(Comparable key, T value);
     
     public boolean remove(Comparable key);
     

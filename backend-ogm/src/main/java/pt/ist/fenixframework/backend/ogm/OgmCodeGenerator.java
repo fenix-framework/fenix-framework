@@ -468,7 +468,15 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         println(out, collectionType + " internalSet = OgmBackEnd.getInstance().getDomainObject(" +
                 makeForeignKeyName(role.getName()) + ");");
 
-        print(out, "return new " + getRelationAwareBaseTypeFor(role) + "(this, " + getRelationSlotNameFor(role) + ", internalSet);");
+        print(out, "return new ");
+        print(out, getRelationAwareTypeFor(role));
+        print(out, "((");
+        print(out, getTypeFullName(role.getOtherRole().getType()));
+        print(out, ") this, ");
+        print(out, getRelationSlotNameFor(role));
+        print(out, ", internalSet, keyFunction$$");
+        print(out, role.getName());
+        print(out, ");");
 	endMethodBody(out);
     }
 
@@ -536,6 +544,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         buf.append(thisType);
         buf.append(")this, ");
         buf.append(getRelationSlotNameFor(role));
+        buf.append(", keyFunction$$");
+        buf.append(role.getName());
         buf.append(")");
 
         return buf.toString();

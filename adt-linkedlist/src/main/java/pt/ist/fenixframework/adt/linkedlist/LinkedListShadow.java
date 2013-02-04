@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import pt.ist.fenixframework.adt.linkedlist.LinkedListShadow_Base;
-import pt.ist.fenixframework.dml.runtime.DomainBasedSet;
+import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
-public class LinkedListShadow<T extends Serializable> extends LinkedListShadow_Base implements DomainBasedSet<T> {
+public class LinkedListShadow<T extends Serializable> extends LinkedListShadow_Base implements DomainBasedMap<T> {
 
     public  LinkedListShadow() {
 	super();
@@ -30,6 +30,22 @@ public class LinkedListShadow<T extends Serializable> extends LinkedListShadow_B
 	return false;
     }
 
+    public T get(Comparable key) {
+	ListNode<T> previous = getHeadShadow();
+	ListNode<T> next = previous.getNextShadow();
+	Comparable oid = false;
+	while (next != null && (oid = next.getKeyValueShadow().key).compareTo(key) < 0) {
+	    previous = next;
+	    next = previous.getNextShadow();
+	}
+	previous.registerGetNext();
+	if (next != null && key.compareTo(oid) == 0) {
+	    return (T) next.getKeyValue().value;
+	} else {
+	    return null;
+	}
+    }
+    
     public boolean removeKey(Comparable toRemove) {
 	ListNode<T> previous = getHeadShadow();
 	ListNode<T> next = previous.getNextShadow();
@@ -51,15 +67,7 @@ public class LinkedListShadow<T extends Serializable> extends LinkedListShadow_B
     }
 
     public boolean containsKey(Comparable key) {
-	ListNode<T> previous = getHeadShadow();
-	ListNode<T> next = previous.getNextShadow();
-	Comparable oid = false;
-	while (next != null && (oid = next.getKeyValueShadow().key).compareTo(key) < 0) {
-	    previous = next;
-	    next = previous.getNextShadow();
-	}
-	previous.registerGetNext();
-	return next != null && key.compareTo(oid) == 0;
+	return get(key) != null;
     }
     
     public int size() {
@@ -101,11 +109,6 @@ public class LinkedListShadow<T extends Serializable> extends LinkedListShadow_B
     }
 
     @Override
-    public boolean add(Comparable key, T e) {
-        return insert(key, e);
-    }
-
-    @Override
     public boolean remove(Comparable key) {
         return removeKey(key);
     }
@@ -113,5 +116,10 @@ public class LinkedListShadow<T extends Serializable> extends LinkedListShadow_B
     @Override
     public boolean contains(Comparable key) {
         return containsKey(key);
+    }
+    
+    @Override
+    public void put(Comparable key, T value) {
+	insert(key, value);
     }
 }

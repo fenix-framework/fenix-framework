@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
-import pt.ist.fenixframework.dml.runtime.DomainBasedSet;
+import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
-public class SkipList<T extends Serializable> extends SkipList_Base implements DomainBasedSet<T>{
+public class SkipList<T extends Serializable> extends SkipList_Base implements DomainBasedMap<T>{
 
     private transient final static double probability = 0.25;
     private transient final static int maxLevel = 32;
@@ -77,6 +77,32 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
 	return result;
     }
 
+    @Override
+    public T get(Comparable key) {
+	boolean result;
+
+	SkipListNode node = getHead();
+	int level = getLevel();
+
+	Comparable oid = node.getOid();
+
+	for (int i = level; i >= 0; i--) {
+	    SkipListNode next = node.getForward(i);
+	    while ((oid = next.getKeyValue().key).compareTo(key) < 0) {
+		node = next;
+		next = node.getForward(i);
+	    }
+	}
+	node.registerGetForward();
+	node = node.getForward(0);
+
+	if (node.getKeyValue().key.compareTo(key) == 0) {
+	    return (T) node.getKeyValue().value;
+	} else {
+	    return null;
+	}
+    }
+    
     public boolean removeKey(Comparable toRemove) {
 	boolean result;
 
@@ -115,25 +141,7 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
     }
 
     public boolean containsKey(Comparable key) {
-	boolean result;
-
-	SkipListNode node = getHead();
-	int level = getLevel();
-
-	Comparable oid = node.getOid();
-
-	for (int i = level; i >= 0; i--) {
-	    SkipListNode next = node.getForward(i);
-	    while ((oid = next.getKeyValue().key).compareTo(key) < 0) {
-		node = next;
-		next = node.getForward(i);
-	    }
-	}
-	node = node.getForward(0);
-
-	result = (node.getKeyValue().key.compareTo(key) == 0);
-
-	return result;
+	return get(key) != null;
     }
 
     public Iterator<T> iterator() {
@@ -165,11 +173,6 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
     }
 
     @Override
-    public boolean add(Comparable key, T e) {
-        return insert(key, e);
-    }
-
-    @Override
     public boolean remove(Comparable key) {
         return removeKey(key);
     }
@@ -188,6 +191,11 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
 	    iter.next();
 	}
 	return size;
+    }
+    
+    @Override
+    public void put(Comparable key, T value) {
+	insert(key, value);
     }
 
 }

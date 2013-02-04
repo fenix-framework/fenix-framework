@@ -5,14 +5,14 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import pt.ist.fenixframework.dml.runtime.DomainBasedSet;
+import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 /**
  * Implementation of a persistence-independent B+Tree that is specifically optimized to store
  * instances of {@link Serializable}.  This implementation is modelled in DML and can be
  * used with any backend.
  */
-public class BPlusTreeArrayShadow<T extends Serializable> extends BPlusTreeArrayShadow_Base implements IBPlusTree<T>, DomainBasedSet<T>{
+public class BPlusTreeArrayShadow<T extends Serializable> extends BPlusTreeArrayShadow_Base implements IBPlusTree<T>, DomainBasedMap<T>{
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
         private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
@@ -191,11 +191,6 @@ public class BPlusTreeArrayShadow<T extends Serializable> extends BPlusTreeArray
     }
 
     @Override
-    public boolean add(Comparable key, T e) {
-        return insert(key, e);
-    }
-
-    @Override
     public boolean remove(Comparable key) {
 	return removeKey(key);
     }
@@ -205,4 +200,8 @@ public class BPlusTreeArrayShadow<T extends Serializable> extends BPlusTreeArray
         return containsKey(key);
     }
 
+    @Override
+    public void put(Comparable key, T value) {
+	insert(key, value);
+    }
 }

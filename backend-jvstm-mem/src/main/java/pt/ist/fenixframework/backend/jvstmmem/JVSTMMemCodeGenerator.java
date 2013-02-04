@@ -143,6 +143,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	String slotName = role.getName();
 	String capitalizedSlotName = capitalize(slotName);
 	String methodModifiers = getMethodModifiers();
+	boolean isIndexed = role.isIndexed();
 
 	generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
         // also generate the get shadow methods
@@ -151,6 +152,11 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
             generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()) + "Shadow", role, out);
             generateEmptyRegisterGet(role.getName(), out);
         }
+        
+        if (isIndexed) {
+            generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, "get" + capitalize(role.getName()), typeName, slotName);
+        }
+
 	generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
 	generateRoleSlotMethodsMultStarRemover(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
 	generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, typeName);
@@ -165,7 +171,17 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printFinalMethod(out, "public", getSetTypeDeclarationFor(role), methodName);
 	startMethodBody(out);
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
-	print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", this." + role.getName() + ");");
+	print(out, "return new ");
+	print(out, getRelationAwareTypeFor(role));
+	print(out, "((");
+	print(out, getTypeFullName(role.getOtherRole().getType()));
+	print(out, ") this, ");
+	print(out, getRelationSlotNameFor(role));
+	print(out, ", this.");
+	print(out, role.getName());
+	print(out, ", keyFunction$$");
+	print(out, role.getName());
+	print(out, ");");
 	endMethodBody(out);
     }
 

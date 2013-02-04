@@ -187,18 +187,8 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
         startMethodBody(out);
         
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
+        generateRelationGetterBody(role, out);
         
-	print(out, "return ");
-        print(out, "new ");
-        print(out, getRelationAwareTypeFor(role));
-        print(out, "((");
-        print(out, getTypeFullName(role.getOtherRole().getType()));
-        print(out, ")this, ");
-        print(out, getRelationSlotNameFor(role));
-        print(out, ", ");
-        print(out, role.getName());
-        print(out, ")");
-        print(out, ";");
         endMethodBody(out);
     }
     

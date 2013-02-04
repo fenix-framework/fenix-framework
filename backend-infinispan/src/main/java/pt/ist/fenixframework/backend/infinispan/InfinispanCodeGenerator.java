@@ -293,12 +293,18 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         String slotName = role.getName();
         String capitalizedSlotName = capitalize(slotName);
         String methodModifiers = getMethodModifiers();
+        boolean isIndexed = role.isIndexed();
 
         generateRoleSlotMethodsMultStarGetter(role, out, false);
         if (generateShadowMethods()) {
             generateRoleSlotMethodsMultStarGetter(role, out, true);
             generateRoleSlotMethodsMultStarRegisterShadowGet(role, out);
         }
+        
+        if (isIndexed) {
+            generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, "get" + capitalize(role.getName()), typeName, slotName);
+        }
+        
         generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
         generateRoleSlotMethodsMultStarRemover(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
         generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, typeName);
@@ -328,7 +334,15 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, "internalSet = (" + collectionType + ")InfinispanBackEnd.getInstance().fromOid(oid);");
         // print(out, "// no need to test for null.  The entry must exist for sure.");
         closeBlock(out);
-        print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", internalSet);");
+        print(out, "return new ");
+        print(out, getRelationAwareTypeFor(role));
+        print(out, "((");
+        print(out, getTypeFullName(role.getOtherRole().getType()));
+        print(out, ") this, ");
+        print(out, getRelationSlotNameFor(role));
+        print(out, ", internalSet, keyFunction$$");
+        print(out, role.getName());
+        print(out, ");");
         endMethodBody(out);
     }
 
@@ -445,6 +459,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         buf.append(thisType);
         buf.append(")this, ");
         buf.append(getRelationSlotNameFor(role));
+        buf.append(", keyFunction$$");
+        buf.append(role.getName());
         buf.append(")");
 
         return buf.toString();

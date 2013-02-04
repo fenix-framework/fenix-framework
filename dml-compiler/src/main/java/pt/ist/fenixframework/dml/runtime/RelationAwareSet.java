@@ -4,35 +4,40 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends AbstractDomainObject> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
-    private DomainBasedSet<E2> set;
+    private DomainBasedMap<E2> internalMap;
+    private KeyFunction<? extends Comparable<?>, E2> mapKey;
     private E1 owner;
     private Relation<E1,E2> relation;
 
-    public RelationAwareSet(E1 owner, Relation<E1,E2> relation, DomainBasedSet<E2> set) {
+    public RelationAwareSet(E1 owner, Relation<E1,E2> relation, DomainBasedMap<E2> internalMap, KeyFunction<? extends Comparable<?>, E2> mapKey) {
         this.owner = owner;
         this.relation = relation;
-        this.set = set;
+        this.internalMap = internalMap;
+        this.mapKey = mapKey;
     }
 
     public void justAdd(E2 elem) {
-        set.add(elem.getOid(), elem);
+        internalMap.put(mapKey.getKey(elem), elem);
     }
 
     public void justRemove(E2 elem) {
-        set.remove(elem.getOid());
+        internalMap.remove(mapKey.getKey(elem));
     }
 
     public int size() {
-        return set.size();
+        return internalMap.size();
     }
 
+    public E2 get(Comparable<?> key) {
+	return internalMap.get(key);
+    }
+    
     public boolean contains(Object o) {
 	if (o instanceof AbstractDomainObject) {
-	    return set.contains(((AbstractDomainObject)o).getOid());
+	    return internalMap.contains(mapKey.getKey((E2)o));
 	} else {
 	    return false;
 	}
@@ -69,7 +74,7 @@ public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends Abstrac
         private boolean canRemove = false;
 
         RelationAwareIterator() {
-            this.iterator = RelationAwareSet.this.set.iterator();
+            this.iterator = RelationAwareSet.this.internalMap.iterator();
         }
 
         @Override
