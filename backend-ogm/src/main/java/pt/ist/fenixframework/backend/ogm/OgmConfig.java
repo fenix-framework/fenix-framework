@@ -15,7 +15,7 @@ import pt.ist.fenixframework.indexes.IndexesConfig;
  *
  */
 public class OgmConfig extends IndexesConfig {
-    private static final Logger logger = LoggerFactory.getLogger(OgmDomainObject.class);
+    private static final Logger logger = LoggerFactory.getLogger(OgmConfig.class);
 
     private static final String FAILED_INIT = "Failed to initialize Backend OGM";
 
