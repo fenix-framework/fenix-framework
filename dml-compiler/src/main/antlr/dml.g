@@ -272,8 +272,8 @@ roleOption!
     :
         "multiplicity" range:multiplicityRange
         {#roleOption = #([MULTIPLICITY, "MULTIPLICITY"], range);}
-    |   "indexed" "by" ip:IDENT
-        {#roleOption = #([INDEXED,"INDEXED"], ip);}
+    |   "indexed" "by" ip:identifier ( CARDINAL LPAREN ( card:multiplicityUpperOnly )? RPAREN )? 
+        {#roleOption = #([INDEXED,"INDEXED"], ip, card);}
     |   "ordered"
         {#roleOption = #([ORDERED,"ORDERED"]);}
     ;
@@ -343,6 +343,7 @@ MULT_RANGE      :   ".."    ;
 LANGLE          :   '<'     ;
 RANGLE          :   '>'     ;
 QUESTION        :   '?'     ;
+CARDINAL        :   '#'     ;
 
 
 // Whitespace -- ignored

@@ -251,7 +251,7 @@ roleOptions[Role roleDef]
 
 roleOption[Role roleDef]
 {
-    int lower, upper;
+    int lower, upper, card;
 }
     : #(MULTIPLICITY 
             (   #(MULTIPLICITY_RANGE 
@@ -263,9 +263,16 @@ roleOption[Role roleDef]
                 { roleDef.setMultiplicity(0, upper); }
             )
         )
-    | #(INDEXED name:IDENT { roleDef.setIndexProperty(name.getText()); } )
+    | #(INDEXED name:IDENT card=indexCard { roleDef.setIndexProperty(name.getText()); roleDef.setIndexCardinality(card); } )
     | #(ORDERED { roleDef.setOrdered(true); } )
     ;
+
+indexCard returns [int bound = 1]
+    :
+    	( STAR
+        { bound = Role.MULTIPLICITY_MANY; })?
+    ;
+
 
 multiplicityBound returns [int bound = 0]
     :

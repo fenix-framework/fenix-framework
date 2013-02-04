@@ -576,7 +576,7 @@ public abstract class CodeGenerator {
 
     protected String getCollectionTypeFor(Role role) {
         boolean indexed = (role.getIndexProperty() != null);
-        boolean ordered = role.getOrdered();
+        boolean ordered = role.isOrdered();
         if (indexed && ordered) {
             throw new Error("Can't handle roles that are both indexed and ordered");
         }
@@ -1005,11 +1005,8 @@ public abstract class CodeGenerator {
     }
 
     protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
-        String indexProp = role.getIndexProperty();
-        boolean isIndexed = (indexProp != null);
-        String indexGetterCall = (isIndexed ? "get" + capitalize(indexProp) + "()" : "");
-
-        boolean isOrdered = role.getOrdered();
+        boolean isIndexed = role.isIndexed();
+        boolean isOrdered = role.isOrdered();
 
         String typeName = getTypeFullName(role.getType());
         String slotName = role.getName();
@@ -1017,8 +1014,6 @@ public abstract class CodeGenerator {
         // String slotAccessExpression = getSlotExpression(slotName);
         String slotAccessExpression = "get" + capitalizedSlotName + "()";
         String collectionType = getCollectionTypeFor(role);
-
-        String posVar = (slotName.equals("index") ? "pos" : "index");
 
         String methodModifiers = getMethodModifiers();
 
@@ -1041,62 +1036,15 @@ public abstract class CodeGenerator {
 //             return setOfChild.contains(child);
 //         }
         // hasXpto
-        generateRoleSlotMethodsMultStarHasChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName, isIndexed, indexGetterCall);
+        generateRoleSlotMethodsMultStarHasChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName, isIndexed, "");
 
 
         if (isIndexed) {
-            //         SiteElement getChild(String name) {
-            //             return (SiteElement)mapOfChild.get(name);
-            //         }
-            // getXpto
-            newline(out);
-            printMethod(out, methodModifiers, typeName, "get" + capitalizedSlotName, makeArg("java.lang.String", indexProp));
-            startMethodBody(out);
-            print(out, "return (");
-            print(out, typeName);
-            print(out, ")");
-            print(out, slotAccessExpression);
-            print(out, ".get(");
-            print(out, indexProp);
-            print(out, ");");
-            endMethodBody(out);
+            generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName);
         }
 
         if (isOrdered) {
-            //         SiteElement getChild(int index) {
-            //             return (SiteElement)listOfChild.get(index);
-            //         }
-            // getXpto
-            newline(out);
-            printMethod(out, methodModifiers, typeName, "get" + capitalizedSlotName, makeArg("int", "index"));
-            startMethodBody(out);
-            print(out, "return (");
-            print(out, typeName);
-            print(out, ")");
-            print(out, slotAccessExpression);
-            print(out, ".get(index);");
-            endMethodBody(out);
-
-
-            //         void switchChild(int index1, int index2) {
-            //             List collection = getCollectionOfChild();
-            //             Object el1 = collection.get(index1);
-            //             collection.set(index1, collection.get(index2));
-            //             collection.set(index2, el1);
-            //         }
-            // getXpto
-            newline(out);
-            printMethod(out, methodModifiers, "void", "switch" + capitalizedSlotName, makeArg("int", "index1"), makeArg("int", "index2"));
-            startMethodBody(out);
-            print(out, getCollectionTypeFor(role));
-            print(out, " collection = ");
-            print(out, slotAccessExpression);
-            println(out, ";");
-            print(out, getTypeFullName(role.getType()));
-            println(out, " el1 = collection.get(index1);");
-            println(out, "collection.set(index1, collection.get(index2));");
-            print(out, "collection.set(index2, el1);");
-            endMethodBody(out);
+            generateRoleSlotMethodsMultStarOrdered(role, out, typeName,methodModifiers, capitalizedSlotName, slotAccessExpression);
         }
         
         
@@ -1145,6 +1093,45 @@ public abstract class CodeGenerator {
 
 	generateRoleSlotMethodsMultStarGettersAndIterators(role, out);
 
+    }
+
+    private void generateRoleSlotMethodsMultStarOrdered(Role role,
+	    PrintWriter out, String typeName, String methodModifiers,
+	    String capitalizedSlotName, String slotAccessExpression) {
+	//         SiteElement getChild(int index) {
+	//             return (SiteElement)listOfChild.get(index);
+	//         }
+	// getXpto
+	newline(out);
+	printMethod(out, methodModifiers, typeName, "get" + capitalizedSlotName, makeArg("int", "index"));
+	startMethodBody(out);
+	print(out, "return (");
+	print(out, typeName);
+	print(out, ")");
+	print(out, slotAccessExpression);
+	print(out, ".get(index);");
+	endMethodBody(out);
+
+
+	//         void switchChild(int index1, int index2) {
+	//             List collection = getCollectionOfChild();
+	//             Object el1 = collection.get(index1);
+	//             collection.set(index1, collection.get(index2));
+	//             collection.set(index2, el1);
+	//         }
+	// getXpto
+	newline(out);
+	printMethod(out, methodModifiers, "void", "switch" + capitalizedSlotName, makeArg("int", "index1"), makeArg("int", "index2"));
+	startMethodBody(out);
+	print(out, getCollectionTypeFor(role));
+	print(out, " collection = ");
+	print(out, slotAccessExpression);
+	println(out, ";");
+	print(out, getTypeFullName(role.getType()));
+	println(out, " el1 = collection.get(index1);");
+	println(out, "collection.set(index1, collection.get(index2));");
+	print(out, "collection.set(index2, el1);");
+	endMethodBody(out);
     }
 
     protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
@@ -1235,22 +1222,22 @@ public abstract class CodeGenerator {
     }
 
     protected void generateRoleSlotMethodsMultStarHasChild(Role role, PrintWriter out, String methodModifiers,
-	    String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName, boolean isIndexed,
-	    String indexGetterCall) {
+	    String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName, boolean isIndexed, String indexGetterCall) {
         newline(out);
         printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
         startMethodBody(out);
-        print(out, "return ");
+        generateRoleSlotMethodsMultStarHasChildBody(role, out, slotAccessExpression,slotName);
+        endMethodBody(out);
+    }
+
+    protected void generateRoleSlotMethodsMultStarHasChildBody(Role role, PrintWriter out,
+	    String slotAccessExpression, String slotName) {
+	print(out, "return ");
         print(out, slotAccessExpression);
         print(out, ".");
-        print(out, (isIndexed ? "containsKey(" : "contains("));
+        print(out, "contains(");
         print(out, slotName);
-        if (isIndexed) {
-            print(out, ".");
-            print(out, indexGetterCall);
-        }
         print(out, ");");
-        endMethodBody(out);
     }
 
     protected void generateRoleSlotMethodsMultStarSet(Role role, PrintWriter out, String methodModifiers,
@@ -1328,6 +1315,39 @@ public abstract class CodeGenerator {
 //         print(out, "return true;");
 //         endMethodBody(out);
 //     }
+    
+    protected void generateRoleSlotMethodsMultStarIndexed(Role role, PrintWriter out, String methodModifiers, String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName) {
+	Slot indexedSlot = getIndexedSlot(role);
+	String keyField = role.getIndexProperty();
+	String retType = role.getType().getName();
+	String methodNameSufix = ""; //empty String or "List" 
+	boolean haveMany = role.getIndexCardinality() == Role.MULTIPLICITY_MANY;
+	if (haveMany) {
+	    retType = makeGenericType("java.util.Set", retType);
+	}
+	onNewline(out);
+	printMethod(out, "public", retType, "get" + capitalize(role.getName()) + "By" + capitalize(keyField) + methodNameSufix, indexedSlot.getSlotType()
+		.getFullname()
+		+ " key");
+	startMethodBody(out);
+	//printWords(out, "return", "java.util.Collections.unmodifiable"+ (returnTypeIsSet ? "Set" : "List")  + "(", "new ");
+	printWords(out, "return", getSearchForKey(slotName, haveMany ? collectionToUse : retType));
+	print(out, ";");
+	endMethodBody(out);
+    }
+    
+    protected Slot getIndexedSlot(Role role) {
+	Slot indexedSlot = role.getType().findSlot(role.getIndexProperty());
+	if (indexedSlot == null) { // indexed field doesn't exist
+	    throw new Error("Unknown indexed field: " + role.getIndexProperty());
+	}
+	return indexedSlot;
+    }
+    
+    
+    private String getSearchForKey(String slotName, String retType) {
+	return "(" + retType + ") "+ slotName + ".get(key)";
+    }
 
     public static String makeGenericType(String baseType, String... argTypes) {
         StringBuilder buf = new StringBuilder();

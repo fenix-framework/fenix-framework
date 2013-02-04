@@ -158,24 +158,10 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
     
     //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
     @Override
-    protected void generateRoleSlotMethodsMultStarHasChild(Role role, PrintWriter out, String methodModifiers, String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName, boolean isIndexed, String indexGetterCall) {
-        newline(out);
-        printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
-        startMethodBody(out);
-        
+    protected void generateRoleSlotMethodsMultStarHasChildBody(Role role, PrintWriter out,
+    	    String slotAccessExpression, String slotName) {
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-        
-        print(out, "return ");
-        print(out, slotAccessExpression);
-        print(out, ".");
-        print(out, (isIndexed ? "containsKey(" : "contains("));
-        print(out, slotName);
-        if (isIndexed) {
-            print(out, ".");
-            print(out, indexGetterCall);
-        }
-        print(out, ");");
-        endMethodBody(out);
+        super.generateRoleSlotMethodsMultStarHasChildBody(role, out, slotAccessExpression, slotName);
     }
     
     //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
