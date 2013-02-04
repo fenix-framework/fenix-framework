@@ -21,8 +21,8 @@ import pt.ist.fenixframework.pstm.collections.bplustree.BPlusTree;
 
 /**
  * A <code>DomainConsistencyPredicate</code> is the persistent domain entity
- * that represents a consistency predicate method inside a domain class. The
- * {@link DomainFenixFrameworkRoot} uses this entity after each initialization,
+ * that represents a consistency predicate method inside a domain class. The {@link DomainFenixFrameworkRoot} uses this
+ * entity after each initialization,
  * to determine which predicates were already known, and which are new.
  * 
  * @author João Neves - JoaoRoxoNeves@ist.utl.pt
@@ -33,25 +33,25 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
     private static final int MAX_NUMBER_OF_OBJECTS_TO_PROCESS = 5000;
 
     public DomainConsistencyPredicate() {
-	super();
-	checkFrameworkNotInitialized();
-	setOjbConcreteClass(getClass().getName());
-	setFinalized(false);
+        super();
+        checkFrameworkNotInitialized();
+        setOjbConcreteClass(getClass().getName());
+        setFinalized(false);
     }
 
     /**
      * Checks that the {@link FenixFramework} is not initialized, throws an
-     * exception otherwise. Should be called before any changes are made to
-     * {@link DomainMetaClass}es or to {@link DomainConsistencyPredicate}s.
+     * exception otherwise. Should be called before any changes are made to {@link DomainMetaClass}es or to
+     * {@link DomainConsistencyPredicate}s.
      * 
      * @throws RuntimeException
      *             if the framework was already initialized
      **/
     protected void checkFrameworkNotInitialized() {
-	if (FenixFramework.isInitialized()) {
-	    throw new RuntimeException("Instances of " + getClass().getSimpleName()
-		    + " cannot be edited after the FenixFramework has been initialized.");
-	}
+        if (FenixFramework.isInitialized()) {
+            throw new RuntimeException("Instances of " + getClass().getSimpleName()
+                    + " cannot be edited after the FenixFramework has been initialized.");
+        }
     }
 
     public abstract boolean isPublic();
@@ -61,40 +61,40 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
     public abstract boolean isFinal();
 
     public boolean isFinalized() {
-	return getFinalized();
+        return getFinalized();
     }
 
     @Override
     public void setFinalized(Boolean finalized) {
-	checkFrameworkNotInitialized();
-	super.setFinalized(finalized);
+        checkFrameworkNotInitialized();
+        super.setFinalized(finalized);
     }
 
     @Override
     public Method getPredicate() {
-	Method predicateMethod = super.getPredicate();
-	if (predicateMethod != null) {
-	    predicateMethod.setAccessible(true);
-	}
-	return predicateMethod;
+        Method predicateMethod = super.getPredicate();
+        if (predicateMethod != null) {
+            predicateMethod.setAccessible(true);
+        }
+        return predicateMethod;
     }
 
     @Override
     public void setPredicate(Method predicate) {
-	checkFrameworkNotInitialized();
-	super.setPredicate(predicate);
+        checkFrameworkNotInitialized();
+        super.setPredicate(predicate);
     }
 
     @Override
     public void setDomainMetaClass(DomainMetaClass domainMetaClass) {
-	checkFrameworkNotInitialized();
-	super.setDomainMetaClass(domainMetaClass);
+        checkFrameworkNotInitialized();
+        super.setDomainMetaClass(domainMetaClass);
     }
 
     @Override
     public void removeDomainMetaClass() {
-	checkFrameworkNotInitialized();
-	super.removeDomainMetaClass();
+        checkFrameworkNotInitialized();
+        super.removeDomainMetaClass();
     }
 
     /**
@@ -111,8 +111,8 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
     public abstract void updateConsistencyPredicateOverridden();
 
     /**
-     * Executes this consistency predicate for all objects of the given
-     * {@link DomainMetaClass}, and objects of subclasses. The predicate will
+     * Executes this consistency predicate for all objects of the given {@link DomainMetaClass}, and objects of
+     * subclasses. The predicate will
      * NOT be executed for objects of any subclass that overrides this
      * consistency predicate.
      * 
@@ -124,8 +124,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
 
     /**
      * Checks all the subclasses of this consistency predicate for any methods
-     * that override it. For each method found, checks that it has the
-     * {@link ConsistencyPredicate} annotation.
+     * that override it. For each method found, checks that it has the {@link ConsistencyPredicate} annotation.
      * 
      * @throws Error
      *             if this predicate is being overridden by a non-predicate
@@ -134,47 +133,47 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
     public abstract void checkOverridingMethods(DomainMetaClass metaClass);
 
     /**
-     * Executes this consistency predicate for all objects in the given
-     * <code>List</code>. For each object, after the execution, this method
+     * Executes this consistency predicate for all objects in the given <code>List</code>. For each object, after the
+     * execution, this method
      * creates a {@link DomainDependenceRecord} based on the dependencies of
      * that object.
      * 
      * @param metaClass
-     *            the {@link DomainMetaClass} of {@link AbstractDomainObject}
-     *            for which to execute this predicate.
+     *            the {@link DomainMetaClass} of {@link AbstractDomainObject} for which to execute this predicate.
      */
     protected void executeConsistencyPredicateForExistingDomainObjects(DomainMetaClass metaClass) {
-	BPlusTree<DomainMetaObject> metaObjects = metaClass.getExistingDomainMetaObjects();
-	checkFrameworkNotInitialized();
-	if (metaObjects.isEmpty() || getPredicate() == null) {
-	    return;
-	}
-	System.out.println("[DomainConsistencyPredicate] Executing startup consistency predicate: " + getPredicate().getName());
-	int count = 0;
-	for (DomainMetaObject existingMetaObject : metaObjects) {
-	    count++;
-	    if ((count % MAX_NUMBER_OF_OBJECTS_TO_PROCESS) == 0) {
-		// Commits the current, and starts a new write transaction.
-		// This is necessary to split the load of the mass creation of DomainDependenceRecords among several transactions.
-		// Each transaction processes a maximum of MAX_NUMBER_OF_OBJECTS_TO_PROCESS objects in order to avoid OutOfMemoryExceptions.
-		// Because this method checks for repeated OwnDependenceRecords of each meta object being checked, there is no problem with
-		// processing only an incomplete part of the objects of the given class.
-		Transaction.beginTransaction();
-		System.out.println("[DomainConsistencyPredicate] Transaction finished. Number of process"
-			+ metaClass.getDomainClass().getSimpleName() + "objects: " + count);
-	    }
-	    
-	    // The predicate was already checked during a previous incomplete initialization of this DomainConsistencyPredicate
-	    if (existingMetaObject.hasOwnDependenceRecord(this)) {
-		continue;
-	    }
-	    Pair pair = executePredicateForOneObject(existingMetaObject.getDomainObject(), getPredicate());
-	    // If an object is consistent and only depends on itself, the DomainDependenceRecord is not necessary.
-	    if (!(TopLevelTransaction.isConsistent(pair) && TopLevelTransaction.dependsOnlyOnItself(pair))) {
-		new DomainDependenceRecord(existingMetaObject.getDomainObject(), this, (Set<Depended>) pair.first,
-			(Boolean) pair.second);
-	    }
-	}
+        BPlusTree<DomainMetaObject> metaObjects = metaClass.getExistingDomainMetaObjects();
+        checkFrameworkNotInitialized();
+        if (metaObjects.isEmpty() || getPredicate() == null) {
+            return;
+        }
+        System.out.println("[DomainConsistencyPredicate] Executing startup consistency predicate: " + getPredicate().getName()
+                + " for the class: " + metaClass.getDomainClass().getSimpleName());
+        int count = 0;
+        for (DomainMetaObject existingMetaObject : metaObjects) {
+            count++;
+            if ((count % MAX_NUMBER_OF_OBJECTS_TO_PROCESS) == 0) {
+                // Commits the current, and starts a new write transaction.
+                // This is necessary to split the load of the mass creation of DomainDependenceRecords among several transactions.
+                // Each transaction processes a maximum of MAX_NUMBER_OF_OBJECTS_TO_PROCESS objects in order to avoid OutOfMemoryExceptions.
+                // Because this method checks for repeated OwnDependenceRecords of each meta object being checked, there is no problem with
+                // processing only an incomplete part of the objects of the given class.
+                Transaction.beginTransaction();
+                System.out.println("[DomainConsistencyPredicate] Transaction finished. Number of processed "
+                        + metaClass.getDomainClass().getSimpleName() + " objects: " + count);
+            }
+
+            // The predicate was already checked during a previous incomplete initialization of this DomainConsistencyPredicate
+            if (existingMetaObject.hasOwnDependenceRecord(this)) {
+                continue;
+            }
+            Pair pair = executePredicateForOneObject(existingMetaObject.getDomainObject(), getPredicate());
+            // If an object is consistent and only depends on itself, the DomainDependenceRecord is not necessary.
+            if (!(TopLevelTransaction.isConsistent(pair) && TopLevelTransaction.dependsOnlyOnItself(pair))) {
+                new DomainDependenceRecord(existingMetaObject.getDomainObject(), this, (Set<Depended>) pair.first,
+                        (Boolean) pair.second);
+            }
+        }
     }
 
     /**
@@ -182,50 +181,48 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
      * the only goal of returning information about the consistency of the
      * object, and its dependencies. Even if the predicate returns false, no
      * exception is thrown, and no transaction is aborted.<br>
-     * This method should only be invoked during the initialization of the
-     * {@link FenixFramework}.
+     * This method should only be invoked during the initialization of the {@link FenixFramework}.
      * 
      * @param obj
      *            the <code>Object</code> for which to execute the predicate
      * @param predicate
      *            the <code>Method</code> of the predicate to execute
-     * @return a {@link Pair} that contains a <code>Set</code> of
-     *         {@link Depended} with the dependencies of the object's
+     * @return a {@link Pair} that contains a <code>Set</code> of {@link Depended} with the dependencies of the object's
      *         consistency, and a boolean that indicates if the object is
      *         consistent or not
      */
     private static Pair executePredicateForOneObject(AbstractDomainObject obj, Method predicate) {
-	// starts a new transaction where the readSet used by the predicate will be collected.
-	ConsistencyCheckTransaction tx = new FenixConsistencyCheckTransaction(Transaction.currentFenixTransaction(), obj);
-	tx.start();
+        // starts a new transaction where the readSet used by the predicate will be collected.
+        ConsistencyCheckTransaction tx = new FenixConsistencyCheckTransaction(Transaction.currentFenixTransaction(), obj);
+        tx.start();
 
-	try {
-	    // returns a pair with the depended of the transaction (readSet)
-	    // and the result of the predicate (consistent or not)
-	    Boolean predicateResult = (Boolean) predicate.invoke(obj);
-	    Transaction.commit();
+        try {
+            // returns a pair with the depended of the transaction (readSet)
+            // and the result of the predicate (consistent or not)
+            Boolean predicateResult = (Boolean) predicate.invoke(obj);
+            Transaction.commit();
 
-	    // Do not register the own object as a depended
-	    Set<Depended> depended = tx.getDepended();
-	    if (!depended.isEmpty()) {
-		depended.remove(obj.getDomainMetaObject());
-	    }
-	    return new Pair(depended, predicateResult);
-	} catch (InvocationTargetException ite) {
-	    // if an exception is thrown during the execution of the predicate,
-	    // the object is NOT consistent
-	    Transaction.commit();
+            // Do not register the own object as a depended
+            Set<Depended> depended = tx.getDepended();
+            if (!depended.isEmpty()) {
+                depended.remove(obj.getDomainMetaObject());
+            }
+            return new Pair(depended, predicateResult);
+        } catch (InvocationTargetException ite) {
+            // if an exception is thrown during the execution of the predicate,
+            // the object is NOT consistent
+            Transaction.commit();
 
-	    // Do not register the own object as a depended
-	    Set<Depended> depended = tx.getDepended();
-	    if (!depended.isEmpty()) {
-		depended.remove(obj.getDomainMetaObject());
-	    }
-	    return new Pair(depended, false);
-	} catch (Throwable t) {
-	    // any other kind of throwable is an Error in the framework that should be fixed
-	    throw new Error(t);
-	}
+            // Do not register the own object as a depended
+            Set<Depended> depended = tx.getDepended();
+            if (!depended.isEmpty()) {
+                depended.remove(obj.getDomainMetaObject());
+            }
+            return new Pair(depended, false);
+        } catch (Throwable t) {
+            // any other kind of throwable is an Error in the framework that should be fixed
+            throw new Error(t);
+        }
     }
 
     /**
@@ -241,7 +238,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
      * @see DomainConsistencyPredicate#classDelete()
      **/
     public void delete() {
-	classDelete();
+        classDelete();
     }
 
     /**
@@ -256,27 +253,25 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
      * @see DomainConsistencyPredicate#delete()
      **/
     public void classDelete() {
-	checkFrameworkNotInitialized();
-	System.out.println("[DomainConsistencyPredicate] Deleting predicate " + getPredicate()
-		+ ((getPredicate() == null) ? " of " + getDomainMetaClass().getDomainClass() : ""));
-	for (DomainDependenceRecord dependenceRecord : getDomainDependenceRecords()) {
-	    dependenceRecord.delete();
-	}
-	removeDomainMetaClass();
-	deleteDomainObject();
+        checkFrameworkNotInitialized();
+        System.out.println("[DomainConsistencyPredicate] Deleting predicate " + getPredicate()
+                + ((getPredicate() == null) ? " of " + getDomainMetaClass().getDomainClass() : ""));
+        for (DomainDependenceRecord dependenceRecord : getDomainDependenceRecords()) {
+            dependenceRecord.delete();
+        }
+        removeDomainMetaClass();
+        deleteDomainObject();
     }
 
     public static <PredicateT extends DomainConsistencyPredicate> PredicateT readDomainConsistencyPredicate(
-	    Class<? extends AbstractDomainObject> domainClass, String predicateName) {
-	return (PredicateT) DomainMetaClass.readDomainMetaClass(domainClass)
-		.getDeclaredConsistencyPredicate(predicateName);
+            Class<? extends AbstractDomainObject> domainClass, String predicateName) {
+        return (PredicateT) DomainMetaClass.readDomainMetaClass(domainClass).getDeclaredConsistencyPredicate(predicateName);
     }
 
-    public static <PredicateT extends DomainConsistencyPredicate> PredicateT readDomainConsistencyPredicate(
-	    Method predicateMethod) {
-	return (PredicateT) DomainMetaClass.readDomainMetaClass(
-		(Class<? extends AbstractDomainObject>) predicateMethod.getDeclaringClass()).getDeclaredConsistencyPredicate(
-		predicateMethod);
+    public static <PredicateT extends DomainConsistencyPredicate> PredicateT readDomainConsistencyPredicate(Method predicateMethod) {
+        return (PredicateT) DomainMetaClass.readDomainMetaClass(
+                (Class<? extends AbstractDomainObject>) predicateMethod.getDeclaringClass()).getDeclaredConsistencyPredicate(
+                predicateMethod);
     }
 
     /**
@@ -287,16 +282,16 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
      * initialized.
      */
     public static <PredicateT extends DomainConsistencyPredicate> PredicateT createNewDomainConsistencyPredicate(
-	    Method predicateMethod, DomainMetaClass metaClass) {
-	DomainConsistencyPredicate newDomainConsistencyPredicate;
-	int methodModifiers = predicateMethod.getModifiers();
-	if (Modifier.isPrivate(methodModifiers)) {
-	    newDomainConsistencyPredicate = new PrivateConsistencyPredicate(predicateMethod, metaClass);
-	} else if (Modifier.isFinal(methodModifiers)) {
-	    newDomainConsistencyPredicate = new FinalConsistencyPredicate(predicateMethod, metaClass);
-	} else {
-	    newDomainConsistencyPredicate = new PublicConsistencyPredicate(predicateMethod, metaClass);
-	}
-	return (PredicateT) newDomainConsistencyPredicate;
+            Method predicateMethod, DomainMetaClass metaClass) {
+        DomainConsistencyPredicate newDomainConsistencyPredicate;
+        int methodModifiers = predicateMethod.getModifiers();
+        if (Modifier.isPrivate(methodModifiers)) {
+            newDomainConsistencyPredicate = new PrivateConsistencyPredicate(predicateMethod, metaClass);
+        } else if (Modifier.isFinal(methodModifiers)) {
+            newDomainConsistencyPredicate = new FinalConsistencyPredicate(predicateMethod, metaClass);
+        } else {
+            newDomainConsistencyPredicate = new PublicConsistencyPredicate(predicateMethod, metaClass);
+        }
+        return (PredicateT) newDomainConsistencyPredicate;
     }
 }

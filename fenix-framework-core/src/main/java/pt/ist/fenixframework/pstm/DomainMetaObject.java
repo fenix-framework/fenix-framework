@@ -13,8 +13,8 @@ import pt.ist.fenixframework.pstm.consistencyPredicates.DomainDependenceRecord;
  * domain. The <code>DomainMetaObject</code> is created when the domain object
  * is created.<br>
  * 
- * The <code>DomainMetaObject</code> stores the object's {@link DomainMetaClass}
- * and all its dependencies as {@link DomainDependenceRecord}s. The object's
+ * The <code>DomainMetaObject</code> stores the object's {@link DomainMetaClass} and all its dependencies as
+ * {@link DomainDependenceRecord}s. The object's
  * <strong>own</strong> dependence records point to other objects on which the
  * consistency of this object depends. The object's <strong>depending</strong>
  * dependence records point to the other objects whose consistency depends on
@@ -26,12 +26,12 @@ import pt.ist.fenixframework.pstm.consistencyPredicates.DomainDependenceRecord;
 public class DomainMetaObject extends DomainMetaObject_Base implements Depended<DomainDependenceRecord> {
 
     public DomainMetaObject() {
-	super();
+        super();
     }
 
     /**
-     * Deletes this <code>DomainMetaObject</code>, and all the object's own
-     * {@link DomainDependenceRecord}s. It also removes the dependencies of
+     * Deletes this <code>DomainMetaObject</code>, and all the object's own {@link DomainDependenceRecord}s. It also removes the
+     * dependencies of
      * other objects to this object.<br>
      * 
      * A DomainMetaObject should be deleted only when the associated DO is being
@@ -39,8 +39,7 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
      * list.<br>
      * 
      * <strong>This method assumes that a deleted object is no longer connected
-     * to other objects. Therefore, the parameter
-     * {@link Config#errorfIfDeletingObjectNotDisconnected} MUST be set to
+     * to other objects. Therefore, the parameter {@link Config#errorfIfDeletingObjectNotDisconnected} MUST be set to
      * true.</strong><br>
      * 
      * Because all relations are bidireccional, the transaction that disconnects
@@ -51,95 +50,92 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
      * <strong>depending</strong> dependence records of this object.
      **/
     protected void delete() {
-	getDomainMetaClass().removeExistingDomainMetaObject(this);
+        getDomainMetaClass().removeExistingDomainMetaObject(this);
 
-	// Removes the dependencies from other objects.
-	// Because the object was disconnected from all relations, any depending objects
-	// will be checked by the objects on the other side of the relations. 
-	for (DomainDependenceRecord dependingDependenceRecord : getDependingDependenceRecords()) {
-	    removeDependingDependenceRecords(dependingDependenceRecord);
-	}
+        // Removes the dependencies from other objects.
+        // Because the object was disconnected from all relations, any depending objects
+        // will be checked by the objects on the other side of the relations. 
+        for (DomainDependenceRecord dependingDependenceRecord : getDependingDependenceRecords()) {
+            removeDependingDependenceRecords(dependingDependenceRecord);
+        }
 
-	// Removes this objects own records, of its own predicates.
-	// The object is being deleted, so it no longer has to be consistent.
-	for (DomainDependenceRecord ownDependenceRecord : getOwnDependenceRecords()) {
-	    ownDependenceRecord.delete();
-	}
+        // Removes this objects own records, of its own predicates.
+        // The object is being deleted, so it no longer has to be consistent.
+        for (DomainDependenceRecord ownDependenceRecord : getOwnDependenceRecords()) {
+            ownDependenceRecord.delete();
+        }
 
-	// Removes the relation to the AbstractDomainObject that this meta object used to represent.
-	removeDomainObject();
+        // Removes the relation to the AbstractDomainObject that this meta object used to represent.
+        removeDomainObject();
 
-	// Deletes THIS metaObject, which is also a fenix-framework DomainObject.
-	deleteDomainObject();
+        // Deletes THIS metaObject, which is also a fenix-framework DomainObject.
+        deleteDomainObject();
     }
 
     @Override
     public void setDomainObject(AbstractDomainObject domainObject) {
-	// These two sets are needed because the relation between a domainObject
-	// and it's metaObject is only partially implemented in DML.
-	super.setDomainObject(domainObject);
-	domainObject.justSetMetaObject(this);
+        // These two sets are needed because the relation between a domainObject
+        // and it's metaObject is only partially implemented in DML.
+        super.setDomainObject(domainObject);
+        domainObject.justSetMetaObject(this);
     }
 
     /**
-     * @return The {@link DomainDependenceRecord} of this
-     *         <code>DomainMetaObject</code> for the
-     *         {@link DomainConsistencyPredicate} passed as argument
+     * @return The {@link DomainDependenceRecord} of this <code>DomainMetaObject</code> for the {@link DomainConsistencyPredicate}
+     *         passed as argument
      */
     public DomainDependenceRecord getOwnDependenceRecord(DomainConsistencyPredicate predicate) {
-	for (DomainDependenceRecord dependenceRecord : getOwnDependenceRecords()) {
-	    if (dependenceRecord.getDomainConsistencyPredicate() == predicate) {
-		return dependenceRecord;
-	    }
-	}
-	return null;
+        for (DomainDependenceRecord dependenceRecord : getOwnDependenceRecords()) {
+            if (dependenceRecord.getDomainConsistencyPredicate() == predicate) {
+                return dependenceRecord;
+            }
+        }
+        return null;
     }
 
     /**
-     * @return true if this object is consistent according to all its
-     *         {@link DomainConsistencyPredicate}s.
+     * @return true if this object is consistent according to all its {@link DomainConsistencyPredicate}s.
      */
     public boolean isConsistent() {
-	for (DomainDependenceRecord dependenceRecord : getOwnDependenceRecords()) {
-	    if (!dependenceRecord.isConsistent()) {
-		return false;
-	    }
-	}
-	return true;
+        for (DomainDependenceRecord dependenceRecord : getOwnDependenceRecords()) {
+            if (!dependenceRecord.isConsistent()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
-     * @return true if this <code>DomainMetaObject</code> has a
-     *         {@link DomainDependenceRecord} for the
+     * @return true if this <code>DomainMetaObject</code> has a {@link DomainDependenceRecord} for the
      *         {@link DomainConsistencyPredicate} passed as argument
      */
     public boolean hasOwnDependenceRecord(DomainConsistencyPredicate predicate) {
-	return getOwnDependenceRecord(predicate) != null;
+        return getOwnDependenceRecord(predicate) != null;
     }
 
     @Override
     public void removeDomainObject() {
-	AbstractDomainObject domainObject = getDomainObject();
+        AbstractDomainObject domainObject = getDomainObject();
 
-	// These two sets are needed because the relation between a domainObject
-	// and it's metaObject is only partially implemented in DML.
-	domainObject.justSetMetaObject(null);
-	super.setDomainObject(null);
+        // These two sets are needed because the relation between a domainObject
+        // and it's metaObject is only partially implemented in DML.
+        domainObject.justSetMetaObject(null);
+        super.setDomainObject(null);
     }
 
     // Depended interface implemented below:
     @Override
     public void addDependence(DomainDependenceRecord record) {
-	addDependingDependenceRecords(record);
+        addDependingDependenceRecords(record);
     }
 
     @Override
     public void removeDependence(DomainDependenceRecord record) {
-	removeDependingDependenceRecords(record);
+        removeDependingDependenceRecords(record);
     }
 
     @Override
     public Set<DomainDependenceRecord> getDependenceRecords() {
-	return getDependingDependenceRecordsSet();
+        return getDependingDependenceRecordsSet();
     }
 }
