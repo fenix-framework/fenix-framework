@@ -6,9 +6,13 @@ import pt.ist.fenixframework.pstm.AbstractDomainObject;
 
 public interface TxIntrospector {
     public Set<AbstractDomainObject> getNewObjects();
+
     public Set<AbstractDomainObject> getModifiedObjects();
+
     public Set<Entry> getReadSetLog();
+
     public Set<Entry> getWriteSetLog();
+
     public Set<RelationChangelog> getRelationsChangelog();
 
     public static class Entry {

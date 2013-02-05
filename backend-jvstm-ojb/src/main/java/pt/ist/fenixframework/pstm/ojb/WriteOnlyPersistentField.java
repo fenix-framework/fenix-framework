@@ -32,9 +32,8 @@ public class WriteOnlyPersistentField extends FenixPersistentField {
         try {
             setterMethod.invoke(obj, value);
         } catch (Throwable e) {
-            throw new MetadataException("Error invoking method:" + setterMethod.getName() 
-                                        + " in object " + obj.getClass().getName(), 
-                                        e);
+            throw new MetadataException("Error invoking method:" + setterMethod.getName() + " in object "
+                    + obj.getClass().getName(), e);
         }
     }
 

@@ -16,13 +16,13 @@ class PrimitiveBox<E> extends VBox<E> {
     }
 
     PrimitiveBox(DomainObject ownerObj, String slotName, VBoxBody<E> body) {
-	super(ownerObj, slotName, body);
+        super(ownerObj, slotName, body);
     }
 
     protected void doReload(Object obj, String attr) {
-	PersistenceBroker pb = Transaction.getOJBBroker();
-	Identity oid = new Identity(obj, pb);
-	ClassDescriptor cld = pb.getClassDescriptor(obj.getClass());
+        PersistenceBroker pb = Transaction.getOJBBroker();
+        Identity oid = new Identity(obj, pb);
+        ClassDescriptor cld = pb.getClassDescriptor(obj.getClass());
         pb.serviceJdbcAccess().materializeObject(cld, oid);
     }
 }

@@ -27,7 +27,6 @@ public class SqlTable {
         mySqlTypeTranslation.put(null, "tinyint(1)");
     }
 
-
     public class Column {
         final String name;
         final String type;
@@ -41,16 +40,19 @@ public class SqlTable {
             stringBuilder.append("`");
             stringBuilder.append(name);
             stringBuilder.append("` ");
-            String typeTranslated=mySqlTypeTranslation.get(type);
-            if(typeTranslated==null)
-            {
-            	System.out.println("No mapping defined for generic type "+type+" for the current database! Assuming that the db type will be the same as the generic type... Please review the resulting sql file for the table "+SqlTable.this.tablename+" and for field "+name);
-            	typeTranslated=type;
+            String typeTranslated = mySqlTypeTranslation.get(type);
+            if (typeTranslated == null) {
+                System.out
+                        .println("No mapping defined for generic type "
+                                + type
+                                + " for the current database! Assuming that the db type will be the same as the generic type... Please review the resulting sql file for the table "
+                                + SqlTable.this.tablename + " and for field " + name);
+                typeTranslated = type;
             }
             stringBuilder.append(typeTranslated);
             if (name.equals("ID_INTERNAL")) {
-        	stringBuilder.append(" NOT NULL auto_increment");
-        	//stringBuilder.append(", OID bigint unsigned default null");
+                stringBuilder.append(" NOT NULL auto_increment");
+                //stringBuilder.append(", OID bigint unsigned default null");
             }
         }
 
@@ -66,7 +68,6 @@ public class SqlTable {
             return name.hashCode();
         }
     }
-
 
     final String tablename;
 
@@ -155,16 +156,16 @@ public class SqlTable {
         }
         stringBuilder.append("\n");
 
-	/* We must ensure that the tables and the connection are in UTF-8.  This is so because:
-	 * - strings are being stored as LONGVARCHAR, which in mysql maps to TEXT
-	 * - OJB calls setCharacterStream (in prepared statementes)
-	 * - connector/J sends hexadecimal strings (binary-strings) when storing a character stream
-	 * - binary-strings are not processed for enconding, being stored as they were sent
-	 *
-	 * -> thus, currently the format (encoding) in which we send strings must match the column's encoding
-	 */
-	stringBuilder.append(") ENGINE=InnoDB, character set ");
-	stringBuilder.append(defaultCharacterSet);
-	stringBuilder.append(" ;\n\n");
+        /* We must ensure that the tables and the connection are in UTF-8.  This is so because:
+         * - strings are being stored as LONGVARCHAR, which in mysql maps to TEXT
+         * - OJB calls setCharacterStream (in prepared statementes)
+         * - connector/J sends hexadecimal strings (binary-strings) when storing a character stream
+         * - binary-strings are not processed for enconding, being stored as they were sent
+         *
+         * -> thus, currently the format (encoding) in which we send strings must match the column's encoding
+         */
+        stringBuilder.append(") ENGINE=InnoDB, character set ");
+        stringBuilder.append(defaultCharacterSet);
+        stringBuilder.append(" ;\n\n");
     }
 }

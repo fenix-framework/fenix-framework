@@ -53,7 +53,7 @@ public class TxNumber {
         }
         return number;
     }
-        
+
     public static TxNumber internalize(long value) {
         return new TxNumber(value);
     }

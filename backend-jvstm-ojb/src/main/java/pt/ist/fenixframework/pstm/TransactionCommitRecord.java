@@ -2,7 +2,6 @@ package pt.ist.fenixframework.pstm;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-
 /*
  * This class is a generalization of what already existed for keeping
  * a record of AlienTransactions (that is, transactions committed on
@@ -31,16 +30,16 @@ class TransactionCommitRecords {
     private static final ConcurrentLinkedQueue<CommitRecord> COMMIT_RECORDS = new ConcurrentLinkedQueue<CommitRecord>();
 
     static {
-	Transaction.addTxQueueListener(new jvstm.TxQueueListener() {
-		public void noteOldestTransaction(int newOldest) {
-                    cleanOldCommitRecords(newOldest);
-		}
-	    });
+        Transaction.addTxQueueListener(new jvstm.TxQueueListener() {
+            public void noteOldestTransaction(int newOldest) {
+                cleanOldCommitRecords(newOldest);
+            }
+        });
     }
 
     public static void cleanOldCommitRecords(int txNumber) {
         synchronized (COMMIT_RECORDS) {
-            while ((! COMMIT_RECORDS.isEmpty()) && (COMMIT_RECORDS.peek().txNumber <= txNumber)) {
+            while ((!COMMIT_RECORDS.isEmpty()) && (COMMIT_RECORDS.peek().txNumber <= txNumber)) {
                 COMMIT_RECORDS.poll();
             }
         }

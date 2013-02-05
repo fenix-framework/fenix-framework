@@ -29,38 +29,38 @@ import pt.ist.fenixframework.FenixFramework;
 public class TransactionChangeLogs {
 
     private static class ClassInfo {
-	final ClassDescriptor classDescriptor;
-	final Class topLevelClass;
-	
-	ClassInfo(ClassDescriptor classDescriptor, Class topLevelClass) {
-	    this.classDescriptor = classDescriptor;
-	    this.topLevelClass = topLevelClass;
-	}
+        final ClassDescriptor classDescriptor;
+        final Class topLevelClass;
+
+        ClassInfo(ClassDescriptor classDescriptor, Class topLevelClass) {
+            this.classDescriptor = classDescriptor;
+            this.topLevelClass = topLevelClass;
+        }
     }
 
     private static final DescriptorRepository OJB_REPOSITORY = MetadataManager.getOjbMetadataManager().getRepository();
 
-    private static final Map<String,ClassInfo> CLASS_INFOS = new ConcurrentHashMap<String,ClassInfo>();
+    private static final Map<String, ClassInfo> CLASS_INFOS = new ConcurrentHashMap<String, ClassInfo>();
 
     private static ClassInfo getClassInfo(String className) {
-	ClassInfo info = CLASS_INFOS.get(className);
-	if (info == null) {
-	    try {
-		Class realClass = Class.forName(className);
-		ClassDescriptor cld = OJB_REPOSITORY.getDescriptorFor(realClass);
-		Class topLevelClass = OJB_REPOSITORY.getTopLevelClass(realClass);
-		info = new ClassInfo(cld, topLevelClass);
-		CLASS_INFOS.put(className, info);
-	    } catch (ClassNotFoundException cnfe) {
-		throw new Error("Couldn't find class " + className + ": " + cnfe);
-	    }
-	}
+        ClassInfo info = CLASS_INFOS.get(className);
+        if (info == null) {
+            try {
+                Class realClass = Class.forName(className);
+                ClassDescriptor cld = OJB_REPOSITORY.getDescriptorFor(realClass);
+                Class topLevelClass = OJB_REPOSITORY.getTopLevelClass(realClass);
+                info = new ClassInfo(cld, topLevelClass);
+                CLASS_INFOS.put(className, info);
+            } catch (ClassNotFoundException cnfe) {
+                throw new Error("Couldn't find class " + className + ": " + cnfe);
+            }
+        }
 
         return info;
     }
 
     static AbstractDomainObject readDomainObject(PersistenceBroker pb, String className, int idInternal) {
-	ClassInfo info = getClassInfo(className);
+        ClassInfo info = getClassInfo(className);
         //DomainObject obj = (DomainObject)Transaction.getCache().lookup(info.topLevelClass, idInternal);
 
         // As the cache now only maps OIDs to objects, the previous
@@ -68,7 +68,7 @@ public class TransactionChangeLogs {
         // cache first and always go to the database.  This may be a
         // performance problem if the readDomainObject is called many
         // times, but this method should disappear, either way.
-	AbstractDomainObject obj = null;
+        AbstractDomainObject obj = null;
 
         if (obj == null) {
             Identity oid = new Identity(null, info.topLevelClass, new Object[] { idInternal });
@@ -83,20 +83,19 @@ public class TransactionChangeLogs {
         return obj;
     }
 
-
     // ------------------------------------------------------------
 
     private static class AlienTransaction {
-	final int txNumber;
+        final int txNumber;
 
         // the set of objects is kept so that a strong reference exists 
         // for each of the objects modified by another server until no running 
         // transaction in the current VM may need to access it
-	private Map<AbstractDomainObject,List<String>> objectAttrChanges = new HashMap<AbstractDomainObject,List<String>>();
+        private Map<AbstractDomainObject, List<String>> objectAttrChanges = new HashMap<AbstractDomainObject, List<String>>();
 
-	AlienTransaction(int txNumber) {
-	    this.txNumber = txNumber;
-	}
+        AlienTransaction(int txNumber) {
+            this.txNumber = txNumber;
+        }
 
         void register(AbstractDomainObject obj, String attrName) {
             List<String> allAttrs = objectAttrChanges.get(obj);
@@ -112,7 +111,7 @@ public class TransactionChangeLogs {
         Cons<VBoxBody> commit() {
             Cons<VBoxBody> newBodies = Cons.empty();
 
-            for (Map.Entry<AbstractDomainObject,List<String>> entry : objectAttrChanges.entrySet()) {
+            for (Map.Entry<AbstractDomainObject, List<String>> entry : objectAttrChanges.entrySet()) {
                 AbstractDomainObject obj = entry.getKey();
                 List<String> allAttrs = entry.getValue();
 
@@ -130,37 +129,33 @@ public class TransactionChangeLogs {
         }
     }
 
+    public static ActiveTransactionsRecord updateFromTxLogsOnDatabase(PersistenceBroker pb, ActiveTransactionsRecord record)
+            throws SQLException, LookupException {
 
-    public static ActiveTransactionsRecord updateFromTxLogsOnDatabase(PersistenceBroker pb, 
-                                                                      ActiveTransactionsRecord record) 
-            throws SQLException,LookupException {
-
-	return updateFromTxLogsOnDatabase(pb, record, false);
+        return updateFromTxLogsOnDatabase(pb, record, false);
     }
 
-    public static ActiveTransactionsRecord updateFromTxLogsOnDatabase(PersistenceBroker pb, 
-                                                                      ActiveTransactionsRecord record, 
-                                                                      boolean forUpdate) 
-            throws SQLException,LookupException {
+    public static ActiveTransactionsRecord updateFromTxLogsOnDatabase(PersistenceBroker pb, ActiveTransactionsRecord record,
+            boolean forUpdate) throws SQLException, LookupException {
 
-	Connection conn = pb.serviceConnectionManager().getConnection();
+        Connection conn = pb.serviceConnectionManager().getConnection();
 
-	// ensure that the connection is up-to-date
-	conn.commit();
-        
+        // ensure that the connection is up-to-date
+        conn.commit();
+
         Statement stmt = null;
         ResultSet rs = null;
-        
+
         try {
             stmt = conn.createStatement();
-        
+
             // read tx logs
             int maxTxNumber = record.transactionNumber;
 
-            rs = stmt.executeQuery("SELECT OBJ_OID,OBJ_ATTR,TX_NUMBER FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER > " 
-                                   + (forUpdate ? (maxTxNumber - 1) : maxTxNumber)
-                                   + " ORDER BY TX_NUMBER"
-                                   + (forUpdate ? " FOR UPDATE" : ""));
+            rs =
+                    stmt.executeQuery("SELECT OBJ_OID,OBJ_ATTR,TX_NUMBER FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER > "
+                            + (forUpdate ? (maxTxNumber - 1) : maxTxNumber) + " ORDER BY TX_NUMBER"
+                            + (forUpdate ? " FOR UPDATE" : ""));
 
             // if there are any results to be processed, process them
             if (rs.next()) {
@@ -179,8 +174,8 @@ public class TransactionChangeLogs {
         }
     }
 
-    private static ActiveTransactionsRecord processAlienTransaction(PersistenceBroker pb, ResultSet rs, ActiveTransactionsRecord record) 
-            throws SQLException {
+    private static ActiveTransactionsRecord processAlienTransaction(PersistenceBroker pb, ResultSet rs,
+            ActiveTransactionsRecord record) throws SQLException {
 
         // Acquire the JVSTM commit lock to process the result set, as
         // doing so is semantically similar to commiting transactions.
@@ -201,7 +196,7 @@ public class TransactionChangeLogs {
             // is necessarily less than the number we are processing, and, therefore, will have to
             // come into this method, blocking in the lock.
             // Likewise for a commit of a write transaction.
-            
+
             int currentCommittedNumber = Transaction.getMostRecentCommitedNumber();
 
             int txNum = rs.getInt(3);
@@ -217,7 +212,7 @@ public class TransactionChangeLogs {
                 // we got
                 return findActiveRecordForNumber(record, txNum);
             }
-            
+
             // now, it's time to process the new changeLog records
 
             AlienTransaction alienTx = new AlienTransaction(txNum);
@@ -266,7 +261,7 @@ public class TransactionChangeLogs {
             commitLock.unlock();
         }
     }
-    
+
     private static ActiveTransactionsRecord findActiveRecordForNumber(ActiveTransactionsRecord rec, int number) {
         while (rec.transactionNumber < number) {
             rec = rec.getNext();
@@ -275,145 +270,144 @@ public class TransactionChangeLogs {
         return rec;
     }
 
-
     public static int initializeTransactionSystem() {
-	// find the last committed transaction
-	PersistenceBroker broker = null;
+        // find the last committed transaction
+        PersistenceBroker broker = null;
 
-	try {
-	    broker = PersistenceBrokerFactory.defaultPersistenceBroker();
-	    broker.beginTransaction();
+        try {
+            broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+            broker.beginTransaction();
 
-	    Connection conn = broker.serviceConnectionManager().getConnection();
-	    Statement stmt = conn.createStatement();
-	    ResultSet rs = stmt.executeQuery("SELECT MAX(TX_NUMBER) FROM FF$TX_CHANGE_LOGS");
-	    int maxTx = (rs.next() ? rs.getInt(1) : -1);
+            Connection conn = broker.serviceConnectionManager().getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT MAX(TX_NUMBER) FROM FF$TX_CHANGE_LOGS");
+            int maxTx = (rs.next() ? rs.getInt(1) : -1);
 
-	    broker.commitTransaction();
+            broker.commitTransaction();
             broker.close();
             broker = null;
 
             stmt.close();
             rs.close();
-            
+
             new CleanThread(maxTx).start();
             new StatisticsThread().start();
 
-	    return maxTx;
-	} catch (Exception e) {
-	    throw new Error("Couldn't initialize the transaction system");
-	} finally {
-	    if (broker != null) {
-		broker.close();
-	    }
-	}
+            return maxTx;
+        } catch (Exception e) {
+            throw new Error("Couldn't initialize the transaction system");
+        } finally {
+            if (broker != null) {
+                broker.close();
+            }
+        }
     }
 
     private static class CleanThread extends Thread {
-	private static final long SECONDS_BETWEEN_UPDATES = 120;
+        private static final long SECONDS_BETWEEN_UPDATES = 120;
 
-	private String server;
-	private int lastTxNumber = -1;
-	
-	CleanThread(int lastTxNumber) {
+        private String server;
+        private int lastTxNumber = -1;
+
+        CleanThread(int lastTxNumber) {
             this.server = Util.getServerName();
             this.lastTxNumber = lastTxNumber;
 
-	    setDaemon(true);
-	}
-	
+            setDaemon(true);
+        }
+
         public void run() {
             try {
-        	while (! initializeServerRecord()) {
-        	    // intentionally empty
-        	}
-	    
-        	while (true) {
-        	    try {
-        		sleep(SECONDS_BETWEEN_UPDATES * 1000);
-        	    } catch (InterruptedException ie) {
-        		// ignore it
-        	    }
-        	    updateServerRecord();
-        	}
-            } finally {
-        	System.out.println("Exiting CleanThread!");
-        	System.err.flush();
-        	System.out.flush();
-            }
-	}
-	
-	private boolean initializeServerRecord() {
-	    PersistenceBroker broker = null;
-	    
-	    try {
-		broker = PersistenceBrokerFactory.defaultPersistenceBroker();
-		broker.beginTransaction();
-		
-		Connection conn = broker.serviceConnectionManager().getConnection();
-		Statement stmt = conn.createStatement();
+                while (!initializeServerRecord()) {
+                    // intentionally empty
+                }
 
-		// delete previous record for this server and insert a new one
-		stmt.executeUpdate("DELETE FROM FF$LAST_TX_PROCESSED WHERE SERVER = '" + server + "' or LAST_UPDATE < (NOW() - 3600)");
-		stmt.executeUpdate("INSERT INTO FF$LAST_TX_PROCESSED VALUES ('" + server + "'," + lastTxNumber + ",null)");
-		
-		broker.commitTransaction();
+                while (true) {
+                    try {
+                        sleep(SECONDS_BETWEEN_UPDATES * 1000);
+                    } catch (InterruptedException ie) {
+                        // ignore it
+                    }
+                    updateServerRecord();
+                }
+            } finally {
+                System.out.println("Exiting CleanThread!");
+                System.err.flush();
+                System.out.flush();
+            }
+        }
+
+        private boolean initializeServerRecord() {
+            PersistenceBroker broker = null;
+
+            try {
+                broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+                broker.beginTransaction();
+
+                Connection conn = broker.serviceConnectionManager().getConnection();
+                Statement stmt = conn.createStatement();
+
+                // delete previous record for this server and insert a new one
+                stmt.executeUpdate("DELETE FROM FF$LAST_TX_PROCESSED WHERE SERVER = '" + server
+                        + "' or LAST_UPDATE < (NOW() - 3600)");
+                stmt.executeUpdate("INSERT INTO FF$LAST_TX_PROCESSED VALUES ('" + server + "'," + lastTxNumber + ",null)");
+
+                broker.commitTransaction();
 
                 return true;
-	    } catch (Exception e) {
-		e.printStackTrace();
-		System.out.println("Couldn't initialize the clean thread");
-		//throw new Error("Couldn't initialize the clean thread");
-	    } finally {
-		if (broker != null) {
-		    broker.close();
-		}
-	    }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Couldn't initialize the clean thread");
+                //throw new Error("Couldn't initialize the clean thread");
+            } finally {
+                if (broker != null) {
+                    broker.close();
+                }
+            }
 
             return false;
-	}
-	
-	private void updateServerRecord() {
-	    int currentTxNumber = Transaction.getMostRecentCommitedNumber();
+        }
 
-	    PersistenceBroker broker = null;
-	    
-	    try {
-		broker = PersistenceBrokerFactory.defaultPersistenceBroker();
-		broker.beginTransaction();
-		
-		Connection conn = broker.serviceConnectionManager().getConnection();
-		Statement stmt = conn.createStatement();
+        private void updateServerRecord() {
+            int currentTxNumber = Transaction.getMostRecentCommitedNumber();
 
-		// update record for this server
-		stmt.executeUpdate("UPDATE FF$LAST_TX_PROCESSED SET LAST_TX=" 
-				   + currentTxNumber 
-				   + ",LAST_UPDATE=NULL WHERE SERVER = '" 
-				   + server + "'");
-		
-		// delete obsolete values
-		ResultSet rs = stmt.executeQuery("SELECT MIN(LAST_TX) FROM FF$LAST_TX_PROCESSED WHERE LAST_UPDATE > NOW() - " 
-						 + (2 * SECONDS_BETWEEN_UPDATES));
-		int min = (rs.next() ? rs.getInt(1) : 0);
-		if (min > 0) {
-		    stmt.executeUpdate("DELETE FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER < " + min);
-		}
+            PersistenceBroker broker = null;
 
-		broker.commitTransaction();
+            try {
+                broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+                broker.beginTransaction();
 
-		this.lastTxNumber = currentTxNumber;
-	    } catch (Exception e) {
-		e.printStackTrace();
-		System.out.println("Couldn't update database in the clean thread");
-		//throw new Error("Couldn't update database in the clean thread");
-	    } catch (Throwable t) {
-		t.printStackTrace();
-		System.out.println("Couldn't update database in the clean thread because of a Throwable.");
-	    } finally {
-		if (broker != null) {
-		    broker.close();
-		}
-	    }
-	}
+                Connection conn = broker.serviceConnectionManager().getConnection();
+                Statement stmt = conn.createStatement();
+
+                // update record for this server
+                stmt.executeUpdate("UPDATE FF$LAST_TX_PROCESSED SET LAST_TX=" + currentTxNumber
+                        + ",LAST_UPDATE=NULL WHERE SERVER = '" + server + "'");
+
+                // delete obsolete values
+                ResultSet rs =
+                        stmt.executeQuery("SELECT MIN(LAST_TX) FROM FF$LAST_TX_PROCESSED WHERE LAST_UPDATE > NOW() - "
+                                + (2 * SECONDS_BETWEEN_UPDATES));
+                int min = (rs.next() ? rs.getInt(1) : 0);
+                if (min > 0) {
+                    stmt.executeUpdate("DELETE FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER < " + min);
+                }
+
+                broker.commitTransaction();
+
+                this.lastTxNumber = currentTxNumber;
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Couldn't update database in the clean thread");
+                //throw new Error("Couldn't update database in the clean thread");
+            } catch (Throwable t) {
+                t.printStackTrace();
+                System.out.println("Couldn't update database in the clean thread because of a Throwable.");
+            } finally {
+                if (broker != null) {
+                    broker.close();
+                }
+            }
+        }
     }
 }

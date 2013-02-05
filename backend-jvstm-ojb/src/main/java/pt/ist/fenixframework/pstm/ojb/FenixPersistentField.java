@@ -22,11 +22,10 @@ public abstract class FenixPersistentField implements PersistentField {
         this.propName = propName;
     }
 
-
     public boolean usesAccessorsAndMutators() {
         return true;
     }
-    
+
     public Class getDeclaringClass() {
         return declaringClass;
     }

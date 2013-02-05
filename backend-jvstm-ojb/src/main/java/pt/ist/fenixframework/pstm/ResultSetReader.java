@@ -16,12 +16,11 @@ import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.Externalization;
 
-
 public class ResultSetReader {
 
     public static <T extends DomainObject> T readDomainObject(ResultSet rs, String columnName) throws SQLException {
         long oid = rs.getLong(columnName);
-        return (T)((oid == 0) ? null : FenixFramework.getConfig().getBackEnd().fromOid(oid));
+        return (T) ((oid == 0) ? null : FenixFramework.getConfig().getBackEnd().fromOid(oid));
     }
 
     public static <T extends Enum<T>> T readEnum(Class<T> enumClass, ResultSet rs, String columnName) throws SQLException {
@@ -64,7 +63,6 @@ public class ResultSetReader {
     public static double readdouble(ResultSet rs, String columnName) throws SQLException {
         return rs.getDouble(columnName);
     }
-
 
     public static Boolean readBoolean(ResultSet rs, String columnName) throws SQLException {
         Boolean result = rs.getBoolean(columnName);
@@ -112,7 +110,6 @@ public class ResultSetReader {
         return (rs.wasNull() ? null : result);
     }
 
-
     public static String readString(ResultSet rs, String columnName) throws SQLException {
         return rs.getString(columnName);
     }
@@ -128,14 +125,14 @@ public class ResultSetReader {
     }
 
     public static LocalDate readLocalDate(ResultSet rs, String columnName) throws SQLException {
-	/* Ideally, we would like to use an SQL DATE to store a LocalDate, but there is a bug in the mysql driver in the
-	 * rs.getDate(...) method.  The driver internally loses the timezone information and then always uses the default time
-	 * zone.  I.e., we would like to write something like:
-	 *
-	 * Date date = rs.getDate(columnName, new java.util.GregorianCalendar(java.util.TimeZone.getTimeZone("UTC")));
-	 *
-	 * Additionally, trying to solve the problem by changing the JVM's default timezone to match UTC is not acceptable.
-	 */
+        /* Ideally, we would like to use an SQL DATE to store a LocalDate, but there is a bug in the mysql driver in the
+         * rs.getDate(...) method.  The driver internally loses the timezone information and then always uses the default time
+         * zone.  I.e., we would like to write something like:
+         *
+         * Date date = rs.getDate(columnName, new java.util.GregorianCalendar(java.util.TimeZone.getTimeZone("UTC")));
+         *
+         * Additionally, trying to solve the problem by changing the JVM's default timezone to match UTC is not acceptable.
+         */
         String dateAsString = rs.getString(columnName);
         return (rs.wasNull() ? null : LocalDateExternalization.localDateFromString(dateAsString));
     }
@@ -159,7 +156,7 @@ public class ResultSetReader {
         // Construct the LocalTime with hours, minutes, and seconds,
         // for symmetry with the ToSqlConverter code (see the comment
         // there, also).
-	return (rs.wasNull() ? null : new LocalTime(time.getHours(), time.getMinutes(), time.getSeconds()));
+        return (rs.wasNull() ? null : new LocalTime(time.getHours(), time.getMinutes(), time.getSeconds()));
     }
 
     public static Partial readPartial(ResultSet rs, String columnName) throws SQLException {
@@ -168,8 +165,8 @@ public class ResultSetReader {
     }
 
     public static Serializable readSerializable(ResultSet rs, String columnName) throws SQLException {
-	byte[] bytes = rs.getBytes(columnName);
-	return (bytes == null) ? null : Externalization.<Serializable> internalizeSerializable(bytes);
+        byte[] bytes = rs.getBytes(columnName);
+        return (bytes == null) ? null : Externalization.<Serializable> internalizeSerializable(bytes);
     }
 
 //     public static Period readPeriod(ResultSet rs, String columnName) throws SQLException {

@@ -42,246 +42,247 @@ class DBChanges {
     private Map<RelationTupleInfo, RelationTupleInfo> mToNTuples = null;
 
     protected Set<AttrChangeLog> getAttrChangeLogs() {
-	Set<AttrChangeLog> set = attrChangeLogs;
+        Set<AttrChangeLog> set = attrChangeLogs;
 
-	if (set == null) {
-	    set = new HashSet<AttrChangeLog>();
-	}
+        if (set == null) {
+            set = new HashSet<AttrChangeLog>();
+        }
 
-	return Collections.unmodifiableSet(set);
+        return Collections.unmodifiableSet(set);
     }
 
     protected Set<AbstractDomainObject> getNewObjects() {
-	Set<AbstractDomainObject> set = newObjs;
+        Set<AbstractDomainObject> set = newObjs;
 
-	if (set == null) {
-	    set = new HashSet<AbstractDomainObject>();
-	}
+        if (set == null) {
+            set = new HashSet<AbstractDomainObject>();
+        }
 
-	return Collections.unmodifiableSet(set);
+        return Collections.unmodifiableSet(set);
     }
 
     public Set<AbstractDomainObject> getModifiedObjects() {
-	Set<AbstractDomainObject> modified = new HashSet<AbstractDomainObject>();
+        Set<AbstractDomainObject> modified = new HashSet<AbstractDomainObject>();
 
-	if (attrChangeLogs != null) {
-	    for (AttrChangeLog log : attrChangeLogs) {
-		if (!isNewObject(log.obj)) {
-		    modified.add(log.obj);
-		}
-	    }
-	}
+        if (attrChangeLogs != null) {
+            for (AttrChangeLog log : attrChangeLogs) {
+                if (!isNewObject(log.obj)) {
+                    modified.add(log.obj);
+                }
+            }
+        }
 
-	return modified;
+        return modified;
     }
 
     public boolean isDeleted(Object obj) {
-	return (objsToDelete != null) && objsToDelete.contains(obj);
+        return (objsToDelete != null) && objsToDelete.contains(obj);
     }
 
     public boolean needsWrite() {
-	return ((newObjs != null) && (!newObjs.isEmpty())) || ((objsToStore != null) && (!objsToStore.isEmpty()))
-		|| ((objsToDelete != null) && (!objsToDelete.isEmpty())) || ((mToNTuples != null) && (!mToNTuples.isEmpty()));
+        return ((newObjs != null) && (!newObjs.isEmpty())) || ((objsToStore != null) && (!objsToStore.isEmpty()))
+                || ((objsToDelete != null) && (!objsToDelete.isEmpty())) || ((mToNTuples != null) && (!mToNTuples.isEmpty()));
     }
 
     public boolean isNewObject(DomainObject obj) {
-	return (newObjs != null) && newObjs.contains(obj);
+        return (newObjs != null) && newObjs.contains(obj);
     }
 
     public void logAttrChange(AbstractDomainObject obj, String attrName) {
-	if (attrChangeLogs == null) {
-	    attrChangeLogs = new HashSet<AttrChangeLog>();
-	}
-	attrChangeLogs.add(new AttrChangeLog(obj, attrName));
+        if (attrChangeLogs == null) {
+            attrChangeLogs = new HashSet<AttrChangeLog>();
+        }
+        attrChangeLogs.add(new AttrChangeLog(obj, attrName));
     }
 
     public void storeNewObject(AbstractDomainObject obj) {
-	if (newObjs == null) {
-	    newObjs = new HashSet<AbstractDomainObject>();
-	}
-	newObjs.add(obj);
-	removeFromDeleted(obj);
+        if (newObjs == null) {
+            newObjs = new HashSet<AbstractDomainObject>();
+        }
+        newObjs.add(obj);
+        removeFromDeleted(obj);
     }
 
     public void storeObject(AbstractDomainObject obj, String attrName) {
-	logAttrChange(obj, attrName);
+        logAttrChange(obj, attrName);
 
-	if (isNewObject(obj)) {
-	    // don't need to update new objects
-	    return;
-	}
+        if (isNewObject(obj)) {
+            // don't need to update new objects
+            return;
+        }
 
-	if (objsToStore == null) {
-	    objsToStore = new HashSet();
-	}
-	objsToStore.add(obj);
-	removeFromDeleted(obj);
+        if (objsToStore == null) {
+            objsToStore = new HashSet();
+        }
+        objsToStore.add(obj);
+        removeFromDeleted(obj);
     }
 
     public void deleteObject(Object obj) {
-	if (objsToDelete == null) {
-	    objsToDelete = new HashSet();
-	}
-	objsToDelete.add(obj);
-	if (newObjs != null) {
-	    newObjs.remove(obj);
-	}
-	if (objsToStore != null) {
-	    objsToStore.remove(obj);
-	}
+        if (objsToDelete == null) {
+            objsToDelete = new HashSet();
+        }
+        objsToDelete.add(obj);
+        if (newObjs != null) {
+            newObjs.remove(obj);
+        }
+        if (objsToStore != null) {
+            objsToStore.remove(obj);
+        }
     }
 
-    public void addRelationTuple(String relation, AbstractDomainObject obj1, String colNameOnObj1, AbstractDomainObject obj2, String colNameOnObj2) {
-	setRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, false);
+    public void addRelationTuple(String relation, AbstractDomainObject obj1, String colNameOnObj1, AbstractDomainObject obj2,
+            String colNameOnObj2) {
+        setRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, false);
     }
 
     public void removeRelationTuple(String relation, AbstractDomainObject obj1, String colNameOnObj1, AbstractDomainObject obj2,
-	    String colNameOnObj2) {
-	setRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, true);
+            String colNameOnObj2) {
+        setRelationTuple(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, true);
     }
 
     private void removeFromDeleted(DomainObject obj) {
-	if (objsToDelete != null) {
-	    if (objsToDelete.remove(obj)) {
-		if (FenixFramework.<JvstmOJBConfig>getConfig().isErrorIfChangingDeletedObject()) {
-		    throw new Error("Changing object after it was deleted: " + obj);
-		} else {
-		    System.err.println("WARNING: Changing object after it was deleted: " + obj);
-		}
-	    }
-	}
+        if (objsToDelete != null) {
+            if (objsToDelete.remove(obj)) {
+                if (FenixFramework.<JvstmOJBConfig> getConfig().isErrorIfChangingDeletedObject()) {
+                    throw new Error("Changing object after it was deleted: " + obj);
+                } else {
+                    System.err.println("WARNING: Changing object after it was deleted: " + obj);
+                }
+            }
+        }
     }
 
     private void setRelationTuple(String relation, AbstractDomainObject obj1, String colNameOnObj1, AbstractDomainObject obj2,
-	    String colNameOnObj2, boolean remove) {
-	if (mToNTuples == null) {
-	    mToNTuples = new HashMap<RelationTupleInfo, RelationTupleInfo>();
-	}
+            String colNameOnObj2, boolean remove) {
+        if (mToNTuples == null) {
+            mToNTuples = new HashMap<RelationTupleInfo, RelationTupleInfo>();
+        }
 
-	RelationTupleInfo info = new RelationTupleInfo(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, remove);
-	mToNTuples.put(info, info);
+        RelationTupleInfo info = new RelationTupleInfo(relation, obj1, colNameOnObj1, obj2, colNameOnObj2, remove);
+        mToNTuples.put(info, info);
     }
 
     void cache() {
-	if (newObjs != null) {
-	    for (AbstractDomainObject obj : newObjs) {
-		SharedIdentityMap.getCache().cache(obj);
-	    }
-	}
+        if (newObjs != null) {
+            for (AbstractDomainObject obj : newObjs) {
+                SharedIdentityMap.getCache().cache(obj);
+            }
+        }
     }
 
     void makePersistent(PersistenceBroker pb, int txNumber) throws SQLException, LookupException {
-	// store new objects
-	if (newObjs != null) {
-	    for (Object obj : newObjs) {
-		pb.store(obj, ObjectModificationDefaultImpl.INSERT);
-	    }
-	}
+        // store new objects
+        if (newObjs != null) {
+            for (Object obj : newObjs) {
+                pb.store(obj, ObjectModificationDefaultImpl.INSERT);
+            }
+        }
 
-	boolean foundOptimisticException = false;
+        boolean foundOptimisticException = false;
 
-	// update objects
-	if (objsToStore != null) {
-	    for (Object obj : objsToStore) {
-		try {
-		    pb.store(obj, ObjectModificationDefaultImpl.UPDATE);
-		} catch (OptimisticLockException ole) {
-		    pb.removeFromCache(obj);
-		    foundOptimisticException = true;
-		}
-	    }
-	}
+        // update objects
+        if (objsToStore != null) {
+            for (Object obj : objsToStore) {
+                try {
+                    pb.store(obj, ObjectModificationDefaultImpl.UPDATE);
+                } catch (OptimisticLockException ole) {
+                    pb.removeFromCache(obj);
+                    foundOptimisticException = true;
+                }
+            }
+        }
 
-	if (foundOptimisticException) {
-	    throw new jvstm.CommitException();
-	}
+        if (foundOptimisticException) {
+            throw new jvstm.CommitException();
+        }
 
-	// delete objects
-	if (objsToDelete != null) {
-	    for (Object obj : objsToDelete) {
-		pb.delete(obj);
-	    }
-	}
+        // delete objects
+        if (objsToDelete != null) {
+            for (Object obj : objsToDelete) {
+                pb.delete(obj);
+            }
+        }
 
-	// write m-to-n tuples
-	if (mToNTuples != null) {
-	    for (RelationTupleInfo info : mToNTuples.values()) {
-		updateMtoNRelation(pb, info);
-	    }
-	}
+        // write m-to-n tuples
+        if (mToNTuples != null) {
+            for (RelationTupleInfo info : mToNTuples.values()) {
+                updateMtoNRelation(pb, info);
+            }
+        }
 
-	// write change logs
-	Connection conn = pb.serviceConnectionManager().getConnection();
-	writeAttrChangeLogs(conn, txNumber);
+        // write change logs
+        Connection conn = pb.serviceConnectionManager().getConnection();
+        writeAttrChangeLogs(conn, txNumber);
     }
 
     private void writeAttrChangeLogs(Connection conn, int txNumber) throws SQLException {
-	int numRecords = (attrChangeLogs == null) ? 0 : attrChangeLogs.size();
+        int numRecords = (attrChangeLogs == null) ? 0 : attrChangeLogs.size();
 
-	// allocate a large capacity StringBuilder to avoid reallocation
-	int bufferCapacity = Math.min(MIN_BUFFER_CAPACITY + (numRecords * PER_RECORD_LENGTH), MAX_BUFFER_CAPACITY);
-	StringBuilder sqlCmd = new StringBuilder(bufferCapacity);
-	sqlCmd.append(SQL_CHANGE_LOGS_CMD_PREFIX);
+        // allocate a large capacity StringBuilder to avoid reallocation
+        int bufferCapacity = Math.min(MIN_BUFFER_CAPACITY + (numRecords * PER_RECORD_LENGTH), MAX_BUFFER_CAPACITY);
+        StringBuilder sqlCmd = new StringBuilder(bufferCapacity);
+        sqlCmd.append(SQL_CHANGE_LOGS_CMD_PREFIX);
 
-	Statement stmt = null;
-	try {
-	    stmt = conn.createStatement();
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
 
-	    boolean addedRecord = false;
+            boolean addedRecord = false;
 
-	    if (attrChangeLogs == null) {
-		// if no AttrChangeLog exists, then it means that we
-		// only created objects, without changing any other
-		// object
+            if (attrChangeLogs == null) {
+                // if no AttrChangeLog exists, then it means that we
+                // only created objects, without changing any other
+                // object
 
-		// Still, we need to notify other servers of the tx
-		// number, so create an empty changelog line...
-		sqlCmd.append("(0,'',");
-		sqlCmd.append(txNumber);
-		sqlCmd.append(")");
-		addedRecord = true;
-	    } else {
-		for (AttrChangeLog log : attrChangeLogs) {
-		    if (isNewObject(log.obj)) {
-			// don't need to warn others of changes to new objects
-			continue;
-		    }
+                // Still, we need to notify other servers of the tx
+                // number, so create an empty changelog line...
+                sqlCmd.append("(0,'',");
+                sqlCmd.append(txNumber);
+                sqlCmd.append(")");
+                addedRecord = true;
+            } else {
+                for (AttrChangeLog log : attrChangeLogs) {
+                    if (isNewObject(log.obj)) {
+                        // don't need to warn others of changes to new objects
+                        continue;
+                    }
 
-		    if (addedRecord) {
-			sqlCmd.append(",");
-		    }
-		    sqlCmd.append("(");
-		    sqlCmd.append(log.obj.getOid());
-		    sqlCmd.append(",'");
-		    sqlCmd.append(log.attr);
-		    sqlCmd.append("',");
-		    sqlCmd.append(txNumber);
-		    sqlCmd.append(")");
-		    addedRecord = true;
+                    if (addedRecord) {
+                        sqlCmd.append(",");
+                    }
+                    sqlCmd.append("(");
+                    sqlCmd.append(log.obj.getOid());
+                    sqlCmd.append(",'");
+                    sqlCmd.append(log.attr);
+                    sqlCmd.append("',");
+                    sqlCmd.append(txNumber);
+                    sqlCmd.append(")");
+                    addedRecord = true;
 
-		    if ((bufferCapacity - sqlCmd.length()) < BUFFER_THRESHOLD) {
-			stmt.execute(sqlCmd.toString());
-			sqlCmd.setLength(0);
-			sqlCmd.append(SQL_CHANGE_LOGS_CMD_PREFIX);
-			addedRecord = false;
-		    }
-		}
-	    }
+                    if ((bufferCapacity - sqlCmd.length()) < BUFFER_THRESHOLD) {
+                        stmt.execute(sqlCmd.toString());
+                        sqlCmd.setLength(0);
+                        sqlCmd.append(SQL_CHANGE_LOGS_CMD_PREFIX);
+                        addedRecord = false;
+                    }
+                }
+            }
 
-	    if (addedRecord) {
-		try {
-		    stmt.execute(sqlCmd.toString());
-		} catch (SQLException ex) {
-		    System.out.println("SqlException: " + ex.getMessage());
-		    System.out.println("Deadlock trying to insert: " + sqlCmd.toString());
-		    throw new CommitException();
-		}
-	    }
-	} finally {
-	    if (stmt != null) {
-		stmt.close();
-	    }
-	}
+            if (addedRecord) {
+                try {
+                    stmt.execute(sqlCmd.toString());
+                } catch (SQLException ex) {
+                    System.out.println("SqlException: " + ex.getMessage());
+                    System.out.println("Deadlock trying to insert: " + sqlCmd.toString());
+                    throw new CommitException();
+                }
+            }
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
+        }
     }
 
     private static JdbcType OID_JDBC_TYPE = JdbcTypesHelper.getJdbcTypeByName("BIGINT");
@@ -289,102 +290,102 @@ class DBChanges {
 
     // copied and adapted from OJB's MtoNBroker
     protected void updateMtoNRelation(PersistenceBroker pb, RelationTupleInfo tupleInfo) {
-	AbstractDomainObject obj1 = tupleInfo.obj1;
-	AbstractDomainObject obj2 = tupleInfo.obj2;
+        AbstractDomainObject obj1 = tupleInfo.obj1;
+        AbstractDomainObject obj2 = tupleInfo.obj2;
 
-	ClassDescriptor cld1 = pb.getDescriptorRepository().getDescriptorFor(obj1.getClass());
-	CollectionDescriptor cod = cld1.getCollectionDescriptorByName(tupleInfo.colNameOnObj1);
-	if (cod == null) {
-	    // try the mapping on the other object
-	    cld1 = pb.getDescriptorRepository().getDescriptorFor(obj2.getClass());
-	    cod = cld1.getCollectionDescriptorByName(tupleInfo.colNameOnObj2);
+        ClassDescriptor cld1 = pb.getDescriptorRepository().getDescriptorFor(obj1.getClass());
+        CollectionDescriptor cod = cld1.getCollectionDescriptorByName(tupleInfo.colNameOnObj1);
+        if (cod == null) {
+            // try the mapping on the other object
+            cld1 = pb.getDescriptorRepository().getDescriptorFor(obj2.getClass());
+            cod = cld1.getCollectionDescriptorByName(tupleInfo.colNameOnObj2);
 
-	    // switch objects
-	    obj1 = tupleInfo.obj2;
-	    obj2 = tupleInfo.obj1;
-	}
+            // switch objects
+            obj1 = tupleInfo.obj2;
+            obj2 = tupleInfo.obj1;
+        }
 
-	String[] oidColumns = new String[2];
-	oidColumns[0] = cod.getFksToThisClass()[0];
-	oidColumns[1] = cod.getFksToItemClass()[0];
+        String[] oidColumns = new String[2];
+        oidColumns[0] = cod.getFksToThisClass()[0];
+        oidColumns[1] = cod.getFksToItemClass()[0];
 
-	ValueContainer[] oidValues = new ValueContainer[2];
-	oidValues[0] = new ValueContainer(obj1.getOid(), OID_JDBC_TYPE);
-	oidValues[1] = new ValueContainer(obj2.getOid(), OID_JDBC_TYPE);
+        ValueContainer[] oidValues = new ValueContainer[2];
+        oidValues[0] = new ValueContainer(obj1.getOid(), OID_JDBC_TYPE);
+        oidValues[1] = new ValueContainer(obj2.getOid(), OID_JDBC_TYPE);
 
-	String table = cod.getIndirectionTable();
+        String table = cod.getIndirectionTable();
 
-	// always remove the tuple
-	String sqlStmt = pb.serviceSqlGenerator().getDeleteMNStatement(table, oidColumns, null);
-	pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, oidValues, null);
+        // always remove the tuple
+        String sqlStmt = pb.serviceSqlGenerator().getDeleteMNStatement(table, oidColumns, null);
+        pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, oidValues, null);
 
-	// if it was not to remove but to add, then add it
-	// this "delete-first, add-after" serves to ensure that we can add
-	// multiple times
-	// the same tuple to a relation and still have the Set semantics for the
-	// relation.
-	if (!tupleInfo.remove) {
-	    sqlStmt = pb.serviceSqlGenerator().getInsertMNStatement(table, oidColumns, EMPTY_ARRAY);
-	    pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, oidValues, null);
-	}
+        // if it was not to remove but to add, then add it
+        // this "delete-first, add-after" serves to ensure that we can add
+        // multiple times
+        // the same tuple to a relation and still have the Set semantics for the
+        // relation.
+        if (!tupleInfo.remove) {
+            sqlStmt = pb.serviceSqlGenerator().getInsertMNStatement(table, oidColumns, EMPTY_ARRAY);
+            pb.serviceJdbcAccess().executeUpdateSQL(sqlStmt, cld1, oidValues, null);
+        }
     }
 
     static class RelationTupleInfo {
-	final String relation;
-	final AbstractDomainObject obj1;
-	final String colNameOnObj1;
-	final AbstractDomainObject obj2;
-	final String colNameOnObj2;
-	final boolean remove;
+        final String relation;
+        final AbstractDomainObject obj1;
+        final String colNameOnObj1;
+        final AbstractDomainObject obj2;
+        final String colNameOnObj2;
+        final boolean remove;
 
-	RelationTupleInfo(String relation, AbstractDomainObject obj1, String colNameOnObj1, AbstractDomainObject obj2, String colNameOnObj2,
-		boolean remove) {
-	    this.relation = relation;
-	    this.obj1 = obj1;
-	    this.colNameOnObj1 = colNameOnObj1;
-	    this.obj2 = obj2;
-	    this.colNameOnObj2 = colNameOnObj2;
-	    this.remove = remove;
-	}
+        RelationTupleInfo(String relation, AbstractDomainObject obj1, String colNameOnObj1, AbstractDomainObject obj2,
+                String colNameOnObj2, boolean remove) {
+            this.relation = relation;
+            this.obj1 = obj1;
+            this.colNameOnObj1 = colNameOnObj1;
+            this.obj2 = obj2;
+            this.colNameOnObj2 = colNameOnObj2;
+            this.remove = remove;
+        }
 
-	@Override
-	public int hashCode() {
-	    return relation.hashCode() + obj1.hashCode() + obj2.hashCode();
-	}
+        @Override
+        public int hashCode() {
+            return relation.hashCode() + obj1.hashCode() + obj2.hashCode();
+        }
 
-	@Override
-	public boolean equals(Object obj) {
-	    if ((obj != null) && (obj.getClass() == this.getClass())) {
-		RelationTupleInfo other = (RelationTupleInfo) obj;
-		return this.relation.equals(other.relation) && this.obj1.equals(other.obj1) && this.obj2.equals(other.obj2);
-	    } else {
-		return false;
-	    }
-	}
+        @Override
+        public boolean equals(Object obj) {
+            if ((obj != null) && (obj.getClass() == this.getClass())) {
+                RelationTupleInfo other = (RelationTupleInfo) obj;
+                return this.relation.equals(other.relation) && this.obj1.equals(other.obj1) && this.obj2.equals(other.obj2);
+            } else {
+                return false;
+            }
+        }
     }
 
     static class AttrChangeLog {
-	final AbstractDomainObject obj;
-	final String attr;
+        final AbstractDomainObject obj;
+        final String attr;
 
-	AttrChangeLog(AbstractDomainObject obj, String attr) {
-	    this.obj = obj;
-	    this.attr = attr;
-	}
+        AttrChangeLog(AbstractDomainObject obj, String attr) {
+            this.obj = obj;
+            this.attr = attr;
+        }
 
-	@Override
-	public int hashCode() {
-	    return System.identityHashCode(obj) + attr.hashCode();
-	}
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(obj) + attr.hashCode();
+        }
 
-	@Override
-	public boolean equals(Object obj) {
-	    if ((obj != null) && (obj.getClass() == this.getClass())) {
-		AttrChangeLog other = (AttrChangeLog) obj;
-		return (this.obj == other.obj) && this.attr.equals(other.attr);
-	    } else {
-		return false;
-	    }
-	}
+        @Override
+        public boolean equals(Object obj) {
+            if ((obj != null) && (obj.getClass() == this.getClass())) {
+                AttrChangeLog other = (AttrChangeLog) obj;
+                return (this.obj == other.obj) && this.attr.equals(other.attr);
+            } else {
+                return false;
+            }
+        }
     }
 }

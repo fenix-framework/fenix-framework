@@ -44,16 +44,13 @@ public class DatabaseDescriptorFactory {
         return descriptorRepository.getDescriptorTable();
     }
 
-    private static void addSqlTableDescription(final Map<String, SqlTable> sqlTables,
-            final ClassDescriptor classDescriptor) {
+    private static void addSqlTableDescription(final Map<String, SqlTable> sqlTables, final ClassDescriptor classDescriptor) {
         final String tablename = classDescriptor.getFullTableName();
         final String classname = classDescriptor.getClassNameOfObject();
-        if (!classname.startsWith("pt.utl.ist.berserk")
-                && tablename != null
-                && !tablename.startsWith("OJB")
-            /*
-                && !tablename.equals("ROLE")
-                && !tablename.equals("ROOT_DOMAIN_OBJECT")*/) {
+        if (!classname.startsWith("pt.utl.ist.berserk") && tablename != null && !tablename.startsWith("OJB")
+        /*
+            && !tablename.equals("ROLE")
+            && !tablename.equals("ROOT_DOMAIN_OBJECT")*/) {
             final SqlTable sqlTable = obtainSQLTable(sqlTables, tablename);
 
             addColumns(sqlTable, classDescriptor.getFieldDescriptions());
@@ -93,7 +90,7 @@ public class DatabaseDescriptorFactory {
     }
 
     private static void processCollectionDescriptors(Map<String, SqlTable> sqlTables, ClassDescriptor classDescriptor) {
-        for (CollectionDescriptor cod : (Iterable<CollectionDescriptor>)classDescriptor.getCollectionDescriptors()) {
+        for (CollectionDescriptor cod : (Iterable<CollectionDescriptor>) classDescriptor.getCollectionDescriptors()) {
             if (cod.getIndirectionTable() != null) {
                 // many-to-many relation
                 addSqlIndirectionTableDescription(sqlTables, cod);
@@ -109,7 +106,6 @@ public class DatabaseDescriptorFactory {
         }
     }
 
-
     private static void addSqlIndirectionTableDescription(final Map<String, SqlTable> sqlTables,
             final CollectionDescriptor collectionDescriptor) {
         final String indirectionTablename = collectionDescriptor.getIndirectionTable();
@@ -117,7 +113,7 @@ public class DatabaseDescriptorFactory {
 
         final String foreignKeyToThis = collectionDescriptor.getFksToThisClass()[0];
         final String foreignKeyToOther = collectionDescriptor.getFksToItemClass()[0];
-        
+
         indirectionSqlTable.addColumn(foreignKeyToThis, "BIGINT");
         indirectionSqlTable.addColumn(foreignKeyToOther, "BIGINT");
 

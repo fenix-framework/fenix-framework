@@ -18,7 +18,7 @@ public class VSet<E> extends AbstractSet<E> implements Set<E> {
         this();
         addAll(coll);
     }
-    
+
     public int size() {
         return elements.get().size();
     }
@@ -57,7 +57,6 @@ public class VSet<E> extends AbstractSet<E> implements Set<E> {
         }
     }
 
-
     private class VSetIterator<E> implements Iterator<E> {
         private Iterator<E> iterator;
         private E current = null;
@@ -77,9 +76,9 @@ public class VSet<E> extends AbstractSet<E> implements Set<E> {
             current = result;
             return current;
         }
-            
+
         public void remove() {
-            if (! canRemove) {
+            if (!canRemove) {
                 throw new IllegalStateException();
             } else {
                 canRemove = false;

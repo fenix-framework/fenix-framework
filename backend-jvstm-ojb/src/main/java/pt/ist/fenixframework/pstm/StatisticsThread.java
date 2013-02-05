@@ -12,10 +12,10 @@ class StatisticsThread extends Thread {
 
     private String server;
     private int numReport = 0;
-	
+
     StatisticsThread() {
         this.server = Util.getServerName();
-        
+
         setDaemon(true);
     }
 
@@ -29,15 +29,15 @@ class StatisticsThread extends Thread {
             reportStatistics();
         }
     }
-    
+
     private void reportStatistics() {
         PersistenceBroker broker = null;
         Statement stmt = null;
-        
+
         try {
             broker = PersistenceBrokerFactory.defaultPersistenceBroker();
             broker.beginTransaction();
-            
+
             Connection conn = broker.serviceConnectionManager().getConnection();
             stmt = conn.createStatement();
 
@@ -51,8 +51,8 @@ class StatisticsThread extends Thread {
             sqlStmtText.append("READ_ONLY_READS_MIN,READ_ONLY_READS_MAX,READ_ONLY_READS_SUM,");
             sqlStmtText.append("READ_WRITE_READS_MIN,READ_WRITE_READS_MAX,READ_WRITE_READS_SUM,");
             sqlStmtText.append("READ_WRITE_WRITES_MIN,READ_WRITE_WRITES_MAX,READ_WRITE_WRITES_SUM)");
-            sqlStmtText.append(" VALUES ('" );
-            sqlStmtText.append(server );
+            sqlStmtText.append(" VALUES ('");
+            sqlStmtText.append(server);
             sqlStmtText.append("',");
             sqlStmtText.append(numReport);
             sqlStmtText.append(",");
@@ -88,7 +88,7 @@ class StatisticsThread extends Thread {
 
             // insert statistics for this server
             stmt.executeUpdate(sqlStmtText.toString());
-            
+
             broker.commitTransaction();
         } catch (Exception e) {
             // the statistics are not crucial, if anything goes wrong, that's ok
@@ -103,11 +103,11 @@ class StatisticsThread extends Thread {
                 broker.close();
             }
             if (stmt != null) {
-        	try {
-		    stmt.close();
-		} catch (SQLException e) {
-		    // nothing can be done now.
-		}
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    // nothing can be done now.
+                }
             }
         }
     }

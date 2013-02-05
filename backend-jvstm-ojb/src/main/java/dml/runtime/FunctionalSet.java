@@ -10,7 +10,7 @@ public class FunctionalSet<E> {
 
     protected final int size;
     protected final Cons<E> elems;
-    
+
     protected FunctionalSet(int size, Cons<E> elems) {
         this.size = size;
         this.elems = elems;
@@ -45,13 +45,13 @@ public class FunctionalSet<E> {
     }
 
     public FunctionalSet<E> remove(Object obj) {
-        if (! elems.contains(obj)) {
+        if (!elems.contains(obj)) {
             return this;
         } else {
             return removeExisting(obj);
         }
     }
-    
+
     private FunctionalSet<E> removeExisting(Object obj) {
         return makeFunctionalSet(size - 1, elems.removeFirst(obj));
     }
@@ -65,6 +65,6 @@ public class FunctionalSet<E> {
     }
 
     protected FunctionalSet<E> makeFunctionalSet(int size, Cons<E> elems) {
-	return new FunctionalSet<E>(size, elems);
+        return new FunctionalSet<E>(size, elems);
     }
 }

@@ -13,18 +13,18 @@ class SoftReferencedVBox<E> extends ReferenceBox<E> {
     }
 
     public SoftReferencedVBox(DomainObject ownerObj, String slotName, E initial) {
-	super(ownerObj, slotName, initial);
+        super(ownerObj, slotName, initial);
     }
 
     protected SoftReferencedVBox(DomainObject ownerObj, String slotName, VBoxBody<E> body) {
-	super(ownerObj, slotName, body);
+        super(ownerObj, slotName, body);
     }
 
     @Override
     public VBoxBody commit(E newValue, int txNumber) {
         // see comment on the class SpecialBody at the end of this file
         VBoxBody<E> newBody = new SpecialBody(newValue, txNumber, this.body, this);
-	this.body = newBody;
+        this.body = newBody;
         return newBody;
     }
 
@@ -32,7 +32,7 @@ class SoftReferencedVBox<E> extends ReferenceBox<E> {
         if (allocateOnly) {
             // when a box is allocated, it is safe 
             // to say that the version number is 0
-            return new SoftReferencedVBox<T>(ownerObj, slotName, makeNewBody((T)NOT_LOADED_VALUE, 0, null));
+            return new SoftReferencedVBox<T>(ownerObj, slotName, makeNewBody((T) NOT_LOADED_VALUE, 0, null));
         } else {
             return new SoftReferencedVBox<T>(ownerObj, slotName);
         }

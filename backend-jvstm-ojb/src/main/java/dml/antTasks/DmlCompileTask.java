@@ -19,7 +19,8 @@ import dml.DmlCompiler;
 public class DmlCompileTask extends Task {
 
     private static final String defaultDomainModelClassName = "pt.ist.fenixframework.pstm.dml.FenixDomainModel";
-    private static final String defaultCodeGeneratorClassName = "pt.ist.fenixframework.pstm.dml.FenixCodeGeneratorOneBoxPerObject";
+    private static final String defaultCodeGeneratorClassName =
+            "pt.ist.fenixframework.pstm.dml.FenixCodeGeneratorOneBoxPerObject";
 
     private boolean generateFinals = false;
     private String destDirectoryBase = null;
@@ -32,148 +33,150 @@ public class DmlCompileTask extends Task {
     private String hasRun = DmlCompileTask.class.getName() + ".run";
 
     public String getHasRun() {
-	return hasRun;
+        return hasRun;
     }
 
     public void setHasRun(String hasRun) {
-	this.hasRun = hasRun;
+        this.hasRun = hasRun;
     }
 
     public String getClassPathRef() {
-	return classPathRef;
+        return classPathRef;
     }
 
     public void setClassPathRef(String classPathRef) {
-	this.classPathRef = classPathRef;
+        this.classPathRef = classPathRef;
     }
 
     public boolean isGenerateFinals() {
-	return generateFinals;
+        return generateFinals;
     }
 
     public void setGenerateFinals(boolean generateFinals) {
-	this.generateFinals = generateFinals;
+        this.generateFinals = generateFinals;
     }
 
     public String getDestDirectoryBase() {
-	return destDirectoryBase;
+        return destDirectoryBase;
     }
 
     public void setDestDirectoryBase(String destDirectoryBase) {
-	this.destDirectoryBase = destDirectoryBase;
+        this.destDirectoryBase = destDirectoryBase;
     }
 
     public String getDestDirectory() {
-	return destDirectory;
+        return destDirectory;
     }
 
     public void setDestDirectory(String destDirectory) {
-	this.destDirectory = destDirectory;
+        this.destDirectory = destDirectory;
     }
 
     public String getPackageName() {
-	return packageName;
+        return packageName;
     }
 
     public void setPackageName(String packageName) {
-	this.packageName = packageName;
+        this.packageName = packageName;
     }
 
     public void addFileset(FileSet fileset) {
-	filesets.add(fileset);
+        filesets.add(fileset);
     }
 
     public String getGeneratorClassName() {
-	return generatorClassName;
+        return generatorClassName;
     }
 
     public void setGeneratorClassName(String generatorClassName) {
-	this.generatorClassName = generatorClassName;
+        this.generatorClassName = generatorClassName;
     }
 
     public String getDomainModelClassName() {
-	return domainModelClassName;
+        return domainModelClassName;
     }
 
     public void setDomainModelClassName(String domainModelClassName) {
-	this.domainModelClassName = domainModelClassName;
+        this.domainModelClassName = domainModelClassName;
     }
 
     public File getDestDirectoryFile() {
-	return (this.destDirectory == null) ? null : new File(destDirectory);
+        return (this.destDirectory == null) ? null : new File(destDirectory);
     }
 
     public File getDestDirectoryBaseFile() {
-	return (this.destDirectoryBase == null) ? null : new File(destDirectoryBase);
+        return (this.destDirectoryBase == null) ? null : new File(destDirectoryBase);
     }
 
     public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
-	String generatorClassName = getGeneratorClassName();
-	if (generatorClassName == null) {
-	    generatorClassName = defaultCodeGeneratorClassName;
-	}
-	return (Class<? extends CodeGenerator>) Class.forName(generatorClassName);
+        String generatorClassName = getGeneratorClassName();
+        if (generatorClassName == null) {
+            generatorClassName = defaultCodeGeneratorClassName;
+        }
+        return (Class<? extends CodeGenerator>) Class.forName(generatorClassName);
     }
 
     public Class<? extends DomainModel> getDomainModelClass() throws ClassNotFoundException {
-	String domainModelClassName = getDomainModelClassName();
-	if (domainModelClassName == null) {
-	    domainModelClassName = defaultDomainModelClassName;
-	}
-	return (Class<? extends DomainModel>) Class.forName(domainModelClassName);
+        String domainModelClassName = getDomainModelClassName();
+        if (domainModelClassName == null) {
+            domainModelClassName = defaultDomainModelClassName;
+        }
+        return (Class<? extends DomainModel>) Class.forName(domainModelClassName);
     }
 
     @Override
     public void execute() throws BuildException {
-	super.execute();
+        super.execute();
 
-	CompilerArgs compArgs = null;
+        CompilerArgs compArgs = null;
 
-	List<URL> domainSpecFileNames = new ArrayList<URL>();
-	File destDirectoryBaseFile = getDestDirectoryBaseFile();
-	long latestBuildTime = destDirectoryBaseFile.lastModified();
+        List<URL> domainSpecFileNames = new ArrayList<URL>();
+        File destDirectoryBaseFile = getDestDirectoryBaseFile();
+        long latestBuildTime = destDirectoryBaseFile.lastModified();
 
-	boolean shouldCompile = false;
+        boolean shouldCompile = false;
 
-	try {
-	    for (FileSet fileset : filesets) {
-		if (fileset.getDir().exists()) {
-		    DirectoryScanner scanner = fileset.getDirectoryScanner(getProject());
-		    String[] includedFiles = scanner.getIncludedFiles();
-		    for (String includedFile : includedFiles) {
-			String filePath = fileset.getDir().getAbsolutePath() + "/" + includedFile;
-			File file = new File(filePath);
-			boolean isModified = file.lastModified() > latestBuildTime;
-			System.out.println(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
-			domainSpecFileNames.add(file.toURI().toURL());
-			shouldCompile = shouldCompile || isModified;
-		    }
-		}
-	    }
-	} catch (MalformedURLException e) {
-	    throw new BuildException(e);
-	}
+        try {
+            for (FileSet fileset : filesets) {
+                if (fileset.getDir().exists()) {
+                    DirectoryScanner scanner = fileset.getDirectoryScanner(getProject());
+                    String[] includedFiles = scanner.getIncludedFiles();
+                    for (String includedFile : includedFiles) {
+                        String filePath = fileset.getDir().getAbsolutePath() + "/" + includedFile;
+                        File file = new File(filePath);
+                        boolean isModified = file.lastModified() > latestBuildTime;
+                        System.out.println(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
+                        domainSpecFileNames.add(file.toURI().toURL());
+                        shouldCompile = shouldCompile || isModified;
+                    }
+                }
+            }
+        } catch (MalformedURLException e) {
+            throw new BuildException(e);
+        }
 
-	if (shouldCompile) {
-	    try {
-		destDirectoryBaseFile.setLastModified(System.currentTimeMillis());
-		System.out.println("Using model: " + getDomainModelClass().getName());
-		System.out.println("Using generator: " + getCodeGeneratorClass().getName());
+        if (shouldCompile) {
+            try {
+                destDirectoryBaseFile.setLastModified(System.currentTimeMillis());
+                System.out.println("Using model: " + getDomainModelClass().getName());
+                System.out.println("Using generator: " + getCodeGeneratorClass().getName());
 
-		compArgs = new CompilerArgs(getDestDirectoryFile(), destDirectoryBaseFile, getPackageName(), isGenerateFinals(),
-			getCodeGeneratorClass(), getDomainModelClass(), domainSpecFileNames);
+                compArgs =
+                        new CompilerArgs(getDestDirectoryFile(), destDirectoryBaseFile, getPackageName(), isGenerateFinals(),
+                                getCodeGeneratorClass(), getDomainModelClass(), domainSpecFileNames);
 
-		DomainModel model = DmlCompiler.getDomainModel(compArgs);
+                DomainModel model = DmlCompiler.getDomainModel(compArgs);
 
-		CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class)
-			.newInstance(compArgs, model);
-		generator.generateCode();
-		getProject().setProperty(getHasRun(), Boolean.TRUE.toString());
-	    } catch (Exception e) {
-		throw new BuildException(e);
-	    }
-	} else {
-	    System.out.println("All dml files are up to date skipping generation");
-	}
+                CodeGenerator generator =
+                        compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class)
+                                .newInstance(compArgs, model);
+                generator.generateCode();
+                getProject().setProperty(getHasRun(), Boolean.TRUE.toString());
+            } catch (Exception e) {
+                throw new BuildException(e);
+            }
+        } else {
+            System.out.println("All dml files are up to date skipping generation");
+        }
     }
 }

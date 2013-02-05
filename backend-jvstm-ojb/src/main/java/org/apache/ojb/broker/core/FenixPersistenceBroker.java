@@ -27,13 +27,11 @@ import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.ojb.FenixJdbcAccessImpl;
 
-
 public class FenixPersistenceBroker extends PersistenceBrokerImpl {
 
     public FenixPersistenceBroker(PBKey key, PersistenceBrokerFactoryIF pbf) {
         super(key, pbf);
     }
-
 
     // copied and adapted from PersistenceBrokerImpl.doGetObjectByIdentity and getDBObject methods
     @Override
@@ -72,7 +70,6 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
         return newObj;
     }
 
-
     // copied and adapted from PersistenceBrokerImpl's
     // "retrieveReference" and QueryReferenceBroker's
     // "retrieveReference", "getReferencedObjectIdentity" and
@@ -98,12 +95,11 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
 
         // this collection type will be used:
         Class collectionClass = cds.getCollectionClass();
-        Query fkQuery = getFKQuery((AbstractDomainObject)obj, cld, cds);
+        Query fkQuery = getFKQuery((AbstractDomainObject) obj, cld, cds);
 
         ManageableCollection result = referencesBroker.getCollectionByQuery(collectionClass, fkQuery, false);
         cds.getPersistentField().set(obj, result);
     }
-
 
     // this method results from the merging and simplification of the
     // getFKQuery, getFKQueryMtoN, and getFKQuery1toN methods that
@@ -147,33 +143,27 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
 
     // verbatim copy from PersistenceBrokerImpl because the method was private there...
     private OJBIterator getRsIteratorFromQuery(Query query, ClassDescriptor cld, RsIteratorFactory factory)
-        throws PersistenceBrokerException
-    {
-        if (query instanceof QueryBySQL)
-        {
+            throws PersistenceBrokerException {
+        if (query instanceof QueryBySQL) {
             return factory.createRsIterator((QueryBySQL) query, cld, this);
         }
 
-        if (!cld.isExtent() || !query.getWithExtents())
-        {
+        if (!cld.isExtent() || !query.getWithExtents()) {
             // no extents just use the plain vanilla RsIterator
             return factory.createRsIterator(query, cld, this);
         }
-
 
         ChainingIterator chainingIter = new ChainingIterator();
         List<String> tablesRead = new LinkedList<String>();
 
         // BRJ: add base class iterator
-        if (!cld.isInterface())
-        {
+        if (!cld.isInterface()) {
             chainingIter.addIterator(factory.createRsIterator(query, cld, this));
             tablesRead.add(cld.getFullTableName());
         }
 
         Iterator extents = getDescriptorRepository().getAllConcreteSubclassDescriptors(cld).iterator();
-        while (extents.hasNext())
-        {
+        while (extents.hasNext()) {
             ClassDescriptor extCld = (ClassDescriptor) extents.next();
 
             // read same table only once
@@ -188,11 +178,8 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
             // table.  Instead, we keep the table names used so far in
             // the tablesRead list and check it here.
             //if (chainingIter.containsIteratorForTable(extCld.getFullTableName()))
-            if (tablesRead.contains(extCld.getFullTableName()))
-            {
-            }
-            else
-            {
+            if (tablesRead.contains(extCld.getFullTableName())) {
+            } else {
                 // add the iterator to the chaining iterator.
                 chainingIter.addIterator(factory.createRsIterator(query, extCld, this));
                 tablesRead.add(extCld.getFullTableName());
@@ -202,21 +189,20 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
         return chainingIter;
     }
 
-
     static class FenixRsIteratorFactory extends RsIteratorFactoryImpl {
-	private static RsIteratorFactory instance;
+        private static RsIteratorFactory instance;
 
-	synchronized static RsIteratorFactory getInstance() {
+        synchronized static RsIteratorFactory getInstance() {
             if (instance == null) {
                 instance = new FenixRsIteratorFactory();
             }
 
             return instance;
-	}
+        }
 
-	public RsIterator createRsIterator(Query query, ClassDescriptor cld, PersistenceBrokerImpl broker) {
+        public RsIterator createRsIterator(Query query, ClassDescriptor cld, PersistenceBrokerImpl broker) {
             return new FenixRsIterator(RsQueryObject.get(cld, query), broker);
-	}
+        }
     }
 
     static class FenixRsIterator extends RsIterator {
@@ -226,7 +212,7 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
 
         protected Object getObjectFromResultSet() throws PersistenceBrokerException {
             ClassDescriptor cld = getQueryObject().getClassDescriptor();
-            
+
             if (cld.getFactoryClass() != DomainObjectAllocator.class) {
                 return super.getObjectFromResultSet();
             } else {

@@ -12,14 +12,13 @@ import pt.ist.fenixframework.DomainObject;
 
 import org.apache.ojb.broker.PersistenceBroker;
 
-public class FenixConsistencyCheckTransaction extends ReadTransaction 
-    implements ConsistencyCheckTransaction,FenixTransaction {
+public class FenixConsistencyCheckTransaction extends ReadTransaction implements ConsistencyCheckTransaction, FenixTransaction {
 
     private FenixTransaction parent;
     private Object checkedObj;
 
     public FenixConsistencyCheckTransaction(FenixTransaction parent, Object checkedObj) {
-        super((Transaction)parent);
+        super((Transaction) parent);
         this.parent = parent;
         this.checkedObj = checkedObj;
     }

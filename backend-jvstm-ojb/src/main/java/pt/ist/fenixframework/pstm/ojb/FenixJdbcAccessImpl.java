@@ -26,11 +26,9 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
     public Object materializeObject(ClassDescriptor cld, Identity oid) throws PersistenceBrokerException {
         ResultSet rs = null;
         PreparedStatement stmt = null;
-        try
-        {
+        try {
             stmt = broker.serviceStatementManager().getSelectByPKStatement(cld);
-            if (stmt == null)
-            {
+            if (stmt == null) {
                 if (logger.isEnabledFor(Logger.ERROR)) {
                     logger.error("getSelectByPKStatement returned a null statement");
                 }
@@ -39,8 +37,7 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
             broker.serviceStatementManager().bindSelect(stmt, oid, cld);
             rs = stmt.executeQuery();
             // data available read object, else return null
-            if (rs.next())
-            {
+            if (rs.next()) {
                 AbstractDomainObject materializedObject = readObjectFromRs(rs);
                 if (materializedObject != null) {
                     return materializedObject;
@@ -52,36 +49,21 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
                 java.util.Map row = new java.util.HashMap();
                 cld.getRowReader().readObjectArrayFrom(rs, row);
                 return cld.getRowReader().readObjectFrom(row);
-            }
-            else
-            {
+            } else {
                 return null;
             }
-        }
-        catch (PersistenceBrokerException e)
-        {
+        } catch (PersistenceBrokerException e) {
             if (logger.isEnabledFor(Logger.ERROR)) {
-                logger.error(
-                        "PersistenceBrokerException during the execution of materializeObject: "
-                        + e.getMessage(),
-                        e);
+                logger.error("PersistenceBrokerException during the execution of materializeObject: " + e.getMessage(), e);
             }
             throw e;
-        }
-        catch (SQLException e)
-        {
+        } catch (SQLException e) {
             if (logger.isEnabledFor(Logger.ERROR)) {
-                logger.error(
-                        "SQLException during the execution of materializeObject (for a "
-                        + cld.getClassOfObject().getName()
-                        + "): "
-                        + e.getMessage(),
-                        e);
+                logger.error("SQLException during the execution of materializeObject (for a " + cld.getClassOfObject().getName()
+                        + "): " + e.getMessage(), e);
             }
             throw new PersistenceBrokerSQLException(e);
-        }
-        finally
-        {
+        } finally {
             broker.serviceStatementManager().closeResources(stmt, rs);
         }
     }

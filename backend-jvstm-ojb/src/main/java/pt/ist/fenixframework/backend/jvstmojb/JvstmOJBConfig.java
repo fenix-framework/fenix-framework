@@ -10,8 +10,7 @@ import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
 /**
  * An instance of the <code>Config</code> class bundles together the
  * initialization parameters used by the Fenix Framework. Therefore, before
- * initializing the framework (via the call to the
- * <code>FenixFramework.initialize(Config)</code> method), the programmer should
+ * initializing the framework (via the call to the <code>FenixFramework.initialize(Config)</code> method), the programmer should
  * create an instance of <code>Config</code> with the correct values for each of
  * the parameters.
  * 
@@ -30,11 +29,11 @@ import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
  * 
  * Config config = new Config() {
  *     {
- * 	this.appName = &quot;MyAppName&quot;;
- * 	this.domainModelPath = &quot;path/to/domain.dml&quot;;
- * 	this.dbAlias = &quot;//somehost:3306/databaseName&quot;;
- * 	this.dbUsername = &quot;dbuser&quot;;
- * 	this.dbPassword = &quot;dpPass&quot;;
+ *         this.appName = &quot;MyAppName&quot;;
+ *         this.domainModelPath = &quot;path/to/domain.dml&quot;;
+ *         this.dbAlias = &quot;//somehost:3306/databaseName&quot;;
+ *         this.dbUsername = &quot;dbuser&quot;;
+ *         this.dbPassword = &quot;dpPass&quot;;
  *     }
  * };
  * 
@@ -96,8 +95,8 @@ public class JvstmOJBConfig extends Config {
     /**
      * This <strong>optional</strong> parameter specifies whether an error
      * should be thrown if during a transaction an object that was deleted
-     * during the transaction is subsequently changed. The default value of
-     * <code>true</code> will cause an <code>Error</code> to be thrown, whereas
+     * during the transaction is subsequently changed. The default value of <code>true</code> will cause an <code>Error</code> to
+     * be thrown, whereas
      * a value of <code>false</code> will cause only a warning to be issued.
      */
     protected boolean errorIfChangingDeletedObject = true;
@@ -145,85 +144,85 @@ public class JvstmOJBConfig extends Config {
     protected boolean errorfIfDeletingObjectNotDisconnected = false;
 
     public JvstmOJBConfig() {
-	this.backEnd = new JvstmOJBBackEnd();
+        this.backEnd = new JvstmOJBBackEnd();
     }
 
     @Override
     protected void init() {
-	MetadataManager.init(this);
-	new RepositoryBootstrap(this).updateDataRepositoryStructureIfNeeded();
-	DataAccessPatterns.init(this);
-	DomainClassInfo.initializeClassInfos(0);
-	DomainClassInfo.ensureDomainRoot();
+        MetadataManager.init(this);
+        new RepositoryBootstrap(this).updateDataRepositoryStructureIfNeeded();
+        DataAccessPatterns.init(this);
+        DomainClassInfo.initializeClassInfos(0);
+        DomainClassInfo.ensureDomainRoot();
     }
 
     @Override
     public BackEnd getBackEnd() {
-	return this.backEnd;
+        return this.backEnd;
     }
 
     @Override
     public void checkConfig() {
-	super.checkConfig();
-	checkRequired(dbAlias, "dbAlias");
-	checkRequired(dbUsername, "dbUsername");
-	checkRequired(dbPassword, "dbPassword");
+        super.checkConfig();
+        checkRequired(dbAlias, "dbAlias");
+        checkRequired(dbUsername, "dbUsername");
+        checkRequired(dbPassword, "dbPassword");
     }
 
     public String getDbAlias() {
-	return dbAlias;
+        return dbAlias;
     }
 
     protected void dbAliasFromString(String value) {
-	this.dbAlias = value;
-	StringBuilder encodingParams = new StringBuilder();
-	encodingParams.append("useUnicode=true&characterEncoding=UTF-8&clobCharacterEncoding=UTF-8&characterSetResults=UTF-8");
+        this.dbAlias = value;
+        StringBuilder encodingParams = new StringBuilder();
+        encodingParams.append("useUnicode=true&characterEncoding=UTF-8&clobCharacterEncoding=UTF-8&characterSetResults=UTF-8");
 
-	int questionMarkIndex = this.dbAlias.indexOf('?');
+        int questionMarkIndex = this.dbAlias.indexOf('?');
 
-	if (questionMarkIndex == -1) {
-	    this.dbAlias = this.dbAlias + '?' + encodingParams;
-	} else {
-	    String prefix = this.dbAlias.substring(0, questionMarkIndex + 1);
-	    String rest = this.dbAlias.substring(questionMarkIndex + 1);
+        if (questionMarkIndex == -1) {
+            this.dbAlias = this.dbAlias + '?' + encodingParams;
+        } else {
+            String prefix = this.dbAlias.substring(0, questionMarkIndex + 1);
+            String rest = this.dbAlias.substring(questionMarkIndex + 1);
 
-	    this.dbAlias = prefix + encodingParams + '&' + rest;
-	}
+            this.dbAlias = prefix + encodingParams + '&' + rest;
+        }
     }
 
     protected void updateRepositoryStructureIfNeededFromString(String value) {
-	updateRepositoryStructureIfNeeded = Boolean.parseBoolean(value);
+        updateRepositoryStructureIfNeeded = Boolean.parseBoolean(value);
     }
 
     public String getDbUsername() {
-	return dbUsername;
+        return dbUsername;
     }
 
     public String getDbPassword() {
-	return dbPassword;
+        return dbPassword;
     }
 
     public boolean isErrorIfChangingDeletedObject() {
-	return errorIfChangingDeletedObject;
+        return errorIfChangingDeletedObject;
     }
 
     public boolean isErrorfIfDeletingObjectNotDisconnected() {
-	return errorfIfDeletingObjectNotDisconnected;
+        return errorfIfDeletingObjectNotDisconnected;
     }
 
     public boolean getCreateRepositoryStructureIfNotExists() {
-	return createRepositoryStructureIfNotExists;
+        return createRepositoryStructureIfNotExists;
     }
 
     public boolean getUpdateRepositoryStructureIfNeeded() {
-	return updateRepositoryStructureIfNeeded;
+        return updateRepositoryStructureIfNeeded;
     }
 
     public boolean getCollectDataAccessPatterns() {
-	return collectDataAccessPatterns;
+        return collectDataAccessPatterns;
     }
 
     public String getCollectDataAccessPatternsPath() {
-	return collectDataAccessPatternsPath;
+        return collectDataAccessPatternsPath;
     }
 }

@@ -13,52 +13,52 @@ import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
 public class JvstmOJBTransaction extends AbstractTransaction {
 
-	private final Transaction underlyingTransaction;
+    private final Transaction underlyingTransaction;
 
-	JvstmOJBTransaction(Transaction underlyingTransaction) {
-		super();
-		this.underlyingTransaction = underlyingTransaction;
-	}
+    JvstmOJBTransaction(Transaction underlyingTransaction) {
+        super();
+        this.underlyingTransaction = underlyingTransaction;
+    }
 
-	Transaction getUnderlyingTransaction() {
-		return underlyingTransaction;
-	}
+    Transaction getUnderlyingTransaction() {
+        return underlyingTransaction;
+    }
 
-	// AbstractTransaction implementations
+    // AbstractTransaction implementations
 
-	@Override
-	protected void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
-	SecurityException, IllegalStateException, SystemException {
-		if (Transaction.current() != underlyingTransaction) {
-			throw new IllegalStateException("JVSTM does not support committing transactions from other threads!");
-		}
+    @Override
+    protected void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
+            SecurityException, IllegalStateException, SystemException {
+        if (Transaction.current() != underlyingTransaction) {
+            throw new IllegalStateException("JVSTM does not support committing transactions from other threads!");
+        }
 
-		try {
-			Transaction.commit();
-		} catch (CommitException e) {
-			throw new JvstmCommitError();
-		}
-	}
+        try {
+            Transaction.commit();
+        } catch (CommitException e) {
+            throw new JvstmCommitError();
+        }
+    }
 
-	@Override
-	protected void backendRollback() throws IllegalStateException, SystemException {
-		if (Transaction.current() != underlyingTransaction) {
-			throw new IllegalStateException("JVSTM does not support committing transactions from other threads!");
-		}
+    @Override
+    protected void backendRollback() throws IllegalStateException, SystemException {
+        if (Transaction.current() != underlyingTransaction) {
+            throw new IllegalStateException("JVSTM does not support committing transactions from other threads!");
+        }
 
-		Transaction.abort();
-	}
+        Transaction.abort();
+    }
 
-	private static final class JvstmCommitError extends CommitError {
-		private static final long serialVersionUID = 2031232654005283536L;
-	}
+    private static final class JvstmCommitError extends CommitError {
+        private static final long serialVersionUID = 2031232654005283536L;
+    }
 
-	// TxIntrospector
+    // TxIntrospector
 
-	@Override
-	public TxIntrospector getTxIntrospector() {
-		// TODO Transaction is to implement TxIntrospector!
-		return null;
-	}
+    @Override
+    public TxIntrospector getTxIntrospector() {
+        // TODO Transaction is to implement TxIntrospector!
+        return null;
+    }
 
 }

@@ -20,44 +20,44 @@ public class JvstmOJBBackEnd implements BackEnd {
     private final TransactionManager transactionManager;
 
     public JvstmOJBBackEnd() {
-	transactionManager = new JvstmOJBTransactionManager();
+        transactionManager = new JvstmOJBTransactionManager();
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T extends DomainObject> T fromOid(Object oid) {
-	if (logger.isTraceEnabled()) {
-	    logger.trace("fromOid(" + oid + ")");
-	}
+        if (logger.isTraceEnabled()) {
+            logger.trace("fromOid(" + oid + ")");
+        }
 
-	AbstractDomainObject obj = SharedIdentityMap.getCache().lookup(oid);
+        AbstractDomainObject obj = SharedIdentityMap.getCache().lookup(oid);
 
-	if (obj == null) {
-	    obj = DomainObjectAllocator.allocateObject(DomainClassInfo.mapOidToClass(((Long) oid).longValue()), oid);
-	    obj = SharedIdentityMap.getCache().cache(obj);
-	}
+        if (obj == null) {
+            obj = DomainObjectAllocator.allocateObject(DomainClassInfo.mapOidToClass(((Long) oid).longValue()), oid);
+            obj = SharedIdentityMap.getCache().cache(obj);
+        }
 
-	return (T) obj;
+        return (T) obj;
     }
 
     @Override
     public <T extends DomainObject> T getDomainObject(String externalId) {
-	return fromOid(Long.parseLong(externalId));
+        return fromOid(Long.parseLong(externalId));
     }
 
     @Override
     public DomainRoot getDomainRoot() {
-	return fromOid(1L);
+        return fromOid(1L);
     }
 
     @Override
     public String getName() {
-	return BACKEND_NAME;
+        return BACKEND_NAME;
     }
 
     @Override
     public TransactionManager getTransactionManager() {
-	return transactionManager;
+        return transactionManager;
     }
 
     @Override

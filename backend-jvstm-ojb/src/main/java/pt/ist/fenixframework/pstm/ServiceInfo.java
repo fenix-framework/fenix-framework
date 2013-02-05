@@ -6,26 +6,25 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-
 public class ServiceInfo {
     final String username;
     final String serviceName;
     final Object[] arguments;
 
     ServiceInfo(String username, String serviceName, Object[] arguments) {
-	this.username = username;
-	this.serviceName = serviceName;
-	this.arguments = arguments;
+        this.username = username;
+        this.serviceName = serviceName;
+        this.arguments = arguments;
     }
 
     public boolean shouldLog() {
-	return ((username != null) && USERS_TO_MONITOR.contains(username.toUpperCase()))
-	    || SERVICES_TO_MONITOR.contains(serviceName.toUpperCase());
+        return ((username != null) && USERS_TO_MONITOR.contains(username.toUpperCase()))
+                || SERVICES_TO_MONITOR.contains(serviceName.toUpperCase());
     }
 
     public String getArgumentsAsString() {
         StringBuilder argumentsInString = new StringBuilder();
-        
+
         for (Object argument : arguments) {
             if (argument != null) {
                 try {
@@ -36,10 +35,9 @@ public class ServiceInfo {
                 argumentsInString.append("; ");
             }
         }
-        
+
         return argumentsInString.toString();
     }
-
 
     // STATICs start here
 
@@ -48,15 +46,15 @@ public class ServiceInfo {
     private static Set<String> USERS_TO_MONITOR;
 
     static {
-	initServicesAndUsers();
+        initServicesAndUsers();
     }
 
     public static void setCurrentServiceInfo(String username, String serviceName, Object[] args) {
-	CURRENT_SERVICE.set(new ServiceInfo(username, serviceName, args));
+        CURRENT_SERVICE.set(new ServiceInfo(username, serviceName, args));
     }
 
     public static ServiceInfo getCurrentServiceInfo() {
-	return CURRENT_SERVICE.get();
+        return CURRENT_SERVICE.get();
     }
 
     private static void initServicesAndUsers() {
@@ -69,14 +67,14 @@ public class ServiceInfo {
 
         try {
             ResourceBundle rb = ResourceBundle.getBundle(fileName);
-            for (Enumeration<String> keys = rb.getKeys(); keys.hasMoreElements(); ) {
+            for (Enumeration<String> keys = rb.getKeys(); keys.hasMoreElements();) {
                 valuesSet.add(keys.nextElement().toUpperCase());
             }
         } catch (MissingResourceException mre) {
             // if the resource does not exist, that's ok: it means that no monitoring will be performed
             // so, ignore the exception and return an empty set
         }
-        
+
         return valuesSet;
     }
 }

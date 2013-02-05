@@ -27,113 +27,113 @@ public class PostCompileTask extends Task {
     private static final String POST_PROCESSOR_CLASS = "pt.ist.fenixframework.pstm.PostProcessDomainClasses";
 
     public String getClassFullName() {
-	return classFullName;
+        return classFullName;
     }
 
     public void setClassFullName(String classFullName) {
-	this.classFullName = classFullName;
+        this.classFullName = classFullName;
     }
 
     public String getDomainModelClassName() {
-	return domainModelClassName;
+        return domainModelClassName;
     }
 
     public void setDomainModelClassName(String domainModelClassName) {
-	this.domainModelClassName = domainModelClassName;
+        this.domainModelClassName = domainModelClassName;
     }
 
     public List<FileSet> getFilesets() {
-	return filesets;
+        return filesets;
     }
 
     public void addFileset(FileSet fileset) {
-	filesets.add(fileset);
+        filesets.add(fileset);
     }
 
     public void setDir(File dir) {
-	this.dir = dir;
+        this.dir = dir;
     }
 
     protected CommandlineJava getCommandline() {
-	if (commandline == null) {
-	    commandline = new CommandlineJava();
-	}
-	return commandline;
+        if (commandline == null) {
+            commandline = new CommandlineJava();
+        }
+        return commandline;
     }
 
     protected String getPostProcessorClass() {
-	return POST_PROCESSOR_CLASS;
+        return POST_PROCESSOR_CLASS;
     }
 
     public void setClasspath(Path s) {
-	createClasspath().append(s);
+        createClasspath().append(s);
     }
 
     public Path createClasspath() {
-	return getCommandline().createClasspath(getProject()).createPath();
+        return getCommandline().createClasspath(getProject()).createPath();
     }
 
     @Override
     public void execute() throws BuildException {
-	super.execute();
+        super.execute();
 
-	List<String> domainSpecFileNames = new ArrayList<String>();
+        List<String> domainSpecFileNames = new ArrayList<String>();
 
-	for (FileSet fileset : filesets) {
-	    if (fileset.getDir().exists()) {
-		DirectoryScanner scanner = fileset.getDirectoryScanner(getProject());
-		String[] includedFiles = scanner.getIncludedFiles();
-		for (String includedFile : includedFiles) {
-		    domainSpecFileNames.add(fileset.getDir().getAbsolutePath() + "/" + includedFile);
-		}
-	    }
-	}
+        for (FileSet fileset : filesets) {
+            if (fileset.getDir().exists()) {
+                DirectoryScanner scanner = fileset.getDirectoryScanner(getProject());
+                String[] includedFiles = scanner.getIncludedFiles();
+                for (String includedFile : includedFiles) {
+                    domainSpecFileNames.add(fileset.getDir().getAbsolutePath() + "/" + includedFile);
+                }
+            }
+        }
 
-	try {
-	    executeAsForked(domainSpecFileNames, getClassFullName(), getDomainModelClassName());
-	} catch (Exception e) {
-	    throw new BuildException(e);
-	}
+        try {
+            executeAsForked(domainSpecFileNames, getClassFullName(), getDomainModelClassName());
+        } catch (Exception e) {
+            throw new BuildException(e);
+        }
     }
 
     private void executeAsForked(List<String> dmlFiles, String classFullName, String domainModelClassName) throws BuildException {
 
-	CommandlineJava cmd;
-	try {
-	    cmd = (CommandlineJava) (getCommandline().clone());
-	} catch (CloneNotSupportedException e) {
-	    throw new BuildException("This shouldn't happen", e, getLocation());
-	}
-	cmd.setClassname(POST_PROCESSOR_CLASS);
-	if (classFullName != null) {
-	    cmd.createArgument().setValue("-cfn");
-	    cmd.createArgument().setValue(classFullName);
-	}
-	if (domainModelClassName != null) {
-	    cmd.createArgument().setValue("-domainModelClass");
-	    cmd.createArgument().setValue(domainModelClassName);
+        CommandlineJava cmd;
+        try {
+            cmd = (CommandlineJava) (getCommandline().clone());
+        } catch (CloneNotSupportedException e) {
+            throw new BuildException("This shouldn't happen", e, getLocation());
+        }
+        cmd.setClassname(POST_PROCESSOR_CLASS);
+        if (classFullName != null) {
+            cmd.createArgument().setValue("-cfn");
+            cmd.createArgument().setValue(classFullName);
+        }
+        if (domainModelClassName != null) {
+            cmd.createArgument().setValue("-domainModelClass");
+            cmd.createArgument().setValue(domainModelClassName);
 
-	}
-	for (String file : dmlFiles) {
-	    cmd.createArgument().setValue("-d");
-	    cmd.createArgument().setValue(file);
-	}
+        }
+        for (String file : dmlFiles) {
+            cmd.createArgument().setValue("-d");
+            cmd.createArgument().setValue(file);
+        }
 
-	Execute execute = new Execute();
-	execute.setCommandline(cmd.getCommandline());
-	execute.setAntRun(getProject());
-	if (dir != null) {
-	    execute.setWorkingDirectory(dir);
-	}
+        Execute execute = new Execute();
+        execute.setCommandline(cmd.getCommandline());
+        execute.setAntRun(getProject());
+        if (dir != null) {
+            execute.setWorkingDirectory(dir);
+        }
 
-	String[] environment = env.getVariables();
-	execute.setNewenvironment(true);
-	execute.setEnvironment(environment);
-	try {
-	    execute.execute();
-	} catch (IOException e) {
-	    throw new BuildException("Process fork failed.", e, getLocation());
-	}
+        String[] environment = env.getVariables();
+        execute.setNewenvironment(true);
+        execute.setEnvironment(environment);
+        try {
+            execute.execute();
+        } catch (IOException e) {
+            throw new BuildException("Process fork failed.", e, getLocation());
+        }
     }
 
 }
