@@ -35,7 +35,7 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     	    onNewline(out);
     	    Slot indexedSlot = getIndexedSlot(role);
     	    String keyField = role.getIndexProperty();
-    	    println(out, generateIndexKeyFunction(role.getName(), role.getType().getFullName(), indexedSlot.getSlotType()
+    	    println(out, generateMapKeyFunction(role.getName(), role.getType().getFullName(), indexedSlot.getSlotType()
     		    .getFullname(), keyField, role.getIndexCardinality() == Role.MULTIPLICITY_MANY));
     	    onNewline(out);
     	} else {
@@ -43,6 +43,52 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     	}
     }
     
+    @Override
+    protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
+	super.generateRoleSlotMethodsMultStar(role, out);
+	boolean isIndexed = role.isIndexed();
+	String typeName = getTypeFullName(role.getType());
+	String slotName = role.getName();
+	String capitalizedSlotName = capitalize(slotName);
+	String slotAccessExpression = "get" + capitalizedSlotName + "()";
+	String methodModifiers = getMethodModifiers();
+	if (isIndexed) {
+	    generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName);
+	}
+    }
+    
+    protected void generateRoleSlotMethodsMultStarIndexed(Role role, PrintWriter out, String methodModifiers, String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName) {
+	Slot indexedSlot = getIndexedSlot(role);
+	String keyField = role.getIndexProperty();
+	String retType = role.getType().getName();
+	String methodNameSufix = "";  
+	boolean haveMany = role.getIndexCardinality() == Role.MULTIPLICITY_MANY;
+	if (haveMany) {
+	    retType = makeGenericType("java.util.Set", retType);
+	}
+	onNewline(out);
+	printMethod(out, "public", retType, "get" + capitalize(role.getName()) + "By" + capitalize(keyField) + methodNameSufix, indexedSlot.getSlotType()
+		.getFullname()
+		+ " key");
+	startMethodBody(out);
+	printWords(out, "return", getSearchForKey(role, haveMany ? getCollectionToUse() : retType));
+	print(out, ";");
+	endMethodBody(out);
+    }
+    
+    private Slot getIndexedSlot(Role role) {
+	Slot indexedSlot = role.getType().findSlot(role.getIndexProperty());
+	if (indexedSlot == null) { // indexed field doesn't exist
+	    throw new Error("Unknown indexed field: " + role.getIndexProperty());
+	}
+	return indexedSlot;
+    }
+
+    private String getSearchForKey(Role role, String retType) {
+	boolean indexMult = role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY;
+	String fetchMethod = "get" + (indexMult ? "Values" : "");
+	return "((" + getRelationAwareTypeFor(role) + ") get"+ capitalize(role.getName()) + "())." + fetchMethod + "(key)";
+    }
     
     @Override
     protected String getDefaultCollectionFor(Role role) {

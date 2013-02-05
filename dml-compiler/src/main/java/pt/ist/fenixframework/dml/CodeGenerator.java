@@ -400,11 +400,11 @@ public abstract class CodeGenerator {
 
     protected void generateStaticKeyFunctionForRole(Role role, PrintWriter out) {
 	if (role.getMultiplicityUpper() == Role.MULTIPLICITY_MANY) { 
-	    println(out, generateIndexKeyFunction(role.getName(), role.getType().getFullName(), "Comparable<?>", "Oid", false));
+	    println(out, generateMapKeyFunction(role.getName(), role.getType().getFullName(), "Comparable<?>", "Oid", false));
 	}
     }
 
-    protected String generateIndexKeyFunction(String roleName, String valueType, String keyType, String keyField, boolean allowMultipleKeys) {
+    protected String generateMapKeyFunction(String roleName, String valueType, String keyType, String keyField, boolean allowMultipleKeys) {
 	String format = "private static pt.ist.fenixframework.dml.runtime.KeyFunction<%keyType%,%valueType%> keyFunction$$%roleName% = new pt.ist.fenixframework.dml.runtime.KeyFunction<%keyType%,%valueType%>() { public %keyType% getKey(%valueType% value) { return value.get%keyField%(); } public boolean allowMultipleKeys() {return %multKeys%; }};";
 	return format.replaceAll("%roleName%", roleName).replaceAll("%valueType%", valueType).replaceAll("%keyType%", getReferenceType(keyType))
 		.replaceAll("%keyField%", capitalize(keyField)).replaceAll("%multKeys%", allowMultipleKeys ? "true" : "false");
@@ -973,7 +973,6 @@ public abstract class CodeGenerator {
     }
 
     protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
-	boolean isIndexed = role.isIndexed();
 	boolean isOrdered = role.isOrdered();
 
 	String typeName = getTypeFullName(role.getType());
@@ -989,11 +988,7 @@ public abstract class CodeGenerator {
 	generateRoleSlotMethodsMultStarHasAnyChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression);
 
 	// hasXpto
-	generateRoleSlotMethodsMultStarHasChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName, isIndexed, "");
-
-	if (isIndexed) {
-	    generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName);
-	}
+	generateRoleSlotMethodsMultStarHasChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName, "");
 
 	if (isOrdered) {
 	    generateRoleSlotMethodsMultStarOrdered(role, out, typeName,methodModifiers, capitalizedSlotName, slotAccessExpression);
@@ -1167,7 +1162,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateRoleSlotMethodsMultStarHasChild(Role role, PrintWriter out, String methodModifiers,
-	    String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName, boolean isIndexed, String indexGetterCall) {
+	    String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName, String indexGetterCall) {
 	newline(out);
 	printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
 	startMethodBody(out);
@@ -1260,41 +1255,6 @@ public abstract class CodeGenerator {
     //         print(out, "return true;");
     //         endMethodBody(out);
     //     }
-
-    protected void generateRoleSlotMethodsMultStarIndexed(Role role, PrintWriter out, String methodModifiers, String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName) {
-	Slot indexedSlot = getIndexedSlot(role);
-	String keyField = role.getIndexProperty();
-	String retType = role.getType().getName();
-	String methodNameSufix = ""; //empty String or "List" 
-	boolean haveMany = role.getIndexCardinality() == Role.MULTIPLICITY_MANY;
-	if (haveMany) {
-	    retType = makeGenericType("java.util.Set", retType);
-	}
-	onNewline(out);
-	printMethod(out, "public", retType, "get" + capitalize(role.getName()) + "By" + capitalize(keyField) + methodNameSufix, indexedSlot.getSlotType()
-		.getFullname()
-		+ " key");
-	startMethodBody(out);
-	//printWords(out, "return", "java.util.Collections.unmodifiable"+ (returnTypeIsSet ? "Set" : "List")  + "(", "new ");
-	printWords(out, "return", getSearchForKey(role, haveMany ? collectionToUse : retType));
-	print(out, ";");
-	endMethodBody(out);
-    }
-
-    protected Slot getIndexedSlot(Role role) {
-	Slot indexedSlot = role.getType().findSlot(role.getIndexProperty());
-	if (indexedSlot == null) { // indexed field doesn't exist
-	    throw new Error("Unknown indexed field: " + role.getIndexProperty());
-	}
-	return indexedSlot;
-    }
-
-
-    private String getSearchForKey(Role role, String retType) {
-	boolean indexMult = role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY;
-	String fetchMethod = "get" + (indexMult ? "Values" : "");
-	return "((" + getRelationAwareTypeFor(role) + ") get"+ capitalize(role.getName()) + "())." + fetchMethod + "(key)";
-    }
 
     public static String makeGenericType(String baseType, String... argTypes) {
 	StringBuilder buf = new StringBuilder();
