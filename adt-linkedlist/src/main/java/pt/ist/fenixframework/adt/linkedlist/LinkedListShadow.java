@@ -71,7 +71,7 @@ public class LinkedListShadow<T extends Serializable> extends LinkedListShadow_B
     }
     
     public int size() {
-	ListNode<T> iter = getHead();
+	ListNode<T> iter = getHead().getNext();
 	int size = 0;
 	while (iter != null) {
 	    size++;

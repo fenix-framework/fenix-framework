@@ -1,8 +1,8 @@
 package pt.ist.fenixframework.indexes;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -10,12 +10,16 @@ import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 public class UnmodifiableDomainBaseSet<T extends AbstractDomainObject> implements Set<T> {
 
-    private final DomainBasedMap<T> delegate;
-    
+    public final DomainBasedMap<T> delegate;
+
     public UnmodifiableDomainBaseSet(DomainBasedMap<T> delegate) {
-	this.delegate = delegate;
+	if (delegate == null) {
+	    this.delegate = new EmptyDomainBasedMap();
+	} else {
+	    this.delegate = delegate;
+	}
     }
-    
+
     @Override
     public boolean add(T e) {
 	throw new UnsupportedOperationException();
@@ -88,6 +92,62 @@ public class UnmodifiableDomainBaseSet<T extends AbstractDomainObject> implement
     @Override
     public <T> T[] toArray(T[] a) {
 	throw new UnsupportedOperationException();
+    }
+    
+    private final class EmptyDomainBasedMap implements DomainBasedMap<T> {
+
+	@Override
+	public String getExternalId() {
+	    throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public T get(Comparable key) {
+	    return null;
+	}
+
+	@Override
+	public boolean putIfMissing(Comparable key, T value) {
+	    throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void put(Comparable key, T value) {
+	    throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean remove(Comparable key) {
+	    throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean contains(Comparable key) {
+	    return false;
+	}
+
+	@Override
+	public int size() {
+	    return 0;
+	}
+
+	@Override
+	public Iterator<T> iterator() {
+	    return new Iterator<T>() {	    
+		public boolean hasNext() {
+		    return false;
+		}
+
+		public T next() {
+		    throw new NoSuchElementException();
+		}
+
+		public void remove() {
+		    throw new UnsupportedOperationException();
+		}
+	    };
+	}
+
     }
 
 }

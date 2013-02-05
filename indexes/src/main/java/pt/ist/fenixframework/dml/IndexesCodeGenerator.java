@@ -60,7 +60,7 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     protected void generateRoleSlotMethodsMultStarIndexed(Role role, PrintWriter out, String methodModifiers, String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName) {
 	Slot indexedSlot = getIndexedSlot(role);
 	String keyField = role.getIndexProperty();
-	String retType = role.getType().getName();
+	String retType = role.getType().getFullName();
 	String methodNameSufix = "";  
 	boolean haveMany = role.getIndexCardinality() == Role.MULTIPLICITY_MANY;
 	if (haveMany) {

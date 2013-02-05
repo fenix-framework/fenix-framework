@@ -68,7 +68,7 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
     }
 
     public int size() {
-	ListNode<T> iter = getHead();
+	ListNode<T> iter = getHead().getNext();
 	int size = 0;
 	while (iter != null) {
 	    size++;
