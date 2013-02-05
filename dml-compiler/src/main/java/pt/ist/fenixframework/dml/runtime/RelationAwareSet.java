@@ -8,9 +8,9 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends AbstractDomainObject> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
     private DomainBasedMap<E2> internalMap;
-    private KeyFunction<? extends Comparable<?>, E2> mapKey;
-    private E1 owner;
-    private Relation<E1,E2> relation;
+    protected KeyFunction<? extends Comparable<?>, E2> mapKey;
+    protected E1 owner;
+    protected Relation<E1,E2> relation;
 
     public RelationAwareSet(E1 owner, Relation<E1,E2> relation, DomainBasedMap<E2> internalMap, KeyFunction<? extends Comparable<?>, E2> mapKey) {
         this.owner = owner;
@@ -45,7 +45,7 @@ public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends Abstrac
 
     @Override
     public Iterator<E2> iterator() {
-        return new RelationAwareIterator();
+        return new RelationAwareIterator(this.internalMap);
     }
 
     @Override
@@ -68,13 +68,13 @@ public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends Abstrac
         }
     }
 
-    private class RelationAwareIterator implements Iterator<E2> {
+    protected class RelationAwareIterator implements Iterator<E2> {
         private Iterator<E2> iterator;
         private E2 current = null;
         private boolean canRemove = false;
 
-        RelationAwareIterator() {
-            this.iterator = RelationAwareSet.this.internalMap.iterator();
+        RelationAwareIterator(DomainBasedMap<E2> internalMap) {
+            this.iterator = internalMap.iterator();
         }
 
         @Override

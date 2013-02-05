@@ -3,7 +3,9 @@ package pt.ist.fenixframework.dml.runtime;
 import java.io.Serializable;
 import java.util.Iterator;
 
-public interface DomainBasedMap<T extends Serializable> {
+import pt.ist.fenixframework.DomainObject;
+
+public interface DomainBasedMap<T extends Serializable> extends DomainObject, Iterable<T> {
 
     public T get(Comparable key);
     

@@ -164,7 +164,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         if (role.getMultiplicityUpper() != 1) {
             onNewline(out);
             print(out, "this." + makeForeignKeyName(role.getName()) + " = new " +
-        	    getDefaultCollectionFor(role.getType().getFullName()) + "().getExternalId();");
+        	    getDefaultCollectionFor(role) + "().getExternalId();");
         }
     }
 
@@ -464,7 +464,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
 	startMethodBody(out);
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-        String collectionType = getDefaultCollectionFor(role.getType().getFullName());
+        String collectionType = getDefaultCollectionFor(role);
         println(out, collectionType + " internalSet = OgmBackEnd.getInstance().getDomainObject(" +
                 makeForeignKeyName(role.getName()) + ");");
 

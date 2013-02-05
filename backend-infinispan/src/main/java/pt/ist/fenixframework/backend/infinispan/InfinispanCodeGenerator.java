@@ -321,7 +321,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 
-        String collectionType = getDefaultCollectionFor(role.getType().getFullName());
+        String collectionType = getDefaultCollectionFor(role);
         println(out, collectionType + " internalSet;");
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet" + (shadow ? "Shadow" : "") + "(getOid().getFullId() + \":" + role.getName() + "\");");
         print(out, "if (oid == null || oid instanceof Externalization.NullClass)");

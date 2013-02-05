@@ -3,7 +3,6 @@ package pt.ist.fenixframework.dml;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.adt.bplustree.IBPlusTree;
 import pt.ist.fenixframework.indexes.InitializerBPlusTree;
@@ -29,6 +28,9 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     public static final String BPLUS_TREE_FULL_CLASS = "pt.ist.fenixframework.adt.bplustree.BPlusTree";
     public static final String INTERFACE_BPLUS_TREE_FULL_CLASS = IBPlusTree.class.getName();
     public static final String INITIALIZER_BPLUS_TREE_FULL_CLASS = InitializerBPlusTree.class.getName();
+    // Unfortunately, depending on a DML entity cannot be done explicitly because LinkedList extends a _Base class which 
+    // will not be compiled when this code generator is invoked (ultimately, to compile the LinkedList itself)
+    public static final String LINKED_LIST_FULL_CLASS = "pt.ist.fenixframework.adt.linkedlist.LinkedList";
 
     public IndexesCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
 	super(compArgs, domainModel);
@@ -193,28 +195,20 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     
     
     @Override
-    protected void generateRoleSlotMethodsMultStarHasChildBody(Role role, PrintWriter out, String slotAccessExpression,
-    		String slotName) {
-	super.generateRoleSlotMethodsMultStarHasChildBody(role, out, slotAccessExpression, slotName);
-	
-	// TODO look into this in the case of multi value for a key
-//    	print(out,getIndexedSlot(role).getSlotType().getFullname());
-//    	print(out, " key = keyFunction$$");
-//    	print(out, slotAccessExpression);
-//    	print(out, ".getKey(");
-//    	print(out, slotName);
-//    	print(out, ");");
-//    	onNewline(out);
-//    	print(out, "return this.");
-//    	print(out, slotName);
-//    	print(out, ".get(key) != null;");
+    protected String getDefaultCollectionFor(Role role) {
+	if (role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY) {
+	    return makeGenericType(super.getCollectionToUse(), makeGenericType(LINKED_LIST_FULL_CLASS, role.getType().getFullName()));
+	} else {
+	    return makeGenericType(super.getCollectionToUse(), role.getType().getFullName());
+	}
     }
     
-    @Override
-    protected String getDefaultCollectionFor(String type) {
-    	// TODO Auto-generated method stub
-    	//return super.getDefaultCollectionFor(DomainObject.class.getName());
-    	return super.getDefaultCollectionFor(type);
+    protected String getRelationAwareBaseTypeFor(Role role) {
+	if (role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY) {
+	    return RelationMulValuesIndexedAwareSet.class.getName();
+	} else {
+	    return super.getRelationAwareBaseTypeFor(role);
+	}
     }
 
 }

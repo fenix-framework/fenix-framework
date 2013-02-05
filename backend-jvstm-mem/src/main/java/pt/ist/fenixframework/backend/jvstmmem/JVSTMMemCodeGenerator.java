@@ -66,7 +66,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	    String t = makeGenericType("VBox", getReferenceType(getTypeFullName(role.getType())));
 	    printWords(out, "private", t, role.getName(), "= new", t, "(" + defaultValue + ")");
 	} else {
-	    printWords(out, "private", getDefaultCollectionFor(role.getType().getFullName()), role.getName());
+	    printWords(out, "private", getDefaultCollectionFor(role), role.getName());
 	}
 	println(out, ";");
     }
@@ -130,7 +130,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 
 	// generate the relation aware collection
 	buf.append("new ");
-	buf.append(getDefaultCollectionFor(role.getType().getFullName()));
+	buf.append(getDefaultCollectionFor(role));
 	buf.append("()");
 
 	return buf.toString();
