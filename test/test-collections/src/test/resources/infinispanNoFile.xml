@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:infinispan:config:5.1 http://www.infinispan.org/schemas/infinispan-config-5.1.xsd"
+        xmlns="urn:infinispan:config:5.1">
+    <global>
+        <globalJmxStatistics
+                enabled="true"
+                jmxDomain="org.infinispan"/>
+        <transport
+                clusterName="infinispan-cluster">
+            <properties>
+                <property
+                        name="configurationFile"
+                        value="jgroups/jgroups.xml" />
+            </properties>
+        </transport>
+    </global>
+    <default>
+        <locking
+                isolationLevel="SERIALIZABLE"
+                concurrencyLevel="32"
+                writeSkewCheck="false"
+                useLockStriping="false"
+                lockAcquisitionTimeout="500"/>
+        <jmxStatistics
+                enabled="true"/>
+        <deadlockDetection
+                enabled="false"/>
+        <transaction
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+                useEagerLocking="false"
+                transactionMode="TRANSACTIONAL"
+                syncRollbackPhase="false"
+                cacheStopTimeout="30000"
+                useSynchronization="false"
+                syncCommitPhase="true"
+                lockingMode="OPTIMISTIC"
+                eagerLockSingleNode="false"
+                use1PcForAutoCommitTransactions="false"
+                autoCommit="true"/>
+        <clustering mode="d">
+            <sync
+                    replTimeout="15000" />
+            <hash
+                    numVirtualNodes="100"
+                    numOwners="1"
+                    />
+            <l1
+                    enabled="false"
+                    onRehash="false"
+                    lifespan="600000"
+                    invalidationThreshold="-1"
+                    cleanupTaskFrequency="600000" />
+        </clustering>
+        <versioning
+                enabled="true"
+                versioningScheme="GMU"/>
+    </default>
+    <namedCache
+            name="x" />
+</infinispan>
