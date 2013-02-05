@@ -60,15 +60,6 @@ public interface TxIntrospector {
     public Collection<RelationChangelog> getRelationsChangelog();
 
     /**
-     * Adds the {@link RelationChangeLog} to the list of relations changed
-     * during this transaction.
-     * 
-     * @param relationChangelog
-     *            The change log to be added.
-     */
-    void addModifiedRelation(RelationChangelog relationChangelog);
-
-    /**
      * Used to represent a read or write-set entry.
      */
     public static class Entry {

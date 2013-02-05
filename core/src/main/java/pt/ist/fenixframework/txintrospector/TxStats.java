@@ -60,7 +60,6 @@ public class TxStats implements TxIntrospector {
 	modifiedObjects.add(object);
     }
 
-    @Override
     public void addModifiedRelation(RelationChangelog relation) {
 	if (filter(relation.first))
 	    return;
@@ -168,7 +167,7 @@ public class TxStats implements TxIntrospector {
 	public void beforeAdd(Relation<DomainObject, DomainObject> rel, DomainObject o1, DomainObject o2) {
 	    if (o1 == null || o2 == null)
 		return; // Ignore relations with null
-	    FenixFramework.getTransaction().getTxIntrospector()
+	    ((TxStats) FenixFramework.getTransaction().getTxIntrospector())
 		    .addModifiedRelation(new RelationChangelog(rel.getName(), o1, o2, false));
 	}
 
@@ -181,7 +180,7 @@ public class TxStats implements TxIntrospector {
 	public void beforeRemove(Relation<DomainObject, DomainObject> rel, DomainObject o1, DomainObject o2) {
 	    if (o1 == null || o2 == null)
 		return; // Ignore relations with null
-	    FenixFramework.getTransaction().getTxIntrospector()
+        ((TxStats) FenixFramework.getTransaction().getTxIntrospector())
 		    .addModifiedRelation(new RelationChangelog(rel.getName(), o1, o2, true));
 	}
 
