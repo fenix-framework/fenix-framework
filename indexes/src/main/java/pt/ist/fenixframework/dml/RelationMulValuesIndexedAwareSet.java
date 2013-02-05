@@ -91,12 +91,21 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject,E2
 
         @Override
         public boolean hasNext() {
-            return iterator.hasNext() || keyIterator.hasNext();
+            while (!iterator.hasNext()) {
+        	if (!keyIterator.hasNext()) {
+        	    return false;
+        	}
+        	iterator = keyIterator.next().iterator();
+            }
+            return true;
         }
 
         @Override
         public E2 next() {
-            if (!iterator.hasNext()) {
+            while (!iterator.hasNext()) {
+        	if (!keyIterator.hasNext()) {
+        	    throw new NoSuchElementException();
+        	}
         	iterator = keyIterator.next().iterator();
             }
             E2 result = iterator.next();

@@ -17,14 +17,14 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
 	}
     };
     
-    private transient final static Comparable minValue = new TombKey(-1);
-    private transient final static Comparable maxValue = new TombKey(1);
+    private transient final static Comparable MIN_VALUE = new TombKey(-1);
+    private transient final static Comparable MAX_VALUE = new TombKey(1);
     
     public SkipList() {
 	super();
 	setLevel(0);
-	SkipListNode<T> head = new SkipListNode<T>(maxLevel, minValue, null);
-	SkipListNode<T> tail = new SkipListNode<T>(maxLevel, maxValue, null);
+	SkipListNode<T> head = new SkipListNode<T>(maxLevel, MIN_VALUE, null);
+	SkipListNode<T> tail = new SkipListNode<T>(maxLevel, MAX_VALUE, null);
 	setHead(head);
 	for (int i = 0; i <= maxLevel; i++) {
 	    head.setForward(i, tail);
@@ -150,12 +150,12 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
 
 	    @Override
 	    public boolean hasNext() {
-		return iter != null && iter.getKeyValue().key.compareTo(maxValue) != 0;
+		return iter.getForward(0) != null;
 	    }
 
 	    @Override
 	    public T next() {
-		if (iter == null || iter.getKeyValue().key.compareTo(maxValue) == 0) {
+		if (iter.getForward(0) == null) {
 		    throw new NoSuchElementException();
 		}
 		Object value = iter.getKeyValue().value;

@@ -17,14 +17,14 @@ public class SkipListShadow<T extends Serializable> extends SkipListShadow_Base 
 	}
     };
     
-    private transient final static Comparable minValue = new TombKey(-1);
-    private transient final static Comparable maxValue = new TombKey(1);
+    private transient final static Comparable MIN_VALUE = new TombKey(-1);
+    private transient final static Comparable MAX_VALUE = new TombKey(1);
 
     public SkipListShadow() {
 	super();
 	setLevel(0);
-	SkipListNodeShadow head = new SkipListNodeShadow(maxLevel, minValue, null);
-	SkipListNodeShadow tail = new SkipListNodeShadow(maxLevel, maxValue, null);
+	SkipListNodeShadow head = new SkipListNodeShadow(maxLevel, MIN_VALUE, null);
+	SkipListNodeShadow tail = new SkipListNodeShadow(maxLevel, MAX_VALUE, null);
 	setHead(head);
 	for (int i = 0; i <= maxLevel; i++) {
 	    head.setForward(i, tail);
@@ -163,12 +163,12 @@ public class SkipListShadow<T extends Serializable> extends SkipListShadow_Base 
 
 	    @Override
 	    public boolean hasNext() {
-		return iter != null && iter.getKeyValue().key.compareTo(maxValue) != 0;
+		return iter.getForward(0) != null;
 	    }
 
 	    @Override
 	    public T next() {
-		if (iter == null || iter.getKeyValue().key.compareTo(maxValue) == 0) {
+		if (iter.getForward(0) == null) {
 		    throw new NoSuchElementException();
 		}
 		Object value = iter.getKeyValue().value;
