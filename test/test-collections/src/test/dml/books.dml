@@ -1,0 +1,39 @@
+package test;
+
+
+class Book {
+    int id;
+    double price;
+}
+
+class Publisher {
+    int id;
+}
+
+class Author {
+    int id;
+    int age;
+}
+
+relation DRWithBooks {
+    .pt.ist.fenixframework.DomainRoot playsRole parent;
+    Book playsRole theBooks {
+        multiplicity *;
+        indexed by id;
+    }
+}
+
+relation DRWithAuthors {
+    .pt.ist.fenixframework.DomainRoot playsRole parent;
+    Author playsRole theAuthors {
+        multiplicity *;
+        indexed by id #(*);
+    }
+}
+
+relation DRWithPublishers {
+    .pt.ist.fenixframework.DomainRoot playsRole parent;
+    Publisher playsRole thePublishers {
+        multiplicity *;
+    }
+}
