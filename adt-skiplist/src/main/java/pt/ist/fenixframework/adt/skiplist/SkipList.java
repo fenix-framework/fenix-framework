@@ -93,7 +93,6 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
 		next = node.getForward(i);
 	    }
 	}
-	node.registerGetForward();
 	node = node.getForward(0);
 
 	if (node.getKeyValue().key.compareTo(key) == 0) {
