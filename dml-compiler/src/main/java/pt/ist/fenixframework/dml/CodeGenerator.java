@@ -760,18 +760,18 @@ public abstract class CodeGenerator {
     protected void generateSlotsAccessors(DomainClass domainClass, PrintWriter out) {
 	Iterator slotsIter = domainClass.getSlots();
 	while (slotsIter.hasNext()) {
-	    generateSlotAccessors(domainClass, (Slot) slotsIter.next(), out);
+	    generateSlotAccessors((Slot) slotsIter.next(), out);
 	}
     }
 
-    protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateSlotAccessors(Slot slot, PrintWriter out) {
 	generateSlotGetter(slot.getName(), slot.getTypeName(), out);
 	// also generate the get shadow methods
 	if (generateShadowMethods()) {
 	    generateSlotShadowGetter(slot.getName(), slot.getTypeName(), out);
 	    generateEmptyRegisterGet(slot.getName(), out);
 	}
-	generateSlotSetter(domainClass, slot, out);
+	generateSlotSetter(slot, out);
     }
 
     protected String getSlotExpression(String slotName) {
@@ -807,32 +807,25 @@ public abstract class CodeGenerator {
     }
 
 
-    protected void generateSlotSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
-	generateSetter(domainClass, "public", "set" + capitalize(slot.getName()), slot, out);
+    protected void generateSlotSetter(Slot slot, PrintWriter out) {
+	generateSetter("public", "set" + capitalize(slot.getName()), slot, out);
     }
 
     //     protected void generateInternalSetter(String visibility, String setterName, String slotName, String typeName, PrintWriter out) {
     //         generateSetter(visibility, setterName, slotName, typeName, out);
     //     }
 
-    protected void generateSetter(DomainClass domainClass, String visibility, String setterName, Slot slot, PrintWriter out) {
+    protected void generateSetter(String visibility, String setterName, Slot slot, PrintWriter out) {
 	newline(out);
 
 	printFinalMethod(out, visibility, "void", setterName, makeArg(slot.getTypeName(), slot.getName()));
 
 	startMethodBody(out);
-	generateSetterBody(domainClass, setterName, slot, out);
+	generateSetterBody(setterName, slot, out);
 	endMethodBody(out);            
     }
 
-    /**
-     * @deprecated Replaced by {@link generateRoleSlotMethodsMultOneGetter(Role, PrintWriter)}
-     */
-    @Deprecated protected void generateRoleGetter(String slotName, String typeName, PrintWriter out) {
-	generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
-    }
-
-    protected void generateSetterBody(DomainClass domainClass, String setterName, Slot slot, PrintWriter out) {
+    protected void generateSetterBody(String setterName, Slot slot, PrintWriter out) {
 	printWords(out, getSlotExpression(slot.getName()), "=", slot.getName() + ";");
     }
 

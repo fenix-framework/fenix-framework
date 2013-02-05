@@ -132,29 +132,29 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
-        generateInfinispanGetter(domainClass, slot, out);
+    protected void generateSlotAccessors(Slot slot, PrintWriter out) {
+        generateInfinispanGetter(slot, out);
         // also generate the get shadow methods
         if (generateShadowMethods()) {
-            generateInfinispanShadowGetter(domainClass, slot, out);
+            generateInfinispanShadowGetter(slot, out);
             generateInfinispanRegisterGet(slot.getName(), "registerGet" + capitalize(slot.getName()), out);
         }
-        generateInfinispanSetter(domainClass, slot, out);
+        generateInfinispanSetter(slot, out);
     }
 
-    protected void generateInfinispanGetter(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateInfinispanGetter( Slot slot, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName()));
         startMethodBody(out);
-        generateInfinispanGetterBody(domainClass, slot, out, "cacheGet");
+        generateInfinispanGetterBody(slot, out, "cacheGet");
         endMethodBody(out);
     }
     
-    protected void generateInfinispanShadowGetter(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateInfinispanShadowGetter(Slot slot, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName() + "Shadow"));
         startMethodBody(out);
-        generateInfinispanGetterBody(domainClass, slot, out, "cacheGetShadow");
+        generateInfinispanGetterBody(slot, out, "cacheGetShadow");
         endMethodBody(out);
     }
     
@@ -166,16 +166,16 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
-    protected void generateInfinispanSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateInfinispanSetter(Slot slot, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
         startMethodBody(out);
-        generateInfinispanSetterBody(domainClass, slot, out);
+        generateInfinispanSetterBody(slot, out);
         endMethodBody(out);
     }
 
-    protected void generateInfinispanGetterBody(DomainClass domainClass, Slot slot, PrintWriter out, String cacheGetMethod) {
-        generateGetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP read stats update statement
+    protected void generateInfinispanGetterBody(Slot slot, PrintWriter out, String cacheGetMethod) {
+        generateGetterDAPStatement(dC, slot.getName(), slot.getTypeName(), out);//DAP read stats update statement
 
         println(out, "Object obj = InfinispanBackEnd.getInstance()." + cacheGetMethod + "(getOid().getFullId() + \":" + slot.getName() + "\");");
         
@@ -201,9 +201,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, returnExpression);
     }
 
-    protected void generateInfinispanSetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
-        generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
-        generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
+    protected void generateInfinispanSetterBody(Slot slot, PrintWriter out) {
+        generateSetterDAPStatement(dC, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
+        generateSetterTxIntrospectorStatement(slot, out); // TxIntrospector
 
         onNewline(out);
         String slotName = slot.getName();

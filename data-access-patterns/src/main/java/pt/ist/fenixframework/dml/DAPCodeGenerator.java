@@ -1,12 +1,7 @@
 package pt.ist.fenixframework.dml;
 
-import java.io.*;
-import java.net.*;
-
+import java.io.PrintWriter;
 import java.util.Iterator;
-
-import pt.ist.dap.implementation.DAPConfig;
-import pt.ist.fenixframework.FenixFramework;
 
 /**
  * This code generator adds the possibility of collecting information about the data access
@@ -58,7 +53,7 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
         while (classesIter.hasNext()) {
             dC = (DomainClass) classesIter.next();
             //System.out.println("\nGenerating domainClass " + dC.getFullName());
-            generateOneClass(dC);
+            super.generateOneClass(dC);
         }
     }
     
@@ -75,16 +70,16 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
     }
     
     @Override
-    protected void generateSetterBody(DomainClass domainClass, String setterName, Slot slot, PrintWriter out) {
+    protected void generateSetterBody(String setterName, Slot slot, PrintWriter out) {
         //System.out.println("\tGenerating setter body named " + setterName + "() for slot " + slot.getName() + " of type " + slot.getTypeName());
-        generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);
+        generateSetterDAPStatement(dC, slot.getName(), slot.getTypeName(), out);
         //if (DAP_ENABLED) {
             //generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);
             //print(out, "pt.ist.dap.implementation.simple.SimpleContextManager.updateWriteStatisticsWithoutContext(\""+ domainClass.getFullName() +"\", \"");
             //print(out, slot.getName());
             //println(out, "\");");
         //}
-        super.generateSetterBody(domainClass, setterName, slot, out);
+        super.generateSetterBody(setterName, slot, out);
     }
     
     //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework

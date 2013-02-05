@@ -85,20 +85,21 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateSlotAccessors(Slot slot, PrintWriter out) {
 	generateVBoxSlotGetter("get" + capitalize(slot.getName()), "get", slot.getName(), slot.getTypeName(), out);
         // also generate the get shadow methods
         if (generateShadowMethods()) {
             generateVBoxSlotGetter("get" + capitalize(slot.getName()) + "Shadow", "getShadow", slot.getName(), slot.getTypeName(), out);
             generateVBoxRegisterGet(slot.getName(), "registerGet" + capitalize(slot.getName()), out);
         }
-	generateVBoxSlotSetter(domainClass, slot, out);
+	generateVBoxSlotSetter(slot, out);
     }
 
     protected void generateVBoxSlotGetter(String methodName, String accessToVBox, String name, String typeName, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", typeName, methodName);
 	startMethodBody(out);
+	generateGetterDAPStatement(dC, name, typeName, out);//DAP read stats update statement
 	printWords(out, "return", getSlotExpression(name) + "." + accessToVBox + "();");
 	endMethodBody(out);
     }
@@ -111,13 +112,13 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
     
-    protected void generateVBoxSlotSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateVBoxSlotSetter(Slot slot, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
 	startMethodBody(out);
 
-	generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
-	generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
+	generateSetterDAPStatement(dC, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
+	generateSetterTxIntrospectorStatement(slot, out); // TxIntrospector
 
 	printWords(out, getSlotExpression(slot.getName()) + ".put(" + slot.getName() + ");");
 	endMethodBody(out);
@@ -212,6 +213,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printMethod(out, methodModifiers, makeGenericType("java.util.Set", typeName), "get" + capitalizedSlotName + "Set");
 	startMethodBody(out);
 
+	generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	print(out, "return get" + capitalizedSlotName + "();");
 	endMethodBody(out);
     }
@@ -222,6 +224,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printMethod(out, methodModifiers, "int", "get" + capitalizedSlotName + "Count");
 	startMethodBody(out);
 
+	generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	printWords(out, "return get" + capitalizedSlotName + "().size();");
 	endMethodBody(out);
     }
@@ -232,7 +235,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
 	startMethodBody(out);
 
-
+	generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	printWords(out, "return get" + capitalizedSlotName + "().contains(" + slotName + ");");
 	endMethodBody(out);
     }
@@ -243,6 +246,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printMethod(out, methodModifiers, "boolean", "hasAny" + capitalizedSlotName);
 	startMethodBody(out);
 
+	generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	printWords(out, "return (get" + capitalizedSlotName + "().size() != 0);");
 	endMethodBody(out);
     }
@@ -253,6 +257,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
                          + capitalize(role.getName()) + "Iterator");
         startMethodBody(out);
         
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
         printWords(out, "return get" + capitalize(role.getName()) + "().iterator();");
 	endMethodBody(out);
     }

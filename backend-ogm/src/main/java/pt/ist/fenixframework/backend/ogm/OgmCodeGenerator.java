@@ -201,8 +201,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
-        super.generateSlotAccessors(domainClass, slot, out);
+    protected void generateSlotAccessors(Slot slot, PrintWriter out) {
+        super.generateSlotAccessors(slot, out);
         generateHibernateSlotGetter(slot, out);
         generateHibernateSlotSetter(slot, out);
         this.ormSlots.add(addHibernateToSlotName(slot.getName()));
