@@ -35,33 +35,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     private static int NUM_READS_THRESHOLD = 10000000;
     private static int NUM_WRITES_THRESHOLD = 100000;
 
-    private static final Object COMMIT_LISTENERS_LOCK = new Object();
-    private static volatile Cons<CommitListener> COMMIT_LISTENERS = Cons.empty();
-
-    public static void addCommitListener(CommitListener listener) {
-        synchronized (COMMIT_LISTENERS_LOCK) {
-            COMMIT_LISTENERS = COMMIT_LISTENERS.cons(listener);
-        }
-    }
-
-    public static void removeCommitListener(CommitListener listener) {
-        synchronized (COMMIT_LISTENERS_LOCK) {
-            COMMIT_LISTENERS = COMMIT_LISTENERS.removeFirst(listener);
-        }
-    }
-
-    private static void notifyBeforeCommit(TopLevelTransaction tx) {
-        for (CommitListener cl : COMMIT_LISTENERS) {
-            cl.beforeCommit(tx);
-        }
-    }
-
-    private static void notifyAfterCommit(TopLevelTransaction tx) {
-        for (CommitListener cl : COMMIT_LISTENERS) {
-            cl.afterCommit(tx);
-        }
-    }
-
     public static Lock getCommitlock() {
         return COMMIT_LOCK;
     }
@@ -237,17 +210,15 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         }
 
         if ((numBoxReads > NUM_READS_THRESHOLD) || (numBoxWrites > NUM_WRITES_THRESHOLD)) {
-            logger.warn(String.format("WARN: Very-large transaction (reads = %d, writes = %d, uri = %s)", numBoxReads,
-                    numBoxWrites, RequestInfo.getRequestURI()));
+            logger.warn("Very-large transaction (reads = {}, writes = {}, uri = {})", numBoxReads, numBoxWrites,
+                    RequestInfo.getRequestURI());
         }
 
         // reset statistics counters
         numBoxReads = 0;
         numBoxWrites = 0;
 
-        notifyBeforeCommit(this);
         super.doCommit();
-        notifyAfterCommit(this);
     }
 
     @Override
@@ -302,7 +273,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
                         // if not, then something gone wrong and its better to
                         // abort
                         if (body.value == VBox.NOT_LOADED_VALUE) {
-                            System.out.println("Couldn't load the attribute " + attr + " for class " + obj.getClass());
+                            logger.error("Couldn't load the attribute {} for class {}", attr, obj.getClass());
                             throw new VersionNotAvailableException();
                         }
                     }
@@ -378,12 +349,12 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
                         // the cache may have been updated, so perform the
                         // tx-validation again
                         if (!validateCommit()) {
-                            System.out.println("Invalid commit. Restarting.");
+                            logger.warn("Invalid commit. Restarting.");
                             throw new jvstm.CommitException();
                         }
                     }
                 } catch (SQLException sqlex) {
-                    System.out.println("SqlException: " + sqlex.getMessage());
+                    logger.warn("SqlException: " + sqlex.getMessage());
                     throw new CommitException();
                 } catch (LookupException le) {
                     throw new Error("Error while obtaining database connection", le);
@@ -396,7 +367,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
                     pb.commitTransaction();
                 } catch (Throwable t) {
                     t.printStackTrace();
-                    System.out.println("Error while commiting exception. Terminating server.");
+                    logger.error("Error while commiting exception. Terminating server.");
                     System.err.flush();
                     System.out.flush();
                     System.exit(-1);
