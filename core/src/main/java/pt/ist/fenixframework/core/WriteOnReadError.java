@@ -8,5 +8,8 @@ package pt.ist.fenixframework.core;
  */
 public class WriteOnReadError extends CommitError {
     private static final long serialVersionUID = 1L;
-    protected WriteOnReadError() { super(); }
+
+    public WriteOnReadError() {
+        super();
+    }
 }
