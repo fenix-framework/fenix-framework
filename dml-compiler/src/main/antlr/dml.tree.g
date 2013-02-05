@@ -137,20 +137,7 @@ classSlot[DomainModel model] returns [Slot slotDef = null]
                 slotDef = new Slot(name.getText(), slotType);
             }
             slotOptions[slotDef]
-            annotations[slotDef]
         )
-    ;
-
-
-annotations[Slot slotDef]
-    : #(ANNOTATIONS
-         (
-            name:ANN_NAME 
-            {
-                slotDef.addAnnotation(new Annotation(name.getText())); 
-            }
-         )*
-       )
     ;
 
 

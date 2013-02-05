@@ -6,19 +6,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
-// import java.util.List;
 
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
-import pt.ist.fenixframework.dml.DAPCodeGenerator;
 import pt.ist.fenixframework.dml.DomainClass;
-// import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
-// import pt.ist.fenixframework.dml.ValueType;
 import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 
 public class OgmCodeGenerator extends IndexesCodeGenerator {
@@ -128,8 +124,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
-        // Generate the index methods
-        super.generateIndexMethods(domClass, out);
     }
 
     @Override

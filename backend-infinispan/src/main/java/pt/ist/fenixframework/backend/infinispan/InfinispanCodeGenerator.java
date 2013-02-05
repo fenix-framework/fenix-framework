@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
-import pt.ist.fenixframework.dml.DAPCodeGenerator;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
@@ -72,8 +71,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
         generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
-        // Index method generation
-        super.generateIndexMethods(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
     }
 
@@ -207,7 +204,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     protected void generateInfinispanSetterBody(DomainClass domainClass, Slot slot, PrintWriter out) {
         generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
         generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
-        generateIndexationInSetter(domainClass, slot, out); // Indexes
 
         onNewline(out);
         String slotName = slot.getName();

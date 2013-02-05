@@ -3,10 +3,9 @@ package pt.ist.fenixframework.backend.ogm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.core.IdentityMap;
-import pt.ist.fenixframework.indexes.IndexesConfig;
+import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
 
 /**
  * This is the ogm configuration manager used by the fenix-framework-backend-ogm project.
@@ -14,7 +13,7 @@ import pt.ist.fenixframework.indexes.IndexesConfig;
  * @see Config
  *
  */
-public class OgmConfig extends IndexesConfig {
+public class OgmConfig extends HibernateSearchConfig {
     private static final Logger logger = LoggerFactory.getLogger(OgmDomainObject.class);
 
     private static final String FAILED_INIT = "Failed to initialize Backend OGM";

@@ -118,7 +118,6 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 
 	generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
 	generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
-	generateIndexationInSetter(domainClass, slot, out); // Indexes
 
 	printWords(out, getSlotExpression(slot.getName()) + ".put(" + slot.getName() + ");");
 	endMethodBody(out);

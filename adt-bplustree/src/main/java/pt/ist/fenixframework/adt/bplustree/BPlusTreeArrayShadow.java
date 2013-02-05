@@ -12,7 +12,7 @@ import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
  * instances of {@link Serializable}.  This implementation is modelled in DML and can be
  * used with any backend.
  */
-public class BPlusTreeArrayShadow<T extends Serializable> extends BPlusTreeArrayShadow_Base implements IBPlusTree<T>, DomainBasedMap<T>{
+public class BPlusTreeArrayShadow<T extends Serializable> extends BPlusTreeArrayShadow_Base implements DomainBasedMap<T>{
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
         private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
@@ -86,11 +86,6 @@ public class BPlusTreeArrayShadow<T extends Serializable> extends BPlusTreeArray
 	this.setRoot(new LeafNodeArrayShadow());
     }
 
-    @Override
-    public void insertKeyValue(Comparable key, T value) {
-	insert(key, value);
-    }
-    
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
     public boolean insert(Comparable key, T value) {
         if (value == null) {

@@ -17,7 +17,7 @@ import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
  * comparable to each other (e.g. the same BPlusTree instance cannot simultaneously support keys of
  * type Integer and String).
  */
-public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base implements IBPlusTree<T>, DomainBasedMap<T>{
+public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base implements DomainBasedMap<T>{
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
         private static final Serializable LAST_KEY_SERIALIZED_FORM = new Serializable() {
@@ -89,11 +89,6 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
 
     private void initRoot() {
 	this.setRoot(new LeafNodeArray());
-    }
-
-    @Override
-    public void insertKeyValue(Comparable key, T value) {
-	insert(key, value);
     }
 
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
