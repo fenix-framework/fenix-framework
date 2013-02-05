@@ -55,7 +55,11 @@ public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends Abstrac
 
     @Override
     public boolean remove(Object o) {
-	return relation.remove(owner, (E2)o);
+	if (o instanceof AbstractDomainObject) {
+	    return relation.remove(owner, (E2)o);
+	} else {
+	    return false;
+	}
     }
 
     protected class RelationAwareIterator implements Iterator<E2> {

@@ -285,6 +285,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         print(out, "o1.set" + capitalize(role.getName()) + "$unidirectional(o2);");
         closeBlock(out, false);
         closeBlock(out, false);
+        newline(out);
         print(out, "return true;");
         endMethodBody(out);
     }
@@ -304,6 +305,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         newBlock(out);
         print(out, "o1.set" + capitalize(role.getName()) + "$unidirectional(null);");
         closeBlock(out, false);
+        newline(out);
         print(out, "return true;");
         endMethodBody(out);
     }
