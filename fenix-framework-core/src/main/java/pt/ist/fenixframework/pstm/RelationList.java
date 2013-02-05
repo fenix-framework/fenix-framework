@@ -10,51 +10,51 @@ import pt.ist.fenixframework.DomainObject;
 import dml.runtime.FunctionalSet;
 import dml.runtime.Relation;
 
-public class RelationList<E1 extends DomainObject,E2 extends DomainObject> extends AbstractList<E2> implements VersionedSubject,Set<E2>,dml.runtime.RelationBaseSet<E2> {
+public class RelationList<E1 extends DomainObject, E2 extends DomainObject> extends AbstractList<E2> implements VersionedSubject,
+        Set<E2>, dml.runtime.RelationBaseSet<E2> {
     private final E1 listHolder;
-    private final Relation<E1,E2> relation;
+    private final Relation<E1, E2> relation;
     private final String attributeName;
 
     private SoftReference<VBox<FunctionalSet<E2>>> elementsRef;
 
     private final PerTxBox<FunctionalSet<E2>> elementsToAdd = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
         @Override
-	public void commit(FunctionalSet<E2> toAdd) {
-	    consolidateElementsIfLoaded();
+        public void commit(FunctionalSet<E2> toAdd) {
+            consolidateElementsIfLoaded();
         }
     };
 
     private final PerTxBox<FunctionalSet<E2>> elementsToRemove = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
         @Override
-	public void commit(FunctionalSet<E2> toRemove) {
-	    consolidateElementsIfLoaded();
+        public void commit(FunctionalSet<E2> toRemove) {
+            consolidateElementsIfLoaded();
         }
     };
 
-    public RelationList(E1 listHolder, Relation<E1,E2> relation, String attributeName, boolean allocateOnly) {
-	this.listHolder = listHolder;
+    public RelationList(E1 listHolder, Relation<E1, E2> relation, String attributeName, boolean allocateOnly) {
+        this.listHolder = listHolder;
         this.relation = relation;
-	this.attributeName = attributeName;
+        this.attributeName = attributeName;
 
-	VBox elementsBox = null;
-	if (allocateOnly) {
-	    elementsBox = SoftReferencedVBox.makeNew(listHolder, attributeName, allocateOnly);
-	} else {
-	    elementsBox = new SoftReferencedVBox<FunctionalSet<E2>>(listHolder, attributeName, DOFunctionalSet.EMPTY);
-	}
-	this.elementsRef = new SoftReference<VBox<FunctionalSet<E2>>>(elementsBox);
+        VBox elementsBox = null;
+        if (allocateOnly) {
+            elementsBox = SoftReferencedVBox.makeNew(listHolder, attributeName, allocateOnly);
+        } else {
+            elementsBox = new SoftReferencedVBox<FunctionalSet<E2>>(listHolder, attributeName, DOFunctionalSet.EMPTY);
+        }
+        this.elementsRef = new SoftReference<VBox<FunctionalSet<E2>>>(elementsBox);
     }
 
     // The access to the elementsRef field should be synchronized
     private synchronized VBox<FunctionalSet<E2>> getElementsBox() {
-	VBox<FunctionalSet<E2>> box = elementsRef.get();
-	if (box == null) {
-	    box = SoftReferencedVBox.makeNew(this.listHolder, this.attributeName, true);
-	    this.elementsRef = new SoftReference<VBox<FunctionalSet<E2>>>(box);
-	}
-	return box;
+        VBox<FunctionalSet<E2>> box = elementsRef.get();
+        if (box == null) {
+            box = SoftReferencedVBox.makeNew(this.listHolder, this.attributeName, true);
+            this.elementsRef = new SoftReference<VBox<FunctionalSet<E2>>>(box);
+        }
+        return box;
     }
-
 
     @Override
     public jvstm.VBoxBody addNewVersion(String attr, int txNumber) {
@@ -72,83 +72,86 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
     }
 
     private FunctionalSet<E2> elementSet() {
-	consolidateElements();
-	return getElementsBox().get(listHolder, attributeName);
+        consolidateElements();
+        return getElementsBox().get(listHolder, attributeName);
     }
 
+    /**
+     * Consolidates the elements of this relations list, if it was loaded.
+     * Otherwise, writes a not loaded value to it's box, to make sure it is put in the current transaction's write set.
+     */
     protected void consolidateElementsIfLoaded() {
-	if (elementsToAdd.get().size() + elementsToRemove.get().size() > 0) {
-	    VBox<FunctionalSet<E2>> box = getElementsBox();
-	    if (box.hasValue()) {
-		consolidateElements();
-	    } else {
-		// here we write the NOT_LOADED_VALUE to force the box to go to the write-set
-		box.putNotLoadedValue();
-	    }
-	}
+        if (elementsToAdd.get().size() + elementsToRemove.get().size() == 0) {
+            return;
+        }
+        VBox<FunctionalSet<E2>> box = getElementsBox();
+        if (box.hasValue()) {
+            consolidateElements();
+        } else {
+            box.putNotLoadedValue();
+        }
     }
 
     private void consolidateElements() {
-	VBox<FunctionalSet<E2>> box = getElementsBox();
-	FunctionalSet<E2> origSet = box.get(listHolder, attributeName);
-	FunctionalSet<E2> newSet = origSet;
+        VBox<FunctionalSet<E2>> box = getElementsBox();
+        FunctionalSet<E2> origSet = box.get(listHolder, attributeName);
+        FunctionalSet<E2> newSet = origSet;
 
-	if (elementsToRemove.get().size() > 0) {
-	    Iterator<E2> iter = elementsToRemove.get().iterator();
-	    while (iter.hasNext()) {
-		newSet = newSet.remove(iter.next());
-	    }
-	    elementsToRemove.put(DOFunctionalSet.EMPTY);
-	}
+        if (elementsToRemove.get().size() > 0) {
+            Iterator<E2> iter = elementsToRemove.get().iterator();
+            while (iter.hasNext()) {
+                newSet = newSet.remove(iter.next());
+            }
+            elementsToRemove.put(DOFunctionalSet.EMPTY);
+        }
 
-	if (elementsToAdd.get().size() > 0) {
-	    Iterator<E2> iter = elementsToAdd.get().iterator();
-	    while (iter.hasNext()) {
-		newSet = newSet.add(iter.next());
-	    }
-	    elementsToAdd.put(DOFunctionalSet.EMPTY);
-	}
+        if (elementsToAdd.get().size() > 0) {
+            Iterator<E2> iter = elementsToAdd.get().iterator();
+            while (iter.hasNext()) {
+                newSet = newSet.add(iter.next());
+            }
+            elementsToAdd.put(DOFunctionalSet.EMPTY);
+        }
 
-	if (newSet != origSet) {
-	    box.putDelayed(newSet);
-	}
+        if (newSet != origSet) {
+            box.putDelayed(newSet);
+        }
     }
 
     public void setFromOJB(Object obj, String attr, OJBFunctionalSetWrapper ojbList) {
-	getElementsBox().setFromOJB(obj, attr, ojbList.getElements());
+        getElementsBox().setFromOJB(obj, attr, ojbList.getElements());
     }
 
     @Override
     public void justAdd(E2 obj) {
-	Transaction.currentFenixTransaction().registerRelationListChanges(this);
-	Transaction.logAttrChange(listHolder, attributeName);
-	elementsToAdd.put(elementsToAdd.get().add(obj));
-	elementsToRemove.put(elementsToRemove.get().remove(obj));
+        Transaction.currentFenixTransaction().registerRelationListChanges(this);
+        Transaction.logAttrChange(listHolder, attributeName);
+        elementsToAdd.put(elementsToAdd.get().add(obj));
+        elementsToRemove.put(elementsToRemove.get().remove(obj));
     }
 
     @Override
     public void justRemove(E2 obj) {
-	Transaction.currentFenixTransaction().registerRelationListChanges(this);
-	Transaction.logAttrChange(listHolder, attributeName);
-	elementsToRemove.put(elementsToRemove.get().add(obj));
-	elementsToAdd.put(elementsToAdd.get().remove(obj));
+        Transaction.currentFenixTransaction().registerRelationListChanges(this);
+        Transaction.logAttrChange(listHolder, attributeName);
+        elementsToRemove.put(elementsToRemove.get().add(obj));
+        elementsToAdd.put(elementsToAdd.get().remove(obj));
     }
 
     /**
-     * Returns a <code>String</code> with a unique identification of this
-     * <code>RelationList</code>. The id of two <code>RelationLists</code> will
+     * Returns a <code>String</code> with a unique identification of this <code>RelationList</code>. The id of two
+     * <code>RelationLists</code> will
      * be the same if and only if the two <code>RelationLists</code> are the
      * same.<br>
-     * This id is used for both the <code>hashCode()</code> and
-     * <code>equals()</code> methods.<br>
+     * This id is used for both the <code>hashCode()</code> and <code>equals()</code> methods.<br>
      * <br>
      * 
-     * This method assumes that only the fenix-framework creates
-     * <code>RelationLists</code>, and only one for each side of a domain
+     * This method assumes that only the fenix-framework creates <code>RelationLists</code>, and only one for each side of a
+     * domain
      * relation, without any duplicates.
      */
     public String getUniqueId() {
-	return listHolder.getExternalId() + attributeName;
+        return listHolder.getExternalId() + attributeName;
     }
 
     /**
@@ -156,26 +159,26 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
      */
     @Override
     public int hashCode() {
-	return getUniqueId().hashCode();
+        return getUniqueId().hashCode();
     }
-    
+
     /**
      * @see RelationList#getUniqueId()
      */
     @Override
     public boolean equals(Object otherObject) {
-	if ((otherObject == null) || (!(otherObject instanceof RelationList))) {
-	    return false;
+        if ((otherObject == null) || (!(otherObject instanceof RelationList))) {
+            return false;
         }
-	if (((RelationList<DomainObject, DomainObject>) otherObject).getUniqueId().equals(getUniqueId())) {
-	    return true;
-	}
-	return false;
+        if (((RelationList<DomainObject, DomainObject>) otherObject).getUniqueId().equals(getUniqueId())) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public int size() {
-	return elementSet().size();
+        return elementSet().size();
     }
 
     @Override
@@ -207,55 +210,55 @@ public class RelationList<E1 extends DomainObject,E2 extends DomainObject> exten
     public E2 remove(int index) {
         E2 elemToRemove = get(index);
         remove(elemToRemove);
-	return elemToRemove;
+        return elemToRemove;
     }
 
     @Override
     public boolean remove(Object o) {
         modCount++;
-        relation.remove(listHolder, (E2)o);
-	// HACK!!! What to return here?
-	// I wouldn't like to force a load of the list to be able to return the correct boolean value
-	return true;
+        relation.remove(listHolder, (E2) o);
+        // HACK!!! What to return here?
+        // I wouldn't like to force a load of the list to be able to return the correct boolean value
+        return true;
     }
 
     @Override
     public Iterator<E2> iterator() {
-	return new RelationListIterator<E2>(this);
+        return new RelationListIterator<E2>(this);
     }
 
     private static class RelationListIterator<X extends DomainObject> implements Iterator<X> {
-        private final RelationList<?,X> list;
-	private final Iterator<X> iter;
-	private boolean canRemove = false;
-	private X previous = null;
+        private final RelationList<?, X> list;
+        private final Iterator<X> iter;
+        private boolean canRemove = false;
+        private X previous = null;
 
-	RelationListIterator(RelationList<?,X> list) {
+        RelationListIterator(RelationList<?, X> list) {
             this.list = list;
-	    this.iter = list.elementSet().iterator();
-	}
+            this.iter = list.elementSet().iterator();
+        }
 
-	@Override
-	public boolean hasNext() {
-	    return iter.hasNext();
-	}
+        @Override
+        public boolean hasNext() {
+            return iter.hasNext();
+        }
 
-	@Override
-	public X next() {
-	    X result = iter.next();
-	    canRemove = true;
-	    previous = result;
-	    return result;
-	}
-	    
-	@Override
-	public void remove() {
-	    if (! canRemove) {
-		throw new IllegalStateException();
-	    } else {
-		canRemove = false;
-		list.remove(previous);
-	    }
-	}
+        @Override
+        public X next() {
+            X result = iter.next();
+            canRemove = true;
+            previous = result;
+            return result;
+        }
+
+        @Override
+        public void remove() {
+            if (!canRemove) {
+                throw new IllegalStateException();
+            } else {
+                canRemove = false;
+                list.remove(previous);
+            }
+        }
     }
 }

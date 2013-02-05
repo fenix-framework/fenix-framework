@@ -310,7 +310,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         numBoxReads++;
         T value = getLocalValue(vbox);
 
-        if (value == null) {
+        if (value == null || value == VBox.NOT_LOADED_VALUE) {
             // no local value for the box
 
             VBoxBody<T> body = vbox.body.getBody(number);
