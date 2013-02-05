@@ -4,7 +4,6 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Set;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
@@ -201,5 +200,10 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
     @Override
     public void put(Comparable key, T value) {
 	insert(key, value);
+    }
+    
+    @Override
+    public boolean putIfMissing(Comparable key, T value) {
+	return insert(key, value);
     }
 }

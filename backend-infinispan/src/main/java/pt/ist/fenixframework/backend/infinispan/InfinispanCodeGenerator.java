@@ -96,7 +96,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         String otherRoleTypeFullName = getTypeFullName(otherRole.getType());
         String roleTypeFullName = getTypeFullName(role.getType());
 
-        printMethod(out, "public", "void", "add",
+        printMethod(out, "public", "boolean", "add",
                     makeArg(otherRoleTypeFullName, "o1"),
                     makeArg(roleTypeFullName, "o2"),
                     makeArg(makeGenericType("pt.ist.fenixframework.dml.runtime.Relation",
@@ -111,6 +111,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, "o1.set" + capitalize(role.getName()) + "$unidirectional(o2);");
         closeBlock(out, false);
         closeBlock(out, false);
+        print(out, "return true;");
         endMethodBody(out);
     }
 
@@ -120,7 +121,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         String otherRoleTypeFullName = getTypeFullName(otherRole.getType());
         String roleTypeFullName = getTypeFullName(role.getType());
 
-        printMethod(out, "public", "void", "remove",
+        printMethod(out, "public", "boolean", "remove",
                     makeArg(otherRoleTypeFullName, "o1"),
                     makeArg(roleTypeFullName, "o2"));
         startMethodBody(out);
@@ -128,6 +129,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newBlock(out);
         print(out, "o1.set" + capitalize(role.getName()) + "$unidirectional(null);");
         closeBlock(out, false);
+        print(out, "return true;");
         endMethodBody(out);
     }
 

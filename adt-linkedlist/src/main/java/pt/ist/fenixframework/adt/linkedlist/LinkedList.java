@@ -120,4 +120,8 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
 	insert(key, value);
     }
 
+    @Override
+    public boolean putIfMissing(Comparable key, T value) {
+	return insert(key, value);
+    }
 }

@@ -209,4 +209,9 @@ public class SkipListShadow<T extends Serializable> extends SkipListShadow_Base 
     public void put(Comparable key, T value) {
 	insert(key, value);
     }
+    
+    @Override
+    public boolean putIfMissing(Comparable key, T value) {
+	return insert(key, value);
+    }
 }

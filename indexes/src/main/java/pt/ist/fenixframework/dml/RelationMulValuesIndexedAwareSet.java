@@ -22,15 +22,15 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject,E2
     }
 
     @Override
-    public void justAdd(E2 elem) {
+    public boolean justAdd(E2 elem) {
 	DomainBasedMap<E2> subMap = checkIfExists(mapKey.getKey(elem));
-	subMap.put(elem.getOid(), elem);
+	return subMap.putIfMissing(elem.getOid(), elem);
     }
 
     @Override
-    public void justRemove(E2 elem) {
+    public boolean justRemove(E2 elem) {
 	DomainBasedMap<E2> subMap = checkIfExists(mapKey.getKey(elem));
-	subMap.remove(elem.getOid());
+	return subMap.remove(elem.getOid());
     }
 
     protected DomainBasedMap<E2> checkIfExists(Comparable<?> key) {

@@ -93,16 +93,22 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
     }
 
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
-    public void insert(Comparable key, T value) {
+    public boolean insert(Comparable key, T value) {
         if (value == null) {
             throw new UnsupportedOperationException("This B+Tree does not support nulls");
         }
 	AbstractNodeShadow rootNode = this.getRootShadow();
 	AbstractNodeShadow resultNode = rootNode.insert(key, value);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
 	    this.registerGetRoot();
 	    this.setRoot(resultNode);
 	}
+	
+	return true;
     }
 
     // /** Removes the given element */
@@ -111,13 +117,18 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
     // }
 
     /** Removes the element with the given key */
-    public void removeKey(Comparable key) {
+    public boolean removeKey(Comparable key) {
 	AbstractNodeShadow rootNode = this.getRootShadow();
 	AbstractNodeShadow resultNode = rootNode.remove(key);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
 	    this.registerGetRoot();
 	    this.setRoot(resultNode);
 	}
+	return true;
     }
 
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
@@ -194,12 +205,7 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
     
     @Override
     public boolean remove(Comparable key) {
-        if (contains(key)) {
-            removeKey(key);
-            return true;
-        } else {
-            return false;
-        }
+        return removeKey(key);
     }
     
     @Override
@@ -210,5 +216,10 @@ public class BPlusTreeShadow<T extends Serializable> extends BPlusTreeShadow_Bas
     @Override
     public void put(Comparable key, T value) {
 	insert(key, value);
+    }
+    
+    @Override
+    public boolean putIfMissing(Comparable key, T value) {
+        return insert(key, value);
     }
 }

@@ -19,12 +19,12 @@ public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends Abstrac
         this.mapKey = mapKey;
     }
 
-    public void justAdd(E2 elem) {
-        internalMap.put(mapKey.getKey(elem), elem);
+    public boolean justAdd(E2 elem) {
+        return internalMap.putIfMissing(mapKey.getKey(elem), elem);
     }
 
-    public void justRemove(E2 elem) {
-        internalMap.remove(mapKey.getKey(elem));
+    public boolean justRemove(E2 elem) {
+        return internalMap.remove(mapKey.getKey(elem));
     }
 
     public int size() {
@@ -50,22 +50,12 @@ public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends Abstrac
 
     @Override
     public boolean add(E2 o) {
-        if (contains(o)) {
-            return false;
-        } else {
-            relation.add(owner, o);
-            return true;
-        }
+	return relation.add(owner, o);
     }
 
     @Override
     public boolean remove(Object o) {
-        if (contains(o)) {
-            relation.remove(owner, (E2)o);
-            return true;
-        } else {
-            return false;
-        }
+	return relation.remove(owner, (E2)o);
     }
 
     protected class RelationAwareIterator implements Iterator<E2> {

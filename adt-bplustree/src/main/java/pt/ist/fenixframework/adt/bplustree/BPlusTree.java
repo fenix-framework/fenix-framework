@@ -2,13 +2,11 @@ package pt.ist.fenixframework.adt.bplustree;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
-import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 /**
@@ -95,29 +93,34 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     }
 
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
-    public void insert(Comparable key, T value) {
+    public boolean insert(Comparable key, T value) {
         if (value == null) {
             throw new UnsupportedOperationException("This B+Tree does not support nulls");
         }
 	AbstractNode rootNode = this.getRoot();
 	AbstractNode resultNode = rootNode.insert(key, value);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
+	return true;
     }
 
-    // /** Removes the given element */
-    // public void remove(T obj) {
-    //     remove(obj.getOid());
-    // }
-
     /** Removes the element with the given key */
-    public void removeKey(Comparable key) {
+    public boolean removeKey(Comparable key) {
 	AbstractNode rootNode = this.getRoot();
 	AbstractNode resultNode = rootNode.remove(key);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
+	return true;
     }
 
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
@@ -194,12 +197,7 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     
     @Override
     public boolean remove(Comparable key) {
-        if (contains(key)) {
-            removeKey(key);
-            return true;
-        } else {
-            return false;
-        }
+	return removeKey(key);
     }
     
     @Override
@@ -210,5 +208,10 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     @Override
     public void put(Comparable key, T value) {
 	insert(key, value);
+    }
+    
+    @Override
+    public boolean putIfMissing(Comparable key, T value) {
+	return insert(key, value);
     }
 }

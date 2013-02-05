@@ -199,4 +199,9 @@ public class BPlusTreeArrayShadow<T extends Serializable> extends BPlusTreeArray
     public void put(Comparable key, T value) {
 	insert(key, value);
     }
+    
+    @Override
+    public boolean putIfMissing(Comparable key, T value) {
+	return insert(key, value);
+    }
 }

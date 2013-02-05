@@ -21,7 +21,7 @@ public class LeafNodeArrayShadow extends LeafNodeArrayShadow_Base {
     public AbstractNodeArrayShadow insert(Comparable key, Serializable value) {
 	DoubleArray<Serializable> localArr = justInsert(key, value);
 
-	if (localArr == null) {
+	if (localArr == null) {		// no insertion occurred
 	    return null;	// insert will return false
 	}
 	if (localArr.length() <= BPlusTreeArray.MAX_NUMBER_OF_ELEMENTS) { // it still fits :-)
@@ -52,7 +52,8 @@ public class LeafNodeArrayShadow extends LeafNodeArrayShadow_Base {
 	// this test is performed because we need to return a new structure in
 	// case an update occurs.  Value types must be immutable.
 	Serializable currentValue = localEntries.get(key);
-	if (currentValue != null && currentValue == value ) {
+	// this check suffices because we do not allow null values
+	if (currentValue == value ) {
             logger.trace("Existing key. No change required");
 	    return null;
 	} else {

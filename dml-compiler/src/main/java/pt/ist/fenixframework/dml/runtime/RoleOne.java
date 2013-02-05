@@ -9,7 +9,7 @@ import pt.ist.fenixframework.DomainObject;
  */
 
 public abstract class RoleOne<C1 extends DomainObject,C2 extends DomainObject> implements Role<C1,C2> {
-    public void add(C1 o1, C2 o2, Relation<C1,C2> relation) {
+    public boolean add(C1 o1, C2 o2, Relation<C1,C2> relation) {
         if (o1 != null) {
             C2 old2 = getValue(o1);
             if (o2 != old2) {
@@ -17,12 +17,14 @@ public abstract class RoleOne<C1 extends DomainObject,C2 extends DomainObject> i
                 setValue(o1, o2);
             }
         }
+        return true;
     }
 
-    public void remove(C1 o1, C2 o2) {
+    public boolean remove(C1 o1, C2 o2) {
         if (o1 != null) {
             setValue(o1, null);
         }
+        return true;
     }
 
     public abstract C2 getValue(C1 o1);

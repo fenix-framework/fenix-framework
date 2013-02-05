@@ -24,6 +24,9 @@ public class LeafNodeShadow extends LeafNodeShadow_Base {
     public AbstractNodeShadow insert(Comparable key, Serializable value) {
 	TreeMap<Comparable,Serializable> localMap = justInsert(key, value);
 
+	if (localMap == null) {		// no insertion occurred
+	    return null;	// insert will return false
+	}
 	if (localMap.size() <= BPlusTree.MAX_NUMBER_OF_ELEMENTS) { // it still fits :-)
 	    return getRootShadow();
 	} else { // must split this node
@@ -62,8 +65,9 @@ public class LeafNodeShadow extends LeafNodeShadow_Base {
 	// this test is performed because we need to return a new structure in
 	// case an update occurs.  Value types must be immutable.
 	Serializable currentValue = localEntries.get(key);
-	if (currentValue == value && localEntries.containsKey(key)) {
-	    return localEntries;
+	// this check suffices because we do not allow null values
+	if (currentValue == value) {
+	    return null;
 	} else {
 	    TreeMap<Comparable,Serializable> newMap = duplicateMap();
 	    newMap.put(key, value);
@@ -81,6 +85,9 @@ public class LeafNodeShadow extends LeafNodeShadow_Base {
     public AbstractNodeShadow remove(Comparable key) {
 	TreeMap<Comparable,Serializable> localMap = justRemove(key);
 
+	if (localMap == null) {
+	    return null;	// remove will return false
+	}
 	if (getParentShadow() == null) {
 	    return this;
 	} else {
@@ -103,7 +110,7 @@ public class LeafNodeShadow extends LeafNodeShadow_Base {
 	// this test is performed because we need to return a new structure in
 	// case an update occurs.  Value types must be immutable.
 	if (!localEntries.containsKey(key)) {
-	    return localEntries;
+	    return null;
 	} else {
 	    TreeMap<Comparable,Serializable> newMap = duplicateMap();
 	    newMap.remove(key);

@@ -198,4 +198,8 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
 	insert(key, value);
     }
 
+    @Override
+    public boolean putIfMissing(Comparable key, T value) {
+	return insert(key, value);
+    }
 }
