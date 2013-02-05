@@ -56,7 +56,6 @@
 			<groupId>jvstm</groupId>
 			<artifactId>jvstm-fenix</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>ojb</groupId>
 			<artifactId>db-ojb</artifactId>
@@ -72,10 +71,6 @@
 		<dependency>
 			<groupId>org.jfree</groupId>
 			<artifactId>jfreechart</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>pt.ist</groupId>
-			<artifactId>fenix-framework-data-access-patterns</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-pool</groupId>

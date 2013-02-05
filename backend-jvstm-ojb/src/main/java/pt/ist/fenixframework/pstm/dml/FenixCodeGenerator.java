@@ -262,9 +262,6 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     @Override
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
-        print(out, "pt.ist.fenixframework.pstm.DataAccessPatterns.noteGetAccess(this, \"");
-        print(out, slotName);
-        println(out, "\");");
         print(out, "return ");
         generateGetSlotExpression(slotName, out);
         print(out, ";");
