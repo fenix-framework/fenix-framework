@@ -51,18 +51,18 @@ class DBChanges {
         return Collections.unmodifiableSet(set);
     }
 
-    protected Set<AbstractDomainObject> getNewObjects() {
+    protected Set<DomainObject> getNewObjects() {
         Set<AbstractDomainObject> set = newObjs;
 
         if (set == null) {
             set = new HashSet<AbstractDomainObject>();
         }
 
-        return Collections.unmodifiableSet(set);
+        return Collections.<DomainObject> unmodifiableSet(set);
     }
 
-    public Set<AbstractDomainObject> getModifiedObjects() {
-        Set<AbstractDomainObject> modified = new HashSet<AbstractDomainObject>();
+    public Set<DomainObject> getModifiedObjects() {
+        Set<DomainObject> modified = new HashSet<DomainObject>();
 
         if (attrChangeLogs != null) {
             for (AttrChangeLog log : attrChangeLogs) {

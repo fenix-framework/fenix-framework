@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.pstm;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,13 +26,15 @@ import org.apache.ojb.broker.accesslayer.LookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.TxIntrospector;
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.core.WriteOnReadError;
 import pt.ist.fenixframework.pstm.DBChanges.AttrChangeLog;
+import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
 public class TopLevelTransaction extends ConsistentTopLevelTransaction implements FenixTransaction, TxIntrospector {
 
     private static final Logger logger = LoggerFactory.getLogger(TopLevelTransaction.class);
+
     private static int NUM_READS_THRESHOLD = 10000000;
     private static int NUM_WRITES_THRESHOLD = 100000;
 
@@ -62,28 +65,11 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     protected int numBoxReads = 0;
     protected int numBoxWrites = 0;
 
-    // used by the DataAccessPatterns module
-    private String contextURI = "";
-
     TopLevelTransaction(ActiveTransactionsRecord record) {
         super(record);
 
         initDbConnection(false);
         initDbChanges();
-        initContext();
-    }
-
-    // initialize the information necessary for the identification of
-    // the surrounding context for the acquisition of statistical data
-    protected void initContext() {
-        String uri = RequestInfo.getRequestURI();
-        if (uri != null) {
-            this.contextURI = uri;
-        }
-    }
-
-    protected String getContext() {
-        return contextURI;
     }
 
     protected void initDbConnection(boolean resuming) {
@@ -442,13 +428,19 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     // implement the TxIntrospector interface
 
     @Override
-    public Set<AbstractDomainObject> getNewObjects() {
-        return isWriteTransaction() ? getDBChanges().getNewObjects() : Collections.<AbstractDomainObject> emptySet();
+    public Collection<DomainObject> getNewObjects() {
+        return isWriteTransaction() ? getDBChanges().getNewObjects() : Collections.<DomainObject> emptySet();
     }
 
     @Override
-    public Set<AbstractDomainObject> getModifiedObjects() {
-        return isWriteTransaction() ? getDBChanges().getModifiedObjects() : Collections.<AbstractDomainObject> emptySet();
+    public Collection<DomainObject> getModifiedObjects() {
+        return isWriteTransaction() ? getDBChanges().getModifiedObjects() : Collections.<DomainObject> emptySet();
+    }
+
+    @Override
+    public Collection<DomainObject> getDirectlyModifiedObjects() {
+        // TODO Finish this method...
+        return getModifiedObjects();
     }
 
     public boolean isDeleted(Object obj) {

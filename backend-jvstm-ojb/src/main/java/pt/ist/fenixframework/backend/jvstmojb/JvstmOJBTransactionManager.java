@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
+import pt.ist.fenixframework.pstm.TopLevelTransaction;
 
 public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
@@ -35,7 +36,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
         logger.trace("Begin Transaction. Read Only: {}", readOnly);
 
-        Transaction underlying = Transaction.begin(readOnly);
+        TopLevelTransaction underlying = (TopLevelTransaction) Transaction.begin(readOnly);
 
         transactions.set(new JvstmOJBTransaction(underlying));
     }
@@ -93,11 +94,11 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
             return command.call();
         }
 
-        Transaction.begin();
+        begin(false);
         try {
             return command.call();
         } finally {
-            Transaction.commit();
+            commit();
         }
     }
 

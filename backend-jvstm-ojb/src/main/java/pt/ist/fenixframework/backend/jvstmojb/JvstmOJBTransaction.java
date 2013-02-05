@@ -9,18 +9,19 @@ import jvstm.CommitException;
 import jvstm.Transaction;
 import pt.ist.fenixframework.core.AbstractTransaction;
 import pt.ist.fenixframework.core.CommitError;
+import pt.ist.fenixframework.pstm.TopLevelTransaction;
 import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
 public class JvstmOJBTransaction extends AbstractTransaction {
 
-    private final Transaction underlyingTransaction;
+    private final TopLevelTransaction underlyingTransaction;
 
-    JvstmOJBTransaction(Transaction underlyingTransaction) {
+    JvstmOJBTransaction(TopLevelTransaction underlyingTransaction) {
         super();
         this.underlyingTransaction = underlyingTransaction;
     }
 
-    Transaction getUnderlyingTransaction() {
+    TopLevelTransaction getUnderlyingTransaction() {
         return underlyingTransaction;
     }
 
@@ -57,8 +58,7 @@ public class JvstmOJBTransaction extends AbstractTransaction {
 
     @Override
     public TxIntrospector getTxIntrospector() {
-        // TODO Transaction is to implement TxIntrospector!
-        return null;
+        return underlyingTransaction;
     }
 
 }
