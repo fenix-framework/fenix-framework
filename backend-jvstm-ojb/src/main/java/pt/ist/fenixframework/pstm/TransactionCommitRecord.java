@@ -2,6 +2,8 @@ package pt.ist.fenixframework.pstm;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import jvstm.Transaction;
+
 /*
  * This class is a generalization of what already existed for keeping
  * a record of AlienTransactions (that is, transactions committed on
@@ -31,6 +33,7 @@ class TransactionCommitRecords {
 
     static {
         Transaction.addTxQueueListener(new jvstm.TxQueueListener() {
+            @Override
             public void noteOldestTransaction(int newOldest) {
                 cleanOldCommitRecords(newOldest);
             }

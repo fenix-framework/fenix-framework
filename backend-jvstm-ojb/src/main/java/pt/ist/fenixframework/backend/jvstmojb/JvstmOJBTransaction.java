@@ -6,9 +6,9 @@ import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 
 import jvstm.CommitException;
+import jvstm.Transaction;
 import pt.ist.fenixframework.core.AbstractTransaction;
 import pt.ist.fenixframework.core.CommitError;
-import pt.ist.fenixframework.pstm.Transaction;
 import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
 public class JvstmOJBTransaction extends AbstractTransaction {

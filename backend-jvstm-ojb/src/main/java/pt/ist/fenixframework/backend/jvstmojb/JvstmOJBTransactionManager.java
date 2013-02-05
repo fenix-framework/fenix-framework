@@ -37,7 +37,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
         Transaction underlying = Transaction.begin(readOnly);
 
-        transactions.set(new JvstmOJBTransaction((pt.ist.fenixframework.pstm.Transaction) underlying));
+        transactions.set(new JvstmOJBTransaction(underlying));
     }
 
     @Override
@@ -88,16 +88,16 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
     @Override
     public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
-        if (pt.ist.fenixframework.pstm.Transaction.isInTransaction()) {
+        if (Transaction.isInTransaction()) {
             logger.trace("Flattening call to withTransaction - Already inside a transaction");
             return command.call();
         }
 
-        pt.ist.fenixframework.pstm.Transaction.begin();
+        Transaction.begin();
         try {
             return command.call();
         } finally {
-            pt.ist.fenixframework.pstm.Transaction.commit();
+            Transaction.commit();
         }
     }
 

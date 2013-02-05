@@ -19,7 +19,7 @@ public class LoggingRelation<C1 extends AbstractDomainObject, C2 extends Abstrac
     public void add(C1 o1, C2 o2) {
         super.add(o1, o2);
         if ((o1 != null) && (o2 != null)) {
-            Transaction.currentFenixTransaction().logRelationAdd(relationName, o1, o2);
+            TransactionSupport.currentFenixTransaction().logRelationAdd(relationName, o1, o2);
         }
     }
 
@@ -27,7 +27,7 @@ public class LoggingRelation<C1 extends AbstractDomainObject, C2 extends Abstrac
     public void remove(C1 o1, C2 o2) {
         super.remove(o1, o2);
         if ((o1 != null) && (o2 != null)) {
-            Transaction.currentFenixTransaction().logRelationRemove(relationName, o1, o2);
+            TransactionSupport.currentFenixTransaction().logRelationRemove(relationName, o1, o2);
         }
     }
 }

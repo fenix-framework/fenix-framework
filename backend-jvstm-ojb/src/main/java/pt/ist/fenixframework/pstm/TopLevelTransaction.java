@@ -12,6 +12,7 @@ import java.util.concurrent.locks.Lock;
 import jvstm.ActiveTransactionsRecord;
 import jvstm.CommitException;
 import jvstm.ResumeException;
+import jvstm.Transaction;
 import jvstm.VBoxBody;
 import jvstm.cps.ConsistencyCheckTransaction;
 import jvstm.cps.ConsistentTopLevelTransaction;
@@ -24,7 +25,6 @@ import org.apache.ojb.broker.accesslayer.LookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.TxIntrospector;
 import pt.ist.fenixframework.pstm.DBChanges.AttrChangeLog;
 
@@ -230,9 +230,9 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     @Override
     protected void doCommit() {
         if (isWriteTransaction()) {
-            Transaction.STATISTICS.incWrites(this);
+            TransactionSupport.STATISTICS.incWrites(this);
         } else {
-            Transaction.STATISTICS.incReads(this);
+            TransactionSupport.STATISTICS.incReads(this);
         }
 
         if ((numBoxReads > NUM_READS_THRESHOLD) || (numBoxWrites > NUM_WRITES_THRESHOLD)) {
@@ -254,7 +254,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         boolean result = super.validateCommit();
 
         if (!result) {
-            Transaction.STATISTICS.incConflicts();
+            TransactionSupport.STATISTICS.incConflicts();
         }
 
         return result;
@@ -501,7 +501,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         Set<Entry> entries = new HashSet<Entry>(attrChangeLogs.size());
 
         for (AttrChangeLog log : attrChangeLogs) {
-            AbstractDomainObject obj = (AbstractDomainObject) log.obj;
+            AbstractDomainObject obj = log.obj;
             entries.add(new Entry(obj, log.attr, obj.getCurrentValueFor(log.attr)));
         }
 

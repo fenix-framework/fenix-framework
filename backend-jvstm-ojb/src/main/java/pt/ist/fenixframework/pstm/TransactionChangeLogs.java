@@ -1,6 +1,5 @@
 package pt.ist.fenixframework.pstm;
 
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 
 import jvstm.ActiveTransactionsRecord;
+import jvstm.Transaction;
 import jvstm.VBoxBody;
 import jvstm.util.Cons;
 
@@ -23,7 +23,6 @@ import org.apache.ojb.broker.accesslayer.LookupException;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.DescriptorRepository;
 
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 
 public class TransactionChangeLogs {
@@ -91,7 +90,8 @@ public class TransactionChangeLogs {
         // the set of objects is kept so that a strong reference exists 
         // for each of the objects modified by another server until no running 
         // transaction in the current VM may need to access it
-        private Map<AbstractDomainObject, List<String>> objectAttrChanges = new HashMap<AbstractDomainObject, List<String>>();
+        private final Map<AbstractDomainObject, List<String>> objectAttrChanges =
+                new HashMap<AbstractDomainObject, List<String>>();
 
         AlienTransaction(int txNumber) {
             this.txNumber = txNumber;
@@ -306,7 +306,7 @@ public class TransactionChangeLogs {
     private static class CleanThread extends Thread {
         private static final long SECONDS_BETWEEN_UPDATES = 120;
 
-        private String server;
+        private final String server;
         private int lastTxNumber = -1;
 
         CleanThread(int lastTxNumber) {
@@ -316,6 +316,7 @@ public class TransactionChangeLogs {
             setDaemon(true);
         }
 
+        @Override
         public void run() {
             try {
                 while (!initializeServerRecord()) {

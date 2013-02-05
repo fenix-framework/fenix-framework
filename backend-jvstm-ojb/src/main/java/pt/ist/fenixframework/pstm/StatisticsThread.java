@@ -10,7 +10,7 @@ import org.apache.ojb.broker.PersistenceBrokerFactory;
 class StatisticsThread extends Thread {
     private static final long SECONDS_BETWEEN_REPORTS = 5 * 60;
 
-    private String server;
+    private final String server;
     private int numReport = 0;
 
     StatisticsThread() {
@@ -19,6 +19,7 @@ class StatisticsThread extends Thread {
         setDaemon(true);
     }
 
+    @Override
     public void run() {
         while (true) {
             try {
@@ -41,7 +42,7 @@ class StatisticsThread extends Thread {
             Connection conn = broker.serviceConnectionManager().getConnection();
             stmt = conn.createStatement();
 
-            TransactionStatistics.Report stats = Transaction.STATISTICS.getReportAndReset();
+            TransactionStatistics.Report stats = TransactionSupport.STATISTICS.getReportAndReset();
             numReport++;
 
             StringBuilder sqlStmtText = new StringBuilder();

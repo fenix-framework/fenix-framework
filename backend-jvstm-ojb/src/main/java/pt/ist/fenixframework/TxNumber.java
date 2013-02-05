@@ -1,6 +1,6 @@
 package pt.ist.fenixframework;
 
-import pt.ist.fenixframework.pstm.Transaction;
+import jvstm.Transaction;
 
 public class TxNumber {
     private Long number;
@@ -22,10 +22,12 @@ public class TxNumber {
         }
     }
 
+    @Override
     public int hashCode() {
         return (number == null) ? 0 : number.hashCode();
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o == this) {
             return true;

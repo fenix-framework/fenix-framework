@@ -5,6 +5,7 @@ import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.pstm.DataAccessPatterns;
 import pt.ist.fenixframework.pstm.DomainClassInfo;
 import pt.ist.fenixframework.pstm.MetadataManager;
+import pt.ist.fenixframework.pstm.TransactionSupport;
 import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
 
 /**
@@ -154,6 +155,7 @@ public class JvstmOJBConfig extends Config {
         DataAccessPatterns.init(this);
         DomainClassInfo.initializeClassInfos(0);
         DomainClassInfo.ensureDomainRoot();
+        TransactionSupport.setupJVSTM();
     }
 
     @Override

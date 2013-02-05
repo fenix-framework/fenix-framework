@@ -19,6 +19,7 @@ import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.dml.ValueType;
 import pt.ist.fenixframework.pstm.ToSqlConverter;
+import pt.ist.fenixframework.pstm.TransactionSupport;
 import pt.ist.fenixframework.pstm.repository.DbUtil;
 
 public class FenixCodeGenerator extends CodeGenerator {
@@ -31,7 +32,7 @@ public class FenixCodeGenerator extends CodeGenerator {
             "pt.ist.fenixframework.pstm.RelationList,pt.ist.fenixframework.pstm.OJBFunctionalSetWrapper";
     protected static final String DOMAIN_CLASS_ROOT = "pt.ist.fenixframework.pstm.AbstractDomainObject";
     protected static final String DIRECT_RELATION_TYPE_CLASS = "pt.ist.fenixframework.pstm.LoggingRelation";
-    protected static final String TRANSACTION_CLASS = "pt.ist.fenixframework.pstm.Transaction";
+    protected static final String TRANSACTION_SUPPORT_CLASS = TransactionSupport.class.getName();
 
     public FenixCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
@@ -142,7 +143,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         String r0name = r0.getName();
         String r1name = r1.getName();
 
-        print(out, TRANSACTION_CLASS);
+        print(out, TRANSACTION_SUPPORT_CLASS);
         print(out, ".");
         print(out, regMethodName);
         print(out, "(\"");
@@ -278,7 +279,7 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     @Override
     protected void generateRelationGetter(String getterName, Role role, PrintWriter out) {
-        String paramListType = makeGenericType("java.util.List", getTypeFullName(role.getType()));
+        String paramListType = makeGenericType("java.util.Set", getTypeFullName(role.getType()));
         generateRelationGetter(role, paramListType, out);
     }
 

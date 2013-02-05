@@ -14,7 +14,6 @@ import org.apache.ojb.broker.util.logging.Logger;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.pstm.AbstractDomainObject;
-import pt.ist.fenixframework.pstm.Transaction;
 
 public class FenixJdbcAccessImpl extends JdbcAccessImpl {
 
@@ -23,6 +22,7 @@ public class FenixJdbcAccessImpl extends JdbcAccessImpl {
     }
 
     // copied and adapted from the superclass
+    @Override
     public Object materializeObject(ClassDescriptor cld, Identity oid) throws PersistenceBrokerException {
         ResultSet rs = null;
         PreparedStatement stmt = null;

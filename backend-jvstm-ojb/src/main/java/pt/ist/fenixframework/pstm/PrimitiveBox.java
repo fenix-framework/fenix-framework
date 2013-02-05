@@ -2,12 +2,11 @@ package pt.ist.fenixframework.pstm;
 
 import jvstm.VBoxBody;
 
-import pt.ist.fenixframework.DomainObject;
-
 import org.apache.ojb.broker.Identity;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
-import org.apache.ojb.broker.metadata.FieldDescriptor;
+
+import pt.ist.fenixframework.DomainObject;
 
 class PrimitiveBox<E> extends VBox<E> {
 
@@ -19,8 +18,9 @@ class PrimitiveBox<E> extends VBox<E> {
         super(ownerObj, slotName, body);
     }
 
+    @Override
     protected void doReload(Object obj, String attr) {
-        PersistenceBroker pb = Transaction.getOJBBroker();
+        PersistenceBroker pb = TransactionSupport.getOJBBroker();
         Identity oid = new Identity(obj, pb);
         ClassDescriptor cld = pb.getClassDescriptor(obj.getClass());
         pb.serviceJdbcAccess().materializeObject(cld, oid);

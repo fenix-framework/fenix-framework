@@ -6,6 +6,8 @@ import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import jvstm.Transaction;
+
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 
@@ -32,7 +34,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         // jcachopo: This should be changed in the future...
         ensureIdInternal();
         // ensureOid();
-        Transaction.storeNewObject(this);
+        TransactionSupport.storeNewObject(this);
     }
 
     protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
@@ -49,6 +51,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         return getIdInternal();
     }
 
+    @Override
     protected void ensureOid() {
         try {
             // find successive ids until one is available
@@ -67,7 +70,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     protected void ensureIdInternal() {
         try {
-            PersistenceBroker broker = Transaction.getOJBBroker();
+            PersistenceBroker broker = TransactionSupport.getOJBBroker();
             Class myClass = this.getClass();
             ClassDescriptor cld = broker.getClassDescriptor(myClass);
 
@@ -154,7 +157,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     protected void deleteDomainObject() {
         checkDisconnected();
-        Transaction.deleteObject(this);
+        TransactionSupport.deleteObject(this);
     }
 
     protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,
@@ -171,6 +174,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     }
 
     // serialization code
+    @Override
     protected Object writeReplace() throws ObjectStreamException {
         return new SerializedForm(this);
     }
@@ -191,6 +195,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         }
     }
 
+    @Override
     public final String getExternalId() {
         return String.valueOf(getOid());
     }

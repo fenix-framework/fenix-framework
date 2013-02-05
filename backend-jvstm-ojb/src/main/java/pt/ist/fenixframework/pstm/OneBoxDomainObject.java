@@ -3,6 +3,7 @@ package pt.ist.fenixframework.pstm;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
+import jvstm.Transaction;
 import jvstm.util.Cons;
 import jvstm.util.Pair;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
@@ -79,6 +80,7 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
         }
     }
 
+    @Override
     protected void readSlotsFromResultSet(java.sql.ResultSet rs, int txNumber) throws java.sql.SQLException {
         throw new Error("readSlotsFromResultSet should not be used for OneBoxDomainObjects");
     }

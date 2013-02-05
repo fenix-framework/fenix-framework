@@ -2,11 +2,11 @@ package pt.ist.fenixframework.pstm;
 
 import jvstm.VBoxBody;
 
-import pt.ist.fenixframework.DomainObject;
-
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerException;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
+
+import pt.ist.fenixframework.DomainObject;
 
 class ReferenceBox<E> extends VBox<E> {
 
@@ -22,8 +22,9 @@ class ReferenceBox<E> extends VBox<E> {
         super(ownerObj, slotName, value);
     }
 
+    @Override
     protected void doReload(Object obj, String attr) {
-        PersistenceBroker pb = Transaction.getOJBBroker();
+        PersistenceBroker pb = TransactionSupport.getOJBBroker();
         try {
             pb.retrieveReference(obj, attr);
         } catch (PersistenceBrokerException pbe) {

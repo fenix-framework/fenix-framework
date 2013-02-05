@@ -6,26 +6,27 @@ import java.util.Iterator;
 import java.util.Set;
 
 import jvstm.PerTxBox;
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationBaseSet;
 import dml.runtime.FunctionalSet;
 
 public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends AbstractList<E2> implements
         VersionedSubject, Set<E2>, RelationBaseSet<E2> {
-    private E1 listHolder;
-    private Relation<E1, E2> relation;
-    private String attributeName;
+    private final E1 listHolder;
+    private final Relation<E1, E2> relation;
+    private final String attributeName;
 
     private SoftReference<VBox<FunctionalSet<E2>>> elementsRef;
 
-    private PerTxBox<FunctionalSet<E2>> elementsToAdd = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+    private final PerTxBox<FunctionalSet<E2>> elementsToAdd = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+        @Override
         public void commit(FunctionalSet<E2> toAdd) {
             consolidateElementsIfLoaded();
         }
     };
 
-    private PerTxBox<FunctionalSet<E2>> elementsToRemove = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+    private final PerTxBox<FunctionalSet<E2>> elementsToRemove = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+        @Override
         public void commit(FunctionalSet<E2> toRemove) {
             consolidateElementsIfLoaded();
         }
@@ -55,10 +56,12 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
         return box;
     }
 
+    @Override
     public jvstm.VBoxBody addNewVersion(String attr, int txNumber) {
         return getElementsBox().addNewVersion(attr, txNumber);
     }
 
+    @Override
     public Object getCurrentValue(Object obj, String attrName) {
         // what's the correct value to return here?  should it be the
         // RelationList instance or the FunctionalSet within it?  I'll
@@ -115,26 +118,31 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
         getElementsBox().setFromOJB(obj, attr, ojbList.getElements());
     }
 
+    @Override
     public void justAdd(E2 obj) {
-        Transaction.logAttrChange((AbstractDomainObject) listHolder, attributeName);
+        TransactionSupport.logAttrChange(listHolder, attributeName);
         elementsToAdd.put(elementsToAdd.get().add(obj));
         elementsToRemove.put(elementsToRemove.get().remove(obj));
     }
 
+    @Override
     public void justRemove(E2 obj) {
-        Transaction.logAttrChange((AbstractDomainObject) listHolder, attributeName);
+        TransactionSupport.logAttrChange(listHolder, attributeName);
         elementsToRemove.put(elementsToRemove.get().add(obj));
         elementsToAdd.put(elementsToAdd.get().remove(obj));
     }
 
+    @Override
     public int size() {
         return elementSet().size();
     }
 
+    @Override
     public E2 get(int index) {
         return elementSet().get(index);
     }
 
+    @Override
     public E2 set(int index, E2 element) {
         E2 oldElement = get(index);
 
@@ -148,17 +156,20 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
         return oldElement;
     }
 
+    @Override
     public void add(int index, E2 element) {
         relation.add(listHolder, element);
         modCount++;
     }
 
+    @Override
     public E2 remove(int index) {
         E2 elemToRemove = get(index);
         remove(elemToRemove);
         return elemToRemove;
     }
 
+    @Override
     public boolean remove(Object o) {
         modCount++;
         relation.remove(listHolder, (E2) o);
@@ -167,13 +178,14 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
         return true;
     }
 
+    @Override
     public Iterator<E2> iterator() {
         return new RelationListIterator<E2>(this);
     }
 
     private static class RelationListIterator<X extends AbstractDomainObject> implements Iterator<X> {
-        private RelationList<?, X> list;
-        private Iterator<X> iter;
+        private final RelationList<?, X> list;
+        private final Iterator<X> iter;
         private boolean canRemove = false;
         private X previous = null;
 
@@ -182,10 +194,12 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
             this.iter = list.elementSet().iterator();
         }
 
+        @Override
         public boolean hasNext() {
             return iter.hasNext();
         }
 
+        @Override
         public X next() {
             X result = iter.next();
             canRemove = true;
@@ -193,6 +207,7 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
             return result;
         }
 
+        @Override
         public void remove() {
             if (!canRemove) {
                 throw new IllegalStateException();
