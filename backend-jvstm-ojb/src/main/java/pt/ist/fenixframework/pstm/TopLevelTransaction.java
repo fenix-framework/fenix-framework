@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.TxIntrospector;
+import pt.ist.fenixframework.core.WriteOnReadError;
 import pt.ist.fenixframework.pstm.DBChanges.AttrChangeLog;
 
 public class TopLevelTransaction extends ConsistentTopLevelTransaction implements FenixTransaction, TxIntrospector {
@@ -267,7 +268,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     @Override
     public <T> void setBoxValue(jvstm.VBox<T> vbox, T value) {
         if (dbChanges == null) {
-            throw new IllegalWriteException();
+            throw new WriteOnReadError();
         } else {
             numBoxWrites++;
             super.setBoxValue(vbox, value);
@@ -277,7 +278,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     @Override
     public <T> void setPerTxValue(jvstm.PerTxBox<T> box, T value) {
         if (dbChanges == null) {
-            throw new IllegalWriteException();
+            throw new WriteOnReadError();
         } else {
             super.setPerTxValue(box, value);
         }
@@ -339,7 +340,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         if (dbChanges == null) {
             // if it is null, it means that the transaction is a read-only
             // transaction
-            throw new IllegalWriteException();
+            throw new WriteOnReadError();
         } else {
             return dbChanges;
         }
