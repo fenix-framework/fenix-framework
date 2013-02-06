@@ -7,14 +7,11 @@ import javax.transaction.Synchronization;
 import javax.transaction.SystemException;
 import javax.transaction.xa.XAResource;
 
-import pt.ist.fenixframework.Transaction;
-import pt.ist.fenixframework.txintrospector.TxStats;
+import pt.ist.fenixframework.FenixAbstractTransaction;
 
-public class JTADelegatingTransaction implements Transaction {
+public class JTADelegatingTransaction extends FenixAbstractTransaction {
 
     private final javax.transaction.Transaction delegateTx;
-
-    private final TxStats txIntrospector = TxStats.newInstance();
 
     public JTADelegatingTransaction(javax.transaction.Transaction delegateTx) {
 	super();
@@ -55,11 +52,6 @@ public class JTADelegatingTransaction implements Transaction {
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {
 	delegateTx.setRollbackOnly();
-    }
-
-    @Override
-    public TxStats getTxIntrospector() {
-	return txIntrospector;
     }
 
 }

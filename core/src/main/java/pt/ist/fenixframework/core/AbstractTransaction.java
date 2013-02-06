@@ -10,8 +10,7 @@ import javax.transaction.Synchronization;
 import javax.transaction.SystemException;
 import javax.transaction.xa.XAResource;
 
-import pt.ist.fenixframework.Transaction;
-import pt.ist.fenixframework.txintrospector.TxStats;
+import pt.ist.fenixframework.FenixAbstractTransaction;
 
 /**
  * Abstract implementation of {@link pt.ist.fenixframework.Transaction}. This
@@ -20,17 +19,12 @@ import pt.ist.fenixframework.txintrospector.TxStats;
  * for committing/rolling back.
  * 
  */
-public abstract class AbstractTransaction implements Transaction {
+public abstract class AbstractTransaction extends FenixAbstractTransaction {
 
     /**
      * List of synchronizations associated with the current transaction.
      */
     protected final ConcurrentLinkedQueue<Synchronization> synchronizations = new ConcurrentLinkedQueue<Synchronization>();
-
-    /**
-     * TxIntrospector associated with this transaction.
-     */
-    private final TxStats introspector = TxStats.newInstance();
 
     /**
      * Status of the Transaction.
@@ -132,10 +126,6 @@ public abstract class AbstractTransaction implements Transaction {
 	this.status = Status.STATUS_MARKED_ROLLBACK;
     }
 
-    @Override
-    public TxStats getTxIntrospector() {
-	return introspector;
-    }
 
     /*
      * Abstract part
