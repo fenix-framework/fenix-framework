@@ -34,81 +34,59 @@ public class OJBMetadataGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(OJBMetadataGenerator.class);
 
-    private static final String DOMAIN_OBJECT_CLASSNAME = "net.sourceforge.fenixedu.domain.DomainObject";
-
-    private static final String FRAMEWORK_PACKAGE = "pt.ist.fenixframework.pstm";
-
     private static String classToDebug = null;
 
     public static void updateOJBMappingFromDomainModel(DomainModel domainModel) throws Exception {
 
         final DescriptorRepository descriptorRepository = MetadataManager.getInstance().getGlobalRepository();
-        Map ojbMetadata = descriptorRepository.getDescriptorTable();
+        @SuppressWarnings("unchecked")
+        Map<String, ClassDescriptor> ojbMetadata = descriptorRepository.getDescriptorTable();
 
-        for (final Iterator<DomainClass> iterator = domainModel.getClasses(); iterator.hasNext();) {
-            final DomainClass domClass = iterator.next();
+        for (DomainClass domClass : domainModel.getDomainClasses()) {
             final String classname = domClass.getFullName();
-            if (!classname.equals(DOMAIN_OBJECT_CLASSNAME)) {
-                final Class clazz = Class.forName(classname);
-                final ClassDescriptor classDescriptor = new ClassDescriptor(descriptorRepository);
-                classDescriptor.setClassOfObject(clazz);
-                classDescriptor.setTableName(getExpectedTableName(domClass));
-                ojbMetadata.put(domClass.getFullName(), classDescriptor);
-            }
+            final Class<?> clazz = Class.forName(classname);
+            final ClassDescriptor classDescriptor = new ClassDescriptor(descriptorRepository);
+            classDescriptor.setClassOfObject(clazz);
+            classDescriptor.setTableName(getExpectedTableName(domClass));
+            ojbMetadata.put(domClass.getFullName(), classDescriptor);
         }
 
-        for (final Iterator iterator = domainModel.getClasses(); iterator.hasNext();) {
-            final DomainClass domClass = (DomainClass) iterator.next();
+        for (DomainClass domClass : domainModel.getDomainClasses()) {
             final String classname = domClass.getFullName();
-            if (!classname.equals(DOMAIN_OBJECT_CLASSNAME)) {
+            final Class<?> clazz = Class.forName(classname);
+            final ClassDescriptor classDescriptor = ojbMetadata.get(classname);
 
-                final Class clazz = Class.forName(classname);
-                final ClassDescriptor classDescriptor = (ClassDescriptor) ojbMetadata.get(classname);
+            addClassExtentOfAncesterClassDescriptors(ojbMetadata, domClass.getSuperclass(), clazz);
 
-                addClassExtentOfAncesterClassDescriptors(ojbMetadata, domClass.getSuperclass(), clazz);
+            if (classDescriptor != null) {
+                setFactoryMethodAndClass(classDescriptor);
 
-                if (classDescriptor != null) {
-                    setFactoryMethodAndClass(classDescriptor);
+                updateFields(domainModel, classDescriptor, domClass, ojbMetadata, clazz);
+                if (!Modifier.isAbstract(clazz.getModifiers())) {
+                    updateRelations(classDescriptor, domClass, ojbMetadata, clazz);
+                }
 
-                    updateFields(domainModel, classDescriptor, domClass, ojbMetadata, clazz);
-                    if (!Modifier.isAbstract(clazz.getModifiers())) {
-                        updateRelations(classDescriptor, domClass, ojbMetadata, clazz);
-                    }
-
-                    if (classToDebug != null && classDescriptor.getClassNameOfObject().contains(classToDebug)) {
-                        logger.info(classDescriptor.toXML());
-                    }
+                if (classToDebug != null && classDescriptor.getClassNameOfObject().contains(classToDebug)) {
+                    logger.info(classDescriptor.toXML());
                 }
             }
-
         }
 
     }
 
-    private static void addClassExtentOfAncesterClassDescriptors(final Map ojbMetadata, final DomainEntity domainEntity,
-            final Class clazz) {
+    private static void addClassExtentOfAncesterClassDescriptors(final Map<String, ClassDescriptor> ojbMetadata,
+            final DomainEntity domainEntity, final Class<?> clazz) {
         if (domainEntity != null && domainEntity instanceof DomainClass) {
             final DomainClass domainClass = (DomainClass) domainEntity;
             final String ancesterClassname = domainClass.getFullName();
-            if (!ancesterClassname.equals(DOMAIN_OBJECT_CLASSNAME)) {
-                final ClassDescriptor classDescriptor = (ClassDescriptor) ojbMetadata.get(ancesterClassname);
-                classDescriptor.addExtentClass(clazz);
-                addClassExtentOfAncesterClassDescriptors(ojbMetadata, domainClass.getSuperclass(), clazz);
-            }
+            final ClassDescriptor classDescriptor = ojbMetadata.get(ancesterClassname);
+            classDescriptor.addExtentClass(clazz);
+            addClassExtentOfAncesterClassDescriptors(ojbMetadata, domainClass.getSuperclass(), clazz);
         }
     }
 
     protected static String getExpectedTableName(final DomainClass domainClass) {
-        // Shameless hack to make OJB map to the special framework tables
-        if (domainClass.getFullName().startsWith(FRAMEWORK_PACKAGE)) {
-            return "FF$" + getTableName(domainClass.getName());
-        }
-        if (domainClass.getFullName().equals(DOMAIN_OBJECT_CLASSNAME)) {
-            return null;
-        }
-        if (domainClass.getSuperclass() == null
-                || (domainClass.getSuperclass() instanceof DomainClass && domainClass.getSuperclass().getFullName()
-                        .equals(DOMAIN_OBJECT_CLASSNAME))) {
+        if (domainClass.getSuperclass() == null) {
             return getTableName(domainClass.getName());
         }
         return domainClass.getSuperclass() instanceof DomainClass ? getExpectedTableName((DomainClass) domainClass
@@ -140,7 +118,8 @@ public class OJBMetadataGenerator {
     }
 
     protected static void updateFields(final DomainModel domainModel, final ClassDescriptor classDescriptor,
-            final DomainClass domClass, final Map ojbMetadata, final Class persistentFieldClass) throws Exception {
+            final DomainClass domClass, final Map<String, ClassDescriptor> ojbMetadata, final Class<?> persistentFieldClass)
+            throws Exception {
 
         DomainEntity domEntity = domClass;
         int fieldID = 1;
@@ -176,7 +155,7 @@ public class OJBMetadataGenerator {
     }
 
     protected static void addPrimaryFieldDescriptor(DomainModel domainModel, String slotName, String slotType, int fieldID,
-            ClassDescriptor classDescriptor, Class persistentFieldClass) throws Exception {
+            ClassDescriptor classDescriptor, Class<?> persistentFieldClass) throws Exception {
         FieldDescriptor fieldDescriptor = new FieldDescriptor(classDescriptor, fieldID);
         fieldDescriptor.setColumnName(DbUtil.convertToDBStyle(slotName));
         fieldDescriptor.setAccess("readwrite");
@@ -193,7 +172,7 @@ public class OJBMetadataGenerator {
     }
 
     protected static void addFieldDescriptor(DomainModel domainModel, String slotName, String slotType, int fieldID,
-            ClassDescriptor classDescriptor, Class persistentFieldClass) throws Exception {
+            ClassDescriptor classDescriptor, Class<?> persistentFieldClass) throws Exception {
         if (classDescriptor.getFieldDescriptorByName(slotName) == null) {
             FieldDescriptor fieldDescriptor = new FieldDescriptor(classDescriptor, fieldID);
             fieldDescriptor.setColumnName(DbUtil.convertToDBStyle(slotName));
@@ -209,25 +188,20 @@ public class OJBMetadataGenerator {
         }
     }
 
-    protected static void updateRelations(final ClassDescriptor classDescriptor, final DomainClass domClass, Map ojbMetadata,
-            Class persistentFieldClass) throws Exception {
+    protected static void updateRelations(final ClassDescriptor classDescriptor, final DomainClass domClass,
+            Map<String, ClassDescriptor> ojbMetadata, Class<?> persistentFieldClass) throws Exception {
 
         DomainEntity domEntity = domClass;
         while (domEntity instanceof DomainClass) {
             DomainClass dClass = (DomainClass) domEntity;
 
             // roles
-            Iterator roleSlots = dClass.getRoleSlots();
+            Iterator<Role> roleSlots = dClass.getRoleSlots();
             while (roleSlots.hasNext()) {
-                Role role = (Role) roleSlots.next();
+                Role role = roleSlots.next();
                 String roleName = role.getName();
 
                 if (roleName == null) {
-                    continue;
-                }
-
-                if (domClass.getFullName().equals("net.sourceforge.fenixedu.domain.RootDomainObject")
-                        && (roleName.equals("rootDomainObject") || roleName.equals("rootDomainObjects"))) {
                     continue;
                 }
 
@@ -241,8 +215,7 @@ public class OJBMetadataGenerator {
 
                             String fkField = "oid" + StringUtils.capitalize(role.getOtherRole().getName());
 
-                            ClassDescriptor otherClassDescriptor =
-                                    (ClassDescriptor) ojbMetadata.get(((DomainClass) role.getType()).getFullName());
+                            ClassDescriptor otherClassDescriptor = ojbMetadata.get(((DomainClass) role.getType()).getFullName());
 
                             if (otherClassDescriptor == null) {
                                 logger.warn("Ignoring {}", ((DomainClass) role.getType()).getFullName());
@@ -266,7 +239,7 @@ public class OJBMetadataGenerator {
     }
 
     private static void updateCollectionDescriptorWithCommonSettings(final ClassDescriptor classDescriptor,
-            Class persistentFieldClass, Role role, String roleName, CollectionDescriptor collectionDescriptor)
+            Class<?> persistentFieldClass, Role role, String roleName, CollectionDescriptor collectionDescriptor)
             throws ClassNotFoundException {
         collectionDescriptor.setItemClass(Class.forName(role.getType().getFullName()));
         collectionDescriptor.setPersistentField(new WriteOnlyPersistentField(persistentFieldClass, roleName));
