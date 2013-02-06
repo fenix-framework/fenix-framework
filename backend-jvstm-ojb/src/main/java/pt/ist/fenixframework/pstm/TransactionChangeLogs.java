@@ -22,10 +22,14 @@ import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.apache.ojb.broker.accesslayer.LookupException;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.apache.ojb.broker.metadata.DescriptorRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.FenixFramework;
 
 public class TransactionChangeLogs {
+
+    private static final Logger logger = LoggerFactory.getLogger(TransactionChangeLogs.class);
 
     private static class ClassInfo {
         final ClassDescriptor classDescriptor;
@@ -332,9 +336,7 @@ public class TransactionChangeLogs {
                     updateServerRecord();
                 }
             } finally {
-                System.out.println("Exiting CleanThread!");
-                System.err.flush();
-                System.out.flush();
+                logger.info("Exiting CleanThread!");
             }
         }
 
@@ -358,7 +360,7 @@ public class TransactionChangeLogs {
                 return true;
             } catch (Exception e) {
                 e.printStackTrace();
-                System.out.println("Couldn't initialize the clean thread");
+                logger.error("Couldn't initialize the clean thread");
                 //throw new Error("Couldn't initialize the clean thread");
             } finally {
                 if (broker != null) {
@@ -399,11 +401,11 @@ public class TransactionChangeLogs {
                 this.lastTxNumber = currentTxNumber;
             } catch (Exception e) {
                 e.printStackTrace();
-                System.out.println("Couldn't update database in the clean thread");
+                logger.error("Couldn't update database in the clean thread");
                 //throw new Error("Couldn't update database in the clean thread");
             } catch (Throwable t) {
                 t.printStackTrace();
-                System.out.println("Couldn't update database in the clean thread because of a Throwable.");
+                logger.error("Couldn't update database in the clean thread because of a Throwable.");
             } finally {
                 if (broker != null) {
                     broker.close();

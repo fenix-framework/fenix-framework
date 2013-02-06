@@ -29,6 +29,9 @@ public class DomainClassInfo implements Serializable {
     private volatile static long serverOidBase;
 
     public static void initializeClassInfos(int serverId) {
+
+        logger.info("Initializing DomainClassInfos for server {}", serverId);
+
         serverOidBase = (long) serverId << 48;  // the server id provides de 16 most significant bits of the OID
 
         PersistenceBroker broker = null;
@@ -202,11 +205,11 @@ public class DomainClassInfo implements Serializable {
             info.setLastKey(nextKey);
         }
 
-        // System.out.print("Server(" + (int)(serverOidBase >> 48) + ")");
-        // System.out.print(", Class(" + info.classId + ")");
-        // System.out.print(", Object(" + nextKey + ")");
-//         System.out.println(": " + serverOidBase + " + " + ((long)info.classId << 32) + " + "
-//                            + nextKey + " = " + (serverOidBase + ((long)info.classId << 32) + nextKey));
+        //logger.trace("Server(" + (int) (serverOidBase >> 48) + ")");
+        //logger.trace(", Class(" + info.classId + ")");
+        //logger.trace(", Object(" + nextKey + ")");
+        //logger.trace(": " + serverOidBase + " + " + ((long) info.classId << 32) + " + " + nextKey + " = "
+        //        + (serverOidBase + ((long) info.classId << 32) + nextKey));
 
         return serverOidBase + ((long) info.classId << 32) + nextKey;
     }

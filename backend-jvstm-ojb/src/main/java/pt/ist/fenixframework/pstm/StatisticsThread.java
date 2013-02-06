@@ -6,8 +6,13 @@ import java.sql.Statement;
 
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class StatisticsThread extends Thread {
+
+    private static final Logger logger = LoggerFactory.getLogger(StatisticsThread.class);
+
     private static final long SECONDS_BETWEEN_REPORTS = 5 * 60;
 
     private final String server;
@@ -95,7 +100,7 @@ class StatisticsThread extends Thread {
             // the statistics are not crucial, if anything goes wrong, that's ok
             // issue just a warning
             e.printStackTrace();
-            System.out.println("WARNING: Couldn't insert the statistics data");
+            logger.warn("WARNING: Couldn't insert the statistics data");
         } finally {
             if (broker != null) {
                 if (broker.isInTransaction()) {

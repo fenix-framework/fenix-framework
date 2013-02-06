@@ -10,6 +10,8 @@ import jvstm.Transaction;
 
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.metadata.ClassDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
@@ -18,6 +20,9 @@ import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractDomainObject.class);
+
     // this should be final, but the ensureIdInternal method prevents it
     private long oid;
 
@@ -129,7 +134,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
             return vs.addNewVersion(attrName, txNumber);
         }
 
-        System.out.println("!!! WARNING !!!: addNewVersion couldn't find the appropriate slot");
+        logger.warn("!!! WARNING !!!: addNewVersion couldn't find the appropriate slot");
         return null;
     }
 
@@ -151,7 +156,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         if (FenixFramework.<JvstmOJBConfig> getConfig().isErrorfIfDeletingObjectNotDisconnected()) {
             throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this);
         } else {
-            System.out.println("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this);
+            logger.warn("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this);
         }
     }
 
@@ -209,7 +214,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     protected void doCheckDisconnectedAction(java.util.List<String> relationList) {
         for (String relation : relationList) {
-            System.out.println("Relation not disconnected" + relation);
+            logger.warn("Relation not disconnected" + relation);
         }
     }
 

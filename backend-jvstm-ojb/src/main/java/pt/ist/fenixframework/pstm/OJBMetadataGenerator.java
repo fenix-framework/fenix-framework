@@ -12,6 +12,8 @@ import org.apache.ojb.broker.metadata.FieldDescriptor;
 import org.apache.ojb.broker.metadata.MetadataManager;
 import org.apache.ojb.broker.metadata.ObjectReferenceDescriptor;
 import org.apache.ojb.broker.metadata.fieldaccess.PersistentField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.dml.DomainClass;
@@ -29,6 +31,8 @@ import pt.ist.fenixframework.pstm.repository.database.JDBCTypeMap;
  * 
  */
 public class OJBMetadataGenerator {
+
+    private static final Logger logger = LoggerFactory.getLogger(OJBMetadataGenerator.class);
 
     private static final String DOMAIN_OBJECT_CLASSNAME = "net.sourceforge.fenixedu.domain.DomainObject";
 
@@ -72,7 +76,7 @@ public class OJBMetadataGenerator {
                     }
 
                     if (classToDebug != null && classDescriptor.getClassNameOfObject().contains(classToDebug)) {
-                        System.out.println(classDescriptor.toXML());
+                        logger.info(classDescriptor.toXML());
                     }
                 }
             }
@@ -241,7 +245,7 @@ public class OJBMetadataGenerator {
                                     (ClassDescriptor) ojbMetadata.get(((DomainClass) role.getType()).getFullName());
 
                             if (otherClassDescriptor == null) {
-                                System.out.println("Ignoring " + ((DomainClass) role.getType()).getFullName());
+                                logger.warn("Ignoring {}", ((DomainClass) role.getType()).getFullName());
                                 continue;
                             }
 

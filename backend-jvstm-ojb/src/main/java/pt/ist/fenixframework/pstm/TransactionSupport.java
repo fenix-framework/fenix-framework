@@ -5,10 +5,15 @@ import jvstm.Transaction;
 import jvstm.cps.ConsistentTransaction;
 
 import org.apache.ojb.broker.PersistenceBroker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 
 public final class TransactionSupport {
+
+    private static final Logger logger = LoggerFactory.getLogger(TransactionSupport.class);
+
     public final static TransactionStatistics STATISTICS = new TransactionStatistics();
 
     public static void setupJVSTM() {
@@ -27,7 +32,7 @@ public final class TransactionSupport {
         // initialize transaction system
         int maxTx = TransactionChangeLogs.initializeTransactionSystem();
         if (maxTx >= 0) {
-            System.out.println("Setting the last committed TX number to " + maxTx);
+            logger.info("Setting the last committed TX number to {}", maxTx);
             Transaction.setMostRecentActiveRecord(new ActiveTransactionsRecord(maxTx, null));
         } else {
             throw new Error("Couldn't determine the last transaction number");

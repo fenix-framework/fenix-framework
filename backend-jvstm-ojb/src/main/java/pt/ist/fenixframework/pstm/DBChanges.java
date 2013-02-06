@@ -20,6 +20,8 @@ import org.apache.ojb.broker.metadata.CollectionDescriptor;
 import org.apache.ojb.broker.metadata.JdbcType;
 import org.apache.ojb.broker.util.JdbcTypesHelper;
 import org.apache.ojb.broker.util.ObjectModificationDefaultImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
@@ -27,6 +29,9 @@ import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 class DBChanges {
+
+    private static final Logger logger = LoggerFactory.getLogger(DBChanges.class);
+
     private static final String SQL_CHANGE_LOGS_CMD_PREFIX = "INSERT INTO FF$TX_CHANGE_LOGS VALUES ";
     // The following value is the approximate length of each tuple to add after
     // the VALUES
@@ -147,7 +152,7 @@ class DBChanges {
                 if (FenixFramework.<JvstmOJBConfig> getConfig().isErrorIfChangingDeletedObject()) {
                     throw new Error("Changing object after it was deleted: " + obj);
                 } else {
-                    System.err.println("WARNING: Changing object after it was deleted: " + obj);
+                    logger.error("WARNING: Changing object after it was deleted: " + obj);
                 }
             }
         }
@@ -273,8 +278,8 @@ class DBChanges {
                 try {
                     stmt.execute(sqlCmd.toString());
                 } catch (SQLException ex) {
-                    System.out.println("SqlException: " + ex.getMessage());
-                    System.out.println("Deadlock trying to insert: " + sqlCmd.toString());
+                    logger.error("SqlException: " + ex.getMessage());
+                    logger.error("Deadlock trying to insert: " + sqlCmd.toString());
                     throw new CommitException();
                 }
             }

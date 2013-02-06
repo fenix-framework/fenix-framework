@@ -354,8 +354,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
                 } catch (Throwable t) {
                     t.printStackTrace();
                     logger.error("Error while commiting exception. Terminating server.");
-                    System.err.flush();
-                    System.out.flush();
                     System.exit(-1);
                 }
                 pb = null;

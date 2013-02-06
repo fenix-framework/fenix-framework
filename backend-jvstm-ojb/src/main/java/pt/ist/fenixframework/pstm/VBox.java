@@ -2,9 +2,16 @@ package pt.ist.fenixframework.pstm;
 
 import jvstm.Transaction;
 import jvstm.VBoxBody;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.DomainObject;
 
 public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, dml.runtime.FenixVBox<E> {
+
+    private static final Logger logger = LoggerFactory.getLogger(VBox.class);
+
     static final Object NOT_LOADED_VALUE = new Object();
 
     //initialized in the constructor
@@ -91,7 +98,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, dml.runt
             //
             // so, do nothing and just return null
 
-            //System.out.println("!!! WARNING !!!: adding older version for a box attr " + attr + " -> " + body.version + " not < " + txNumber);
+            // logger.warn("!!! WARNING !!!: adding older version for a box attr " + attr + " -> " + body.version + " not < " + txNumber);
             return null;
         }
     }
@@ -107,7 +114,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, dml.runt
             return true;
         } catch (Throwable e) {
             // what to do?
-            System.err.println("Couldn't reload attribute '" + attr + "': " + e.getMessage());
+            logger.error("Couldn't reload attribute '{}': {}", attr, e.getMessage());
             //e.printStackTrace();
             return false;
         }

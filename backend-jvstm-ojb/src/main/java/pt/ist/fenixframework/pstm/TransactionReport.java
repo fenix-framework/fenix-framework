@@ -19,23 +19,28 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeTableXYDataset;
 import org.joda.time.DateTime;
-import org.joda.time.YearMonthDay;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransactionReport implements Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(TransactionReport.class);
+
     private static final long serialVersionUID = 1L;
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 
-    private YearMonthDay startOfReport;
-    private YearMonthDay endOfReport;
+    private LocalDate startOfReport;
+    private LocalDate endOfReport;
     private String server;
     private TransactionAction transactionAction;
 
     private TimeTableXYDataset dataset = null;
 
-    public TransactionReport(final YearMonthDay startOfReport, final YearMonthDay endOfReport,
+    public TransactionReport(final LocalDate startOfReport, final LocalDate endOfReport,
             final TransactionAction transactionAction, final String server) {
         setStartOfReport(startOfReport);
         setEndOfReport(endOfReport);
@@ -43,11 +48,11 @@ public class TransactionReport implements Serializable {
         setServer(server);
     }
 
-    public YearMonthDay getEndOfReport() {
+    public LocalDate getEndOfReport() {
         return endOfReport;
     }
 
-    public void setEndOfReport(YearMonthDay endOfReport) {
+    public void setEndOfReport(LocalDate endOfReport) {
         this.endOfReport = endOfReport;
     }
 
@@ -59,11 +64,11 @@ public class TransactionReport implements Serializable {
         this.server = server;
     }
 
-    public YearMonthDay getStartOfReport() {
+    public LocalDate getStartOfReport() {
         return startOfReport;
     }
 
-    public void setStartOfReport(YearMonthDay startOfReport) {
+    public void setStartOfReport(LocalDate startOfReport) {
         this.startOfReport = startOfReport;
     }
 
@@ -157,7 +162,7 @@ public class TransactionReport implements Serializable {
                         dataset.add(second, conflicts, server);
                     }
                 } catch (IllegalArgumentException ex) {
-                    System.out.println(ex.getMessage());
+                    logger.error(ex.getMessage());
                 }
             }
         }

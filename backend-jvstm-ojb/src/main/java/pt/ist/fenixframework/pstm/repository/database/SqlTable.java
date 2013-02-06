@@ -7,7 +7,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SqlTable {
+
+    private static final Logger logger = LoggerFactory.getLogger(SqlTable.class);
 
     private static final Map<String, String> mySqlTypeTranslation = new HashMap<String, String>();
     static {
@@ -42,11 +47,10 @@ public class SqlTable {
             stringBuilder.append("` ");
             String typeTranslated = mySqlTypeTranslation.get(type);
             if (typeTranslated == null) {
-                System.out
-                        .println("No mapping defined for generic type "
-                                + type
-                                + " for the current database! Assuming that the db type will be the same as the generic type... Please review the resulting sql file for the table "
-                                + SqlTable.this.tablename + " and for field " + name);
+                logger.warn("No mapping defined for generic type "
+                        + type
+                        + " for the current database! Assuming that the db type will be the same as the generic type... Please review the resulting sql file for the table "
+                        + SqlTable.this.tablename + " and for field " + name);
                 typeTranslated = type;
             }
             stringBuilder.append(typeTranslated);
@@ -56,6 +60,7 @@ public class SqlTable {
             }
         }
 
+        @Override
         public boolean equals(Object obj) {
             if (obj != null && obj instanceof Column) {
                 final Column column = (Column) obj;
@@ -64,6 +69,7 @@ public class SqlTable {
             return false;
         }
 
+        @Override
         public int hashCode() {
             return name.hashCode();
         }
@@ -72,6 +78,7 @@ public class SqlTable {
     final String tablename;
 
     final Set<Column> columns = new TreeSet<Column>(new Comparator() {
+        @Override
         public int compare(Object o1, Object o2) {
             final Column column1 = (Column) o1;
             final Column column2 = (Column) o2;
@@ -146,7 +153,7 @@ public class SqlTable {
 
             stringBuilder.append(",\n  index (OID)");
         } else {
-            System.out.println("No primary key for table " + tablename);
+            logger.warn("No primary key for table " + tablename);
         }
 
         for (final String columnName : indexes) {
