@@ -1,6 +1,1 @@
-valueType pt.ist.fenixframework.TxNumber as TxNumber {
-    externalizeWith {
-    	long externalize();
-    }
-    internalizeWith internalize();
-}
+package pt.ist.fenixframework;
