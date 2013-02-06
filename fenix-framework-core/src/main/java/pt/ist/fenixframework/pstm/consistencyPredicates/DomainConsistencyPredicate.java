@@ -256,7 +256,20 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         checkFrameworkNotInitialized();
         System.out.println("[DomainConsistencyPredicate] Deleting predicate " + getPredicate()
                 + ((getPredicate() == null) ? " of " + getDomainMetaClass().getDomainClass() : ""));
+        setFinalized(false);
+        int count = 0;
         for (DomainDependenceRecord dependenceRecord : getDomainDependenceRecords()) {
+            count++;
+            if ((count % MAX_NUMBER_OF_OBJECTS_TO_PROCESS) == 0) {
+                // Commits the current, and starts a new write transaction.
+                // This is necessary to split the load of the mass deletion of DomainDependenceRecords among several transactions.
+                // Each transaction processes a maximum of MAX_NUMBER_OF_OBJECTS_TO_PROCESS objects in order to avoid OutOfMemoryExceptions.
+                // Because this method sets the current predicate as not finalized, there is no problem with processing only an incomplete part
+                // of the DomainDependenceRecords.
+                Transaction.beginTransaction();
+                System.out.println("[DomainConsistencyPredicate] Transaction finished. Number of deleted "
+                        + "DomainDependenceRecords: " + count);
+            }
             dependenceRecord.delete();
         }
         removeDomainMetaClass();
