@@ -14,15 +14,6 @@ public class Author extends Author_Base {
         setAge(age);
     }
 
-    //	@Override
-    //	public String toString() {
-    //		String books = " of";
-    //		for (Book book : getBooks()) {
-    //			books += " " + book.getBookName();
-    //		}
-    //		return "Author " + getName() + " age " + getAge() + books;
-    //	}
-
     @Override
     public String toString() {
         return "Author " + getId();

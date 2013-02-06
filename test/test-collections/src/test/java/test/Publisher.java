@@ -13,15 +13,6 @@ public class Publisher extends Publisher_Base {
         setId(id);
     }
 
-    //	@Override
-    //	public String toString() {
-    //		String books = " of";
-    //		for (Book book : getBooksPublished()) {
-    //			books += " " + book.getBookName();
-    //		}
-    //		return "Publisher " + getPublisherName() + " of " + books;
-    //	}
-
     @Override
     public String toString() {
         return "Publisher " + getId();
