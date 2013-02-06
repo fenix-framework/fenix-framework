@@ -1,6 +1,8 @@
 package pt.ist.fenixframework.backend.jvstmojb;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
@@ -17,7 +19,10 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
+import pt.ist.fenixframework.core.WriteOnReadError;
+import pt.ist.fenixframework.pstm.AbstractDomainObject.UnableToDetermineIdException;
 import pt.ist.fenixframework.pstm.TopLevelTransaction;
+import pt.ist.fenixframework.pstm.TransactionSupport;
 
 public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
@@ -42,7 +47,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    public pt.ist.fenixframework.Transaction getTransaction() {
+    public JvstmOJBTransaction getTransaction() {
         return transactions.get();
     }
 
@@ -71,35 +76,6 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
             transactions.remove();
         }
 
-    }
-
-    @Override
-    public <T> T withTransaction(CallableWithoutException<T> command) {
-        try {
-            return withTransaction((Callable<T>) command);
-        } catch (Exception e) {
-            throw new RuntimeException("Exception ocurred while running transaction", e);
-        }
-    }
-
-    @Override
-    public <T> T withTransaction(Callable<T> command) throws Exception {
-        return withTransaction(command, null /* new AtomicInstance()*/);
-    }
-
-    @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
-        if (Transaction.isInTransaction()) {
-            logger.trace("Flattening call to withTransaction - Already inside a transaction");
-            return command.call();
-        }
-
-        begin(false);
-        try {
-            return command.call();
-        } finally {
-            commit();
-        }
     }
 
     @Override
@@ -136,6 +112,129 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
     @Override
     public void setTransactionTimeout(int seconds) throws SystemException {
         throw new UnsupportedOperationException("Transaction timeouts are not supported in JVSTM");
+    }
+
+    @Override
+    public <T> T withTransaction(CallableWithoutException<T> command) {
+        try {
+            return handleWriteCommand(command, false);
+        } catch (Exception e) {
+            throw new Error("Exception ocurred while running transaction", e);
+        }
+    }
+
+    @Override
+    public <T> T withTransaction(Callable<T> command) throws Exception {
+        return handleWriteCommand(command, false);
+    }
+
+    @Override
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
+        boolean readOnly = atomic != null && atomic.readOnly();
+        boolean speculativeReadOnly = atomic != null && atomic.speculativeReadOnly();
+
+        if (readOnly) {
+            return handleReadCommand(command);
+        } else {
+            return handleWriteCommand(command, speculativeReadOnly);
+        }
+    }
+
+    private <T> T handleReadCommand(Callable<T> command) throws Exception {
+        if (getTransaction() != null) {
+            // Piggy-back on the currently running transaction, 
+            // be it read-only or not
+            return command.call();
+        }
+
+        begin(true);
+        try {
+            return command.call();
+        } finally {
+            commit();
+        }
+    }
+
+    // Service Handling - Write Transactions
+
+    private static final Map<String, String> knownWriteServices = new ConcurrentHashMap<String, String>();
+
+    private <T> T handleWriteCommand(Callable<T> command, boolean speculativeReadOnly) throws Exception {
+
+        final String commandName = command.getClass().getName();
+
+        logger.trace("Handling service {}", commandName);
+
+        if (getTransaction() != null && !getTransaction().isReadOnly()) {
+            // Piggy-back this write transaction in the currently running
+            // write transaction
+            logger.trace("Inside write transaction. Flattenning...");
+            return command.call();
+        }
+
+        boolean promotedTransaction = false;
+
+        if (getTransaction() != null) {
+            // Commit currently running read-only transaction.
+            // Due to JVSTM, this is guaranteed to never fail.
+            commit();
+
+            // If a read transaction was already running, checkpoint
+            // the current transaction instead of committing it.
+            promotedTransaction = true;
+        }
+
+        boolean readOnly = speculativeReadOnly || !knownWriteServices.containsKey(commandName);
+
+        boolean keepGoing = true;
+        int tries = 0;
+
+        while (keepGoing) {
+            tries++;
+            try {
+                try {
+                    begin(readOnly);
+                    T result = command.call();
+                    if (promotedTransaction) {
+                        checkpoint();
+                    } else {
+                        commit();
+                    }
+                    keepGoing = false;
+                    return result;
+                } finally {
+                    if (keepGoing) {
+                        rollback();
+                    }
+                }
+            } catch (RollbackException e) {
+                if (tries > 3) {
+                    logTransactionRestart(commandName, e, tries);
+                }
+            } catch (UnableToDetermineIdException e) {
+                if (tries > 3) {
+                    logTransactionRestart(commandName, e, tries);
+                }
+            } catch (WriteOnReadError e) {
+                logger.trace("Restarting transaction due to WriteOnReadError");
+                knownWriteServices.put(commandName, commandName);
+                readOnly = false;
+                if (tries > 3) {
+                    logTransactionRestart(commandName, e, tries);
+                }
+            }
+        }
+
+        throw new RuntimeException("This could should never be reached!");
+    }
+
+    private void checkpoint() {
+        Transaction.checkpoint();
+        TransactionSupport.currentFenixTransaction().setReadOnly();
+    }
+
+    private void logTransactionRestart(String service, Throwable cause, int tries) {
+        logger.warn("Service {} has been restarted {} times because of {}", service, tries, cause.getClass().getSimpleName());
     }
 
 }

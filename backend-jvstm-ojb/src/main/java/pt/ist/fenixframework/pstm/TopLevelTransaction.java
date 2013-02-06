@@ -163,6 +163,11 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         this.dbChanges = null;
     }
 
+    public boolean isReadOnly() {
+        // a null dbChanges indicates a read-only tx
+        return this.dbChanges == null;
+    }
+
     @Override
     public Transaction makeNestedTransaction(boolean readOnly) {
         throw new Error("Nested transactions not supported yet...");

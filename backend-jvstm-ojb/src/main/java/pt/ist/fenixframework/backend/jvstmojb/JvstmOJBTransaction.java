@@ -25,6 +25,10 @@ public class JvstmOJBTransaction extends AbstractTransaction {
         return underlyingTransaction;
     }
 
+    boolean isReadOnly() {
+        return underlyingTransaction.isReadOnly();
+    }
+
     // AbstractTransaction implementations
 
     @Override
