@@ -9,7 +9,8 @@ import pt.ist.fenixframework.dml.DomainModel;
 
 public class DomainModelUtil {
 
-    public static List<Class<? extends DomainObject>> getDomainClassHierarchy(final Class superClass,
+    @SuppressWarnings("unchecked")
+    public static List<Class<? extends DomainObject>> getDomainClassHierarchy(final Class<?> superClass,
             boolean shouldContainSuperClass, boolean shouldContainAbstractClass) {
         final DomainModel domainModel = FenixFramework.getDomainModel();
         List<Class<? extends DomainObject>> classNames = new ArrayList<Class<? extends DomainObject>>();
@@ -41,16 +42,17 @@ public class DomainModelUtil {
         return null;
     }
 
-    public static List<Class<? extends DomainObject>> getDomainClassHierarchy(final Class superClass,
+    public static List<Class<? extends DomainObject>> getDomainClassHierarchy(final Class<?> superClass,
             boolean shouldContainSuperClass) {
         return getDomainClassHierarchy(superClass, shouldContainSuperClass, true);
     }
 
-    private static boolean isClass(final DomainClass domainClass, final Class superClass) {
+    private static boolean isClass(final DomainClass domainClass, final Class<?> superClass) {
         return domainClass != null && domainClass.getFullName().equals(superClass.getName());
     }
 
-    private static boolean isClassInstance(final DomainClass domainClass, final Class superClass, boolean shouldContainSuperClass) {
+    private static boolean isClassInstance(final DomainClass domainClass, final Class<?> superClass,
+            boolean shouldContainSuperClass) {
         if (domainClass == null) {
             return false;
         }
