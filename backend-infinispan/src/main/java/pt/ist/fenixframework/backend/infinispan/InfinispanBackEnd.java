@@ -1,27 +1,19 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import javax.transaction.SystemException;
-
-import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
-import org.infinispan.context.Flag;
 import org.infinispan.manager.CacheContainer;
-import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.manager.EmbeddedCacheManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.AbstractDomainObject;

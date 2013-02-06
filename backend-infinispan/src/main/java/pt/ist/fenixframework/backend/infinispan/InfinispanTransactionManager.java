@@ -15,8 +15,6 @@ import org.infinispan.CacheException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.arjuna.ats.arjuna.common.arjPropertyManager;
-
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.CommitListener;
@@ -32,7 +30,6 @@ public class InfinispanTransactionManager implements TransactionManager {
 
     void setDelegateTxManager(javax.transaction.TransactionManager delegate) {
 	delegateTxManager = delegate;
-	arjPropertyManager.getCoordinatorEnvironmentBean().setDefaultTimeout(100000000);
     }
 
     @Override
