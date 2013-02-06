@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.pstm.dml;
+package pt.ist.fenixframework.pstm.repository.database;
 
 import java.util.HashMap;
 import java.util.List;
@@ -8,7 +8,7 @@ import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.ExternalizationElement;
 import pt.ist.fenixframework.dml.ValueType;
 
-public class FenixDomainModel {
+public class JDBCTypeMap {
 
     private static Map<String, String> BUILT_IN_JDBC_MAP = new HashMap<String, String>();
 
@@ -48,15 +48,8 @@ public class FenixDomainModel {
         BUILT_IN_JDBC_MAP.put("Partial", "LONGVARCHAR");
 
         BUILT_IN_JDBC_MAP.put("Serializable", "BLOB");
-
-        // The JodaTime's Period class is dealt with in the Fenix app code base
-        // for the time being
-        // registerFenixValueType("org.joda.time.Period", "Period", "");
     }
 
-    /*
-     * This method will need to be changed once we get rid of OJB.
-     */
     public static String getJdbcTypeFor(DomainModel model, String valueType) {
         ValueType vt = model.findValueType(valueType);
 

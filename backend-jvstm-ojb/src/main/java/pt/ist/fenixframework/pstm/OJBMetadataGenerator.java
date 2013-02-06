@@ -19,10 +19,10 @@ import pt.ist.fenixframework.dml.DomainEntity;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
-import pt.ist.fenixframework.pstm.dml.FenixDomainModel;
 import pt.ist.fenixframework.pstm.ojb.ReadOnlyPersistentField;
 import pt.ist.fenixframework.pstm.ojb.WriteOnlyPersistentField;
 import pt.ist.fenixframework.pstm.repository.DbUtil;
+import pt.ist.fenixframework.pstm.repository.database.JDBCTypeMap;
 
 /**
  * @author - Shezad Anavarali (shezad@ist.utl.pt)
@@ -36,35 +36,13 @@ public class OJBMetadataGenerator {
 
     private static String classToDebug = null;
 
-    // This can go since now it will be taken care of by the init itself.
-
-    // private static void addPersistentRootClassDescriptor(FenixDomainModel
-    // domainModel,
-    // DescriptorRepository repository) throws Exception {
-    // Class persRootClass = PersistentRoot.class;
-    // ClassDescriptor classDescriptor = new ClassDescriptor(repository);
-    // classDescriptor.setClassOfObject(persRootClass);
-    // classDescriptor.setTableName("FF$PERSISTENT_ROOT");
-    // setFactoryMethodAndClass(classDescriptor);
-    //
-    // addPrimaryFieldDescriptor(domainModel, "oid", "long", 1, classDescriptor,
-    // persRootClass);
-    // addFieldDescriptor(domainModel, PersistentRoot.SLOT_NAME, "long", 2,
-    // classDescriptor, persRootClass);
-    //
-    // repository.getDescriptorTable().put(PersistentRoot.class.getName(),
-    // classDescriptor);
-    // }
-
     public static void updateOJBMappingFromDomainModel(DomainModel domainModel) throws Exception {
 
         final DescriptorRepository descriptorRepository = MetadataManager.getInstance().getGlobalRepository();
         Map ojbMetadata = descriptorRepository.getDescriptorTable();
 
-        // addPersistentRootClassDescriptor(domainModel, descriptorRepository);
-
-        for (final Iterator iterator = domainModel.getClasses(); iterator.hasNext();) {
-            final DomainClass domClass = (DomainClass) iterator.next();
+        for (final Iterator<DomainClass> iterator = domainModel.getClasses(); iterator.hasNext();) {
+            final DomainClass domClass = iterator.next();
             final String classname = domClass.getFullName();
             if (!classname.equals(DOMAIN_OBJECT_CLASSNAME)) {
                 final Class clazz = Class.forName(classname);
@@ -204,7 +182,7 @@ public class OJBMetadataGenerator {
         PersistentField persistentField = new ReadOnlyPersistentField(persistentFieldClass, slotName);
         fieldDescriptor.setPersistentField(persistentField);
 
-        String sqlType = FenixDomainModel.getJdbcTypeFor(domainModel, slotType);
+        String sqlType = JDBCTypeMap.getJdbcTypeFor(domainModel, slotType);
         fieldDescriptor.setColumnType(sqlType);
 
         classDescriptor.addFieldDescriptor(fieldDescriptor);
@@ -220,7 +198,7 @@ public class OJBMetadataGenerator {
             PersistentField persistentField = new ReadOnlyPersistentField(persistentFieldClass, slotName);
             fieldDescriptor.setPersistentField(persistentField);
 
-            String sqlType = FenixDomainModel.getJdbcTypeFor(domainModel, slotType);
+            String sqlType = JDBCTypeMap.getJdbcTypeFor(domainModel, slotType);
             fieldDescriptor.setColumnType(sqlType);
 
             classDescriptor.addFieldDescriptor(fieldDescriptor);
