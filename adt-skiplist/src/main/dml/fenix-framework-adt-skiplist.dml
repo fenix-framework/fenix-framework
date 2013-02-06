@@ -9,13 +9,6 @@ valueType pt.ist.fenixframework.adt.skiplist.ForwardArray as NodeArray {
 	internalizeWith pt.ist.fenixframework.adt.skiplist.Externalizer.internalizeNodeArray();
 }
 
-valueType pt.ist.fenixframework.adt.skiplist.ForwardArrayShadow as NodeArrayShadow {
-	externalizeWith {
-		Serializable pt.ist.fenixframework.adt.skiplist.Externalizer.externalizeNodeArrayShadow();
-	}
-	internalizeWith pt.ist.fenixframework.adt.skiplist.Externalizer.internalizeNodeArrayShadow();
-}
-
 valueType pt.ist.fenixframework.adt.skiplist.KeyValue as KeyVal {
 	externalizeWith {
 		Serializable pt.ist.fenixframework.adt.skiplist.KeyValue.externalizeKeyValue();
@@ -36,21 +29,4 @@ class SkipListNode {
 relation SkipListHasHead {
 	SkipList playsRole;
 	SkipListNode playsRole head;
-}
-
-
-/* Shadow Skip List */
-
-class SkipListShadow {
-	int level;
-}
-
-class SkipListNodeShadow {
-	NodeArrayShadow forward;
-	KeyVal keyValue;
-}
-
-relation SkipListShadowHasHead {
-	SkipListShadow playsRole;
-	SkipListNodeShadow playsRole head;
 }

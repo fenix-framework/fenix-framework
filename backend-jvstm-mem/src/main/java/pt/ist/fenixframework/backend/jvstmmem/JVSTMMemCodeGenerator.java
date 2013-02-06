@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
-import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
 import pt.ist.fenixframework.dml.Role;
@@ -78,20 +77,11 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
 	generateVBoxSlotGetter("get" + capitalize(slotName), "get", slotName, typeName, out);
-        if (generateShadowMethods()) {
-            generateVBoxSlotGetter("get" + capitalize(slotName) + "Shadow", "getShadow", slotName, typeName, out);
-            generateVBoxRegisterGet(slotName, "registerGet" + capitalize(slotName), out);
-        }
     }
 
     @Override
     protected void generateSlotAccessors(Slot slot, PrintWriter out) {
 	generateVBoxSlotGetter("get" + capitalize(slot.getName()), "get", slot.getName(), slot.getTypeName(), out);
-        // also generate the get shadow methods
-        if (generateShadowMethods()) {
-            generateVBoxSlotGetter("get" + capitalize(slot.getName()) + "Shadow", "getShadow", slot.getName(), slot.getTypeName(), out);
-            generateVBoxRegisterGet(slot.getName(), "registerGet" + capitalize(slot.getName()), out);
-        }
 	generateVBoxSlotSetter(slot, out);
     }
 
@@ -104,14 +94,6 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	endMethodBody(out);
     }
 
-    protected void generateVBoxRegisterGet(String slotName, String methodName, PrintWriter out) {
-        newline(out);
-        printFinalMethod(out, "public", "void", methodName);
-        startMethodBody(out);
-        printWords(out, getSlotExpression(slotName) + ".registerGet();");
-        endMethodBody(out);
-    }
-    
     protected void generateVBoxSlotSetter(Slot slot, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
@@ -146,12 +128,6 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	boolean isIndexed = role.isIndexed();
 
 	generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
-        // also generate the get shadow methods
-        if (generateShadowMethods()) {
-            // We do not have a VBox around the collection, so accessing it is already a normal read
-            generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()) + "Shadow", role, out);
-            generateEmptyRegisterGet(role.getName(), out);
-        }
         
         if (isIndexed) {
             generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, "get" + capitalize(role.getName()), typeName, slotName);

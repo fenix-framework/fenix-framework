@@ -24,13 +24,3 @@ relation ListNodeHasNext {
     ListNode playsRole;
     ListNode playsRole next;
 }
-
-
-/* Shadow Linked List */
-
-class LinkedListShadow {}
-
-relation LinkedListShadowHasHeadNode {
-    LinkedListShadow playsRole;
-    ListNode playsRole head;
-}

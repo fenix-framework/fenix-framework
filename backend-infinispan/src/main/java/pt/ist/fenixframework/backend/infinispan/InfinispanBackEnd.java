@@ -155,22 +155,4 @@ public class InfinispanBackEnd implements BackEnd {
         return (T)(obj instanceof Externalization.NullClass ? null : obj);
     }
     
-    /**
-     * Reads from Infinispan a value with a given key such that the transactional context does not keep 
-     * track of this key. This means that this read can never cause the trasactin to abort.
-     * This method is used by the code generated in the Domain Objects.
-     */
-    public final <T> T cacheGetShadow(String key) {
-	Object obj = domainCache.getAdvancedCache().withFlags(Flag.READ_WITHOUT_REGISTERING).get(key);
-        return (T)(obj instanceof Externalization.NullClass ? null : obj);
-    }
-    
-    public final void registerGet(String key) {
-	AdvancedCache advCache = domainCache.getAdvancedCache();
-	try {
-	    advCache.getTxTable().getLocalTransaction(advCache.getTransactionManager().getTransaction()).addReadKey(key);
-	} catch (SystemException e) {
-	    logger.error("Exception while getting the current JPA Transaction to register a key read", e);
-	}
-    }
 }

@@ -47,37 +47,6 @@ relation AdtLeafNodeHasSibling {
 }
 
 
-// BPlusTree with shadow reads
-class BPlusTreeShadow {}
-
-class AbstractNodeShadow {}
-
-class LeafNodeShadow extends AbstractNodeShadow {
-    GenericTreeMap<Comparable,java.io.Serializable> entries;
-}
-
-class InnerNodeShadow extends AbstractNodeShadow {
-    GenericTreeMap<Comparable,AbstractNodeShadow> subNodes;
-}
-
-relation AdtBPlusTreeShadowHasRootNode {
-    BPlusTreeShadow playsRole;
-    AbstractNodeShadow playsRole root;
-}
-
-relation AdtNodeShadowHasParent {
-    AbstractNodeShadow playsRole {
-		multiplicity *;
-    }
-    InnerNodeShadow playsRole parent;
-}
-
-relation AdtLeafNodeShadowHasSibling {
-    LeafNodeShadow playsRole previous;
-    LeafNodeShadow playsRole next;
-}
-
-
 /* BPlusTree backed by Arrays */
 
 valueType pt.ist.fenixframework.adt.bplustree.DoubleArray as BackingArrays {
@@ -114,35 +83,4 @@ relation NodeArrayHasParent {
 relation LeafNodeArrayHasSibling {
     LeafNodeArray playsRole previous;
     LeafNodeArray playsRole next;
-}
-
-/* Shadow BPlusTree backed by Arrays */
-
-class BPlusTreeArrayShadow {}
-
-class AbstractNodeArrayShadow {}
-
-class LeafNodeArrayShadow extends AbstractNodeArrayShadow {
-    BackingArrays<java.io.Serializable> entries;
-}
-
-class InnerNodeArrayShadow extends AbstractNodeArrayShadow {
-    BackingArrays<AbstractNodeArrayShadow> subNodes;
-}
-
-relation BPlusTreeArrayShadowHasRootNode {
-    BPlusTreeArrayShadow playsRole;
-    AbstractNodeArrayShadow playsRole root;
-}
-
-relation NodeArrayShadowHasParent {
-    AbstractNodeArrayShadow playsRole {
-    	multiplicity *;
-    }
-    InnerNodeArrayShadow playsRole parent;
-}
-
-relation LeafNodeArrayShadowHasSibling {
-    LeafNodeArrayShadow playsRole previous;
-    LeafNodeArrayShadow playsRole next;
 }
