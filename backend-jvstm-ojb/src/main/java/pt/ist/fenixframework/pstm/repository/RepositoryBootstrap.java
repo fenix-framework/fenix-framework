@@ -31,21 +31,6 @@ public class RepositoryBootstrap {
         this.config = config;
     }
 
-    private void applyInfrastructureChanges(Connection conn) throws SQLException {
-        if (columnExists(conn, "FF$PERSISTENT_ROOT", "ID_INTERNAL") && !columnExists(conn, "FF$PERSISTENT_ROOT", "OID")) {
-            executeSqlInstructions(conn, "ALTER TABLE FF$PERSISTENT_ROOT CHANGE COLUMN ID_INTERNAL OID BIGINT");
-        }
-        if (columnExists(conn, "FF$PERSISTENT_ROOT", "OID") && !columnExists(conn, "FF$PERSISTENT_ROOT", "OID_NEXT")) {
-            executeSqlInstructions(
-                    conn,
-                    "ALTER TABLE FF$PERSISTENT_ROOT ADD COLUMN ID_INTERNAL int(11), ADD COLUMN OID_NEXT BIGINT(20), ADD COLUMN OID_PREVIOUS BIGINT(20),ADD COLUMN ROOT_KEY TEXT, ADD COLUMN OID_ROOT_OBJECT BIGINT(20);");
-            executeSqlInstructions(conn,
-                    "update FF$PERSISTENT_ROOT SET ID_INTERNAL=1, OID_ROOT_OBJECT=ROOT, ROOT_KEY='pt.ist.fenixframework.root' WHERE OID=1;");
-
-        }
-
-    }
-
     public void updateDataRepositoryStructureIfNeeded() {
         Connection connection = null;
         try {
@@ -69,8 +54,6 @@ public class RepositoryBootstrap {
             }
 
             try {
-                applyInfrastructureChanges(connection);
-
                 if (config.getCreateRepositoryStructureIfNotExists() || config.getUpdateRepositoryStructureIfNeeded()) {
                     boolean newInfrastructureCreated = false;
                     if (!infrastructureExists(connection) && config.getCreateRepositoryStructureIfNotExists()) {
@@ -178,25 +161,13 @@ public class RepositoryBootstrap {
         }
     }
 
-    private boolean columnExists(Connection connection, String tableName, String colName) throws SQLException {
-        final DatabaseMetaData databaseMetaData = connection.getMetaData();
-        ResultSet resultSet = null;
-        try {
-            final String dbName = connection.getCatalog();
-            resultSet = databaseMetaData.getColumns(dbName, "", tableName, colName);
-            return resultSet.next();
-        } finally {
-            if (resultSet != null) {
-                resultSet.close();
-            }
-        }
-    }
-
     private String readFile(final InputStreamReader fileReader) throws IOException {
         try {
             char[] buffer = new char[4096];
             final StringBuilder fileContents = new StringBuilder();
-            for (int n = 0; (n = fileReader.read(buffer)) != -1; fileContents.append(buffer, 0, n));
+            for (int n = 0; (n = fileReader.read(buffer)) != -1; fileContents.append(buffer, 0, n)) {
+                ;
+            }
             return fileContents.toString();
         } finally {
             fileReader.close();
