@@ -64,6 +64,7 @@ import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
  * </ul>
  */
 public class JvstmOJBConfig extends Config {
+
     protected final BackEnd backEnd;
 
     /**
@@ -124,24 +125,14 @@ public class JvstmOJBConfig extends Config {
 
     /**
      * This <strong>optional</strong> parameter indicates whether the framework
-     * should collect information about the data-access patterns of the
-     * application.
-     */
-    protected boolean collectDataAccessPatterns = false;
-
-    /**
-     * This <strong>optional</strong> parameter indicates where the framework
-     * will store the collected information about the data-access patterns of
-     * the application. Must end with a path separator character.
-     */
-    protected String collectDataAccessPatternsPath = "";
-
-    /**
-     * This <strong>optional</strong> parameter indicates whether the framework
      * should throw an exception when a DomainObject that is still connected to
      * other objects is trying to be deleted or rather delete it.
      */
-    protected boolean errorfIfDeletingObjectNotDisconnected = false;
+    protected boolean errorfIfDeletingObjectNotDisconnected = true;
+
+    /*
+     * Initialization methods
+     */
 
     public JvstmOJBConfig() {
         this.backEnd = new JvstmOJBBackEnd();
@@ -169,9 +160,12 @@ public class JvstmOJBConfig extends Config {
         checkRequired(dbPassword, "dbPassword");
     }
 
-    public String getDbAlias() {
-        return dbAlias;
-    }
+    /*
+     * FromString methods.
+     * 
+     * These are responsible for the correct processing of
+     * Config's options.
+     */
 
     protected void dbAliasFromString(String value) {
         this.dbAlias = value;
@@ -190,8 +184,28 @@ public class JvstmOJBConfig extends Config {
         }
     }
 
+    protected void errorIfChangingDeletedObjectFromString(String value) {
+        errorIfChangingDeletedObject = Boolean.parseBoolean(value);
+    }
+
+    protected void errorfIfDeletingObjectNotDisconnectedFromString(String value) {
+        errorfIfDeletingObjectNotDisconnected = Boolean.parseBoolean(value);
+    }
+
+    protected void createRepositoryStructureIfNotExistsFromString(String value) {
+        createRepositoryStructureIfNotExists = Boolean.parseBoolean(value);
+    }
+
     protected void updateRepositoryStructureIfNeededFromString(String value) {
         updateRepositoryStructureIfNeeded = Boolean.parseBoolean(value);
+    }
+
+    /*
+     * Public Getters
+     */
+
+    public String getDbAlias() {
+        return dbAlias;
     }
 
     public String getDbUsername() {
@@ -216,13 +230,5 @@ public class JvstmOJBConfig extends Config {
 
     public boolean getUpdateRepositoryStructureIfNeeded() {
         return updateRepositoryStructureIfNeeded;
-    }
-
-    public boolean getCollectDataAccessPatterns() {
-        return collectDataAccessPatterns;
-    }
-
-    public String getCollectDataAccessPatternsPath() {
-        return collectDataAccessPatternsPath;
     }
 }

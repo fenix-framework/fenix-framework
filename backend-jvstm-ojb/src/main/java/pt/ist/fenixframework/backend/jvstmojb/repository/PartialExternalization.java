@@ -1,7 +1,8 @@
-package pt.ist.fenixframework.backend.jvstmojb.pstm;
+package pt.ist.fenixframework.backend.jvstmojb.repository;
 
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Partial;
+
 
 public class PartialExternalization {
 

@@ -201,8 +201,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         }
 
         if ((numBoxReads > NUM_READS_THRESHOLD) || (numBoxWrites > NUM_WRITES_THRESHOLD)) {
-            logger.warn("Very-large transaction (reads = {}, writes = {}, uri = {})", numBoxReads, numBoxWrites,
-                    RequestInfo.getRequestURI());
+            logger.warn("Very-large transaction (reads = {}, writes = {})", numBoxReads, numBoxWrites);
         }
 
         // reset statistics counters

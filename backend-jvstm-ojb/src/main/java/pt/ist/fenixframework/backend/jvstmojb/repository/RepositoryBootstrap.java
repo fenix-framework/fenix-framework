@@ -10,6 +10,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 
@@ -25,7 +28,9 @@ import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
  */
 public class RepositoryBootstrap {
 
-    final JvstmOJBConfig config;
+    private static final Logger logger = LoggerFactory.getLogger(RepositoryBootstrap.class);
+
+    private final JvstmOJBConfig config;
 
     public RepositoryBootstrap(JvstmOJBConfig config) {
         this.config = config;
@@ -57,6 +62,7 @@ public class RepositoryBootstrap {
                 if (config.getCreateRepositoryStructureIfNotExists() || config.getUpdateRepositoryStructureIfNeeded()) {
                     boolean newInfrastructureCreated = false;
                     if (!infrastructureExists(connection) && config.getCreateRepositoryStructureIfNotExists()) {
+                        logger.trace("Updating Repository Infrastructure");
                         if (infrastructureNeedsUpdate(connection)) {
                             updateInfrastructure(connection);
                         } else {
@@ -65,6 +71,7 @@ public class RepositoryBootstrap {
                         }
                     }
                     if (newInfrastructureCreated || config.getUpdateRepositoryStructureIfNeeded()) {
+                        logger.trace("Updating Repository Structure");
                         final String updates =
                                 SQLUpdateGenerator.generateSqlUpdates(FenixFramework.getDomainModel(), connection, null, false);
                         executeSqlInstructions(connection, updates);
@@ -93,6 +100,7 @@ public class RepositoryBootstrap {
                     // nothing can be done.
                 }
             }
+            logger.trace("Repository Structure update completed");
         }
     }
 

@@ -18,9 +18,9 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
+import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject.UnableToDetermineIdException;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject.UnableToDetermineIdException;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
 import pt.ist.fenixframework.core.WriteOnReadError;
 
@@ -229,8 +229,10 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
     }
 
     private void checkpoint() {
+        logger.trace("Checkpointing Transaction");
         Transaction.checkpoint();
         TransactionSupport.currentFenixTransaction().setReadOnly();
+        logger.trace("Transaction is now read-only");
     }
 
     private void logTransactionRestart(String service, Throwable cause, int tries) {

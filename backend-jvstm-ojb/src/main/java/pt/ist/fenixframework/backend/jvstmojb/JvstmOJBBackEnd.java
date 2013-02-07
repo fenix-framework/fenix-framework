@@ -26,9 +26,7 @@ public class JvstmOJBBackEnd implements BackEnd {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends DomainObject> T fromOid(Object oid) {
-        if (logger.isTraceEnabled()) {
-            logger.trace("fromOid(" + oid + ")");
-        }
+        logger.trace("fromOid({})", oid);
 
         AbstractDomainObject obj = SharedIdentityMap.getCache().lookup(oid);
 

@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.backend.jvstmojb.pstm;
+package pt.ist.fenixframework.backend.jvstmojb.repository;
 
 import org.joda.time.LocalDate;
 

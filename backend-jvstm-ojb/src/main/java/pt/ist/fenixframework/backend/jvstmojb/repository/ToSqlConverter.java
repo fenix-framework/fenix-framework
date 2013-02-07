@@ -7,8 +7,6 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.Partial;
 
-import pt.ist.fenixframework.backend.jvstmojb.pstm.LocalDateExternalization;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.PartialExternalization;
 import pt.ist.fenixframework.core.Externalization;
 
 public class ToSqlConverter {
