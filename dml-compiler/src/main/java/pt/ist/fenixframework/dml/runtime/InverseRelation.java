@@ -1,8 +1,5 @@
 package pt.ist.fenixframework.dml.runtime;
 
-import java.util.LinkedList;
-import java.util.ListIterator;
-
 import pt.ist.fenixframework.DomainObject;
 
 public class InverseRelation<C1 extends DomainObject,C2 extends DomainObject> implements Relation<C1,C2> {
@@ -15,12 +12,12 @@ public class InverseRelation<C1 extends DomainObject,C2 extends DomainObject> im
         this.name = name;
     }
 
-    public void add(C1 o1, C2 o2) {
-        inverseRelation.add(o2, o1);
+    public boolean add(C1 o1, C2 o2) {
+        return inverseRelation.add(o2, o1);
     }
 
-    public void remove(C1 o1, C2 o2) {
-        inverseRelation.remove(o2, o1);
+    public boolean remove(C1 o1, C2 o2) {
+        return inverseRelation.remove(o2, o1);
     }
 
     public Relation<C2,C1> getInverseRelation() {

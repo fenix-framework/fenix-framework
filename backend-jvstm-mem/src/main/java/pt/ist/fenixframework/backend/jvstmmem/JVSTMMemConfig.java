@@ -2,9 +2,9 @@ package pt.ist.fenixframework.backend.jvstmmem;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.BackEnd;
-import pt.ist.fenixframework.indexes.IndexesConfig;
+import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
 
-public class JVSTMMemConfig extends IndexesConfig {
+public class JVSTMMemConfig extends HibernateSearchConfig {
     protected final BackEnd backEnd;
 
     public JVSTMMemConfig() {
