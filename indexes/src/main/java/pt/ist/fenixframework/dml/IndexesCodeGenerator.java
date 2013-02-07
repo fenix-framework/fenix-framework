@@ -18,15 +18,12 @@ import pt.ist.fenixframework.FenixFramework;
  */
 public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
 
-    public static final String FENIX_FRAMEWORK_FULL_CLASS = FenixFramework.class.getName();
     // Unfortunately, depending on a DML entity cannot be done explicitly because LinkedList extends a _Base class which 
     // will not be compiled when this code generator is invoked (ultimately, to compile the LinkedList itself)
-    public static final String LINKED_LIST_FULL_CLASS = "pt.ist.fenixframework.adt.linkedlist.LinkedList";
-    public static final String BPLUS_TREE_FULL_CLASS = "pt.ist.fenixframework.adt.bplustree.BPlusTree";
+    private static final String LINKED_LIST_FULL_CLASS = "pt.ist.fenixframework.adt.linkedlist.LinkedList";
 
     public IndexesCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
-	super(compArgs, domainModel);
-	setCollectionToUse(BPLUS_TREE_FULL_CLASS);
+        super(compArgs, domainModel);
     }
 
     @Override
