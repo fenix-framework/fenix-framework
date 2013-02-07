@@ -18,14 +18,17 @@ public class ReadOnlyPersistentField extends FenixPersistentField {
         this.getterMethod.setAccessible(true);
     }
 
+    @Override
     public Class getType() {
         return getterMethod.getReturnType();
     }
 
+    @Override
     public void set(Object obj, Object value) throws MetadataException {
         throw new Error("The set of a ReadOnlyPersistentField should never be called");
     }
 
+    @Override
     public Object get(Object anObject) throws MetadataException {
         if (anObject == null) {
             // is this really needed?

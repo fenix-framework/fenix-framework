@@ -2,7 +2,6 @@ package pt.ist.fenixframework.backend.jvstmojb.ojb;
 
 import java.lang.reflect.Method;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.ojb.broker.metadata.MetadataException;
 import org.apache.ojb.broker.metadata.fieldaccess.PersistentField;
 
@@ -22,14 +21,17 @@ public abstract class FenixPersistentField implements PersistentField {
         this.propName = propName;
     }
 
+    @Override
     public boolean usesAccessorsAndMutators() {
         return true;
     }
 
+    @Override
     public Class getDeclaringClass() {
         return declaringClass;
     }
 
+    @Override
     public String getName() {
         return propName;
     }

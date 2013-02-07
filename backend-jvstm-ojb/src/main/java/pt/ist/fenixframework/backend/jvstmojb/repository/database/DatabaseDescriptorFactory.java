@@ -1,7 +1,6 @@
 package pt.ist.fenixframework.backend.jvstmojb.repository.database;
 
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -10,7 +9,6 @@ import org.apache.ojb.broker.metadata.CollectionDescriptor;
 import org.apache.ojb.broker.metadata.DescriptorRepository;
 import org.apache.ojb.broker.metadata.FieldDescriptor;
 import org.apache.ojb.broker.metadata.MetadataManager;
-import org.apache.ojb.broker.metadata.ObjectReferenceDescriptor;
 
 public class DatabaseDescriptorFactory {
 
@@ -30,6 +28,7 @@ public class DatabaseDescriptorFactory {
 
     private static final Map<String, SqlTable> newSqlTableMap() {
         return new TreeMap<String, SqlTable>(new Comparator() {
+            @Override
             public int compare(Object o1, Object o2) {
                 final String tablename1 = (String) o1;
                 final String tablename2 = (String) o2;

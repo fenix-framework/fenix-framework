@@ -1,11 +1,11 @@
 package pt.ist.fenixframework.backend.jvstmojb.dml.runtime;
 
-import jvstm.VBox;
-
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.AbstractSet;
 import java.util.Set;
+
+import jvstm.VBox;
 
 public class VSet<E> extends AbstractSet<E> implements Set<E> {
 
@@ -19,22 +19,27 @@ public class VSet<E> extends AbstractSet<E> implements Set<E> {
         addAll(coll);
     }
 
+    @Override
     public int size() {
         return elements.get().size();
     }
 
+    @Override
     public boolean contains(Object o) {
         return elements.get().contains(o);
     }
 
+    @Override
     public void clear() {
         elements.put(FunctionalSet.EMPTY);
     }
 
+    @Override
     public Iterator<E> iterator() {
         return new VSetIterator<E>(elements.get());
     }
 
+    @Override
     public boolean add(E o) {
         FunctionalSet<E> oldSet = elements.get();
         FunctionalSet<E> newSet = oldSet.add(o);
@@ -46,6 +51,7 @@ public class VSet<E> extends AbstractSet<E> implements Set<E> {
         }
     }
 
+    @Override
     public boolean remove(Object o) {
         FunctionalSet<E> oldSet = elements.get();
         FunctionalSet<E> newSet = oldSet.remove(o);
@@ -66,10 +72,12 @@ public class VSet<E> extends AbstractSet<E> implements Set<E> {
             this.iterator = funcSet.iterator();
         }
 
+        @Override
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
+        @Override
         public E next() {
             E result = iterator.next();
             canRemove = true;
@@ -77,6 +85,7 @@ public class VSet<E> extends AbstractSet<E> implements Set<E> {
             return current;
         }
 
+        @Override
         public void remove() {
             if (!canRemove) {
                 throw new IllegalStateException();

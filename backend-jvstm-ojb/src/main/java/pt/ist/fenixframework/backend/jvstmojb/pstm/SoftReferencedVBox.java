@@ -1,7 +1,6 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
 import jvstm.VBoxBody;
-
 import pt.ist.fenixframework.DomainObject;
 
 // This version of the VBox exists only because the special needs of
@@ -67,6 +66,7 @@ class SoftReferencedVBox<E> extends ReferenceBox<E> {
             this.owner = owner;
         }
 
+        @Override
         public void clearPrevious() {
             super.clearPrevious();
 

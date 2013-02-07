@@ -130,6 +130,7 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
     }
 
     // copied from PersistenceBrokerImpl, to change the RsIteratorFactory used
+    @Override
     protected OJBIterator getIteratorFromQuery(Query query, ClassDescriptor cld) throws PersistenceBrokerException {
         RsIteratorFactory factory = FenixRsIteratorFactory.getInstance();
         OJBIterator result = getRsIteratorFromQuery(query, cld, factory);
@@ -200,6 +201,7 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
             return instance;
         }
 
+        @Override
         public RsIterator createRsIterator(Query query, ClassDescriptor cld, PersistenceBrokerImpl broker) {
             return new FenixRsIterator(RsQueryObject.get(cld, query), broker);
         }
@@ -210,6 +212,7 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
             super(queryObject, broker);
         }
 
+        @Override
         protected Object getObjectFromResultSet() throws PersistenceBrokerException {
             ClassDescriptor cld = getQueryObject().getClassDescriptor();
 

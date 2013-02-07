@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 import jvstm.util.Cons;
-
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.dml.runtime.FunctionalSet;

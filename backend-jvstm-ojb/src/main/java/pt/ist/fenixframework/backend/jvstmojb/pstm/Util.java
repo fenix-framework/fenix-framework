@@ -11,21 +11,24 @@ import pt.ist.fenixframework.FenixFramework;
 class Util {
 
     private static final Iterator EMPTY_ITER = new Iterator() {
+        @Override
         public boolean hasNext() {
             return false;
         }
 
+        @Override
         public Object next() {
             throw new NoSuchElementException();
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }
     };
 
     public static <T> Iterator<T> emptyIterator() {
-        return (Iterator<T>) EMPTY_ITER;
+        return EMPTY_ITER;
     }
 
     private static final String uidString = (new UID()).toString();

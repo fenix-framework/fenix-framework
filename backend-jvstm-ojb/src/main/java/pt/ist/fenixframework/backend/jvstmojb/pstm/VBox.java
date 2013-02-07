@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 
-public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, pt.ist.fenixframework.backend.jvstmojb.dml.runtime.FenixVBox<E> {
+public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
+        pt.ist.fenixframework.backend.jvstmojb.dml.runtime.FenixVBox<E> {
 
     private static final Logger logger = LoggerFactory.getLogger(VBox.class);
 

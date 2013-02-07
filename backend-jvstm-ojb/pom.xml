@@ -11,8 +11,12 @@
 	</parent>
 
 	<artifactId>fenix-framework-backend-jvstm-ojb</artifactId>
-	<name>Fenix Framework with jvstm upon ojb</name>
-	<description>Fenix Framework Old And Dirty jvstm based backed used in ciist</description>
+	<name>Fenix Framework Backend using JVSTM and OJB</name>
+	<description>Fenix Framework Old'n'Dirty JVSTM based backed used in DSI</description>
+
+	<properties>
+		<version.commons.pool>1.6</version.commons.pool>
+	</properties>
 
 	<build>
 		<plugins>
@@ -61,10 +65,6 @@
 			<artifactId>db-ojb</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 		</dependency>
@@ -75,7 +75,7 @@
 		<dependency>
 			<groupId>commons-pool</groupId>
 			<artifactId>commons-pool</artifactId>
-			<version>1.6</version>
+			<version>${version.commons.pool}</version>
 		</dependency>
 	</dependencies>
 
