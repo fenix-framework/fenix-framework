@@ -23,9 +23,9 @@ import org.apache.ojb.broker.query.Query;
 import org.apache.ojb.broker.query.QueryBySQL;
 import org.apache.ojb.broker.query.QueryFactory;
 
+import pt.ist.fenixframework.backend.jvstmojb.ojb.FenixJdbcAccessImpl;
+import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
-import pt.ist.fenixframework.pstm.AbstractDomainObject;
-import pt.ist.fenixframework.pstm.ojb.FenixJdbcAccessImpl;
 
 public class FenixPersistenceBroker extends PersistenceBrokerImpl {
 

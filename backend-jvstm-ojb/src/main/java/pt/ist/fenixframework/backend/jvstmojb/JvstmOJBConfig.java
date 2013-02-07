@@ -2,10 +2,10 @@ package pt.ist.fenixframework.backend.jvstmojb;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.backend.BackEnd;
-import pt.ist.fenixframework.pstm.DomainClassInfo;
-import pt.ist.fenixframework.pstm.MetadataManager;
-import pt.ist.fenixframework.pstm.TransactionSupport;
-import pt.ist.fenixframework.pstm.repository.RepositoryBootstrap;
+import pt.ist.fenixframework.backend.jvstmojb.ojb.MetadataManager;
+import pt.ist.fenixframework.backend.jvstmojb.pstm.DomainClassInfo;
+import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
+import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
 
 /**
  * An instance of the <code>Config</code> class bundles together the

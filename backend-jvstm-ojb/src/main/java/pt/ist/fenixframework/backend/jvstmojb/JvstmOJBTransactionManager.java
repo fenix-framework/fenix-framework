@@ -18,11 +18,11 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
+import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction;
+import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
+import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject.UnableToDetermineIdException;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
 import pt.ist.fenixframework.core.WriteOnReadError;
-import pt.ist.fenixframework.pstm.AbstractDomainObject.UnableToDetermineIdException;
-import pt.ist.fenixframework.pstm.TopLevelTransaction;
-import pt.ist.fenixframework.pstm.TransactionSupport;
 
 public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
