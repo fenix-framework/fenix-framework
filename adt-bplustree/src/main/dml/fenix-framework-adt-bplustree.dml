@@ -4,10 +4,8 @@ package pt.ist.fenixframework.adt.bplustree;
 
 valueType java.util.TreeMap as GenericTreeMap {
     externalizeWith {
-        // bytearray pt.ist.fenixframework.core.Externalization.externalizeObject();
         Serializable pt.ist.fenixframework.adt.bplustree.AbstractNode.externalizeTreeMap();
     }
-    // internalizeWith pt.ist.fenixframework.core.Externalization.internalizeObject();
     internalizeWith pt.ist.fenixframework.adt.bplustree.AbstractNode.internalizeTreeMap();
 }
 
@@ -17,7 +15,6 @@ class AbstractNode {}
 
 class LeafNode extends AbstractNode {
     // key: any Serializable and Comparable
-    //
     // value: any Serializable
     GenericTreeMap<Comparable,java.io.Serializable> entries;
 }
@@ -47,4 +44,43 @@ relation AdtNodeHasParent {
 relation AdtLeafNodeHasSibling {
     LeafNode playsRole previous;
     LeafNode playsRole next;
+}
+
+
+/* BPlusTree backed by Arrays */
+
+valueType pt.ist.fenixframework.adt.bplustree.DoubleArray as BackingArrays {
+    externalizeWith {
+        Serializable pt.ist.fenixframework.adt.bplustree.AbstractNodeArray.externalizeArrays();
+    }
+    internalizeWith pt.ist.fenixframework.adt.bplustree.AbstractNodeArray.internalizeArrays();
+}
+
+class BPlusTreeArray {}
+
+class AbstractNodeArray {}
+
+class LeafNodeArray extends AbstractNodeArray {
+    BackingArrays<java.io.Serializable> entries;
+}
+
+class InnerNodeArray extends AbstractNodeArray {
+    BackingArrays<AbstractNodeArray> subNodes;
+}
+
+relation BPlusTreeArrayHasRootNode {
+    BPlusTreeArray playsRole;
+    AbstractNodeArray playsRole root;
+}
+
+relation NodeArrayHasParent {
+    AbstractNodeArray playsRole {
+    	multiplicity *;
+    }
+    InnerNodeArray playsRole parent;
+}
+
+relation LeafNodeArrayHasSibling {
+    LeafNodeArray playsRole previous;
+    LeafNodeArray playsRole next;
 }

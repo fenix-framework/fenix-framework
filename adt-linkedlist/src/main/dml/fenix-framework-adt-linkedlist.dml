@@ -1,0 +1,26 @@
+/* Abstract Data Type: Linked List */
+
+package pt.ist.fenixframework.adt.linkedlist;
+
+valueType pt.ist.fenixframework.adt.linkedlist.KeyValue as NodeKeyVal {
+	externalizeWith {
+		Serializable pt.ist.fenixframework.adt.linkedlist.KeyValue.externalizeKeyValue();
+	}
+	internalizeWith pt.ist.fenixframework.adt.linkedlist.KeyValue.internalizeKeyValue();
+}
+
+class LinkedList {}
+
+class ListNode {
+	NodeKeyVal keyValue;
+}
+
+relation LinkedListHasHeadNode {
+    LinkedList playsRole;
+    ListNode playsRole head;
+}
+
+relation ListNodeHasNext {
+    ListNode playsRole;
+    ListNode playsRole next;
+}

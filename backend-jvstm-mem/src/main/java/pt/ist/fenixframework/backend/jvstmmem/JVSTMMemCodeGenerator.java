@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
-import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
 import pt.ist.fenixframework.dml.Role;
@@ -17,7 +16,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	super(compArgs, domainModel);
         String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
         if (collectionName == null || collectionName.isEmpty()) {
-	    setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
+	    setCollectionToUse("pt.ist.fenixframework.adt.bplustree.BPlusTree");
 	}
     }
 
@@ -66,7 +65,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	    String t = makeGenericType("VBox", getReferenceType(getTypeFullName(role.getType())));
 	    printWords(out, "private", t, role.getName(), "= new", t, "(" + defaultValue + ")");
 	} else {
-	    printWords(out, "private", getDefaultCollectionFor(role.getType().getFullName()), role.getName());
+	    printWords(out, "private", getDefaultCollectionFor(role), role.getName());
 	}
 	println(out, ";");
     }
@@ -81,30 +80,42 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateSlotAccessors(Slot slot, PrintWriter out) {
 	generateVBoxSlotGetter("get" + capitalize(slot.getName()), "get", slot.getName(), slot.getTypeName(), out);
-	generateVBoxSlotSetter(domainClass, slot, out);
+	generateVBoxSlotSetter(slot, out);
     }
 
     protected void generateVBoxSlotGetter(String methodName, String accessToVBox, String name, String typeName, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", typeName, methodName);
 	startMethodBody(out);
+	generateGetterDAPStatement(dC, name, typeName, out);//DAP read stats update statement
 	printWords(out, "return", getSlotExpression(name) + "." + accessToVBox + "();");
 	endMethodBody(out);
     }
 
-    protected void generateVBoxSlotSetter(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateVBoxSlotSetter(Slot slot, PrintWriter out) {
 	newline(out);
 	printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
 	startMethodBody(out);
 
-	generateSetterDAPStatement(domainClass, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
-	generateSetterTxIntrospectorStatement(domainClass, slot, out); // TxIntrospector
-	generateIndexationInSetter(domainClass, slot, out); // Indexes
+	generateSetterDAPStatement(dC, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
+	generateSetterTxIntrospectorStatement(slot, out); // TxIntrospector
 
 	printWords(out, getSlotExpression(slot.getName()) + ".put(" + slot.getName() + ");");
 	endMethodBody(out);
+    }
+
+    @Override
+    protected String getNewRoleStarSlotExpression(Role role) {
+	StringBuilder buf = new StringBuilder();
+
+	// generate the relation aware collection
+	buf.append("new ");
+	buf.append(getDefaultCollectionFor(role));
+	buf.append("()");
+
+	return buf.toString();
     }
 
     @Override
@@ -114,8 +125,14 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	String slotName = role.getName();
 	String capitalizedSlotName = capitalize(slotName);
 	String methodModifiers = getMethodModifiers();
+	boolean isIndexed = role.isIndexed();
 
 	generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
+        
+        if (isIndexed) {
+            generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, "get" + capitalize(role.getName()), typeName, slotName);
+        }
+
 	generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
 	generateRoleSlotMethodsMultStarRemover(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
 	generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, typeName);
@@ -130,7 +147,17 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printFinalMethod(out, "public", getSetTypeDeclarationFor(role), methodName);
 	startMethodBody(out);
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
-	print(out, "return new " + getRelationAwareTypeFor(role) + "((" + getTypeFullName(role.getOtherRole().getType()) + ") this, " + getRelationSlotNameFor(role) + ", this." + role.getName() + ");");
+	print(out, "return new ");
+	print(out, getRelationAwareTypeFor(role));
+	print(out, "((");
+	print(out, getTypeFullName(role.getOtherRole().getType()));
+	print(out, ") this, ");
+	print(out, getRelationSlotNameFor(role));
+	print(out, ", this.");
+	print(out, role.getName());
+	print(out, ", keyFunction$$");
+	print(out, role.getName());
+	print(out, ");");
 	endMethodBody(out);
     }
 
@@ -162,6 +189,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printMethod(out, methodModifiers, makeGenericType("java.util.Set", typeName), "get" + capitalizedSlotName + "Set");
 	startMethodBody(out);
 
+	generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	print(out, "return get" + capitalizedSlotName + "();");
 	endMethodBody(out);
     }
@@ -172,6 +200,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printMethod(out, methodModifiers, "int", "get" + capitalizedSlotName + "Count");
 	startMethodBody(out);
 
+	generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	printWords(out, "return get" + capitalizedSlotName + "().size();");
 	endMethodBody(out);
     }
@@ -182,7 +211,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
 	startMethodBody(out);
 
-
+	generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	printWords(out, "return get" + capitalizedSlotName + "().contains(" + slotName + ");");
 	endMethodBody(out);
     }
@@ -193,7 +222,19 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	printMethod(out, methodModifiers, "boolean", "hasAny" + capitalizedSlotName);
 	startMethodBody(out);
 
+	generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 	printWords(out, "return (get" + capitalizedSlotName + "().size() != 0);");
+	endMethodBody(out);
+    }
+    
+    protected void generateIteratorMethod(Role role, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
+                         + capitalize(role.getName()) + "Iterator");
+        startMethodBody(out);
+        
+        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
+        printWords(out, "return get" + capitalize(role.getName()) + "().iterator();");
 	endMethodBody(out);
     }
 

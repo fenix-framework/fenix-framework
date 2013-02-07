@@ -34,15 +34,15 @@
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-bplustree-domain-object</artifactId>
+            <artifactId>fenix-framework-adt-bplustree</artifactId>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-linkedlist-domain-object</artifactId>
+            <artifactId>fenix-framework-adt-linkedlist</artifactId>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-skiplist-domain-object</artifactId>
+            <artifactId>fenix-framework-adt-skiplist</artifactId>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
@@ -63,10 +63,6 @@
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-backend-mem</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-adt-bplustree</artifactId>
         </dependency>
     </dependencies>
 

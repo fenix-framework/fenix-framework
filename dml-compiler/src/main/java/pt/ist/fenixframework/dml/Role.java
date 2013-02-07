@@ -13,6 +13,7 @@ public class Role implements Serializable{
     private DomainRelation relation;
     private String indexProperty;
     private boolean ordered = false;
+    private int indexCardinality;
     
 
     public Role(String name, DomainEntity type) {
@@ -65,11 +66,23 @@ public class Role implements Serializable{
         return indexProperty;
     }
 
+    public void setIndexCardinality(int cardinality) {
+    	this.indexCardinality = cardinality;
+    }
+     
+    public int getIndexCardinality() {
+    	return this.indexCardinality;
+    }
+     
+    public boolean isIndexed() {
+    	return getIndexProperty() != null;
+    }
+
     public void setOrdered(boolean ordered) {
         this.ordered = ordered;
     }
 
-    public boolean getOrdered() {
+    public boolean isOrdered() {
         return ordered;
     }
 

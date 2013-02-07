@@ -2,11 +2,12 @@ package pt.ist.fenixframework.adt.bplustree;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
+
+import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 /**
  * Implementation of a persistence-independent B+Tree.  This implementation is modelled in DML and
@@ -16,7 +17,7 @@ import java.util.Set;
  * comparable to each other (e.g. the same BPlusTree instance cannot simultaneously support keys of
  * type Integer and String).
  */
-public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements IBPlusTree<T> {
+public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements DomainBasedMap<T> {
     
     /* Special last key */
     private static final class ComparableLastKey implements Comparable, Serializable {
@@ -92,29 +93,34 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     }
 
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
-    public void insert(Comparable key, T value) {
+    public boolean insert(Comparable key, T value) {
         if (value == null) {
             throw new UnsupportedOperationException("This B+Tree does not support nulls");
         }
 	AbstractNode rootNode = this.getRoot();
 	AbstractNode resultNode = rootNode.insert(key, value);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
+	return true;
     }
 
-    // /** Removes the given element */
-    // public void remove(T obj) {
-    //     remove(obj.getOid());
-    // }
-
     /** Removes the element with the given key */
-    public void remove(Comparable key) {
+    public boolean removeKey(Comparable key) {
 	AbstractNode rootNode = this.getRoot();
 	AbstractNode resultNode = rootNode.remove(key);
+	
+	if (resultNode == null) {
+	    return false;
+	}
 	if (rootNode != resultNode) {
 	    this.setRoot(resultNode);
 	}
+	return true;
     }
 
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map
@@ -188,5 +194,24 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
         }
         return keys;
     }
+    
+    @Override
+    public boolean remove(Comparable key) {
+	return removeKey(key);
+    }
+    
+    @Override
+    public boolean contains(Comparable key) {
+        return containsKey(key);
+    }
 
+    @Override
+    public void put(Comparable key, T value) {
+	insert(key, value);
+    }
+    
+    @Override
+    public boolean putIfMissing(Comparable key, T value) {
+	return insert(key, value);
+    }
 }
