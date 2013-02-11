@@ -47,7 +47,8 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Dependencies>org.hibernate:main,org.hibernate:ogm,javax.persistence.api,javax.transaction.api,org.hibernate.validator,org.javassist</Dependencies>
+                            <!-- This specifies to the JBoss AS, the runtime dependencies of the jar being created -->
+                            <Dependencies>org.infinispan:main,org.hibernate:main,org.hibernate:ogm,javax.persistence.api:main,javax.transaction.api:main,org.hibernate.validator:main,org.javassist:main</Dependencies>
                         </manifestEntries>
                     </archive>
                     <excludes>
