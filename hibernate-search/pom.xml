@@ -36,6 +36,13 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${version.maven.jar-plugin}</version>
                 <configuration>
+                    <!-- In the future, when JBoss AS contains a hibernate-search module, we'll uncomment this -->
+                    <!-- <archive> -->
+                    <!--     <manifestEntries> -->
+                            <!-- This specifies to the JBoss AS, the runtime dependencies of the jar being created -->
+                    <!--         <Dependencies>org.hibernate.search.engine:main</Dependencies> -->
+                    <!--     </manifestEntries> -->
+                    <!-- </archive> -->
                     <excludes>
                         <exclude>**/*_Base*</exclude>
                         <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>

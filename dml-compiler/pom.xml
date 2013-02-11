@@ -59,6 +59,25 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${version.maven.jar-plugin}</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <!-- This specifies to the JBoss AS, the runtime dependencies of the jar being created -->
+                            <Dependencies>org.apache.commons.lang:main,org.antlr:main,org.joda.time:main</Dependencies>
+                        </manifestEntries>
+                    </archive>
+                    <excludes>
+                        <exclude>**/*_Base*</exclude>
+                        <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>
+                        <exclude>pt/ist/fenixframework/backend/CurrentBackEndId*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
     
