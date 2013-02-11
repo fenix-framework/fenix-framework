@@ -151,7 +151,11 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
         try {
             return command.call();
         } finally {
-            commit();
+            if (getTransaction() != null) {
+                commit();
+            } else {
+                logger.trace("Aborting read-only transaction due to an exception!");
+            }
         }
     }
 
