@@ -15,8 +15,7 @@ import org.apache.ojb.broker.PersistenceBroker;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 
-public class FenixConsistencyCheckTransaction extends ReadTransaction 
-    implements ConsistencyCheckTransaction,FenixTransaction {
+public class FenixConsistencyCheckTransaction extends ReadTransaction implements ConsistencyCheckTransaction, FenixTransaction {
 
     protected HashSet<VBox> boxesRead = new HashSet<VBox>();
 
@@ -24,7 +23,7 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction
     private final Object checkedObj;
 
     public FenixConsistencyCheckTransaction(FenixTransaction parent, Object checkedObj) {
-        super((Transaction)parent);
+        super((Transaction) parent);
         this.parent = parent;
         this.checkedObj = checkedObj;
     }
@@ -43,24 +42,24 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction
 
     @Override
     public Set<Depended> getDepended() {
-	if (!FenixFramework.canCreateDomainMetaObjects()) {
-	    return EMPTY_SET;
-	}
+        if (!FenixFramework.canCreateDomainMetaObjects()) {
+            return EMPTY_SET;
+        }
 
-	Set<Depended> dependedSet = new HashSet<Depended>(boxesRead.size());
+        Set<Depended> dependedSet = new HashSet<Depended>(boxesRead.size());
 
-	for (VBox box : boxesRead) {
-	    Depended depended = getDependedForBox(box);
-	    dependedSet.add(depended);
-	}
+        for (VBox box : boxesRead) {
+            Depended depended = getDependedForBox(box);
+            dependedSet.add(depended);
+        }
 
-	return dependedSet;
+        return dependedSet;
     }
 
     protected Depended getDependedForBox(VBox box) {
-	AbstractDomainObject domainObject = (AbstractDomainObject) box.getOwnerObject();
-	DomainMetaObject metaObject = domainObject.getDomainMetaObject();
-	return metaObject;
+        AbstractDomainObject domainObject = (AbstractDomainObject) box.getOwnerObject();
+        DomainMetaObject metaObject = domainObject.getDomainMetaObject();
+        return metaObject;
     }
 
     @Override
@@ -85,12 +84,12 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction
 
     @Override
     public <T> T getBoxValue(VBox<T> vbox, Object obj, String attr) {
-	if ((!FenixFramework.canCreateDomainMetaObjects()) && (obj != checkedObj)) {
-	    throw new Error(
-		    "Consistency predicates are not allowed to access other objects, unless the FenixFramework is configured to create DomainMetaObjects. See: Config.canCreateDomainMetaObjects");
-	}
+        if ((!FenixFramework.canCreateDomainMetaObjects()) && (obj != checkedObj)) {
+            throw new Error(
+                    "Consistency predicates are not allowed to access other objects, unless the FenixFramework is configured to create DomainMetaObjects. See: Config.canCreateDomainMetaObjects");
+        }
 
-	boxesRead.add(vbox);
+        boxesRead.add(vbox);
 
         // ask the parent transaction (a RW tx) for the value of the box
         return parent.getBoxValue(vbox, obj, attr);
@@ -98,17 +97,17 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction
 
     @Override
     public <T> void setBoxValueDelayed(VBox<T> vbox, T value) {
-	parent.setBoxValueDelayed(vbox, value);
+        parent.setBoxValueDelayed(vbox, value);
     }
 
     @Override
     public <T> T getPerTxValue(PerTxBox<T> box, T initial) {
-	return parent.getPerTxValue(box, initial);
+        return parent.getPerTxValue(box, initial);
     }
 
     @Override
     public <T> void setPerTxValue(PerTxBox<T> box, T value) {
-	parent.setPerTxValue(box, value);
+        parent.setPerTxValue(box, value);
     }
 
     @Override
@@ -118,7 +117,7 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction
 
     @Override
     public void registerRelationListChanges(RelationList<? extends DomainObject, ? extends DomainObject> relationList) {
-	throw new Error("It doesn't make sense to call isBoxValueLoaded for a FenixConsistencyCheckTransaction");
+        throw new Error("It doesn't make sense to call isBoxValueLoaded for a FenixConsistencyCheckTransaction");
     }
 
     @Override

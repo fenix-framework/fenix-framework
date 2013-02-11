@@ -169,7 +169,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
             }
             Pair pair = executePredicateForOneObject(existingMetaObject.getDomainObject(), getPredicate());
             // If an object is consistent and only depends on itself, the DomainDependenceRecord is not necessary.
-            if (!(TopLevelTransaction.isConsistent(pair) && TopLevelTransaction.dependsOnlyOnItself(pair))) {
+            if (!TopLevelTransaction.isConsistent(pair) || !TopLevelTransaction.dependsOnlyOnItself(pair)) {
                 new DomainDependenceRecord(existingMetaObject.getDomainObject(), this, (Set<Depended>) pair.first,
                         (Boolean) pair.second);
             }
