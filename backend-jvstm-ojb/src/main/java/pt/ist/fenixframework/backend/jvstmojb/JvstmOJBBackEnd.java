@@ -40,6 +40,9 @@ public class JvstmOJBBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T getDomainObject(String externalId) {
+        if (externalId == null) {
+            return null;
+        }
         return fromOid(Long.parseLong(externalId));
     }
 
