@@ -3,8 +3,7 @@ package pt.ist.fenixframework.backend.mem;
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.BackEnd;
-import pt.ist.fenixframework.dml.DomainModel;
-import pt.ist.fenixframework.indexes.IndexesConfig;
+import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
 
 /**
  * This is the default configuration manager used by the fenix-framework-core.
@@ -12,7 +11,7 @@ import pt.ist.fenixframework.indexes.IndexesConfig;
  * @see Config
  *
  */
-public class MemConfig extends IndexesConfig {
+public class MemConfig extends HibernateSearchConfig {
     protected final BackEnd backEnd;
 
     public MemConfig() {

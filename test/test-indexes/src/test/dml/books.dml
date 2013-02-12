@@ -1,0 +1,68 @@
+package test;
+
+
+class Book {
+    String bookName;
+    double price;
+}
+
+class Publisher {
+    String publisherName;
+}
+
+class Author {
+    String name;
+    int age;
+}
+
+class VampireBook extends Book {
+    boolean hasGlowingVampires;
+}
+
+relation PublisherWithBooks {
+    Publisher playsRole publisher;
+    Book playsRole booksPublished {
+        multiplicity *;
+        indexed by bookName;
+    }
+}
+
+relation AuthorsWithBooks {
+    Author playsRole authors {
+        multiplicity *;
+        indexed by name #(*);
+    }
+    Book playsRole books {
+        multiplicity *;
+        indexed by bookName;
+    }
+}
+
+relation VampireBookToVampireBook {
+    VampireBook playsRole prequel;
+    VampireBook playsRole sequel;
+}
+
+relation DRWithBooks {
+    .pt.ist.fenixframework.DomainRoot playsRole parent;
+    Book playsRole theBooks {
+        multiplicity *;
+        indexed by bookName;
+    }
+}
+
+relation DRWithAuthors {
+    .pt.ist.fenixframework.DomainRoot playsRole parent;
+    Author playsRole theAuthors {
+        multiplicity *;
+        indexed by name #(*);
+    }
+}
+
+relation DRWithPublishers {
+    .pt.ist.fenixframework.DomainRoot playsRole parent;
+    Publisher playsRole thePublishers {
+        multiplicity *;
+        indexed by publisherName;
+    }
+}

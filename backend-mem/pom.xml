@@ -55,6 +55,14 @@
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-indexes</artifactId>
         </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-hibernate-search</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-adt-bplustree</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

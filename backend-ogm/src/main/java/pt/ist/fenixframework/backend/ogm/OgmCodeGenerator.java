@@ -6,19 +6,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
-// import java.util.List;
 
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
-import pt.ist.fenixframework.dml.DAPCodeGenerator;
 import pt.ist.fenixframework.dml.DomainClass;
-// import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
-// import pt.ist.fenixframework.dml.ValueType;
 import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 
 public class OgmCodeGenerator extends IndexesCodeGenerator {
@@ -46,7 +42,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         super(compArgs, domainModel);
         String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
         if (collectionName == null || collectionName.isEmpty()) {
-            setCollectionToUse("pt.ist.fenixframework.core.adt.bplustree.BPlusTree");
+            setCollectionToUse("pt.ist.fenixframework.adt.bplustree.BPlusTree");
         }
     }
 
@@ -128,8 +124,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         generateDefaultConstructor(domClass, out);
         generateSlotsAccessors(domClass, out);
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
-        // Generate the index methods
-        super.generateIndexMethods(domClass, out);
     }
 
     @Override
@@ -164,7 +158,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         if (role.getMultiplicityUpper() != 1) {
             onNewline(out);
             print(out, "this." + makeForeignKeyName(role.getName()) + " = new " +
-        	    getDefaultCollectionFor(role.getType().getFullName()) + "().getExternalId();");
+        	    getDefaultCollectionFor(role) + "().getExternalId();");
         }
     }
 
@@ -207,8 +201,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
-        super.generateSlotAccessors(domainClass, slot, out);
+    protected void generateSlotAccessors(Slot slot, PrintWriter out) {
+        super.generateSlotAccessors(slot, out);
         generateHibernateSlotGetter(slot, out);
         generateHibernateSlotSetter(slot, out);
         this.ormSlots.add(addHibernateToSlotName(slot.getName()));
@@ -276,7 +270,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         String otherRoleTypeFullName = getTypeFullName(otherRole.getType());
         String roleTypeFullName = getTypeFullName(role.getType());
 
-        printMethod(out, "public", "void", "add",
+        printMethod(out, "public", "boolean", "add",
                     makeArg(otherRoleTypeFullName, "o1"),
                     makeArg(roleTypeFullName, "o2"),
                     makeArg(makeGenericType("pt.ist.fenixframework.dml.runtime.Relation",
@@ -291,6 +285,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         print(out, "o1.set" + capitalize(role.getName()) + "$unidirectional(o2);");
         closeBlock(out, false);
         closeBlock(out, false);
+        newline(out);
+        print(out, "return true;");
         endMethodBody(out);
     }
 
@@ -301,7 +297,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         String otherRoleTypeFullName = getTypeFullName(otherRole.getType());
         String roleTypeFullName = getTypeFullName(role.getType());
 
-        printMethod(out, "public", "void", "remove",
+        printMethod(out, "public", "boolean", "remove",
                     makeArg(otherRoleTypeFullName, "o1"),
                     makeArg(roleTypeFullName, "o2"));
         startMethodBody(out);
@@ -309,6 +305,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         newBlock(out);
         print(out, "o1.set" + capitalize(role.getName()) + "$unidirectional(null);");
         closeBlock(out, false);
+        newline(out);
+        print(out, "return true;");
         endMethodBody(out);
     }
 
@@ -464,11 +462,19 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
 	startMethodBody(out);
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-        String collectionType = getDefaultCollectionFor(role.getType().getFullName());
+        String collectionType = getDefaultCollectionFor(role);
         println(out, collectionType + " internalSet = OgmBackEnd.getInstance().getDomainObject(" +
                 makeForeignKeyName(role.getName()) + ");");
 
-        print(out, "return new " + getRelationAwareBaseTypeFor(role) + "(this, " + getRelationSlotNameFor(role) + ", internalSet);");
+        print(out, "return new ");
+        print(out, getRelationAwareTypeFor(role));
+        print(out, "((");
+        print(out, getTypeFullName(role.getOtherRole().getType()));
+        print(out, ") this, ");
+        print(out, getRelationSlotNameFor(role));
+        print(out, ", internalSet, keyFunction$$");
+        print(out, role.getName());
+        print(out, ");");
 	endMethodBody(out);
     }
 
@@ -536,6 +542,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         buf.append(thisType);
         buf.append(")this, ");
         buf.append(getRelationSlotNameFor(role));
+        buf.append(", keyFunction$$");
+        buf.append(role.getName());
         buf.append(")");
 
         return buf.toString();

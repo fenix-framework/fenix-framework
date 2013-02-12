@@ -5,9 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.core.IdentityMap;
-import pt.ist.fenixframework.indexes.IndexesConfig;
+import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
 
 /**
  * This is the infinispan configuration manager used by the fenix-framework-backend-infinispan
@@ -16,7 +14,7 @@ import pt.ist.fenixframework.indexes.IndexesConfig;
  * @see Config
  *
  */
-public class InfinispanConfig extends IndexesConfig {
+public class InfinispanConfig extends HibernateSearchConfig {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
 
     private static final String FAILED_INIT = "Failed to initialize Backend Infinispan";

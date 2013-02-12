@@ -10,7 +10,7 @@
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>fenix-framework-test-ogm-does-not-instantiate</artifactId>
+    <artifactId>fenix-framework-test-backend-ogm</artifactId>
     <packaging>jar</packaging>
 
     <name>Fenix Framework Tests for Backend OGM</name>

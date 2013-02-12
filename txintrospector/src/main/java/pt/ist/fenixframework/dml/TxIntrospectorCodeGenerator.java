@@ -55,13 +55,13 @@ public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
     }
 
     @Override
-    protected void generateSetterBody(DomainClass domainClass, String setterName, Slot slot, PrintWriter out) {
-        super.generateSetterBody(domainClass, setterName, slot, out);
+    protected void generateSetterBody(String setterName, Slot slot, PrintWriter out) {
+        super.generateSetterBody(setterName, slot, out);
 
-        generateSetterTxIntrospectorStatement(domainClass, slot, out);
+        generateSetterTxIntrospectorStatement(slot, out);
     }
 
-    protected void generateSetterTxIntrospectorStatement(DomainClass domainClass, Slot slot, PrintWriter out) {
+    protected void generateSetterTxIntrospectorStatement(Slot slot, PrintWriter out) {
         if (enabled) {
             onNewline(out);
             print(out, TX_STATS_INSTANCE + ".addModifiedObject(this);");

@@ -1,14 +1,10 @@
 package pt.ist.fenixframework.backend.mem;
 
-import java.io.PrintWriter;
-
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
-import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
-import pt.ist.fenixframework.dml.Slot;
 
 public class MemCodeGenerator extends IndexesCodeGenerator {
 
