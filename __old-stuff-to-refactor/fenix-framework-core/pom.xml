@@ -6,20 +6,14 @@
     <groupId>pt.ist</groupId>
     <artifactId>old-fenix-framework-core</artifactId>
     <name>Fenix Framework Core</name>
-<<<<<<< variant A
-    <version>2.1-cloudtm-SNAPSHOT</version>
->>>>>>> variant B
-    <version>2.1-SNAPSHOT</version>
-####### Ancestor
-    <version>2.0-SNAPSHOT</version>
-======= end
+    <version>2.1-cloudtm</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jvstm.version>1.0</jvstm.version>
-        <dml.fenix.version>2.1-cloudtm-SNAPSHOT</dml.fenix.version>
-        <dml.maven.plugin.version>2.1-cloudtm-SNAPSHOT</dml.maven.plugin.version>
+        <dml.fenix.version>2.1-cloudtm</dml.fenix.version>
+        <dml.maven.plugin.version>2.1-cloudtm</dml.maven.plugin.version>
     </properties>
 
     <build>
