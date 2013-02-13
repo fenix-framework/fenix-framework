@@ -124,7 +124,6 @@ public class RelationList<E1 extends DomainObject, E2 extends DomainObject> exte
 
     @Override
     public void justAdd(E2 obj) {
-        Transaction.currentFenixTransaction().registerRelationListChanges(this);
         Transaction.logAttrChange(listHolder, attributeName);
         elementsToAdd.put(elementsToAdd.get().add(obj));
         elementsToRemove.put(elementsToRemove.get().remove(obj));
@@ -132,48 +131,9 @@ public class RelationList<E1 extends DomainObject, E2 extends DomainObject> exte
 
     @Override
     public void justRemove(E2 obj) {
-        Transaction.currentFenixTransaction().registerRelationListChanges(this);
         Transaction.logAttrChange(listHolder, attributeName);
         elementsToRemove.put(elementsToRemove.get().add(obj));
         elementsToAdd.put(elementsToAdd.get().remove(obj));
-    }
-
-    /**
-     * Returns a <code>String</code> with a unique identification of this <code>RelationList</code>. The id of two
-     * <code>RelationLists</code> will
-     * be the same if and only if the two <code>RelationLists</code> are the
-     * same.<br>
-     * This id is used for both the <code>hashCode()</code> and <code>equals()</code> methods.<br>
-     * <br>
-     * 
-     * This method assumes that only the fenix-framework creates <code>RelationLists</code>, and only one for each side of a
-     * domain
-     * relation, without any duplicates.
-     */
-    public String getUniqueId() {
-        return listHolder.getExternalId() + attributeName;
-    }
-
-    /**
-     * @see RelationList#getUniqueId()
-     */
-    @Override
-    public int hashCode() {
-        return getUniqueId().hashCode();
-    }
-
-    /**
-     * @see RelationList#getUniqueId()
-     */
-    @Override
-    public boolean equals(Object otherObject) {
-        if ((otherObject == null) || (!(otherObject instanceof RelationList))) {
-            return false;
-        }
-        if (((RelationList<DomainObject, DomainObject>) otherObject).getUniqueId().equals(getUniqueId())) {
-            return true;
-        }
-        return false;
     }
 
     @Override

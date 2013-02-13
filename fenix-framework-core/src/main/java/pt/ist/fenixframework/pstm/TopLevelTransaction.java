@@ -46,8 +46,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     private static final Object COMMIT_LISTENERS_LOCK = new Object();
     private static volatile Cons<CommitListener> COMMIT_LISTENERS = Cons.empty();
 
-    final protected HashMap<String, RelationList<? extends DomainObject, ? extends DomainObject>> relationListChanges =
-            new HashMap<String, RelationList<? extends DomainObject, ? extends DomainObject>>();
 
     public static void addCommitListener(CommitListener listener) {
         synchronized (COMMIT_LISTENERS_LOCK) {
@@ -310,7 +308,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         numBoxReads++;
         T value = getLocalValue(vbox);
 
-        if (value == null || value == VBox.NOT_LOADED_VALUE) {
+        if (value == null) {
             // no local value for the box
 
             VBoxBody<T> body = vbox.body.getBody(number);
@@ -584,7 +582,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
             // to create meta objects
             return Util.emptyIterator();
         }
-        updateWriteSetWithRelationChanges();
 
         Cons<Iterator<DependenceRecord>> iteratorsList = Cons.empty();
         for (jvstm.VBox box : boxesWritten.keySet()) {
@@ -595,22 +592,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         }
 
         return new ChainedIterator<DependenceRecord>(iteratorsList.iterator());
-    }
-
-    /**
-     * Consolidates the elements of any {@link RelationList} that was modified
-     * by the current transaction, <strong>only if the {@link RelationList} was
-     * previously loaded.</strong>
-     * 
-     * This consolidation is needed so that the execution of the consistency predicates always see the most updated version of the
-     * elements inside each relation list that was written.
-     * It is also required that each changed relation list, even if never loaded, is put in the write set, so that the correct
-     * depending predicates are checked.
-     */
-    protected void updateWriteSetWithRelationChanges() {
-        for (RelationList relationChanged : relationListChanges.values()) {
-            relationChanged.consolidateElementsIfLoaded();
-        }
     }
 
     /**
@@ -794,11 +775,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         }
 
         return entries;
-    }
-
-    @Override
-    public void registerRelationListChanges(RelationList<? extends DomainObject, ? extends DomainObject> relationList) {
-        relationListChanges.put(relationList.getUniqueId(), relationList);
     }
 
     // ---------------------------------------------------------------

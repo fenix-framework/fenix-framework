@@ -29,5 +29,4 @@ public interface FenixTransaction {
 
     public void logRelationRemove(String relationName, DomainObject o1, DomainObject o2);
 
-    public void registerRelationListChanges(RelationList<? extends DomainObject, ? extends DomainObject> relationList);
 }
