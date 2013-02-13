@@ -76,19 +76,15 @@ public class RelationList<E1 extends DomainObject, E2 extends DomainObject> exte
         return getElementsBox().get(listHolder, attributeName);
     }
 
-    /**
-     * Consolidates the elements of this relations list, if it was loaded.
-     * Otherwise, writes a not loaded value to it's box, to make sure it is put in the current transaction's write set.
-     */
     protected void consolidateElementsIfLoaded() {
-        if (elementsToAdd.get().size() + elementsToRemove.get().size() == 0) {
-            return;
-        }
-        VBox<FunctionalSet<E2>> box = getElementsBox();
-        if (box.hasValue()) {
-            consolidateElements();
-        } else {
-            box.putNotLoadedValue();
+        if (elementsToAdd.get().size() + elementsToRemove.get().size() > 0) {
+            VBox<FunctionalSet<E2>> box = getElementsBox();
+            if (box.hasValue()) {
+                consolidateElements();
+            } else {
+                // here we write the NOT_LOADED_VALUE to force the box to go to the write-set
+                box.putNotLoadedValue();
+            }
         }
     }
 
