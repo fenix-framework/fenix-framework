@@ -584,7 +584,9 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         }
 
         Cons<Iterator<DependenceRecord>> iteratorsList = Cons.empty();
-        for (jvstm.VBox box : boxesWritten.keySet()) {
+
+        Set<jvstm.VBox> currentBoxesWritten = new HashSet<jvstm.VBox>(boxesWritten.keySet());
+        for (jvstm.VBox box : currentBoxesWritten) {
             Depended dep = ((AbstractDomainObject) ((VBox) box).getOwnerObject()).getDomainMetaObject();
             if (dep != null) {
                 iteratorsList = iteratorsList.cons(dep.getDependenceRecords().iterator());
