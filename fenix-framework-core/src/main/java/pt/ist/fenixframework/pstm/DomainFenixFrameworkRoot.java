@@ -130,8 +130,6 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
 
             checkAllMethodsOverridingPredicates();
         } else {
-            System.out.println("[DomainFenixFrameworkRoot] Deleting all DomainMetaObjects, DomainMetaClasses, "
-                    + "DomainConsistencyPredicates and DomainDependenceRecords");
             deleteAllMetaObjectsAndClasses();
         }
     }
@@ -668,12 +666,16 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * @see Config#canCreateMetaObjects
      */
     private void deleteAllMetaObjectsAndClasses() {
-        for (DomainMetaClass metaClass : getDomainMetaClasses()) {
-            // Commits the current, and starts a new write transaction.
-            // This is necessary to split the load of the mass deletion of objects among several transactions.
-            // Each transaction fully processes one DomainMetaClass.
-            Transaction.beginTransaction();
-            metaClass.delete();
+        if (hasAnyDomainMetaClasses()) {
+            System.out.println("[DomainFenixFrameworkRoot] Deleting all DomainMetaObjects, DomainMetaClasses, "
+                    + "DomainConsistencyPredicates and DomainDependenceRecords");
+            for (DomainMetaClass metaClass : getDomainMetaClasses()) {
+                // Commits the current, and starts a new write transaction.
+                // This is necessary to split the load of the mass deletion of objects among several transactions.
+                // Each transaction fully processes one DomainMetaClass.
+                Transaction.beginTransaction();
+                metaClass.delete();
+            }
         }
     }
 }
