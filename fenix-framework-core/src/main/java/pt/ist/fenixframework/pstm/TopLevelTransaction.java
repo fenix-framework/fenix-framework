@@ -46,7 +46,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     private static final Object COMMIT_LISTENERS_LOCK = new Object();
     private static volatile Cons<CommitListener> COMMIT_LISTENERS = Cons.empty();
 
-
     public static void addCommitListener(CommitListener listener) {
         synchronized (COMMIT_LISTENERS_LOCK) {
             COMMIT_LISTENERS = COMMIT_LISTENERS.cons(listener);
@@ -290,7 +289,8 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     }
 
     @Override
-    public <T> void setBoxValueDelayed(VBox<T> vbox, T value) {
+    public <T> void setBoxValueInParent(VBox<T> vbox, T value) {
+        // A TopLevelTransaction has no parent, so just set the box value.
         setBoxValue(vbox, value);
     }
 

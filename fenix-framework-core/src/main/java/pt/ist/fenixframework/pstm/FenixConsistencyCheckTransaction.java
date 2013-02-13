@@ -96,8 +96,8 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction implements
     }
 
     @Override
-    public <T> void setBoxValueDelayed(VBox<T> vbox, T value) {
-        parent.setBoxValueDelayed(vbox, value);
+    public <T> void setBoxValueInParent(VBox<T> vbox, T value) {
+        parent.setBoxValueInParent(vbox, value);
     }
 
     @Override

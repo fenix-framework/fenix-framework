@@ -17,7 +17,7 @@ public interface FenixTransaction {
 
     public <T> T getBoxValue(VBox<T> vbox, Object obj, String attr);
 
-    public <T> void setBoxValueDelayed(VBox<T> box, T value);
+    public <T> void setBoxValueInParent(VBox<T> box, T value);
 
     public <T> T getPerTxValue(PerTxBox<T> box, T initial);
 

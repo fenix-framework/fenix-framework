@@ -110,7 +110,9 @@ public class RelationList<E1 extends DomainObject, E2 extends DomainObject> exte
         }
 
         if (newSet != origSet) {
-            box.putDelayed(newSet);
+            // Because a nested FenixConsistencyCheckTransaction cannot perform writes, but may need to
+            // consolidate the elements of a relation changed by the parent transaction
+            box.putInParent(newSet);
         }
     }
 
