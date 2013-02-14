@@ -73,7 +73,7 @@ public class MetadataManager {
 	jcd.setIgnoreAutoCommitExceptions(false);
 
 	ConnectionPoolDescriptor cpd = jcd.getConnectionPoolDescriptor();
-	cpd.setMaxActive(61);
+	cpd.setMaxActive(-1);
 	cpd.setMaxIdle(5);
 	cpd.setMaxWait(5000);
 	cpd.setMinEvictableIdleTimeMillis(600000);
@@ -82,7 +82,7 @@ public class MetadataManager {
 	cpd.setTestOnReturn(false);
 	cpd.setTestWhileIdle(false);
 	cpd.setTimeBetweenEvictionRunsMillis(-1L);
-	cpd.setWhenExhaustedAction((byte) 1);
+	cpd.setWhenExhaustedAction((byte) 2);
 	cpd.setValidationQuery("select 1");
 	cpd.setLogAbandoned(false);
 	cpd.setRemoveAbandoned(false);
