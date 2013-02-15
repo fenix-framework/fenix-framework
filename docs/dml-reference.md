@@ -263,107 +263,81 @@ ensure that no automatic serialization occurs on entities, which could be the
 case if the externalization of a value type simply returned an object that
 actually contained a reference to an entity.
 
-## Slot indexation and query
+## Indexes Module
 
-Usage:
+This module allows indexing domain objects in a relation efficiently. These are implemented using only components internal to the framework. Namely, it relies on internal backend-independent collections to maintain the indexes persistently and for fast querying using automatically generated methods.
+
 
 ### Changes in the Domain Modeling Language
 
-DML now supports metadata associated with each slot of a domain class. This
-way, creating an index over a slot boils down to adding the metadata to the
-respective slot using a JSON structure. Example:
+DML an additional attribute for each relation. This way, creating an indexed relation boils down to:
 
-    class Person {
-        {"unique":true} String email;
-        String name;
+<pre>
+class Person {}
+
+class Address {
+    String country;
+}
+
+relation PersonHasAddresses {
+    Person playsRole owner;
+    Address playsRole address {
+        multiplicity 0..*;
+        '''indexed by country;'''
     }
+}
+</pre>
 
-This newly introduced metadata states that the email of a Person is considered
-to be unique. This domain information is then used to create an index of
-instances of Person using their emails.
-
-The usage of JSON (as a universal and widely known language) to compose the
-metadata is the start of plans that shall lead to adding arbitrary metadata to
-slots in DML. For now, the DML compiler only supports the usage described
-above.
+The attribute that instructs the framework to create the index is stated in bold. This means that each Person has at most one Address with a given country. If the index is deemed not to be unique, then the it must be declared in the following way: '''indexed by country #(*);'''
 
 
-### Compilation step
+### Compilation Step
 
-After enhancing the application's DML files with some unique slots, you must
-recompile the application so that the newly generated domain classes (the
-*_Base.java ones) are upgraded with index search methods.
-
+After enhancing the application's DML files with indexed relations you must recompile the application so that the newly generated domain classes (the *_Base.java ones) are upgraded with index search methods.
 
 ### Changing the application code
 
-For each "unique" slot in some domain class, the previous step generated a
-static method in the respective domain class. The convention used is that the
-search by index queries are provided in methods:
+For each indexed relation, the previous step generates a new getter in the relation that receives as argument a possible value for the index, and returns the corresponding object(s) of the relation that have that value. The convention used is that the search by index queries are provided in methods:
 
-    TypeOfDomainClass DomainClassName.findByNameOfSlot(TypeOfSlot)
+    TypeOfDomainClassIndexed get<RelationName>By<SlotNameOfIndexedObject>(TypeOfSlotOfIndexedObject)
 
-This means that the search methods receive an argument of the type of the
-indexed slot, and the return is of the type of the domain class that contains
-the indexed slot.
+This means that the search methods receive an argument of the type of the attribute that we are using for the index. Moreover, the return is of the type of the domain class in the "-to-many" side of the relation.
+Whenever the index is not unique (stated by an arbitrary cardinality in the DML file), the result is instead a Set.
 
 Using the example presented above, it would generate code as follows:
 
-
     public class Person_Base {
-      (...)
-      public static Person findByEmail(String email) {
         (...)
-      }
+        public Address getAddressByCountry(String country) 
+        (...)
     }
 
-This allows a search of a given Person by its email. The typical usage is to
-refactor code similar to the following:
 
-    String email = (...) // some email
-    Person p = null;
-    for (Person person : MyApplication.getRoot().getUsers()) {
-      if (person.getEmail().equals(email)) {
-         p = person;
-         break;
-      }
+This allows an efficient search for a given Address. The typical usage is to refactor code similar to the following:
+
+    Person john  = (...) // get John
+    for (Address addr : john.getAddress()) {
+        if (addr.getCountry().equals("Portugal")) {
+            john.payTaxes(addr);
+            return;
+        }
     }
-    (...) // use Person p for business logic
+
 
 ...into:
 
-    String email = (...) // some email
-    Person p = Person.findByEmail(email);
-    (...) // use Person p for business logic
+    Person john  = (...) // get John
+    john.payTaxes(john.getAddressByCountry("Portugal"));
+    
 
-Not only the code becomes clearer, but also the implementation of the index is
-such that it performs better than the naive iterations/search. Benchmarking in
-TPC-W showed 30% to 70% better performance throughout the different workloads.
+Not only the code becomes clearer, but also the implementation of the index is such that it performs better than the naive iterations/search.
 
+## Design
 
-### Limitations
+The design of these indexes explores the DML based collections in the framework. These collections export a key-value API and are used to store the objects of relations "-to-many". For instance, the above example would have a collection holding John's addresses. To efficiently fetch an address with a given country, we use as keys in that relation the country of the addresses. This means that an indexed relation poses no overheads at all.
 
- 1. If a slot is declared as unique, we rely on the domain model programmer to
-be accounted for that action. This means that we do not perform consistency
-verifications over that predicate (at least for now). Having said that, if
-such statement is violated at runtime, the behavior of a search query for a
-non-unique key K is to return the instance that had its K slot last changed.
+On the other hand, if the relation is indexed using an attribute that is not unique, then we batch the objects that collide in the index key. These batches use a collection, meaning that the collection of the relation actually holds several collections. This is decided statically upon compilation of the application, meaning that no runtime checks are performed, and the normal case of unique indexation is as efficient as we can get.
 
- 2.  We do not index objects whose indexed slots have had their values set to
-'null'. This means that 'null' is not considered a unique value.
-
- 3. Assume that your application was already working for some time, and thus
-has contents in its persistence. Now you add metadata to your DML to declare
-some slots as unique, and change some code to use the newly added index
-searches. The next time you bootstrap the application, we detect the newly
-added unique slots' declarations, and create the indexes. Yet, we do not
-populate them. This poses a limitation/problem if your persistence already has
-contents (as stated in this example)! As a workaround, using the above
-example, when you add the new unique slot 'email' to 'Person', and your
-database already contains instances of 'Person', you may run a script after
-booting the application that sets the email of every 'Person' instance to its
-own email (basically doing p.setEmail(p.getEmail()) ). In the future, we may
-provide an automatization of this process.
 
 
 <!-- Local Variables: -->
