@@ -283,12 +283,12 @@ relation PersonHasAddresses {
     Person playsRole owner;
     Address playsRole address {
         multiplicity 0..*;
-        '''indexed by country;'''
+        indexed by country;
     }
 }
 </pre>
 
-The attribute that instructs the framework to create the index is stated in bold. This means that each Person has at most one Address with a given country. If the index is deemed not to be unique, then the it must be declared in the following way: '''indexed by country #(*);'''
+The attribute that instructs the framework to create the index is stated in bold. This means that each Person has at most one Address with a given country. If the index is deemed not to be unique, then the it must be declared in the following way: indexed by country #(*);
 
 
 ### Compilation Step
