@@ -13,11 +13,9 @@ import javax.transaction.xa.XAResource;
 import pt.ist.fenixframework.FenixAbstractTransaction;
 
 /**
- * Abstract implementation of {@link pt.ist.fenixframework.Transaction}. This
- * class provides life-cycle management for free, as well as an implementation
- * of TxIntrospector, requiring concrete implementations to provide the behavior
- * for committing/rolling back.
- * 
+ * Abstract implementation of {@link pt.ist.fenixframework.Transaction}. This class provides life-cycle management for free.
+ * Concrete implementations should provide the behavior for committing/rolling back, as well as an implementation of
+ * TxIntrospector.
  */
 public abstract class AbstractTransaction extends FenixAbstractTransaction {
 
