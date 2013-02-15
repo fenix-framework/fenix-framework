@@ -585,6 +585,9 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
         Cons<Iterator<DependenceRecord>> iteratorsList = Cons.empty();
 
+        // The body of the for may cause the consolidation of elements of RelationLists,
+        // which in turn modifies the boxesWritten.
+        // So, create a copy of the boxesWritten, to avoid ConcurrentModificationExceptions
         Set<jvstm.VBox> currentBoxesWritten = new HashSet<jvstm.VBox>(boxesWritten.keySet());
         for (jvstm.VBox box : currentBoxesWritten) {
             Depended dep = ((AbstractDomainObject) ((VBox) box).getOwnerObject()).getDomainMetaObject();
