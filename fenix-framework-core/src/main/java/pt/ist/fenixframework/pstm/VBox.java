@@ -77,7 +77,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, dml.runt
     }
 
     protected void persistentLoad(E value) {
-        int txNumber = Transaction.current().getNumber();
+        int txNumber = jvstm.Transaction.current().getNumber();
         persistentLoad(value, txNumber);
     }
 

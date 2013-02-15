@@ -215,7 +215,7 @@ public abstract class AbstractDomainObject implements DomainObject, dml.runtime.
     }
 
     public void readFromResultSet(java.sql.ResultSet rs) throws java.sql.SQLException {
-        int txNumber = Transaction.current().getNumber();
+        int txNumber = jvstm.Transaction.current().getNumber();
         readSlotsFromResultSet(rs, txNumber);
         readMetaObjectFromResultSet(rs, txNumber);
     }

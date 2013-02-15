@@ -6,14 +6,13 @@ import org.joda.time.Partial;
 public class PartialExternalization {
 
     private static DateTimeFieldType[] DATE_TIME_FIELDS = new DateTimeFieldType[] { DateTimeFieldType.era(),
-	    DateTimeFieldType.yearOfEra(), DateTimeFieldType.centuryOfEra(), DateTimeFieldType.yearOfCentury(),
-	    DateTimeFieldType.year(), DateTimeFieldType.monthOfYear(), DateTimeFieldType.dayOfMonth(),
-	    DateTimeFieldType.weekyearOfCentury(), DateTimeFieldType.weekyear(), DateTimeFieldType.weekOfWeekyear(),
-	    DateTimeFieldType.dayOfWeek(), DateTimeFieldType.halfdayOfDay(), DateTimeFieldType.hourOfHalfday(),
-	    DateTimeFieldType.clockhourOfHalfday(), DateTimeFieldType.clockhourOfDay(), DateTimeFieldType.hourOfDay(),
-	    DateTimeFieldType.minuteOfDay(), DateTimeFieldType.minuteOfHour(), DateTimeFieldType.secondOfDay(),
-	    DateTimeFieldType.secondOfMinute(), DateTimeFieldType.millisOfDay(), DateTimeFieldType.millisOfSecond() };
-
+            DateTimeFieldType.yearOfEra(), DateTimeFieldType.centuryOfEra(), DateTimeFieldType.yearOfCentury(),
+            DateTimeFieldType.year(), DateTimeFieldType.monthOfYear(), DateTimeFieldType.dayOfMonth(),
+            DateTimeFieldType.weekyearOfCentury(), DateTimeFieldType.weekyear(), DateTimeFieldType.weekOfWeekyear(),
+            DateTimeFieldType.dayOfWeek(), DateTimeFieldType.halfdayOfDay(), DateTimeFieldType.hourOfHalfday(),
+            DateTimeFieldType.clockhourOfHalfday(), DateTimeFieldType.clockhourOfDay(), DateTimeFieldType.hourOfDay(),
+            DateTimeFieldType.minuteOfDay(), DateTimeFieldType.minuteOfHour(), DateTimeFieldType.secondOfDay(),
+            DateTimeFieldType.secondOfMinute(), DateTimeFieldType.millisOfDay(), DateTimeFieldType.millisOfSecond() };
 
     public static String partialToString(Partial partial) {
         StringBuilder buf = new StringBuilder();
@@ -34,10 +33,10 @@ public class PartialExternalization {
     }
 
     public static Partial partialFromString(String partialAsString) {
-	// special case: empty string means "any date", i.e. new Partial()
-	if (partialAsString == "") {
-	    return new Partial();
-	}
+        // special case: empty string means "any date", i.e. new Partial()
+        if (partialAsString == "") {
+            return new Partial();
+        }
 
         String[] fieldValues = partialAsString.split(",");
 
@@ -64,24 +63,24 @@ public class PartialExternalization {
             } catch (NumberFormatException e) {
                 throw new PartialFormatException("value for field '" + name + "' is not a number: " + fieldValueParts[1], e);
             }
-            
+
             usedFields[i] = fieldType;
             usedValues[i] = value;
         }
-        
+
         return new Partial(usedFields, usedValues);
     }
 
     private static DateTimeFieldType getFieldByName(String name) {
-	for (int i = 0; i < DATE_TIME_FIELDS.length; i++) {
-	    DateTimeFieldType fieldType = DATE_TIME_FIELDS[i];
+        for (int i = 0; i < DATE_TIME_FIELDS.length; i++) {
+            DateTimeFieldType fieldType = DATE_TIME_FIELDS[i];
 
-	    if (name.equals(fieldType.getName())) {
-		return fieldType;
-	    }
-	}
+            if (name.equals(fieldType.getName())) {
+                return fieldType;
+            }
+        }
 
-	return null;
+        return null;
     }
 
 }

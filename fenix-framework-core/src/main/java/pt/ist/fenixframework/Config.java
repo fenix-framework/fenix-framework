@@ -14,8 +14,7 @@ import pt.ist.fenixframework.pstm.dml.FenixDomainModelWithOCC;
 /**
  * An instance of the <code>Config</code> class bundles together the
  * initialization parameters used by the Fenix Framework. Therefore, before
- * initializing the framework (via the call to the
- * <code>FenixFramework.initialize(Config)</code> method), the programmer should
+ * initializing the framework (via the call to the <code>FenixFramework.initialize(Config)</code> method), the programmer should
  * create an instance of <code>Config</code> with the correct values for each of
  * the parameters.
  * 
@@ -34,11 +33,11 @@ import pt.ist.fenixframework.pstm.dml.FenixDomainModelWithOCC;
  * 
  * Config config = new Config() {
  *     {
- * 	this.appName = &quot;MyAppName&quot;;
- * 	this.domainModelPath = &quot;path/to/domain.dml&quot;;
- * 	this.dbAlias = &quot;//somehost:3306/databaseName&quot;;
- * 	this.dbUsername = &quot;dbuser&quot;;
- * 	this.dbPassword = &quot;dpPass&quot;;
+ *         this.appName = &quot;MyAppName&quot;;
+ *         this.domainModelPath = &quot;path/to/domain.dml&quot;;
+ *         this.dbAlias = &quot;//somehost:3306/databaseName&quot;;
+ *         this.dbUsername = &quot;dbuser&quot;;
+ *         this.dbPassword = &quot;dpPass&quot;;
  *     }
  * };
  * 
@@ -124,8 +123,8 @@ public class Config {
     /**
      * This <strong>optional</strong> parameter specifies whether an error
      * should be thrown if during a transaction an object that was deleted
-     * during the transaction is subsequently changed. The default value of
-     * <code>true</code> will cause an <code>Error</code> to be thrown, whereas
+     * during the transaction is subsequently changed. The default value of <code>true</code> will cause an <code>Error</code> to
+     * be thrown, whereas
      * a value of <code>false</code> will cause only a warning to be issued.
      */
     protected boolean errorIfChangingDeletedObject = true;
@@ -196,13 +195,12 @@ public class Config {
 
     /**
      * This <strong>optional</strong> parameter indicates whether the framework
-     * should automatically create {@link DomainMetaObject}s and
-     * {@link DomainMetaClass}es. Only if the value is true will a consistency
+     * should automatically create {@link DomainMetaObject}s and {@link DomainMetaClass}es. Only if the value is true will a
+     * consistency
      * predicate of a domain object be allowed to read values from other
      * objects. The default value is false.<br>
      * 
-     * If this parameter is set to true, then,
-     * {@link Config#errorfIfDeletingObjectNotDisconnected} must also be set to
+     * If this parameter is set to true, then, {@link Config#errorfIfDeletingObjectNotDisconnected} must also be set to
      * true.<br>
      * <br>
      * <strong>Note: Setting this parameter to true causes the fenix-framework
@@ -224,123 +222,123 @@ public class Config {
     protected boolean canCreateDomainMetaObjects = false;
 
     private static void checkRequired(Object obj, String fieldName) {
-	if (obj == null) {
-	    missingRequired(fieldName);
-	}
+        if (obj == null) {
+            missingRequired(fieldName);
+        }
     }
 
     private static void missingRequired(String fieldName) {
-	throw new Error("The required field '" + fieldName + "' was not specified in the FenixFramework config.");
+        throw new Error("The required field '" + fieldName + "' was not specified in the FenixFramework config.");
     }
 
     private void insertConnectionEncoding(String encoding) {
-	StringBuilder encodingParams = new StringBuilder();
-	encodingParams.append("useUnicode=true&characterEncoding=" + encoding + "&clobCharacterEncoding=" + encoding
-		+ "&characterSetResults=" + encoding);
+        StringBuilder encodingParams = new StringBuilder();
+        encodingParams.append("useUnicode=true&characterEncoding=" + encoding + "&clobCharacterEncoding=" + encoding
+                + "&characterSetResults=" + encoding);
 
-	int questionMarkIndex = this.dbAlias.indexOf('?');
+        int questionMarkIndex = this.dbAlias.indexOf('?');
 
-	if (questionMarkIndex == -1) { // no parameters yet
-	    this.dbAlias = this.dbAlias + '?' + encodingParams;
-	} else {
-	    String prefix = this.dbAlias.substring(0, questionMarkIndex + 1); // include
-	    // the
-	    // question
-	    // mark
-	    String rest = this.dbAlias.substring(questionMarkIndex + 1);
+        if (questionMarkIndex == -1) { // no parameters yet
+            this.dbAlias = this.dbAlias + '?' + encodingParams;
+        } else {
+            String prefix = this.dbAlias.substring(0, questionMarkIndex + 1); // include
+            // the
+            // question
+            // mark
+            String rest = this.dbAlias.substring(questionMarkIndex + 1);
 
-	    this.dbAlias = prefix + encodingParams + '&' + rest;
-	}
+            this.dbAlias = prefix + encodingParams + '&' + rest;
+        }
     }
 
     public void checkConfig() {
-	if ((domainModelPath == null) && (domainModelPaths == null)) {
-	    missingRequired("domainModelPath or domainModelPaths");
-	}
+        if ((domainModelPath == null) && (domainModelPaths == null)) {
+            missingRequired("domainModelPath or domainModelPaths");
+        }
 
-	if ((domainModelPath != null) && (domainModelPaths != null)) {
-	    throw new Error("It is not possible to specify both the 'domainModelPath' "
-		    + "and 'domainModelPaths' parameters in the FenixFramework config.");
-	}
+        if ((domainModelPath != null) && (domainModelPaths != null)) {
+            throw new Error("It is not possible to specify both the 'domainModelPath' "
+                    + "and 'domainModelPaths' parameters in the FenixFramework config.");
+        }
 
-	checkRequired(dbAlias, "dbAlias");
-	checkRequired(dbUsername, "dbUsername");
-	checkRequired(dbPassword, "dbPassword");
-	checkRequired(domainModelClass, "domainModelClass");
-	insertConnectionEncoding("UTF-8");
+        checkRequired(dbAlias, "dbAlias");
+        checkRequired(dbUsername, "dbUsername");
+        checkRequired(dbPassword, "dbPassword");
+        checkRequired(domainModelClass, "domainModelClass");
+        insertConnectionEncoding("UTF-8");
     }
 
     public String[] getDomainModelPaths() {
-	// either domainModelPaths or domainModelPath is null
-	return (domainModelPath != null) ? new String[] { domainModelPath } : domainModelPaths;
+        // either domainModelPaths or domainModelPath is null
+        return (domainModelPath != null) ? new String[] { domainModelPath } : domainModelPaths;
     }
 
     public List<URL> getDomainModelURLs() {
-	final List<URL> urls = new ArrayList<URL>();
-	for (final String domainModelPath : getDomainModelPaths()) {
-	    URL url = this.getClass().getResource(domainModelPath);
-	    if (url == null) {
-		try {
-		    url = new File(domainModelPath).toURI().toURL();
-		} catch (MalformedURLException mue) {
-		    throw new Error("FenixFramework config error: wrong domainModelPath '" + domainModelPath + "'");
-		}
-	    }
-	    urls.add(url);
-	}
-	return urls;
+        final List<URL> urls = new ArrayList<URL>();
+        for (final String domainModelPath : getDomainModelPaths()) {
+            URL url = this.getClass().getResource(domainModelPath);
+            if (url == null) {
+                try {
+                    url = new File(domainModelPath).toURI().toURL();
+                } catch (MalformedURLException mue) {
+                    throw new Error("FenixFramework config error: wrong domainModelPath '" + domainModelPath + "'");
+                }
+            }
+            urls.add(url);
+        }
+        return urls;
     }
 
     public String getDbAlias() {
-	return dbAlias;
+        return dbAlias;
     }
 
     public String getDbUsername() {
-	return dbUsername;
+        return dbUsername;
     }
 
     public String getDbPassword() {
-	return dbPassword;
+        return dbPassword;
     }
 
     public String getAppName() {
-	return appName;
+        return appName;
     }
 
     public boolean isErrorIfChangingDeletedObject() {
-	return errorIfChangingDeletedObject;
+        return errorIfChangingDeletedObject;
     }
 
     public boolean isErrorfIfDeletingObjectNotDisconnected() {
-	return errorfIfDeletingObjectNotDisconnected;
+        return errorfIfDeletingObjectNotDisconnected;
     }
 
     public boolean getCreateRepositoryStructureIfNotExists() {
-	return createRepositoryStructureIfNotExists;
+        return createRepositoryStructureIfNotExists;
     }
 
     public boolean getUpdateRepositoryStructureIfNeeded() {
-	return updateRepositoryStructureIfNeeded;
+        return updateRepositoryStructureIfNeeded;
     }
 
     public Class getRootClass() {
-	return rootClass;
+        return rootClass;
     }
 
     public boolean getCollectDataAccessPatterns() {
-	return collectDataAccessPatterns;
+        return collectDataAccessPatterns;
     }
 
     public Class<? extends FenixDomainModel> getDomainModelClass() {
-	return domainModelClass;
+        return domainModelClass;
     }
 
     public FenixFrameworkPlugin[] getPlugins() {
-	return plugins;
+        return plugins;
     }
 
     public String getCollectDataAccessPatternsPath() {
-	return collectDataAccessPatternsPath;
+        return collectDataAccessPatternsPath;
     }
 
     /**
@@ -351,10 +349,10 @@ public class Config {
      * @see DomainMetaObject#delete()
      */
     public void checkIsValid() {
-	if ((canCreateDomainMetaObjects) && (!errorfIfDeletingObjectNotDisconnected)) {
-	    throw new Error(
-		    "If the parameter canCreateDomainMetaObjects is set to true, then errorfIfDeletingObjectNotDisconnected must also be set to true.");
-	}
+        if ((canCreateDomainMetaObjects) && (!errorfIfDeletingObjectNotDisconnected)) {
+            throw new Error(
+                    "If the parameter canCreateDomainMetaObjects is set to true, then errorfIfDeletingObjectNotDisconnected must also be set to true.");
+        }
     }
 
 }

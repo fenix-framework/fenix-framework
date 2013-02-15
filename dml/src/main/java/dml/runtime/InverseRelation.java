@@ -1,8 +1,5 @@
 package dml.runtime;
 
-import java.util.LinkedList;
-import java.util.ListIterator;
-
 public class InverseRelation<C1,C2> implements Relation<C1,C2> {
     private Relation<C2,C1> inverseRelation;
     //private LinkedList<InverseListener<C2,C1>> inverseListeners = null;
@@ -11,14 +8,17 @@ public class InverseRelation<C1,C2> implements Relation<C1,C2> {
         this.inverseRelation = inverseRelation;
     }
 
+    @Override
     public void add(C1 o1, C2 o2) {
         inverseRelation.add(o2, o1);
     }
 
+    @Override
     public void remove(C1 o1, C2 o2) {
         inverseRelation.remove(o2, o1);
     }
 
+    @Override
     public Relation<C2,C1> getInverseRelation() {
         return inverseRelation;
     }

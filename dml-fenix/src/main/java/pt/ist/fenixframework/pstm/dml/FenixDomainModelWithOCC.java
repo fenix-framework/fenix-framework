@@ -32,35 +32,35 @@ public class FenixDomainModelWithOCC extends FenixDomainModel {
      */
     @Override
     public void finalizeDomain(boolean checkForMissingExternals) {
-	super.finalizeDomain(checkForMissingExternals);
-	final int domainClassTopHierarchyLevel = classes.containsKey("DomainObject") ? 1 : 0;
-	for (final DomainClass domainClass : classes.values()) {
-	    final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
-	    if (domainClassHierarchyLevel > domainClassTopHierarchyLevel) {
-		final DomainClass domainObjectDescendent = findDirectDomainObjectDecendent(domainClass,
-			domainClassTopHierarchyLevel);
-		final Slot ojbConcreteClassSlot = domainObjectDescendent.findSlot("ojbConcreteClass");
-		if (ojbConcreteClassSlot == null) {
-		    domainObjectDescendent.addSlot(new Slot("ojbConcreteClass", findValueType("String")));
-		}
-	    }
-	}
+        super.finalizeDomain(checkForMissingExternals);
+        final int domainClassTopHierarchyLevel = classes.containsKey("DomainObject") ? 1 : 0;
+        for (final DomainClass domainClass : classes.values()) {
+            final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
+            if (domainClassHierarchyLevel > domainClassTopHierarchyLevel) {
+                final DomainClass domainObjectDescendent =
+                        findDirectDomainObjectDecendent(domainClass, domainClassTopHierarchyLevel);
+                final Slot ojbConcreteClassSlot = domainObjectDescendent.findSlot("ojbConcreteClass");
+                if (ojbConcreteClassSlot == null) {
+                    domainObjectDescendent.addSlot(new Slot("ojbConcreteClass", findValueType("String")));
+                }
+            }
+        }
 
-	checkForRepeatedSlots();
+        checkForRepeatedSlots();
     }
 
     private DomainClass findDirectDomainObjectDecendent(final DomainClass domainClass, int domainClassTopHierarchyLevel) {
-	final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
-	return domainClassHierarchyLevel == domainClassTopHierarchyLevel ? domainClass : findDirectDomainObjectDecendent(
-		(DomainClass) domainClass.getSuperclass(), domainClassTopHierarchyLevel);
+        final int domainClassHierarchyLevel = calculateHierarchyLevel(domainClass);
+        return domainClassHierarchyLevel == domainClassTopHierarchyLevel ? domainClass : findDirectDomainObjectDecendent(
+                (DomainClass) domainClass.getSuperclass(), domainClassTopHierarchyLevel);
     }
 
     private int calculateHierarchyLevel(final DomainClass domainClass) {
-	final DomainEntity domainEntity = domainClass.getSuperclass();
-	return domainEntity == null || !isDomainClass(domainEntity) ? 0 : calculateHierarchyLevel((DomainClass) domainEntity) + 1;
+        final DomainEntity domainEntity = domainClass.getSuperclass();
+        return domainEntity == null || !isDomainClass(domainEntity) ? 0 : calculateHierarchyLevel((DomainClass) domainEntity) + 1;
     }
 
     private boolean isDomainClass(final DomainEntity domainEntity) {
-	return domainEntity instanceof DomainClass;
+        return domainEntity instanceof DomainClass;
     }
 }

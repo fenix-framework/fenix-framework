@@ -17,49 +17,49 @@ public class FenixFrameworkProject {
     private String rootDomainClassFullyQualifiedName;
 
     public FenixFrameworkProject withArtifact(FenixFrameworkArtifact artifact) {
-	this.artifact = artifact;
-	return this;
+        this.artifact = artifact;
+        return this;
     }
 
     public FenixFrameworkProject withPersistenceInfo(PersistenceInfo persistenceInfo) {
-	this.persistenceInfo = persistenceInfo;
-	return this;
+        this.persistenceInfo = persistenceInfo;
+        return this;
     }
 
     public FenixFrameworkProject withRootDomainClass(String rootDomainClassFullyQualifiedName) {
-	this.rootDomainClassFullyQualifiedName = rootDomainClassFullyQualifiedName;
-	return this;
+        this.rootDomainClassFullyQualifiedName = rootDomainClassFullyQualifiedName;
+        return this;
     }
 
     public FenixFrameworkArtifact getArtifact() {
-	return artifact;
+        return artifact;
     }
 
     public PersistenceInfo getPersistenceInfo() {
-	return persistenceInfo;
+        return persistenceInfo;
     }
 
     public String getRootDomainClassFullyQualifiedName() {
-	return rootDomainClassFullyQualifiedName;
+        return rootDomainClassFullyQualifiedName;
     }
 
-    public static FenixFrameworkProject fromProperties(Properties properties) throws FenixFrameworkProjectException, IOException{
-	String rootDomainClassFullyQualifiedName = properties.getProperty(ROOT_DOMAIN_CLASS_KEY);
-	if(StringUtils.isBlank(rootDomainClassFullyQualifiedName)) {
-	    throw new MissingRootDomainClassException();
-	}
-	FenixFrameworkProject fenixFrameworkProject = new FenixFrameworkProject()
-		.withArtifact(FenixFrameworkArtifact.fromProperties(properties))
-		.withPersistenceInfo(PersistenceInfo.fromProperties(properties))
-		.withRootDomainClass(rootDomainClassFullyQualifiedName);
-	fenixFrameworkProject.validate();
-	return fenixFrameworkProject;
+    public static FenixFrameworkProject fromProperties(Properties properties) throws FenixFrameworkProjectException, IOException {
+        String rootDomainClassFullyQualifiedName = properties.getProperty(ROOT_DOMAIN_CLASS_KEY);
+        if (StringUtils.isBlank(rootDomainClassFullyQualifiedName)) {
+            throw new MissingRootDomainClassException();
+        }
+        FenixFrameworkProject fenixFrameworkProject =
+                new FenixFrameworkProject().withArtifact(FenixFrameworkArtifact.fromProperties(properties))
+                        .withPersistenceInfo(PersistenceInfo.fromProperties(properties))
+                        .withRootDomainClass(rootDomainClassFullyQualifiedName);
+        fenixFrameworkProject.validate();
+        return fenixFrameworkProject;
 
     }
 
     protected void validate() throws FenixFrameworkProjectException {
-	artifact.validate();
-	persistenceInfo.validate();
+        artifact.validate();
+        persistenceInfo.validate();
     }
-    
+
 }

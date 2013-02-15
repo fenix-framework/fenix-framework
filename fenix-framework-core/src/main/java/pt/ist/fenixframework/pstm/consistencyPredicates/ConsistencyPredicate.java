@@ -25,8 +25,7 @@ import jvstm.cps.ConsistencyException;
 public @interface ConsistencyPredicate {
     /**
      * The subclass of {@link ConsistencyException} that the framework should
-     * throw, whenever the object is not consistent. The default value is
-     * <code>ConsistencyException.class</code>.
+     * throw, whenever the object is not consistent. The default value is <code>ConsistencyException.class</code>.
      */
     Class<? extends ConsistencyException> value() default ConsistencyException.class;
 

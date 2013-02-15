@@ -1,6 +1,5 @@
 package pt.ist.fenixframework.pstm;
 
-import org.joda.time.DateTimeZone;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
@@ -46,7 +45,6 @@ public class ToSqlConverter {
         return value;
     }
 
-    
     // wrapper types
     public static Boolean getValueForBoolean(Boolean value) {
         return value;
@@ -111,7 +109,7 @@ public class ToSqlConverter {
         // java.sql.Time(value.getMillisOfDay()), because, in that
         // case, the millis would be interpreted as being an instant
         // relative to the 01/01/1970 00:00:00 GMT.
-	return (value == null ? null : new java.sql.Time(value.getHourOfDay(), value.getMinuteOfHour(), value.getSecondOfMinute()));
+        return (value == null ? null : new java.sql.Time(value.getHourOfDay(), value.getMinuteOfHour(), value.getSecondOfMinute()));
     }
 
     public static String getValueForPartial(Partial value) {

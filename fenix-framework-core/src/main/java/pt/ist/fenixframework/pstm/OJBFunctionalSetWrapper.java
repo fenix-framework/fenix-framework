@@ -9,22 +9,23 @@ import org.apache.ojb.broker.ManageableCollection;
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerException;
 
-
 public class OJBFunctionalSetWrapper implements ManageableCollection {
     private static final Iterator EMPTY_ITER = new Iterator() {
-	    public boolean hasNext() {
-		return false;
-	    }
-	    
-	    public Object next() {
-		throw new NoSuchElementException();
-	    }
-	    
-	    public void remove() {
-		throw new UnsupportedOperationException();
-	    }
-	};
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
 
+        @Override
+        public Object next() {
+            throw new NoSuchElementException();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    };
 
     private FunctionalSet elements = DOFunctionalSet.EMPTY;
 
@@ -32,25 +33,29 @@ public class OJBFunctionalSetWrapper implements ManageableCollection {
     }
 
     public FunctionalSet getElements() {
-	return elements;
+        return elements;
     }
 
+    @Override
     public void ojbAdd(Object anObject) {
-	elements = elements.addUnique(anObject);
+        elements = elements.addUnique(anObject);
     }
 
+    @Override
     public void ojbAddAll(ManageableCollection otherCollection) {
-	Iterator iter = ((OJBFunctionalSetWrapper)otherCollection).getElements().iterator();
-	while (iter.hasNext()) {
-	    ojbAdd(iter.next());
-	}
+        Iterator iter = ((OJBFunctionalSetWrapper) otherCollection).getElements().iterator();
+        while (iter.hasNext()) {
+            ojbAdd(iter.next());
+        }
     }
 
+    @Override
     public Iterator ojbIterator() {
-	return EMPTY_ITER;
+        return EMPTY_ITER;
     }
 
+    @Override
     public void afterStore(PersistenceBroker broker) throws PersistenceBrokerException {
-	// empty
+        // empty
     }
 }

@@ -108,7 +108,7 @@ public class FenixFramework {
             t.printStackTrace();
             System.out.println("ERROR: An exception was thrown during the initialization of the DomainFenixFrameworkRoot.");
         } finally {
-            if (Transaction.isInTransaction()) {
+            if (jvstm.Transaction.isInTransaction()) {
                 Transaction.abort();
             }
         }

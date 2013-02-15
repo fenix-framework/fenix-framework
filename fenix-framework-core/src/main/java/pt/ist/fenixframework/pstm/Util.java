@@ -8,19 +8,28 @@ import java.util.NoSuchElementException;
 
 import pt.ist.fenixframework.FenixFramework;
 
-
 class Util {
 
     private static final Iterator EMPTY_ITER = new Iterator() {
-        public boolean hasNext() { return false; }
-        public Object next() { throw new NoSuchElementException(); }
-        public void remove() { throw new UnsupportedOperationException(); }
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public Object next() {
+            throw new NoSuchElementException();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     };
 
     public static <T> Iterator<T> emptyIterator() {
-        return (Iterator<T>)EMPTY_ITER;
+        return EMPTY_ITER;
     }
-
 
     private static final String uidString = (new UID()).toString();
 
@@ -38,7 +47,7 @@ class Util {
             throw new Error("Couldn't get this host address, which is needed to register in the database");
         }
     }
-	
+
     public static String getAppName() {
         return FenixFramework.getConfig().getAppName();
     }
@@ -46,7 +55,7 @@ class Util {
     public static String getUsername() {
         final String user = System.getenv("USER");
         final String username = System.getenv("USERNAME");
-        
-        return (user != null) ? user : (username != null) ? username : "unknown"; 
+
+        return (user != null) ? user : (username != null) ? username : "unknown";
     }
 }

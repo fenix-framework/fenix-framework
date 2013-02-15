@@ -18,11 +18,13 @@ public class WriteOnlyPersistentField extends FenixPersistentField {
         this.setterMethod.setAccessible(true);
     }
 
+    @Override
     public Class getType() {
         // we are sure that the setter method has one parameter
         return setterMethod.getParameterTypes()[0];
     }
 
+    @Override
     public void set(Object obj, Object value) throws MetadataException {
         if (obj == null) {
             // is this really needed?
@@ -32,12 +34,12 @@ public class WriteOnlyPersistentField extends FenixPersistentField {
         try {
             setterMethod.invoke(obj, value);
         } catch (Throwable e) {
-            throw new MetadataException("Error invoking method:" + setterMethod.getName() 
-                                        + " in object " + obj.getClass().getName(), 
-                                        e);
+            throw new MetadataException("Error invoking method:" + setterMethod.getName() + " in object "
+                    + obj.getClass().getName(), e);
         }
     }
 
+    @Override
     public Object get(Object anObject) throws MetadataException {
         throw new Error("The get of a WriteOnlyPersistentField should never be called");
     }

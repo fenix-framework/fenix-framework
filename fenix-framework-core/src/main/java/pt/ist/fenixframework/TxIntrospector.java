@@ -4,9 +4,13 @@ import java.util.Set;
 
 public interface TxIntrospector {
     public Set<DomainObject> getNewObjects();
+
     public Set<DomainObject> getModifiedObjects();
+
     public Set<Entry> getReadSetLog();
+
     public Set<Entry> getWriteSetLog();
+
     public Set<RelationChangelog> getRelationsChangelog();
 
     public static class Entry {

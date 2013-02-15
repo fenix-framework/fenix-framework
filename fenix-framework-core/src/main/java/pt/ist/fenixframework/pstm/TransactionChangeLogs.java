@@ -23,67 +23,67 @@ import pt.ist.fenixframework.FenixFramework;
 import dml.DomainClass;
 
 public class TransactionChangeLogs {
-    
+
     static final String SQL_STMT_FORMAT = "SELECT OID from %s where ID_INTERNAL = %s";
 
     static DomainObject readDomainObject(PersistenceBroker pb, String className, int idInternal) {
-	// This method now goes to DB directly through JDBC to get the OID
-	// corresponding to className and idInternal.
-	// It uses the standard way to load an OID calling fromExternalId which
-	// goes through the lookup cache.
+        // This method now goes to DB directly through JDBC to get the OID
+        // corresponding to className and idInternal.
+        // It uses the standard way to load an OID calling fromExternalId which
+        // goes through the lookup cache.
 
-	final DomainClass domainClass = FenixFramework.getDomainModel().findClass(className);
-	final String tableName = OJBMetadataGenerator.getExpectedTableName(domainClass);
-	String oid = null;
-	ResultSet result = null;
-	Statement statement = null;
-	try {
-	    final Connection connection = pb.serviceConnectionManager().getConnection();
-	    connection.commit();
-	    statement = connection.createStatement();
-	    result = statement.executeQuery(String.format(SQL_STMT_FORMAT, tableName, idInternal));
-	    if (result.next()) {
-		oid = result.getString(1);
-	    }
-	} catch (SQLException se) {
-	    throw new Error(se);
-	} catch (LookupException e) {
-	    throw new Error(e);
-	} finally {
-	    try {
-		if (result != null) {
-		    result.close();
-		}
-		if (statement != null) {
-		    statement.close();
-		}
-	    } catch (SQLException se) {
-		throw new Error(se);
-	    }
-	}
+        final DomainClass domainClass = FenixFramework.getDomainModel().findClass(className);
+        final String tableName = OJBMetadataGenerator.getExpectedTableName(domainClass);
+        String oid = null;
+        ResultSet result = null;
+        Statement statement = null;
+        try {
+            final Connection connection = pb.serviceConnectionManager().getConnection();
+            connection.commit();
+            statement = connection.createStatement();
+            result = statement.executeQuery(String.format(SQL_STMT_FORMAT, tableName, idInternal));
+            if (result.next()) {
+                oid = result.getString(1);
+            }
+        } catch (SQLException se) {
+            throw new Error(se);
+        } catch (LookupException e) {
+            throw new Error(e);
+        } finally {
+            try {
+                if (result != null) {
+                    result.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            } catch (SQLException se) {
+                throw new Error(se);
+            }
+        }
 
-	if (oid == null) {
-	    return null;
-	} else {
-	    return AbstractDomainObject.fromExternalId(oid);
-	}
+        if (oid == null) {
+            return null;
+        } else {
+            return AbstractDomainObject.fromExternalId(oid);
+        }
 
     }
-
 
     // ------------------------------------------------------------
 
     private static class AlienTransaction {
-	final int txNumber;
+        final int txNumber;
 
         // the set of objects is kept so that a strong reference exists 
         // for each of the objects modified by another server until no running 
         // transaction in the current VM may need to access it
-	private final Map<AbstractDomainObject,List<String>> objectAttrChanges = new HashMap<AbstractDomainObject,List<String>>();
+        private final Map<AbstractDomainObject, List<String>> objectAttrChanges =
+                new HashMap<AbstractDomainObject, List<String>>();
 
-	AlienTransaction(int txNumber) {
-	    this.txNumber = txNumber;
-	}
+        AlienTransaction(int txNumber) {
+            this.txNumber = txNumber;
+        }
 
         void register(AbstractDomainObject obj, String attrName) {
             List<String> allAttrs = objectAttrChanges.get(obj);
@@ -99,7 +99,7 @@ public class TransactionChangeLogs {
         Cons<VBoxBody> commit() {
             Cons<VBoxBody> newBodies = Cons.empty();
 
-            for (Map.Entry<AbstractDomainObject,List<String>> entry : objectAttrChanges.entrySet()) {
+            for (Map.Entry<AbstractDomainObject, List<String>> entry : objectAttrChanges.entrySet()) {
                 AbstractDomainObject obj = entry.getKey();
                 List<String> allAttrs = entry.getValue();
 
@@ -117,37 +117,33 @@ public class TransactionChangeLogs {
         }
     }
 
+    public static ActiveTransactionsRecord updateFromTxLogsOnDatabase(PersistenceBroker pb, ActiveTransactionsRecord record)
+            throws SQLException, LookupException {
 
-    public static ActiveTransactionsRecord updateFromTxLogsOnDatabase(PersistenceBroker pb, 
-                                                                      ActiveTransactionsRecord record) 
-            throws SQLException,LookupException {
-
-	return updateFromTxLogsOnDatabase(pb, record, false);
+        return updateFromTxLogsOnDatabase(pb, record, false);
     }
 
-    public static ActiveTransactionsRecord updateFromTxLogsOnDatabase(PersistenceBroker pb, 
-                                                                      ActiveTransactionsRecord record, 
-                                                                      boolean forUpdate) 
-            throws SQLException,LookupException {
+    public static ActiveTransactionsRecord updateFromTxLogsOnDatabase(PersistenceBroker pb, ActiveTransactionsRecord record,
+            boolean forUpdate) throws SQLException, LookupException {
 
-	Connection conn = pb.serviceConnectionManager().getConnection();
+        Connection conn = pb.serviceConnectionManager().getConnection();
 
-	// ensure that the connection is up-to-date
-	conn.commit();
-        
+        // ensure that the connection is up-to-date
+        conn.commit();
+
         Statement stmt = null;
         ResultSet rs = null;
-        
+
         try {
             stmt = conn.createStatement();
-        
+
             // read tx logs
             int maxTxNumber = record.transactionNumber;
 
-            rs = stmt.executeQuery("SELECT OBJ_OID,OBJ_ATTR,TX_NUMBER FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER > " 
-                                   + (forUpdate ? (maxTxNumber - 1) : maxTxNumber)
-                                   + " ORDER BY TX_NUMBER"
-                                   + (forUpdate ? " FOR UPDATE" : ""));
+            rs =
+                    stmt.executeQuery("SELECT OBJ_OID,OBJ_ATTR,TX_NUMBER FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER > "
+                            + (forUpdate ? (maxTxNumber - 1) : maxTxNumber) + " ORDER BY TX_NUMBER"
+                            + (forUpdate ? " FOR UPDATE" : ""));
 
             // if there are any results to be processed, process them
             if (rs.next()) {
@@ -166,8 +162,8 @@ public class TransactionChangeLogs {
         }
     }
 
-    private static ActiveTransactionsRecord processAlienTransaction(PersistenceBroker pb, ResultSet rs, ActiveTransactionsRecord record) 
-            throws SQLException {
+    private static ActiveTransactionsRecord processAlienTransaction(PersistenceBroker pb, ResultSet rs,
+            ActiveTransactionsRecord record) throws SQLException {
 
         // Acquire the JVSTM commit lock to process the result set, as
         // doing so is semantically similar to commiting transactions.
@@ -188,8 +184,8 @@ public class TransactionChangeLogs {
             // is necessarily less than the number we are processing, and, therefore, will have to
             // come into this method, blocking in the lock.
             // Likewise for a commit of a write transaction.
-            
-            int currentCommittedNumber = Transaction.getMostRecentCommitedNumber();
+
+            int currentCommittedNumber = jvstm.Transaction.getMostRecentCommitedNumber();
 
             int txNum = rs.getInt(3);
 
@@ -204,7 +200,7 @@ public class TransactionChangeLogs {
                 // we got
                 return findActiveRecordForNumber(record, txNum);
             }
-            
+
             // now, it's time to process the new changeLog records
 
             AlienTransaction alienTx = new AlienTransaction(txNum);
@@ -235,7 +231,7 @@ public class TransactionChangeLogs {
                     TransactionCommitRecords.addCommitRecord(alienTx.txNumber, alienTx);
 
                     ActiveTransactionsRecord newRecord = new ActiveTransactionsRecord(txNum, newBodies);
-                    Transaction.setMostRecentActiveRecord(newRecord);
+                    jvstm.Transaction.setMostRecentActiveRecord(newRecord);
 
                     if (nextTxNum != -1) {
                         // there are more to process, create a new alien transaction
@@ -253,7 +249,7 @@ public class TransactionChangeLogs {
             commitLock.unlock();
         }
     }
-    
+
     private static ActiveTransactionsRecord findActiveRecordForNumber(ActiveTransactionsRecord rec, int number) {
         while (rec.transactionNumber < number) {
             rec = rec.getNext();
@@ -262,154 +258,153 @@ public class TransactionChangeLogs {
         return rec;
     }
 
-
     public static int initializeTransactionSystem() {
-	// find the last committed transaction
-	PersistenceBroker broker = null;
+        // find the last committed transaction
+        PersistenceBroker broker = null;
 
-	try {
-	    broker = PersistenceBrokerFactory.defaultPersistenceBroker();
-	    broker.beginTransaction();
+        try {
+            broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+            broker.beginTransaction();
 
-	    Connection conn = broker.serviceConnectionManager().getConnection();
-	    Statement stmt = conn.createStatement();
-	    ResultSet rs = stmt.executeQuery("SELECT MAX(TX_NUMBER) FROM FF$TX_CHANGE_LOGS");
-	    int maxTx = (rs.next() ? rs.getInt(1) : -1);
+            Connection conn = broker.serviceConnectionManager().getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT MAX(TX_NUMBER) FROM FF$TX_CHANGE_LOGS");
+            int maxTx = (rs.next() ? rs.getInt(1) : -1);
 
-	    broker.commitTransaction();
+            broker.commitTransaction();
             broker.close();
             broker = null;
 
             stmt.close();
             rs.close();
-            
+
             new CleanThread(maxTx).start();
             new StatisticsThread().start();
 
-	    return maxTx;
-	} catch (Exception e) {
-	    throw new Error("Couldn't initialize the transaction system");
-	} finally {
-	    if (broker != null) {
-		broker.close();
-	    }
-	}
+            return maxTx;
+        } catch (Exception e) {
+            throw new Error("Couldn't initialize the transaction system");
+        } finally {
+            if (broker != null) {
+                broker.close();
+            }
+        }
     }
 
     private static class CleanThread extends Thread {
-	private static final long SECONDS_BETWEEN_UPDATES = 120;
+        private static final long SECONDS_BETWEEN_UPDATES = 120;
 
-	private final String server;
-	private int lastTxNumber = -1;
-	
-	CleanThread(int lastTxNumber) {
+        private final String server;
+        private int lastTxNumber = -1;
+
+        CleanThread(int lastTxNumber) {
             this.server = Util.getServerName();
             this.lastTxNumber = lastTxNumber;
 
-	    setDaemon(true);
-	}
-	
-        @Override
-	public void run() {
-            try {
-        	while (! initializeServerRecord()) {
-        	    // intentionally empty
-        	}
-	    
-        	while (true) {
-        	    try {
-        		sleep(SECONDS_BETWEEN_UPDATES * 1000);
-        	    } catch (InterruptedException ie) {
-        		return;
-        	    }
-        	    updateServerRecord();
-        	}
-            } finally {
-        	System.out.println("Exiting CleanThread!");
-        	System.err.flush();
-        	System.out.flush();
-            }
-	}
-	
-	private boolean initializeServerRecord() {
-	    PersistenceBroker broker = null;
-	    
-	    try {
-		broker = PersistenceBrokerFactory.defaultPersistenceBroker();
-		broker.beginTransaction();
-		
-		Connection conn = broker.serviceConnectionManager().getConnection();
-		Statement stmt = conn.createStatement();
+            setDaemon(true);
+        }
 
-		// delete previous record for this server and insert a new one
-		stmt.executeUpdate("DELETE FROM FF$LAST_TX_PROCESSED WHERE SERVER = '" + server + "' or LAST_UPDATE < (NOW() - 3600)");
-		stmt.executeUpdate("INSERT INTO FF$LAST_TX_PROCESSED VALUES ('" + server + "'," + lastTxNumber + ",null)");
-		
-		broker.commitTransaction();
+        @Override
+        public void run() {
+            try {
+                while (!initializeServerRecord()) {
+                    // intentionally empty
+                }
+
+                while (true) {
+                    try {
+                        sleep(SECONDS_BETWEEN_UPDATES * 1000);
+                    } catch (InterruptedException ie) {
+                        return;
+                    }
+                    updateServerRecord();
+                }
+            } finally {
+                System.out.println("Exiting CleanThread!");
+                System.err.flush();
+                System.out.flush();
+            }
+        }
+
+        private boolean initializeServerRecord() {
+            PersistenceBroker broker = null;
+
+            try {
+                broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+                broker.beginTransaction();
+
+                Connection conn = broker.serviceConnectionManager().getConnection();
+                Statement stmt = conn.createStatement();
+
+                // delete previous record for this server and insert a new one
+                stmt.executeUpdate("DELETE FROM FF$LAST_TX_PROCESSED WHERE SERVER = '" + server
+                        + "' or LAST_UPDATE < (NOW() - 3600)");
+                stmt.executeUpdate("INSERT INTO FF$LAST_TX_PROCESSED VALUES ('" + server + "'," + lastTxNumber + ",null)");
+
+                broker.commitTransaction();
 
                 return true;
-	    } catch (Exception e) {
-		e.printStackTrace();
-		System.out.println("Couldn't initialize the clean thread");
-		//throw new Error("Couldn't initialize the clean thread");
-		if (broker != null) {
-		    broker.abortTransaction();
-		}
-	    } finally {
-		if (broker != null) {
-		    if (broker.isInTransaction()) {
-			broker.abortTransaction();
-		    }
-		    broker.close();
-		}
-	    }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Couldn't initialize the clean thread");
+                //throw new Error("Couldn't initialize the clean thread");
+                if (broker != null) {
+                    broker.abortTransaction();
+                }
+            } finally {
+                if (broker != null) {
+                    if (broker.isInTransaction()) {
+                        broker.abortTransaction();
+                    }
+                    broker.close();
+                }
+            }
 
             return false;
-	}
-	
-	private void updateServerRecord() {
-	    int currentTxNumber = Transaction.getMostRecentCommitedNumber();
+        }
 
-	    PersistenceBroker broker = null;
-	    
-	    try {
-		broker = PersistenceBrokerFactory.defaultPersistenceBroker();
-		broker.beginTransaction();
-		
-		Connection conn = broker.serviceConnectionManager().getConnection();
-		Statement stmt = conn.createStatement();
+        private void updateServerRecord() {
+            int currentTxNumber = jvstm.Transaction.getMostRecentCommitedNumber();
 
-		// update record for this server
-		stmt.executeUpdate("UPDATE FF$LAST_TX_PROCESSED SET LAST_TX=" 
-				   + currentTxNumber 
-				   + ",LAST_UPDATE=NULL WHERE SERVER = '" 
-				   + server + "'");
-		
-		// delete obsolete values
-		ResultSet rs = stmt.executeQuery("SELECT MIN(LAST_TX) FROM FF$LAST_TX_PROCESSED WHERE LAST_UPDATE > NOW() - " 
-						 + (2 * SECONDS_BETWEEN_UPDATES));
-		int min = (rs.next() ? rs.getInt(1) : 0);
-		if (min > 0) {
-		    stmt.executeUpdate("DELETE FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER < " + min);
-		}
+            PersistenceBroker broker = null;
 
-		broker.commitTransaction();
+            try {
+                broker = PersistenceBrokerFactory.defaultPersistenceBroker();
+                broker.beginTransaction();
 
-		this.lastTxNumber = currentTxNumber;
-	    } catch (Throwable t) {
-		t.printStackTrace();
-		System.out.println("Couldn't update database in the clean thread");
-		if ((broker != null) && (broker.isInTransaction())) {
-		    broker.abortTransaction();
-		}
-	    } finally {
-		if (broker != null) {
-		    if (broker.isInTransaction()) {
-			broker.abortTransaction();
-		    }
-		    broker.close();
-		}
-	    }
-	}
+                Connection conn = broker.serviceConnectionManager().getConnection();
+                Statement stmt = conn.createStatement();
+
+                // update record for this server
+                stmt.executeUpdate("UPDATE FF$LAST_TX_PROCESSED SET LAST_TX=" + currentTxNumber
+                        + ",LAST_UPDATE=NULL WHERE SERVER = '" + server + "'");
+
+                // delete obsolete values
+                ResultSet rs =
+                        stmt.executeQuery("SELECT MIN(LAST_TX) FROM FF$LAST_TX_PROCESSED WHERE LAST_UPDATE > NOW() - "
+                                + (2 * SECONDS_BETWEEN_UPDATES));
+                int min = (rs.next() ? rs.getInt(1) : 0);
+                if (min > 0) {
+                    stmt.executeUpdate("DELETE FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER < " + min);
+                }
+
+                broker.commitTransaction();
+
+                this.lastTxNumber = currentTxNumber;
+            } catch (Throwable t) {
+                t.printStackTrace();
+                System.out.println("Couldn't update database in the clean thread");
+                if ((broker != null) && (broker.isInTransaction())) {
+                    broker.abortTransaction();
+                }
+            } finally {
+                if (broker != null) {
+                    if (broker.isInTransaction()) {
+                        broker.abortTransaction();
+                    }
+                    broker.close();
+                }
+            }
+        }
     }
 }
