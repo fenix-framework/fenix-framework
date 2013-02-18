@@ -445,7 +445,8 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         return getModifiedObjects();
     }
 
-    public boolean isDeleted(Object obj) {
+    @Override
+    public boolean isDeleted(DomainObject obj) {
         return isWriteTransaction() ? getDBChanges().isDeleted(obj) : false;
     }
 

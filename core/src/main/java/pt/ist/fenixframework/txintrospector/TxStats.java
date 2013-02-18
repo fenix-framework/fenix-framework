@@ -189,4 +189,14 @@ public class TxStats implements TxIntrospector {
 	    // intentionally empty
 	}
     };
+
+    @Override
+    public boolean isWriteTransaction() {
+        return !(newObjects.isEmpty() && modifiedObjects.isEmpty() && relationsChangelog.isEmpty());
+    }
+
+    @Override
+    public boolean isDeleted(DomainObject object) {
+        return false;
+    }
 }

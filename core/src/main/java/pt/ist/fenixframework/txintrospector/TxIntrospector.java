@@ -58,6 +58,18 @@ public interface TxIntrospector {
      * @return Collection of relation changes
      */
     public Collection<RelationChangelog> getRelationsChangelog();
+    
+    /**
+     * Returns whether the current transaction is a write transaction.
+     */
+    public boolean isWriteTransaction();
+
+    /**
+     * Returns whether the specified {@link DomainObject} was deleted
+     * in the current Transaction.
+     */
+    public boolean isDeleted(DomainObject object);
+
 
     /**
      * Used to represent a read or write-set entry.
