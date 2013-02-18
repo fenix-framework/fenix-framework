@@ -162,6 +162,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         }
     }
 
+    @Override
     protected void deleteDomainObject() {
         checkDisconnected();
         TransactionSupport.deleteObject(this);
