@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
+import pt.ist.fenixframework.CommitListener;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject.UnableToDetermineIdException;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
@@ -200,7 +201,10 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
                     begin(readOnly);
                     T result = command.call();
                     if (promotedTransaction) {
-                        checkpoint();
+                        if (!readOnly) {
+                            // Do nothing if the current transaction did not write anything.
+                            checkpoint();
+                        }
                     } else {
                         commit();
                     }
@@ -234,7 +238,14 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
     private void checkpoint() {
         logger.trace("Checkpointing Transaction");
+        JvstmOJBTransaction transaction = getTransaction();
+        for (CommitListener listener : listeners) {
+            listener.beforeCommit(transaction);
+        }
         Transaction.checkpoint();
+        for (CommitListener listener : listeners) {
+            listener.afterCommit(transaction);
+        }
         TransactionSupport.currentFenixTransaction().setReadOnly();
         logger.trace("Transaction is now read-only");
     }

@@ -21,7 +21,7 @@ import pt.ist.fenixframework.TransactionManager;
  */
 public abstract class AbstractTransactionManager implements TransactionManager {
 
-    private final ConcurrentLinkedQueue<CommitListener> listeners = new ConcurrentLinkedQueue<CommitListener>();
+    protected final ConcurrentLinkedQueue<CommitListener> listeners = new ConcurrentLinkedQueue<CommitListener>();
 
     @Override
     public void begin() throws NotSupportedException, SystemException {
