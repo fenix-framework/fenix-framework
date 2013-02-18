@@ -268,9 +268,9 @@ actually contained a reference to an entity.
 This module allows indexing domain objects in a relation efficiently. These are implemented using only components internal to the framework. Namely, it relies on internal backend-independent collections to maintain the indexes persistently and for fast querying using automatically generated methods.
 
 
-### Changes in the Domain Modeling Language
+### What to do in the DML file?
 
-DML an additional attribute for each relation. This way, creating an indexed relation boils down to:
+DML accepts an indexed attribute in each relation. This way, creating an indexed relation boils down to:
 
 <pre>
 class Person {}
@@ -288,7 +288,7 @@ relation PersonHasAddresses {
 }
 </pre>
 
-The attribute that instructs the framework to create the index is stated in bold. This means that each Person has at most one Address with a given country. If the index is deemed not to be unique, then the it must be declared in the following way: indexed by country #(*);
+The attribute that instructs the framework to create the index is the 'indexed' keyword. This means that each Person has at most one Address with a given country. If the index is deemed not to be unique, then the it must be declared in the following way: indexed by country #(*);
 
 
 ### Compilation Step
@@ -332,11 +332,70 @@ This allows an efficient search for a given Address. The typical usage is to ref
 
 Not only the code becomes clearer, but also the implementation of the index is such that it performs better than the naive iterations/search.
 
-## Design
+### Design
 
 The design of these indexes explores the DML based collections in the framework. These collections export a key-value API and are used to store the objects of relations "-to-many". For instance, the above example would have a collection holding John's addresses. To efficiently fetch an address with a given country, we use as keys in that relation the country of the addresses. This means that an indexed relation poses no overheads at all.
 
 On the other hand, if the relation is indexed using an attribute that is not unique, then we batch the objects that collide in the index key. These batches use a collection, meaning that the collection of the relation actually holds several collections. This is decided statically upon compilation of the application, meaning that no runtime checks are performed, and the normal case of unique indexation is as efficient as we can get.
+
+
+## Pluggable Collections
+
+The framework also allows parametrizing which collection is used internally in relations between Domain Objects. Three seperate modules can be found with regard to a B+Tree, a Linked List and a Skip List.
+
+### The importance of collections
+
+Pluggable collections are built on top of DML. This means that they are backend independent and automatically persisted. As a matter of fact, they can be used within the application for that purpose, although most uses should be relying on modelling with DML and relations between entities.
+
+But besides that point, the actual importance of collections (namely, the abstraction of a set), is that it is used internally by the framework to model relations one-to-many between Domain Entities. Without going into further detail, this means that when a Person is declared in DML to have 0 or more Posts in a relation, this will automatically generate code that resorts to a DML, backend-independent collection to contain the Posts that the Person owns.
+
+Therefore it makes sense to allow configuration of the collection to match different workloads. For instance, it can be that a very small relation takes more advantage of a Linked List, moreso if most of the accesses are insertions or removals. On the other hand, a very large relation with many queries can benefit more from a B+Tree. At the moment the configuration allows only to state a collection for the whole application, but this may be addressed in the near-future.
+
+### How to configure
+
+The parametrization is set through the pom.xml as many other parameters. An example follows:
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>dml-maven-plugin</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <configuration>
+                    <codeGeneratorClassName>${fenixframework.code.generator}</codeGeneratorClassName>
+                    <params>
+                        <collectionClassName>pt.ist.fenixframework.core.adt.bplustree.BPlusTree</collectionClassName>
+                    </params>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-domain</goal>
+                            <goal>post-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+
+Note the single line within the 'configuration' tag:
+    <collectionClassName>pt.ist.fenixframework.core.adt.bplustree.BPlusTree</collectionClassName>
+
+### Possible configurations
+
+Note that to use a specific collection, the dependency on the corresponding module must be estabilished in the pom.xml. This means that if one configures the collection to be the Linked-List, then it must add the dependency to the linked-list module.
+
+The following collections are available with the corresponding modules:
+* B+Tree - pt.ist.fenixframework.core.adt.bplustree.BPlusTree - bplus-tree-domain-object
+* B+Tree improved in terms of performance - pt.ist.fenixframework.core.adt.bplustree.BPlusTreeArray - bplus-tree-domain-object
+* Skip-List - pt.ist.fenixframework.core.adt.skiplist.SkipList - skip-list-domain-object
+* Linked-List - pt.ist.fenixframework.core.adt.linkedlist.LinkedList - linked-list-domain-object
+
+Each backend (and its respecive code generator) has a default collection which it uses if no configuration is given. It is the case that all transactional backends are using the B+Tree as the default collection.
 
 
 
