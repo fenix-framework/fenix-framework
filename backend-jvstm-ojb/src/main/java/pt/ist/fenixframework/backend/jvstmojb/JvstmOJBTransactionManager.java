@@ -189,7 +189,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
             promotedTransaction = true;
         }
 
-        boolean readOnly = speculativeReadOnly || !knownWriteServices.containsKey(commandName);
+        boolean readOnly = speculativeReadOnly ? !knownWriteServices.containsKey(commandName) : false;
 
         boolean keepGoing = true;
         int tries = 0;
