@@ -152,11 +152,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
         try {
             return command.call();
         } finally {
-            if (getTransaction() != null) {
-                commit();
-            } else {
-                logger.trace("Aborting read-only transaction due to an exception!");
-            }
+            commit();
         }
     }
 
@@ -194,42 +190,49 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
         boolean keepGoing = true;
         int tries = 0;
 
-        while (keepGoing) {
-            tries++;
-            try {
+        try {
+            while (keepGoing) {
+                tries++;
                 try {
-                    begin(readOnly);
-                    T result = command.call();
-                    if (promotedTransaction) {
-                        if (!readOnly) {
-                            // Do nothing if the current transaction did not write anything.
-                            checkpoint();
+                    try {
+                        begin(readOnly);
+                        T result = command.call();
+                        if (promotedTransaction) {
+                            if (!readOnly) {
+                                // Do nothing if the current transaction did not write anything.
+                                checkpoint();
+                            }
+                        } else {
+                            commit();
                         }
-                    } else {
-                        commit();
+                        keepGoing = false;
+                        return result;
+                    } finally {
+                        if (keepGoing) {
+                            rollback();
+                        }
                     }
-                    keepGoing = false;
-                    return result;
-                } finally {
-                    if (keepGoing) {
-                        rollback();
+                } catch (RollbackException e) {
+                    if (tries > 3) {
+                        logTransactionRestart(commandName, e, tries);
+                    }
+                } catch (UnableToDetermineIdException e) {
+                    if (tries > 3) {
+                        logTransactionRestart(commandName, e, tries);
+                    }
+                } catch (WriteOnReadError e) {
+                    logger.trace("Restarting transaction due to WriteOnReadError");
+                    knownWriteServices.put(commandName, commandName);
+                    readOnly = false;
+                    if (tries > 3) {
+                        logTransactionRestart(commandName, e, tries);
                     }
                 }
-            } catch (RollbackException e) {
-                if (tries > 3) {
-                    logTransactionRestart(commandName, e, tries);
-                }
-            } catch (UnableToDetermineIdException e) {
-                if (tries > 3) {
-                    logTransactionRestart(commandName, e, tries);
-                }
-            } catch (WriteOnReadError e) {
-                logger.trace("Restarting transaction due to WriteOnReadError");
-                knownWriteServices.put(commandName, commandName);
-                readOnly = false;
-                if (tries > 3) {
-                    logTransactionRestart(commandName, e, tries);
-                }
+            }
+        } finally {
+            if (promotedTransaction && getTransaction() == null) {
+                // We were inside a transaction when we entered, but now we are not!
+                begin(true);
             }
         }
 
