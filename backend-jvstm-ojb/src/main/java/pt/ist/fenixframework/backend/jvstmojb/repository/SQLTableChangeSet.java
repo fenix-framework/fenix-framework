@@ -26,8 +26,6 @@ public class SQLTableChangeSet {
 
     private final Set<Set<String>> indexes = new HashSet<Set<String>>();
 
-    private int concreteClasses = 0;
-
     public SQLTableChangeSet(SQLTableInfo table) {
         this.table = table;
     }
@@ -36,7 +34,6 @@ public class SQLTableChangeSet {
         for (FieldDescriptor field : clazz.getFieldDescriptions()) {
             fields.put(field.getColumnName(), new Column(field.getColumnName(), field.getColumnType()));
         }
-        concreteClasses++;
     }
 
     public void addCollectionDescriptor(CollectionDescriptor collectionDescriptor) {
@@ -55,9 +52,6 @@ public class SQLTableChangeSet {
     }
 
     public String generateSqlUpdates(boolean genDrops, String tableCharset) {
-        if (concreteClasses > 1) {
-            fields.put("OJB_CONCRETE_CLASS", new Column("OJB_CONCRETE_CLASS", null));
-        }
         StringBuilder updates = new StringBuilder();
         updates.append(table.exists ? "alter" : "create");
         updates.append(" table " + escapeName(table.tablename));

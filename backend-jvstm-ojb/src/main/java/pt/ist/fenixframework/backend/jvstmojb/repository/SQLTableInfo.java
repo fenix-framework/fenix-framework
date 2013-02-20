@@ -56,8 +56,6 @@ public class SQLTableInfo {
         private String sqlType() {
             if (name.equals("ID_INTERNAL")) {
                 return "int(11) NOT NULL auto_increment";
-            } else if (name.equals("OJB_CONCRETE_CLASS")) {
-                return "varchar(255) NOT NULL DEFAULT ''";
             } else if (name.startsWith("OID")) {
                 return "bigint unsigned";
             } else {
