@@ -276,7 +276,7 @@ public class ProcessAtomicAnnotations {
             atomicClInit.visitFieldInsn(PUTSTATIC, className, fieldName, ATOMIC_CONTEXT.getDescriptor());
 
             // Rename original method
-            mn.name = "atomic$" + mn.name + "$" + getClassHash();
+            mn.name = "atomic$" + mn.name + "$" + className.replace('/', '$');
             // Remove annotations from original method
             mn.invisibleAnnotations = Collections.<AnnotationNode>emptyList();
             mn.visibleAnnotations = Collections.<AnnotationNode>emptyList();
@@ -391,7 +391,7 @@ public class ProcessAtomicAnnotations {
                         mv.visitVarInsn(ALOAD, 0);
                         mv.visitFieldInsn(GETFIELD, callableClass, "arg" + fieldPos++, t.getDescriptor());
                 }
-                mv.visitMethodInsn(isStatic(mn) ? INVOKESTATIC : INVOKEVIRTUAL, className, "atomic$" + mn.name + "$" + getClassHash(), mn.desc);
+                mv.visitMethodInsn(isStatic(mn) ? INVOKESTATIC : INVOKEVIRTUAL, className, "atomic$" + mn.name + "$" + className.replace('/', '$'), mn.desc);
                 if (returnType.equals(Type.VOID_TYPE)) mv.visitInsn(ACONST_NULL);
                 else if (isPrimitive(returnType)) boxWrap(returnType, mv);
                 mv.visitInsn(ARETURN);
@@ -435,14 +435,6 @@ public class ProcessAtomicAnnotations {
             mv.visitMethodInsn(INVOKEVIRTUAL, objectType.getInternalName(), primitiveType.getClassName() + "Value", "()" + primitiveType.getDescriptor());
         }
         
-        private int getClassHash() {
-            int code = className.hashCode();
-            if(code < 0) {
-                return -code;
-            } else {
-                return code;
-            }
-        }
     }
 
 }
