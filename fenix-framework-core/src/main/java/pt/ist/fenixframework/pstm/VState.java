@@ -10,7 +10,7 @@ class VState extends PrimitiveBox {
     }
 
     VState(DomainObject ownerObj, String slotName, VBoxBody body) {
-	super(ownerObj, slotName, body);
+        super(ownerObj, slotName, body);
     }
 
     public static VState makeNew(DomainObject ownerObj, String slotName, boolean allocateOnly) {
@@ -26,7 +26,7 @@ class VState extends PrimitiveBox {
     @Override
     public VBoxBody commit(Object newValue, int txNumber) {
         if (newValue != NOT_LOADED_VALUE) {
-            ((OneBoxDomainObject.DO_State)newValue).markCommitted();
+            ((OneBoxDomainObject.DO_State) newValue).markCommitted();
         }
         return super.commit(newValue, txNumber);
     }

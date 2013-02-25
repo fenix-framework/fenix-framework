@@ -33,42 +33,43 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-	if (getMavenProject().getArtifact().getType().equals("pom")) {
-	    getLog().info("Cannot post process domain for pom projects");
-	    return;
-	}
+        if (getMavenProject().getArtifact().getType().equals("pom")) {
+            getLog().info("Cannot post process domain for pom projects");
+            return;
+        }
 
-	try {
-	    URLClassLoader loader = DmlMojoUtils.augmentClassLoader(getLog(), getMavenProject());
-	    List<URL> dmlFiles = new ArrayList<URL>();
-	    for (DmlFile dmlFile : FenixFrameworkArtifact.fromName(getMavenProject().getArtifactId()).getFullDmlSortedList()) {
-		dmlFiles.add(dmlFile.getUrl());
-	    }
+        try {
+            URLClassLoader loader = DmlMojoUtils.augmentClassLoader(getLog(), getMavenProject());
+            List<URL> dmlFiles = new ArrayList<URL>();
+            for (DmlFile dmlFile : FenixFrameworkArtifact.fromName(getMavenProject().getArtifactId()).getFullDmlSortedList()) {
+                dmlFiles.add(dmlFile.getUrl());
+            }
 
-	    if (dmlFiles.isEmpty()) {
-		getLog().info("No dml files found to post process domain");
-		return;
-	    }
+            if (dmlFiles.isEmpty()) {
+                getLog().info("No dml files found to post process domain");
+                return;
+            }
 
-	    Class[] argsConstructor = new Class[] { List.class, getCodeGeneratorClassName().getClass(),
-		    getDomainModelClassName().getClass(), ClassLoader.class };
-	    Object[] args = new Object[] { dmlFiles, getCodeGeneratorClassName(), getDomainModelClassName(), loader };
-	    Class postProcessDomainClassesClass = loader.loadClass("pt.ist.fenixframework.pstm.PostProcessDomainClasses");
-	    Class transactionClass = loader.loadClass("pt.ist.fenixframework.pstm.Transaction");
+            Class[] argsConstructor =
+                    new Class[] { List.class, getCodeGeneratorClassName().getClass(), getDomainModelClassName().getClass(),
+                            ClassLoader.class };
+            Object[] args = new Object[] { dmlFiles, getCodeGeneratorClassName(), getDomainModelClassName(), loader };
+            Class postProcessDomainClassesClass = loader.loadClass("pt.ist.fenixframework.pstm.PostProcessDomainClasses");
+            Class transactionClass = loader.loadClass("pt.ist.fenixframework.pstm.Transaction");
 
-	    Constructor processDomainClassesConstructor = postProcessDomainClassesClass.getConstructor(argsConstructor);
-	    Object postProcessor = processDomainClassesConstructor.newInstance(args);
+            Constructor processDomainClassesConstructor = postProcessDomainClassesClass.getConstructor(argsConstructor);
+            Object postProcessor = processDomainClassesConstructor.newInstance(args);
 
-	    Object[] nullArgs = new Object[] {};
-	    Method m = postProcessDomainClassesClass.getMethod("start", new Class[] {});
-	    m.invoke(postProcessor, nullArgs);
+            Object[] nullArgs = new Object[] {};
+            Method m = postProcessDomainClassesClass.getMethod("start", new Class[] {});
+            m.invoke(postProcessor, nullArgs);
 
-	    ProcessAtomicAnnotations atomicAnnotationsProcessor = new ProcessAtomicAnnotations(transactionClass,
-		    new String[] { "." });
-	    atomicAnnotationsProcessor.start();
-	} catch (Exception e) {
-	    getLog().error(e);
-	    throw new MojoExecutionException("Something went wrong with the post processing", e);
-	}
+            ProcessAtomicAnnotations atomicAnnotationsProcessor =
+                    new ProcessAtomicAnnotations(transactionClass, new String[] { "." });
+            atomicAnnotationsProcessor.start();
+        } catch (Exception e) {
+            getLog().error(e);
+            throw new MojoExecutionException("Something went wrong with the post processing", e);
+        }
     }
 }

@@ -13,6 +13,7 @@ public class DirectRelation<C1,C2> implements Relation<C1,C2> {
         this.firstRole = firstRole;
     }
 
+    @Override
     public void add(C1 o1, C2 o2) {
         if (listeners != null) {
             for (RelationListener<C1,C2> l : listeners) {
@@ -30,6 +31,7 @@ public class DirectRelation<C1,C2> implements Relation<C1,C2> {
         }
     }
 
+    @Override
     public void remove(C1 o1, C2 o2) {
         if (listeners != null) {
             for (RelationListener<C1,C2> l : listeners) {
@@ -47,6 +49,7 @@ public class DirectRelation<C1,C2> implements Relation<C1,C2> {
         }
     }
 
+    @Override
     public Relation<C2,C1> getInverseRelation() {
         return inverse;
     }

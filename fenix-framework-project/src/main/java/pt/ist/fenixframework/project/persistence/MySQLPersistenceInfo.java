@@ -24,72 +24,72 @@ public class MySQLPersistenceInfo extends PersistenceInfo {
     private int port = DEFAULT_PORT;
 
     public String getUsername() {
-	return username;
+        return username;
     }
 
     public String getPassword() {
-	return password;
+        return password;
     }
 
     public String getConnectionURL() {
-	return "//"+hostname+":"+port+"/"+database;
+        return "//" + hostname + ":" + port + "/" + database;
     }
 
+    @Override
     public boolean isEngine(PersistenceEngine persistenceEngine) {
-	return persistenceEngine != null && persistenceEngine.equals(PersistenceEngine.MySQL);
+        return persistenceEngine != null && persistenceEngine.equals(PersistenceEngine.MySQL);
     }
 
     public MySQLPersistenceInfo withDatabase(String database) {
-	this.database = database;
-	return this;
+        this.database = database;
+        return this;
     }
 
     public MySQLPersistenceInfo withUsername(String username) {
-	if(!StringUtils.isBlank(username)) {
-	    this.username = username;
-	}
-	return this;
+        if (!StringUtils.isBlank(username)) {
+            this.username = username;
+        }
+        return this;
     }
 
     public MySQLPersistenceInfo withPassword(String password) {
-	if(!StringUtils.isBlank(password)) {
-	    this.password = password;
-	}
-	return this;
+        if (!StringUtils.isBlank(password)) {
+            this.password = password;
+        }
+        return this;
     }
 
     public MySQLPersistenceInfo withHostname(String hostname) {
-	if(!StringUtils.isBlank(hostname)) {
-	    this.hostname = hostname;
-	}
-	return this;
+        if (!StringUtils.isBlank(hostname)) {
+            this.hostname = hostname;
+        }
+        return this;
     }
 
     public MySQLPersistenceInfo withPort(String port) {
-	if(!StringUtils.isBlank(port)) {
-	    this.port = Integer.parseInt(port);
-	}
-	return this;
+        if (!StringUtils.isBlank(port)) {
+            this.port = Integer.parseInt(port);
+        }
+        return this;
     }
 
     protected static MySQLPersistenceInfo load(Properties properties) throws PersistenceInfoException {
-	MySQLPersistenceInfo persistenceInfo = new MySQLPersistenceInfo()
-		.withDatabase(properties.getProperty(DATABASE_KEY))
-		.withUsername(properties.getProperty(USERNAME_KEY))
-		.withPassword(properties.getProperty(PASSWORD_KEY))
-		.withHostname(properties.getProperty(HOSTNAME_KEY))
-		.withPort(properties.getProperty(PORT_KEY));
-	persistenceInfo.validate();
-	return persistenceInfo;
+        MySQLPersistenceInfo persistenceInfo =
+                new MySQLPersistenceInfo().withDatabase(properties.getProperty(DATABASE_KEY))
+                        .withUsername(properties.getProperty(USERNAME_KEY)).withPassword(properties.getProperty(PASSWORD_KEY))
+                        .withHostname(properties.getProperty(HOSTNAME_KEY)).withPort(properties.getProperty(PORT_KEY));
+        persistenceInfo.validate();
+        return persistenceInfo;
     }
 
+    @Override
     public void validate() throws PersistenceInfoException {
-	StringBuilder errorMessageBuilder = new StringBuilder();
-	if(StringUtils.isBlank(database))
-	    errorMessageBuilder.append("Missing parameter: "+DATABASE_KEY+"\n");
-	if(errorMessageBuilder.length() > 0) {
-	    throw new PersistenceInfoException(errorMessageBuilder.toString());
-	}
+        StringBuilder errorMessageBuilder = new StringBuilder();
+        if (StringUtils.isBlank(database))
+            errorMessageBuilder.append("Missing parameter: " + DATABASE_KEY + "\n");
+        if (errorMessageBuilder.length() > 0) {
+            throw new PersistenceInfoException(errorMessageBuilder.toString());
+        }
     }
 
 }

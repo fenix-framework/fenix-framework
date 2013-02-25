@@ -10,7 +10,6 @@ public class TransactionStatistics {
     private CounterStats readWriteReads = new CounterStats();
     private CounterStats readWriteWrites = new CounterStats();
 
-
     TransactionStatistics() {
     }
 
@@ -41,13 +40,9 @@ public class TransactionStatistics {
     }
 
     public synchronized Report getReportAndReset() {
-        Report report = new Report(numReadTxs, 
-                                   numWriteTxs, 
-                                   numAborts, 
-                                   numConflicts,
-                                   readOnlyReads.getAndReset(),
-                                   readWriteReads.getAndReset(),
-                                   readWriteWrites.getAndReset());
+        Report report =
+                new Report(numReadTxs, numWriteTxs, numAborts, numConflicts, readOnlyReads.getAndReset(),
+                        readWriteReads.getAndReset(), readWriteWrites.getAndReset());
         numReadTxs = 0;
         numWriteTxs = 0;
         numAborts = 0;
@@ -66,13 +61,8 @@ public class TransactionStatistics {
         public final CounterStats readWriteReads;
         public final CounterStats readWriteWrites;
 
-        public Report(int numReads, 
-                      int numWrites, 
-                      int numAborts, 
-                      int numConflicts, 
-                      CounterStats readOnlyReads, 
-                      CounterStats readWriteReads, 
-                      CounterStats readWriteWrites) {
+        public Report(int numReads, int numWrites, int numAborts, int numConflicts, CounterStats readOnlyReads,
+                CounterStats readWriteReads, CounterStats readWriteWrites) {
             this.numReads = numReads;
             this.numWrites = numWrites;
             this.numAborts = numAborts;

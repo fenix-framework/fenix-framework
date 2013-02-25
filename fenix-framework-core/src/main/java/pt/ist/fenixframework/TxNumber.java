@@ -22,10 +22,12 @@ public class TxNumber {
         }
     }
 
+    @Override
     public int hashCode() {
         return (number == null) ? 0 : number.hashCode();
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o == this) {
             return true;
@@ -49,11 +51,11 @@ public class TxNumber {
 
     public static long externalize(TxNumber num) {
         if (num.number == null) {
-            num.number = Long.valueOf(Transaction.current().getNumber());
+            num.number = Long.valueOf(jvstm.Transaction.current().getNumber());
         }
         return num.number;
     }
-        
+
     public static TxNumber internalize(long value) {
         return new TxNumber(value);
     }
