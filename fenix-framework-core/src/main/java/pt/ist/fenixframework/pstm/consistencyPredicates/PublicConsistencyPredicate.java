@@ -6,7 +6,7 @@ import java.lang.reflect.Modifier;
 import pt.ist.fenixframework.pstm.DomainMetaClass;
 import pt.ist.fenixframework.pstm.DomainMetaObject;
 import pt.ist.fenixframework.pstm.NoDomainMetaObjects;
-import pt.ist.fenixframework.pstm.collections.bplustree.BPlusTree;
+import pt.ist.fenixframework.pstm.adt.bplustree.BPlusTree;
 
 /**
  * A <code>PublicConsistencyPredicate</code> is a {@link DomainConsistencyPredicate} that represents a predicate method that is

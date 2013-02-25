@@ -86,15 +86,6 @@ public class FenixDomainModel extends DomainModel {
         txNumType.setInternalizationMethodName(internalizeName);
 
         newValueType("TxNumber", txNumType);
-
-        // TreeMap
-        String externalizerClass = "pt.ist.fenixframework.pstm.collections.bplustree.AbstractNode";
-        ValueType byteArrayType = findValueType("bytearray");
-        PlainValueType treeMapType = new PlainValueType("java.util.TreeMap");
-        treeMapType
-                .addExternalizationElement(new ExternalizationElement(byteArrayType, externalizerClass + ".externalizeTreeMap"));
-        treeMapType.setInternalizationMethodName(externalizerClass + ".internalizeTreeMap");
-        newValueType("TreeMap", treeMapType);
     }
 
     protected void registerFenixValueType(String valueTypeName, String aliasName, String jdbcType) {

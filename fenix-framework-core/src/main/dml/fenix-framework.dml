@@ -33,18 +33,25 @@ relation PersistentRootAbstractDomainObject {
 
 
 
-/* This section pertains to support for persistent collections using B+Trees */
+/* Abstract Data Type: B+Trees */
 
-package pt.ist.fenixframework.pstm.collections.bplustree;
+package pt.ist.fenixframework.pstm.adt.bplustree;
+
+valueType java.util.TreeMap as GenericTreeMap {
+    externalizeWith {
+        bytearray pt.ist.fenixframework.pstm.adt.bplustree.AbstractNode.externalizeTreeMap();
+    }
+    internalizeWith pt.ist.fenixframework.pstm.adt.bplustree.AbstractNode.internalizeTreeMap();
+}
 
 class BPlusTree {}
 
 class AbstractNode {}
 
 class LeafNode extends AbstractNode {
-    // key: any OID
-    // value: any reference to a domainObject
-    TreeMap<Long,pt.ist.fenixframework.DomainObject> entries;
+    // key: any Serializable and Comparable
+    // value: any Serializable
+    GenericTreeMap<Comparable,java.io.Serializable> entries;
 }
 
 class InnerNode extends AbstractNode {
@@ -52,24 +59,24 @@ class InnerNode extends AbstractNode {
     // M children aggregated with a key and add a special LAST_KEY for the
     // M+1-th children.  This way the i-th child always contains elements
     // whose keys are less than the i-th key.
-    // key: any OID
-    // value: a Node
-    TreeMap<Long,AbstractNode> subNodes;
+    // key: any Serializable and Comparable
+    // value: an AbstractNode
+    GenericTreeMap<Comparable,AbstractNode> subNodes;
 }
 
-relation BPlusTreeHasRootNode {
+relation AdtBPlusTreeHasRootNode {
     BPlusTree playsRole;
     AbstractNode playsRole root;
 }
 
-relation NodeHasParent {
+relation AdtNodeHasParent {
     AbstractNode playsRole {
 	multiplicity *;
     }
     InnerNode playsRole parent;
 }
 
-relation LeafNodeHasSibling {
+relation AdtLeafNodeHasSibling {
     LeafNode playsRole previous;
     LeafNode playsRole next;
 }
@@ -118,7 +125,6 @@ relation DomainFenixFrameworkRootDomainMetaClasses {
 	}
 }
 
-
 relation DomainMetaSuperclassDomainMetaSubclasses {
 	DomainMetaClass playsRole domainMetaSuperclass;
 	DomainMetaClass playsRole domainMetaSubclasses {
@@ -132,11 +138,9 @@ relation DomainMetaObjectsDomainMetaClass {
 }
 
 relation DomainMetaClassExistingDomainMetaObjects {
-	collections.bplustree.BPlusTree playsRole existingDomainMetaObjects;
+	adt.bplustree.BPlusTree playsRole existingDomainMetaObjects;
 	DomainMetaClass playsRole;
 }
-
-
 
 relation DomainMetaClassDeclaredConsistencyPredicates {
 	DomainMetaClass playsRole domainMetaClass;

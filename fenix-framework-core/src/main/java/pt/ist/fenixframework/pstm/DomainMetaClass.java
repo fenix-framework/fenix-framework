@@ -14,7 +14,7 @@ import java.util.Set;
 
 import jvstm.TransactionalCommand;
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.pstm.collections.bplustree.BPlusTree;
+import pt.ist.fenixframework.pstm.adt.bplustree.BPlusTree;
 import pt.ist.fenixframework.pstm.consistencyPredicates.DomainConsistencyPredicate;
 import pt.ist.fenixframework.pstm.consistencyPredicates.DomainDependenceRecord;
 import pt.ist.fenixframework.pstm.consistencyPredicates.PrivateConsistencyPredicate;

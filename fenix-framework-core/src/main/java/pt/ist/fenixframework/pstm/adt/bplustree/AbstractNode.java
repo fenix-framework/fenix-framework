@@ -1,27 +1,30 @@
-package pt.ist.fenixframework.pstm.collections.bplustree;
+package pt.ist.fenixframework.pstm.adt.bplustree;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.Externalization;
-import pt.ist.fenixframework.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.NoDomainMetaObjects;
+
+// import java.util.concurrent.atomic.AtomicInteger;
 
 /** The keys comparison function should be consistent with equals. */
 @NoDomainMetaObjects
-public abstract class AbstractNode<T extends DomainObject> extends AbstractNode_Base implements Iterable {
+public abstract class AbstractNode<T extends Serializable> extends AbstractNode_Base implements Iterable {
     /* Node Interface */
 
     /** Inserts the given key-value pair and returns the (possibly new) root node */
-    abstract AbstractNode insert(Long key, T value);
+    abstract AbstractNode insert(Comparable key, T value);
 
     /** Removes the element with the given key */
-    abstract AbstractNode remove(Long key);
+    abstract AbstractNode remove(Comparable key);
 
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key. */
-    abstract T get(Long key);
+    abstract T get(Comparable key);
 
     /**
      * Returns the value at the given index
@@ -38,10 +41,13 @@ public abstract class AbstractNode<T extends DomainObject> extends AbstractNode_
     abstract AbstractNode removeIndex(int index);
 
     /** Returns <code>true</code> if this map contains a mapping for the specified key. */
-    abstract boolean containsKey(Long key);
+    abstract boolean containsKey(Comparable key);
 
     /** Returns the number os key-value mappings in this map */
     abstract int size();
+
+    /** Returns the keys mapped in this map */
+    abstract Collection<? extends Comparable> getKeys();
 
     abstract String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds);
 
@@ -71,58 +77,36 @@ public abstract class AbstractNode<T extends DomainObject> extends AbstractNode_
      */
     abstract void delete();
 
-    abstract Map.Entry<Long, T> removeBiggestKeyValue();
+    abstract Map.Entry<Comparable, T> removeBiggestKeyValue();
 
-    abstract Map.Entry<Long, T> removeSmallestKeyValue();
+    abstract Map.Entry<Comparable, T> removeSmallestKeyValue();
 
-    abstract Long getSmallestKey();
+    abstract Comparable getSmallestKey();
 
     abstract void addKeyValue(Map.Entry keyValue);
 
     // merge elements from the left node into this node. smf: maybe LeafNode can be a subclass of InnerNode
-    abstract void mergeWithLeftNode(AbstractNode leftNode, Long splitKey);
+    abstract void mergeWithLeftNode(AbstractNode leftNode, Comparable splitKey);
 
     // the number of _elements_ in this node (not counting sub-nodes)
     abstract int shallowSize();
 
+    abstract Iterator<? extends Comparable> keysIterator();
+
+    /*
+     * We need to ensure that no DomainObjects escape in the serialization.  This would be a problem
+     * if 'someone' (e.g. Infinispan in clustered mode) needed to internalize a D.O. (hidden in a
+     * treemap entry) while the FenixFramework was still running its static initialization code. So
+     * we convert the TreeMap to/from a byte[] every time it is externalized/internalize by the FF.
+     * We wrap it in a Serializable class (TreeMapExternalization) ,because some backends (e.g. OGM)
+     * don't deal well with byte[] yet.
+     */
+
     public static byte[] externalizeTreeMap(TreeMap treeMap) {
-        return Externalization.externalizeObject(new TreeMapExternalization(treeMap));
+        return Externalization.externalizeSerializable(treeMap);
     }
 
     public static TreeMap internalizeTreeMap(byte[] externalizedTreeMap) {
-        TreeMapExternalization treeMapExternalization = Externalization.internalizeObject(externalizedTreeMap);
-
-        return treeMapExternalization.toTreeMap();
-    }
-
-    private static class TreeMapExternalization implements Serializable {
-        private static final long serialVersionUID = 1L;
-
-        private final long[] keyOids;
-        private final long[] valueOids;
-
-        TreeMapExternalization(TreeMap treeMap) {
-            int size = treeMap.size();
-            this.keyOids = new long[size];
-            this.valueOids = new long[size];
-
-            int i = 0;
-            for (Map.Entry entry : (java.util.Set<Map.Entry>) treeMap.entrySet()) {
-                this.keyOids[i] = (Long) entry.getKey();
-                Object value = entry.getValue();
-                this.valueOids[i] = (value == null ? -1 : ((DomainObject) value).getOid());
-                i++;
-            }
-        }
-
-        TreeMap toTreeMap() {
-            TreeMap treeMap = new TreeMap(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
-
-            for (int i = 0; i < this.keyOids.length; i++) {
-                long value = this.keyOids[i];
-                treeMap.put(this.keyOids[i], (value == -1 ? null : AbstractDomainObject.fromOID(this.valueOids[i])));
-            }
-            return treeMap;
-        }
+        return (TreeMap) Externalization.internalizeSerializable(externalizedTreeMap);
     }
 }

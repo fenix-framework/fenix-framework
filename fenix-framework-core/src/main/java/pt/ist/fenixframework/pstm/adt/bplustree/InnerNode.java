@@ -1,10 +1,12 @@
-package pt.ist.fenixframework.pstm.collections.bplustree;
+package pt.ist.fenixframework.pstm.adt.bplustree;
 
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.pstm.NoDomainMetaObjects;
 
 /**
@@ -21,59 +23,58 @@ public class InnerNode extends InnerNode_Base {
         super();
     }
 
-    InnerNode(AbstractNode leftNode, AbstractNode rightNode, Long splitKey) {
-        TreeMap<Long, AbstractNode> newMap = new TreeMap<Long, AbstractNode>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
+    InnerNode(AbstractNode leftNode, AbstractNode rightNode, Comparable splitKey) {
+        TreeMap<Comparable, AbstractNode> newMap =
+                new TreeMap<Comparable, AbstractNode>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
         newMap.put(splitKey, leftNode);
         newMap.put(BPlusTree.LAST_KEY, rightNode);
 
-        this.setSubNodes(newMap);
+        setSubNodes(newMap);
         leftNode.setParent(this);
         rightNode.setParent(this);
     }
 
-    private InnerNode(TreeMap<Long, AbstractNode> subNodes) {
-        this.setSubNodes(subNodes);
+    private InnerNode(TreeMap<Comparable, AbstractNode> subNodes) {
+        setSubNodes(subNodes);
         for (AbstractNode subNode : subNodes.values()) { // smf: either don't do this or don't setParent when making new
             subNode.setParent(this);
         }
     }
 
-    private TreeMap<Long, AbstractNode> replacePreviousMap(InnerNode node) {
-        TreeMap<Long, AbstractNode> newMap = new TreeMap<Long, AbstractNode>(node.getSubNodes());
-        node.setSubNodes(newMap);
-        return newMap;
+    private TreeMap<Comparable, AbstractNode> duplicateMap() {
+        return new TreeMap<Comparable, AbstractNode>(getSubNodes());
     }
 
     @Override
-    public AbstractNode insert(Long key, DomainObject value) {
+    public AbstractNode insert(Comparable key, Serializable value) {
         return findSubNode(key).insert(key, value);
     }
 
     // this method is invoked when a node in the next depth level got full, it
     // was split and now needs to pass a new key to its parent (this)
-    AbstractNode rebase(AbstractNode subLeftNode, AbstractNode subRightNode, Long middleKey) {
-        TreeMap<Long, AbstractNode> newMap = justInsertUpdatingParentRelation(middleKey, subLeftNode, subRightNode);
+    AbstractNode rebase(AbstractNode subLeftNode, AbstractNode subRightNode, Comparable middleKey) {
+        TreeMap<Comparable, AbstractNode> newMap = justInsertUpdatingParentRelation(middleKey, subLeftNode, subRightNode);
         if (newMap.size() <= BPlusTree.MAX_NUMBER_OF_ELEMENTS) { // this node can accommodate the new split
             return getRoot();
         } else { // must split this node
             // find middle position (key to move up amd sub-node to move left)
-            Iterator<Map.Entry<Long, AbstractNode>> entriesIterator = newMap.entrySet().iterator();
+            Iterator<Map.Entry<Comparable, AbstractNode>> entriesIterator = newMap.entrySet().iterator();
             for (int i = 0; i < BPlusTree.LOWER_BOUND; i++) {
                 entriesIterator.next();
             }
-            Map.Entry<Long, AbstractNode> splitEntry = entriesIterator.next();
-            Long keyToSplit = splitEntry.getKey();
+            Map.Entry<Comparable, AbstractNode> splitEntry = entriesIterator.next();
+            Comparable keyToSplit = splitEntry.getKey();
             AbstractNode subNodeToMoveLeft = splitEntry.getValue();
-            Long nextKey = entriesIterator.next().getKey();
+            Comparable nextKey = entriesIterator.next().getKey();
 
             // Split node in two.  Notice that the 'keyToSplit' is left out of
             // this level.  It will be moved up.
-            TreeMap<Long, AbstractNode> leftSubNodes = new TreeMap<Long, AbstractNode>(newMap.headMap(keyToSplit));
+            TreeMap<Comparable, AbstractNode> leftSubNodes = new TreeMap<Comparable, AbstractNode>(newMap.headMap(keyToSplit));
             leftSubNodes.put(BPlusTree.LAST_KEY, subNodeToMoveLeft);
             InnerNode leftNode = new InnerNode(leftSubNodes);
             subNodeToMoveLeft.setParent(leftNode); // smf: maybe it is not necessary because of the code in the constructor
 
-            InnerNode rightNode = new InnerNode(new TreeMap<Long, AbstractNode>(newMap.tailMap(nextKey)));
+            InnerNode rightNode = new InnerNode(new TreeMap<Comparable, AbstractNode>(newMap.tailMap(nextKey)));
 
             // propagate split to parent
             if (this.getParent() == null) {
@@ -85,26 +86,27 @@ public class InnerNode extends InnerNode_Base {
         }
     }
 
-    private TreeMap<Long, AbstractNode> justInsert(Long middleKey, AbstractNode subLeftNode, AbstractNode subRightNode) {
-        TreeMap<Long, AbstractNode> newMap = replacePreviousMap(this);
+    private TreeMap<Comparable, AbstractNode> justInsert(Comparable middleKey, AbstractNode subLeftNode, AbstractNode subRightNode) {
+        TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
 
         // find smallest key greater than middleKey
-        Long keyJustAfterMiddleKey = newMap.higherKey(middleKey);
+        Comparable keyJustAfterMiddleKey = newMap.higherKey(middleKey);
         newMap.put(keyJustAfterMiddleKey, subRightNode); // this replaces the previous mapping
         newMap.put(middleKey, subLeftNode); // this adds the new split
+        setSubNodes(newMap);
         return newMap;
     }
 
-    private TreeMap<Long, AbstractNode> justInsertUpdatingParentRelation(Long middleKey, AbstractNode subLeftNode,
+    private TreeMap<Comparable, AbstractNode> justInsertUpdatingParentRelation(Comparable middleKey, AbstractNode subLeftNode,
             AbstractNode subRightNode) {
-        TreeMap<Long, AbstractNode> newMap = justInsert(middleKey, subLeftNode, subRightNode);
+        TreeMap<Comparable, AbstractNode> newMap = justInsert(middleKey, subLeftNode, subRightNode);
         subLeftNode.setParent(this);
         subRightNode.setParent(this);
         return newMap;
     }
 
     @Override
-    public AbstractNode remove(Long key) {
+    public AbstractNode remove(Comparable key) {
         return findSubNode(key).remove(key);
     }
 
@@ -117,7 +119,7 @@ public class InnerNode extends InnerNode_Base {
         deleteDomainObject();
     }
 
-    AbstractNode replaceDeletedKey(Long deletedKey, Long replacementKey) {
+    AbstractNode replaceDeletedKey(Comparable deletedKey, Comparable replacementKey) {
         AbstractNode subNode = this.getSubNodes().get(deletedKey);
         if (subNode != null) { // found the key a this level
             return replaceDeletedKey(deletedKey, replacementKey, subNode);
@@ -129,10 +131,11 @@ public class InnerNode extends InnerNode_Base {
     }
 
     // replaces the key for the given sub-node.  The deletedKey is expected to exist in this node
-    private AbstractNode replaceDeletedKey(Long deletedKey, Long replacementKey, AbstractNode subNode) {
-        TreeMap<Long, AbstractNode> newMap = replacePreviousMap(this);
+    private AbstractNode replaceDeletedKey(Comparable deletedKey, Comparable replacementKey, AbstractNode subNode) {
+        TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
         newMap.remove(deletedKey);
         newMap.put(replacementKey, subNode);
+        setSubNodes(newMap);
         return getRoot();
     }
 
@@ -143,14 +146,14 @@ public class InnerNode extends InnerNode_Base {
     // null in replacement key means that deletedKey does not have to be
     // replaced. Corollary: the deleted key was not the first key in its leaf
     // node
-    AbstractNode underflowFromLeaf(Long deletedKey, Long replacementKey) {
-        Iterator<Map.Entry<Long, AbstractNode>> it = this.getSubNodes().entrySet().iterator();
-        Map.Entry<Long, AbstractNode> previousEntry = null;
-        Map.Entry<Long, AbstractNode> entry = it.next();
-        Map.Entry<Long, AbstractNode> nextEntry = null;;
+    AbstractNode underflowFromLeaf(Comparable deletedKey, Comparable replacementKey) {
+        Iterator<Map.Entry<Comparable, AbstractNode>> it = this.getSubNodes().entrySet().iterator();
+        Map.Entry<Comparable, AbstractNode> previousEntry = null;
+        Map.Entry<Comparable, AbstractNode> entry = it.next();
+        Map.Entry<Comparable, AbstractNode> nextEntry = null;;
 
         // first, identify the deletion point
-        while (entry.getKey().compareTo(deletedKey) <= 0) {
+        while (BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY.compare(entry.getKey(), deletedKey) <= 0) {
             previousEntry = entry;
             entry = it.next();
         }
@@ -191,7 +194,7 @@ public class InnerNode extends InnerNode_Base {
     }
 
     private AbstractNode checkForUnderflow() {
-        TreeMap<Long, AbstractNode> localSubNodes = this.getSubNodes();
+        TreeMap<Comparable, AbstractNode> localSubNodes = this.getSubNodes();
 
         // Now, just check for underflow in this node.   The LAST_KEY is fake, so it does not count for the total.
         if (localSubNodes.size() < BPlusTree.LOWER_BOUND_WITH_LAST_KEY) {
@@ -209,23 +212,24 @@ public class InnerNode extends InnerNode_Base {
         return getRoot();
     }
 
-    private void rightLeafMerge(Map.Entry<Long, AbstractNode> entry, Map.Entry<Long, AbstractNode> nextEntry) {
+    private void rightLeafMerge(Map.Entry<Comparable, AbstractNode> entry, Map.Entry<Comparable, AbstractNode> nextEntry) {
         leftLeafMerge(entry, nextEntry);
     }
 
-    private void leftLeafMerge(Map.Entry<Long, AbstractNode> previousEntry, Map.Entry<Long, AbstractNode> entry) {
+    private void leftLeafMerge(Map.Entry<Comparable, AbstractNode> previousEntry, Map.Entry<Comparable, AbstractNode> entry) {
         entry.getValue().mergeWithLeftNode(previousEntry.getValue(), null);
         // remove the superfluous node
-        Map newMap = replacePreviousMap(this);
+        TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
         newMap.remove(previousEntry.getKey());
+        setSubNodes(newMap);
     }
 
     @Override
-    void mergeWithLeftNode(AbstractNode leftNode, Long splitKey) {
+    void mergeWithLeftNode(AbstractNode leftNode, Comparable splitKey) {
         InnerNode left = (InnerNode) leftNode;  // this node does not know how to merge with another kind
 
-        TreeMap<Long, AbstractNode> newMap = replacePreviousMap(this);
-        TreeMap<Long, AbstractNode> newLeftSubNodes = replacePreviousMap(left);
+        TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
+        TreeMap<Comparable, AbstractNode> newLeftSubNodes = left.duplicateMap();
 
         // change the parent of all the left sub-nodes
         InnerNode uncle = newMap.get(BPlusTree.LAST_KEY).getParent();
@@ -234,41 +238,46 @@ public class InnerNode extends InnerNode_Base {
         }
 
         // remove the entry for left's LAST_KEY
-        Map.Entry<Long, AbstractNode> higherLeftValue = newLeftSubNodes.pollLastEntry();
+        Map.Entry<Comparable, AbstractNode> higherLeftValue = newLeftSubNodes.pollLastEntry();
 
         // add the higher left value associated with the split-key
         newMap.put(splitKey, higherLeftValue.getValue());
 
         // merge the remaining left sub-nodes
         newMap.putAll(newLeftSubNodes);
+        setSubNodes(newMap);
     }
 
     // Get the rightmost key-value pair from the left sub-node and move it to the given sub-node.  Update the split key
-    private void moveChildFromLeftToRight(Map.Entry<Long, AbstractNode> leftEntry, Map.Entry<Long, AbstractNode> rightEntry) {
+    private void moveChildFromLeftToRight(Map.Entry<Comparable, AbstractNode> leftEntry,
+            Map.Entry<Comparable, AbstractNode> rightEntry) {
         AbstractNode leftSubNode = leftEntry.getValue();
 
-        Map.Entry<Long, DomainObject> leftBiggestKeyValue = leftSubNode.removeBiggestKeyValue();
+        Map.Entry<Comparable, Serializable> leftBiggestKeyValue = leftSubNode.removeBiggestKeyValue();
         rightEntry.getValue().addKeyValue(leftBiggestKeyValue);
 
         // update the split key to be the key we just moved
-        TreeMap<Long, AbstractNode> newMap = replacePreviousMap(this);
+        TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
         newMap.remove(leftEntry.getKey());
         newMap.put(leftBiggestKeyValue.getKey(), leftSubNode);
+        setSubNodes(newMap);
     }
 
     // Get the leftmost key-value pair from the right sub-node and move it to the given sub-node.  Update the split key
-    private void moveChildFromRightToLeft(Map.Entry<Long, AbstractNode> leftEntry, Map.Entry<Long, AbstractNode> rightEntry) {
+    private void moveChildFromRightToLeft(Map.Entry<Comparable, AbstractNode> leftEntry,
+            Map.Entry<Comparable, AbstractNode> rightEntry) {
         AbstractNode rightSubNode = rightEntry.getValue();
 
-        Map.Entry<Long, DomainObject> rightSmallestKeyValue = rightSubNode.removeSmallestKeyValue();
+        Map.Entry<Comparable, Serializable> rightSmallestKeyValue = rightSubNode.removeSmallestKeyValue();
         AbstractNode leftSubNode = leftEntry.getValue();
         leftSubNode.addKeyValue(rightSmallestKeyValue);
 
         // update the split key to be the key after the one we just moved
-        Long rightNextSmallestKey = rightSubNode.getSmallestKey();
-        TreeMap<Long, AbstractNode> newMap = replacePreviousMap(this);
+        Comparable rightNextSmallestKey = rightSubNode.getSmallestKey();
+        TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
         newMap.remove(leftEntry.getKey());
         newMap.put(rightNextSmallestKey, leftSubNode);
+        setSubNodes(newMap);
     }
 
     /*
@@ -276,10 +285,10 @@ public class InnerNode extends InnerNode_Base {
      */
 
     AbstractNode underflowFromInner(InnerNode deletedNode) {
-        Iterator<Map.Entry<Long, AbstractNode>> it = this.getSubNodes().entrySet().iterator();
-        Map.Entry<Long, AbstractNode> previousEntry = null;
-        Map.Entry<Long, AbstractNode> entry = null;
-        Map.Entry<Long, AbstractNode> nextEntry = null;;
+        Iterator<Map.Entry<Comparable, AbstractNode>> it = this.getSubNodes().entrySet().iterator();
+        Map.Entry<Comparable, AbstractNode> previousEntry = null;
+        Map.Entry<Comparable, AbstractNode> entry = null;
+        Map.Entry<Comparable, AbstractNode> nextEntry = null;;
 
         // first, identify the deletion point
         do {
@@ -313,26 +322,27 @@ public class InnerNode extends InnerNode_Base {
         return checkForUnderflow();
     }
 
-    private void rightInnerMerge(Map.Entry<Long, AbstractNode> entry, Map.Entry<Long, AbstractNode> nextEntry) {
+    private void rightInnerMerge(Map.Entry<Comparable, AbstractNode> entry, Map.Entry<Comparable, AbstractNode> nextEntry) {
         leftInnerMerge(entry, nextEntry);
     }
 
-    private void leftInnerMerge(Map.Entry<Long, AbstractNode> previousEntry, Map.Entry<Long, AbstractNode> entry) {
-        Long splitKey = previousEntry.getKey();
+    private void leftInnerMerge(Map.Entry<Comparable, AbstractNode> previousEntry, Map.Entry<Comparable, AbstractNode> entry) {
+        Comparable splitKey = previousEntry.getKey();
         entry.getValue().mergeWithLeftNode(previousEntry.getValue(), splitKey);
         // remove the superfluous node
-        Map newMap = replacePreviousMap(this);
+        TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
         newMap.remove(splitKey);
+        setSubNodes(newMap);
     }
 
-    private void rotateLeftToRight(Map.Entry<Long, InnerNode> leftEntry, Map.Entry<Long, InnerNode> rightEntry) {
+    private void rotateLeftToRight(Map.Entry<Comparable, InnerNode> leftEntry, Map.Entry<Comparable, InnerNode> rightEntry) {
         InnerNode leftSubNode = leftEntry.getValue();
         InnerNode rightSubNode = rightEntry.getValue();
 
-        TreeMap<Long, AbstractNode> newLeftSubNodeSubNodes = replacePreviousMap(leftSubNode);
-        TreeMap<Long, AbstractNode> newRightSubNodeSubNodes = replacePreviousMap(rightSubNode);
+        TreeMap<Comparable, AbstractNode> newLeftSubNodeSubNodes = leftSubNode.duplicateMap();
+        TreeMap<Comparable, AbstractNode> newRightSubNodeSubNodes = rightSubNode.duplicateMap();
 
-        Long leftHighestKey = newLeftSubNodeSubNodes.lowerKey(BPlusTree.LAST_KEY);
+        Comparable leftHighestKey = newLeftSubNodeSubNodes.lowerKey(BPlusTree.LAST_KEY);
         AbstractNode leftHighestValue = newLeftSubNodeSubNodes.get(BPlusTree.LAST_KEY);
 
         // move the highest value from the left to the right.  Use the split-key as the index.
@@ -343,35 +353,43 @@ public class InnerNode extends InnerNode_Base {
         leftHighestValue = newLeftSubNodeSubNodes.remove(leftHighestKey);
         newLeftSubNodeSubNodes.put(BPlusTree.LAST_KEY, leftHighestValue);
 
+        leftSubNode.setSubNodes(newLeftSubNodeSubNodes);
+        rightSubNode.setSubNodes(newRightSubNodeSubNodes);
+
         // update the split-key to be the key we just removed from the left
-        TreeMap<Long, AbstractNode> newMap = replacePreviousMap(this);
+        TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
         newMap.remove(leftEntry.getKey());
         newMap.put(leftHighestKey, leftSubNode);
+        setSubNodes(newMap);
     }
 
-    private void rotateRightToLeft(Map.Entry<Long, InnerNode> leftEntry, Map.Entry<Long, InnerNode> rightEntry) {
+    private void rotateRightToLeft(Map.Entry<Comparable, InnerNode> leftEntry, Map.Entry<Comparable, InnerNode> rightEntry) {
         InnerNode leftSubNode = leftEntry.getValue();
         InnerNode rightSubNode = rightEntry.getValue();
 
-        TreeMap<Long, AbstractNode> newLeftSubNodeSubNodes = replacePreviousMap(leftSubNode);
-        TreeMap<Long, AbstractNode> newRightSubNodeSubNodes = replacePreviousMap(rightSubNode);
+        TreeMap<Comparable, AbstractNode> newLeftSubNodeSubNodes = leftSubNode.duplicateMap();
+        TreeMap<Comparable, AbstractNode> newRightSubNodeSubNodes = rightSubNode.duplicateMap();
 
         // re-index the left highest value under the split-key, which is moved down
         AbstractNode leftHighestValue = newLeftSubNodeSubNodes.get(BPlusTree.LAST_KEY);
         newLeftSubNodeSubNodes.put(leftEntry.getKey(), leftHighestValue);
 
         // remove right's lowest entry
-        Map.Entry<Long, AbstractNode> rightLowestEntry = newRightSubNodeSubNodes.pollFirstEntry();
+        Map.Entry<Comparable, AbstractNode> rightLowestEntry = newRightSubNodeSubNodes.pollFirstEntry();
 
         // set its value on the left
         AbstractNode rightLowestValue = rightLowestEntry.getValue();
         newLeftSubNodeSubNodes.put(BPlusTree.LAST_KEY, rightLowestValue);
         rightLowestValue.setParent(leftSubNode);
 
+        leftSubNode.setSubNodes(newLeftSubNodeSubNodes);
+        rightSubNode.setSubNodes(newRightSubNodeSubNodes);
+
         // update the split-key to be the key we just removed from the right
-        TreeMap<Long, AbstractNode> newMap = replacePreviousMap(this);
+        TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
         newMap.remove(leftEntry.getKey());
         newMap.put(rightLowestEntry.getKey(), leftSubNode);
+        setSubNodes(newMap);
     }
 
     @Override
@@ -385,23 +403,23 @@ public class InnerNode extends InnerNode_Base {
     }
 
     @Override
-    Long getSmallestKey() {
+    Comparable getSmallestKey() {
         throw new UnsupportedOperationException("not yet implemented: getSmallestKey from inner node");
     }
 
     @Override
     void addKeyValue(Map.Entry keyValue) {
-        throw new UnsupportedOperationException("not yet implemented: addKeyValue to inner node should account from LAST_KEY ?!?");
+        throw new UnsupportedOperationException("not yet implemented: addKeyValue to inner node should account for LAST_KEY ?!?");
     }
 
     @Override
-    public DomainObject get(Long key) {
+    public Serializable get(Comparable key) {
         return findSubNode(key).get(key);
     }
 
     // travels to the leftmost leaf and goes from there;
     @Override
-    public DomainObject getIndex(int index) {
+    public Serializable getIndex(int index) {
         return this.getSubNodes().firstEntry().getValue().getIndex(index);
     }
 
@@ -412,14 +430,14 @@ public class InnerNode extends InnerNode_Base {
     }
 
     @Override
-    public boolean containsKey(Long key) {
+    public boolean containsKey(Comparable key) {
         return findSubNode(key).containsKey(key);
     }
 
-    private AbstractNode findSubNode(Long key) {
-        for (Map.Entry<Long, AbstractNode> subNode : this.getSubNodes().entrySet()) {
-            Long splitKey = subNode.getKey();
-            if (splitKey.compareTo(key) > 0) { // this will eventually be true because the LAST_KEY is greater than all
+    private AbstractNode findSubNode(Comparable key) {
+        for (Map.Entry<Comparable, AbstractNode> subNode : this.getSubNodes().entrySet()) {
+            Comparable splitKey = subNode.getKey();
+            if (BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY.compare(splitKey, key) > 0) { // this will eventually be true because the LAST_KEY is greater than all
                 return subNode.getValue();
             }
         }
@@ -441,6 +459,11 @@ public class InnerNode extends InnerNode_Base {
     }
 
     @Override
+    Iterator<? extends Comparable> keysIterator() {
+        return this.getSubNodes().firstEntry().getValue().keysIterator();
+    }
+
+    @Override
     public Iterator iterator() {
         return this.getSubNodes().firstEntry().getValue().iterator();
     }
@@ -452,8 +475,8 @@ public class InnerNode extends InnerNode_Base {
         str.append(spaces);
         str.append("[" + (dumpNodeIds ? this : "") + ": ");
 
-        for (Map.Entry<Long, AbstractNode> entry : this.getSubNodes().entrySet()) {
-            Long key = entry.getKey();
+        for (Map.Entry<Comparable, AbstractNode> entry : this.getSubNodes().entrySet()) {
+            Comparable key = entry.getKey();
             AbstractNode value = entry.getValue();
             str.append("\n");
             str.append(value.dump(level + 4, dumpKeysOnly, dumpNodeIds));
@@ -469,4 +492,10 @@ public class InnerNode extends InnerNode_Base {
         }
         return str.toString();
     }
+
+    @Override
+    Collection<? extends Comparable> getKeys() {
+        return Collections.emptySet();
+    }
+
 }

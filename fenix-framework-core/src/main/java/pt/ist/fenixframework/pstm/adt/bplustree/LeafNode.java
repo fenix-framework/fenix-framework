@@ -1,44 +1,45 @@
-package pt.ist.fenixframework.pstm.collections.bplustree;
+package pt.ist.fenixframework.pstm.adt.bplustree;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.pstm.NoDomainMetaObjects;
 
 @NoDomainMetaObjects
 public class LeafNode extends LeafNode_Base {
 
     public LeafNode() {
-        setEntries(new TreeMap<Long, DomainObject>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY));
+        setEntries(new TreeMap<Comparable, Serializable>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY));
     }
 
-    private LeafNode(TreeMap<Long, DomainObject> entries) {
+    private LeafNode(TreeMap<Comparable, Serializable> entries) {
         setEntries(entries);
     }
 
-    private TreeMap<Long, DomainObject> replacePreviousMap(LeafNode leafNode) {
-        TreeMap<Long, DomainObject> newMap = new TreeMap<Long, DomainObject>(leafNode.getEntries());
-        leafNode.setEntries(newMap);
-        return newMap;
+    private TreeMap<Comparable, Serializable> duplicateMap() {
+        return new TreeMap<Comparable, Serializable>(getEntries());
     }
 
     @Override
-    public AbstractNode insert(Long key, DomainObject value) {
-        TreeMap<Long, DomainObject> localMap = justInsert(key, value);
+    public AbstractNode insert(Comparable key, Serializable value) {
+        TreeMap<Comparable, Serializable> localMap = justInsert(key, value);
 
+        if (localMap == null) {		// no insertion occurred
+            return null;	// insert will return false
+        }
         if (localMap.size() <= BPlusTree.MAX_NUMBER_OF_ELEMENTS) { // it still fits :-)
             return getRoot();
         } else { // must split this node
             // find middle position
-            Long keyToSplit = findRightMiddlePosition(localMap.keySet());
+            Comparable keyToSplit = findRightMiddlePosition(localMap.keySet());
 
             // split node in two
-            LeafNode leftNode = new LeafNode(new TreeMap<Long, DomainObject>(localMap.headMap(keyToSplit)));
-            LeafNode rightNode = new LeafNode(new TreeMap<Long, DomainObject>(localMap.tailMap(keyToSplit)));
+            LeafNode leftNode = new LeafNode(new TreeMap<Comparable, Serializable>(localMap.headMap(keyToSplit)));
+            LeafNode rightNode = new LeafNode(new TreeMap<Comparable, Serializable>(localMap.tailMap(keyToSplit)));
             fixLeafNodesListAfterSplit(leftNode, rightNode);
 
             // propagate split to parent
@@ -53,8 +54,8 @@ public class LeafNode extends LeafNode_Base {
         }
     }
 
-    private Long findRightMiddlePosition(Collection<Long> keys) {
-        Iterator<Long> keysIterator = keys.iterator();
+    private <T extends Comparable> Comparable findRightMiddlePosition(Collection<T> keys) {
+        Iterator<T> keysIterator = keys.iterator();
 
         for (int i = 0; i < BPlusTree.LOWER_BOUND + 1; i++) {
             keysIterator.next();
@@ -62,17 +63,19 @@ public class LeafNode extends LeafNode_Base {
         return keysIterator.next();
     }
 
-    private TreeMap<Long, DomainObject> justInsert(Long key, DomainObject value) {
-        TreeMap<Long, DomainObject> localEntries = this.getEntries();
+    private TreeMap<Comparable, Serializable> justInsert(Comparable key, Serializable value) {
+        TreeMap<Comparable, Serializable> localEntries = this.getEntries();
 
         // this test is performed because we need to return a new structure in
-        // case an update occurs.  Objects inside VBoxes must be immutable.
-        DomainObject currentValue = localEntries.get(key);
-        if (currentValue == value && localEntries.containsKey(key)) {
-            return localEntries;
+        // case an update occurs.  Value types must be immutable.
+        Serializable currentValue = localEntries.get(key);
+        // this check suffices because we do not allow null values
+        if (currentValue == value) {
+            return null;
         } else {
-            TreeMap<Long, DomainObject> newMap = replacePreviousMap(this);
+            TreeMap<Comparable, Serializable> newMap = duplicateMap();
             newMap.put(key, value);
+            setEntries(newMap);
             return newMap;
         }
     }
@@ -84,14 +87,17 @@ public class LeafNode extends LeafNode_Base {
     }
 
     @Override
-    public AbstractNode remove(Long key) {
-        TreeMap<Long, DomainObject> localMap = justRemove(key);
+    public AbstractNode remove(Comparable key) {
+        TreeMap<Comparable, Serializable> localMap = justRemove(key);
 
+        if (localMap == null) {
+            return null;	// remove will return false
+        }
         if (getParent() == null) {
             return this;
         } else {
             // if the removed key was the first we need to replace it in some parent's index
-            Long replacementKey = getReplacementKeyIfNeeded(key);
+            Comparable replacementKey = getReplacementKeyIfNeeded(key);
 
             if (localMap.size() < BPlusTree.LOWER_BOUND) {
                 return getParent().underflowFromLeaf(key, replacementKey);
@@ -111,25 +117,26 @@ public class LeafNode extends LeafNode_Base {
         deleteDomainObject();
     }
 
-    private TreeMap<Long, DomainObject> justRemove(Long key) {
-        TreeMap<Long, DomainObject> localEntries = this.getEntries();
+    private TreeMap<Comparable, Serializable> justRemove(Comparable key) {
+        TreeMap<Comparable, Serializable> localEntries = this.getEntries();
 
         // this test is performed because we need to return a new structure in
-        // case an update occurs.  Objects inside VBoxes must be immutable.
+        // case an update occurs.  Value types must be immutable.
         if (!localEntries.containsKey(key)) {
-            return localEntries;
+            return null;
         } else {
-            TreeMap<Long, DomainObject> newMap = replacePreviousMap(this);
+            TreeMap<Comparable, Serializable> newMap = duplicateMap();
             newMap.remove(key);
+            setEntries(newMap);
             return newMap;
         }
     }
 
     // This method assumes that there is at least one more key (which is
     // always true if this is not the root node)
-    private Long getReplacementKeyIfNeeded(Long deletedKey) {
-        Long firstKey = this.getEntries().firstKey();
-        if (deletedKey.compareTo(firstKey) < 0) {
+    private Comparable getReplacementKeyIfNeeded(Comparable deletedKey) {
+        Comparable firstKey = this.getEntries().firstKey();
+        if (BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY.compare(deletedKey, firstKey) < 0) {
             return firstKey;
         } else {
             return null; // null means that key does not need replacement
@@ -137,36 +144,40 @@ public class LeafNode extends LeafNode_Base {
     }
 
     @Override
-    Map.Entry<Long, DomainObject> removeBiggestKeyValue() {
-        TreeMap<Long, DomainObject> newMap = replacePreviousMap(this);
-        Map.Entry<Long, DomainObject> lastEntry = newMap.pollLastEntry();
+    Map.Entry<Comparable, Serializable> removeBiggestKeyValue() {
+        TreeMap<Comparable, Serializable> newMap = duplicateMap();
+        Map.Entry<Comparable, Serializable> lastEntry = newMap.pollLastEntry();
+        setEntries(newMap);
         return lastEntry;
     }
 
     @Override
-    Map.Entry<Long, DomainObject> removeSmallestKeyValue() {
-        TreeMap<Long, DomainObject> newMap = replacePreviousMap(this);
-        Map.Entry<Long, DomainObject> firstEntry = newMap.pollFirstEntry();
+    Map.Entry<Comparable, Serializable> removeSmallestKeyValue() {
+        TreeMap<Comparable, Serializable> newMap = duplicateMap();
+        Map.Entry<Comparable, Serializable> firstEntry = newMap.pollFirstEntry();
+        setEntries(newMap);
         return firstEntry;
     }
 
     @Override
-    Long getSmallestKey() {
+    Comparable getSmallestKey() {
         return this.getEntries().firstKey();
     }
 
     @Override
     void addKeyValue(Map.Entry keyValue) {
-        TreeMap<Long, DomainObject> newMap = replacePreviousMap(this);
-        newMap.put((Long) keyValue.getKey(), (DomainObject) keyValue.getValue());
+        TreeMap<Comparable, Serializable> newMap = duplicateMap();
+        newMap.put((Comparable) keyValue.getKey(), (Serializable) keyValue.getValue());
+        setEntries(newMap);
     }
 
     @Override
-    void mergeWithLeftNode(AbstractNode leftNode, Long splitKey) {
+    void mergeWithLeftNode(AbstractNode leftNode, Comparable splitKey) {
         LeafNode left = (LeafNode) leftNode; // this node does not know how to merge with another kind
 
-        TreeMap<Long, DomainObject> newMap = replacePreviousMap(this);
+        TreeMap<Comparable, Serializable> newMap = duplicateMap();
         newMap.putAll(left.getEntries());
+        setEntries(newMap);
 
         LeafNode nodeBefore = left.getPrevious();
 
@@ -180,18 +191,18 @@ public class LeafNode extends LeafNode_Base {
     }
 
     @Override
-    public DomainObject get(Long key) {
+    public Serializable get(Comparable key) {
         return this.getEntries().get(key);
     }
 
     @Override
-    public DomainObject getIndex(int index) {
+    public Serializable getIndex(int index) {
         if (index < 0) {
             throw new IndexOutOfBoundsException();
         }
 
         if (index < shallowSize()) { // the required position is here
-            Iterator<DomainObject> values = this.getEntries().values().iterator();
+            Iterator<Serializable> values = this.getEntries().values().iterator();
             for (int i = 0; i < index; i++) {
                 values.next();
             }
@@ -212,7 +223,7 @@ public class LeafNode extends LeafNode_Base {
         }
 
         if (index < shallowSize()) { // the required position is here
-            Iterator<Long> keys = this.getEntries().keySet().iterator();
+            Iterator<Comparable> keys = this.getEntries().keySet().iterator();
             for (int i = 0; i < index; i++) {
                 keys.next();
             }
@@ -227,7 +238,7 @@ public class LeafNode extends LeafNode_Base {
     }
 
     @Override
-    public boolean containsKey(Long key) {
+    public boolean containsKey(Comparable key) {
         return this.getEntries().containsKey(key);
     }
 
@@ -242,18 +253,25 @@ public class LeafNode extends LeafNode_Base {
     }
 
     @Override
-    public Iterator<DomainObject> iterator() {
-        return new LeafNodeIterator(this);
+    Iterator<? extends Comparable> keysIterator() {
+        return new LeafNodeKeysIterator(this);
     }
 
-    private class LeafNodeIterator implements Iterator<DomainObject> {
-        private Iterator<DomainObject> iterator;
+    @Override
+    public Iterator<Serializable> iterator() {
+        return new LeafNodeValuesIterator(this);
+    }
+
+    protected abstract class GenericLeafNodeIterator<T> implements Iterator<T> {
+        private Iterator<T> iterator;
         private LeafNode current;
 
-        LeafNodeIterator(LeafNode leafNode) {
-            this.iterator = leafNode.getEntries().values().iterator();
+        GenericLeafNodeIterator(LeafNode leafNode) {
+            this.iterator = getInternalIterator(leafNode);
             this.current = leafNode;
         }
+
+        protected abstract Iterator<T> getInternalIterator(LeafNode leafNode);
 
         @Override
         public boolean hasNext() {
@@ -265,12 +283,12 @@ public class LeafNode extends LeafNode_Base {
         }
 
         @Override
-        public DomainObject next() {
+        public T next() {
             if (!this.iterator.hasNext()) {
                 LeafNode nextNode = this.current.getNext();
                 if (nextNode != null) {
                     this.current = nextNode;
-                    this.iterator = this.current.getEntries().values().iterator();
+                    this.iterator = getInternalIterator(this.current);
                 } else {
                     throw new NoSuchElementException();
                 }
@@ -285,6 +303,32 @@ public class LeafNode extends LeafNode_Base {
 
     }
 
+    private class LeafNodeValuesIterator extends GenericLeafNodeIterator<Serializable> {
+
+        LeafNodeValuesIterator(LeafNode leafNode) {
+            super(leafNode);
+        }
+
+        @Override
+        protected Iterator<Serializable> getInternalIterator(LeafNode leafNode) {
+            return leafNode.getEntries().values().iterator();
+        }
+
+    }
+
+    private class LeafNodeKeysIterator extends GenericLeafNodeIterator<Comparable> {
+
+        LeafNodeKeysIterator(LeafNode leafNode) {
+            super(leafNode);
+        }
+
+        @Override
+        protected Iterator<Comparable> getInternalIterator(LeafNode leafNode) {
+            return leafNode.getEntries().keySet().iterator();
+        }
+
+    }
+
     @Override
     public String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds) {
         StringBuilder str = new StringBuilder();
@@ -295,11 +339,11 @@ public class LeafNode extends LeafNode_Base {
             str.append("[: ");
         }
 
-        for (Map.Entry<Long, DomainObject> entry : this.getEntries().entrySet()) {
-            Long key = entry.getKey();
-            DomainObject value = entry.getValue();
+        for (Map.Entry<Comparable, Serializable> entry : this.getEntries().entrySet()) {
+            Comparable key = entry.getKey();
+            Serializable value = entry.getValue();
             str.append("(" + key);
-            str.append(dumpKeysOnly ? ") " : "," + value.getOid() + ") ");
+            str.append(dumpKeysOnly ? ") " : "," + value + ") ");
         }
         if (dumpNodeIds) {
             str.append("]->" + this.getNext() + " ^" + getParent() + "\n");
@@ -308,6 +352,11 @@ public class LeafNode extends LeafNode_Base {
         }
 
         return str.toString();
+    }
+
+    @Override
+    Collection<? extends Comparable> getKeys() {
+        return this.getEntries().keySet();
     }
 
 }

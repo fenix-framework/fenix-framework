@@ -17,7 +17,7 @@ import pt.ist.fenixframework.pstm.NoDomainMetaObjects;
 import pt.ist.fenixframework.pstm.TopLevelTransaction;
 import pt.ist.fenixframework.pstm.TopLevelTransaction.Pair;
 import pt.ist.fenixframework.pstm.Transaction;
-import pt.ist.fenixframework.pstm.collections.bplustree.BPlusTree;
+import pt.ist.fenixframework.pstm.adt.bplustree.BPlusTree;
 
 /**
  * A <code>DomainConsistencyPredicate</code> is the persistent domain entity
