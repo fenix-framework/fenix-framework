@@ -59,6 +59,22 @@
 		<dependency>
 			<groupId>jvstm</groupId>
 			<artifactId>jvstm-fenix</artifactId>
+			<exclusions>
+				<!-- Remove ASM 3 from the JVSTM. It conflicts with the Framework's Core 
+					ASM 4 -->
+				<exclusion>
+					<groupId>asm</groupId>
+					<artifactId>asm</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>asm</groupId>
+					<artifactId>asm-commons</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>asm</groupId>
+					<artifactId>asm-tree</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>ojb</groupId>
@@ -67,10 +83,6 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jfree</groupId>
-			<artifactId>jfreechart</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-pool</groupId>

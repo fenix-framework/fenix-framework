@@ -1,23 +1,17 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.TreeSet;
-
-import javax.imageio.ImageIO;
 
 import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerFactory;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.data.time.Second;
-import org.jfree.data.time.TimeTableXYDataset;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -37,8 +31,6 @@ public class TransactionReport implements Serializable {
     private LocalDate endOfReport;
     private String server;
     private TransactionAction transactionAction;
-
-    private TimeTableXYDataset dataset = null;
 
     public TransactionReport(final LocalDate startOfReport, final LocalDate endOfReport,
             final TransactionAction transactionAction, final String server) {
@@ -113,23 +105,9 @@ public class TransactionReport implements Serializable {
         }
     }
 
-    public byte[] getChart() throws IOException {
-        // final PlotOrientation plotOrientation = PlotOrientation.VERTICAL;
-        // final JFreeChart jfreeChart = ChartFactory.createLineChart("Title",
-        // "categoryAxisLabel", "valueAxisLabel", dataset, plotOrientation,
-        // true, true, true);
-        final JFreeChart jfreeChart = ChartFactory.createTimeSeriesChart("", "", "", dataset, true, true, true);
-        final BufferedImage bufferedImage = jfreeChart.createBufferedImage(1000, 500);
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(bufferedImage, "jpg", outputStream);
-        bufferedImage.flush();
-        outputStream.close();
-        return outputStream.toByteArray();
-    }
+    private List<ReportEntry> process(final ResultSet resultSet) throws SQLException {
 
-    private void process(final ResultSet resultSet) throws SQLException {
-        // dataset = new DefaultCategoryDataset();
-        dataset = new TimeTableXYDataset();
+        List<ReportEntry> entries = new ArrayList<ReportEntry>();
 
         while (resultSet.next()) {
             final String server = resultSet.getString(1);
@@ -138,34 +116,15 @@ public class TransactionReport implements Serializable {
                 final long writes = resultSet.getLong(3);
                 final long aborts = resultSet.getLong(4);
                 final long conflicts = resultSet.getLong(5);
-                final DateTime until = new DateTime(resultSet.getTimestamp(6));
-                try {
-                    final Second second = new Second(until.toDate());
-                    if (transactionAction == null) {
-                        dataset.add(second, reads, "Reads");
-                    } else if (transactionAction == TransactionAction.READS) {
-                        dataset.add(second, reads, server);
-                    }
-                    if (transactionAction == null) {
-                        dataset.add(second, writes, "Writes");
-                    } else if (transactionAction == TransactionAction.WRITES) {
-                        dataset.add(second, writes, server);
-                    }
-                    if (transactionAction == null) {
-                        dataset.add(second, aborts, "Aborts");
-                    } else if (transactionAction == TransactionAction.ABORTS) {
-                        dataset.add(second, aborts, server);
-                    }
-                    if (transactionAction == null) {
-                        dataset.add(second, conflicts, "Conflicts");
-                    } else if (transactionAction == TransactionAction.CONFLICTS) {
-                        dataset.add(second, conflicts, server);
-                    }
-                } catch (IllegalArgumentException ex) {
-                    logger.error(ex.getMessage());
-                }
+                final DateTime when = new DateTime(resultSet.getTimestamp(6));
+
+                entries.add(new ReportEntry(when, reads, writes, aborts, conflicts));
             }
         }
+
+        Collections.sort(entries);
+
+        return entries;
     }
 
     private String mekeQueryString() {
@@ -213,6 +172,49 @@ public class TransactionReport implements Serializable {
             }
         }
         return servers;
+    }
+
+    public class ReportEntry implements Comparable<ReportEntry> {
+
+        private final DateTime when;
+        private final long reads;
+        private final long writes;
+        private final long aborts;
+        private final long conflicts;
+
+        public ReportEntry(DateTime when, long reads, long writes, long aborts, long conflicts) {
+            super();
+            this.when = when;
+            this.reads = reads;
+            this.writes = writes;
+            this.aborts = aborts;
+            this.conflicts = conflicts;
+        }
+
+        public DateTime getWhen() {
+            return when;
+        }
+
+        public long getReads() {
+            return reads;
+        }
+
+        public long getWrites() {
+            return writes;
+        }
+
+        public long getAborts() {
+            return aborts;
+        }
+
+        public long getConflicts() {
+            return conflicts;
+        }
+
+        @Override
+        public int compareTo(ReportEntry other) {
+            return when.compareTo(other.when);
+        }
     }
 
 }
