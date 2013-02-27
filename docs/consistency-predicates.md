@@ -22,22 +22,22 @@ You can also use the relations of that object to access the slots of other relat
 So, the framework supports consistency predicates where an object uses the state of other objects to define its consistency.
 
 Here's an example of a Client that has a consistency predicate that accesses Account:
-    public class Client extends Client_Base {
-        // (...)
+        public class Client extends Client_Base {
+            // (...)
 
-        public int getTotalBalance() {
-            int totalBalance = 0;
-            for (Account account : getAccounts()) {
-                totalBalance += account.getBalance();
+            public int getTotalBalance() {
+                int totalBalance = 0;
+                for (Account account : getAccounts()) {
+                    totalBalance += account.getBalance();
+                }
+                return totalBalance;
             }
-            return totalBalance;
-        }
 
-        @ConsistencyPredicate
-        public boolean checkTotalBalancePositive() {
-            return (getTotalBalance() >= 0);
+            @ConsistencyPredicate
+            public boolean checkTotalBalancePositive() {
+                return (getTotalBalance() >= 0);
+            }
         }
-    }
 
 Also, each consistency predicate should be as small and independent as possible.
 One consistency predicate should implement exactly one consistency rule.
@@ -128,29 +128,29 @@ So, if you need to know if an object is inconsistent, you can iterate through al
 An object will have one DomainDependenceRecord for each predicate that its class defines.
 If any DomainDependenceRecord has a false value in the consistent slot, then the object is inconsistent according to that predicate.
 Here's an example of how to determine if an object is inconsistent, by using the DomainDependenceRecords:
-    for(PersistentDependenceRecord record : myObject.getMetaObject().getDependenceRecords()) {
-        if (!record.isConsistent()) {
-            System.out.println("The object " + myObject + 
-                " is inconsistent according to " + record.getPredicate());
+        for(PersistentDependenceRecord record : myObject.getMetaObject().getDependenceRecords()) {
+            if (!record.isConsistent()) {
+                System.out.println("The object " + myObject + 
+                    " is inconsistent according to " + record.getPredicate());
+            }
         }
-    }
 
 But you may also want to find, among all the existing objects of a class, which ones are inconsistent according to a certain consistency predicate.
 You will need to obtain the framework’s entity that represents that consistency predicate.
 To do so, you will need to use the DomainConsistencyPredicate’s static readKnownConsistencyPredicate() method.
 This method receives as argument the class and the name of the consistency predicate.
 Here's an example of the invocation of this method to obtain a consistency predicate:
-    DomainConsistencyPredicate consistencyPredicate = DomainConsistencyPredicate
-        .readKnownConsistencyPredicate(Account.class, "checkBalancePositive");
+        DomainConsistencyPredicate consistencyPredicate = DomainConsistencyPredicate
+            .readKnownConsistencyPredicate(Account.class, "checkBalancePositive");
 
 Once you have the DomainConsistencyPredicate that you want, you can call the getInconsistentDependenceRecords() method.
 This method will provide you with a complete set of DomainDependenceRecords of all the objects that are inconsistent, according to that predicate.
 You can then access and correct these objects whenever you see fit.
 Here's an example of how to obtain all inconsistent objects of a certain predicate:
-    for (PersistentDependenceRecord record : consistencyPredicate.getInconsistentDependenceRecords()) {
-        System.out.println("The object " + record.getDependent() +
-            " is inconsistent according to " + record.getPredicate());
-    }
+        for (PersistentDependenceRecord record : consistencyPredicate.getInconsistentDependenceRecords()) {
+            System.out.println("The object " + record.getDependent() +
+                " is inconsistent according to " + record.getPredicate());
+        }
 
 Whenever you remove an existing predicate from your code, the framework will detect the missing predicate, and remove its DomainDependenceRecords.
 Whenever you introduce a new predicate on a domain class, the framework will detect and reexecute the predicate for all existing objects of that class.
