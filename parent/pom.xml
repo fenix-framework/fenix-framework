@@ -52,6 +52,7 @@
         <version.ojb>1.0.0</version.ojb>
         <version.rhq.helpers>3.0.4</version.rhq.helpers>
         <version.slf4j.api>1.7.2</version.slf4j.api>
+        <version.mysql.connector>5.1.20</version.mysql.connector>
     </properties>
 
     <!-- Building -->
@@ -314,6 +315,11 @@
                 <artifactId>jgroups</artifactId>
                 <version>${version.jgroups}</version>
             </dependency>
+	        <dependency>
+	        	<groupId>mysql</groupId>
+	        	<artifactId>mysql-connector-java</artifactId>
+	        	<version>${version.mysql.connector}</version>
+	        </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -18,5 +18,8 @@ package pt.ist.fenixframework.core;
  */
 public class CommitError extends Error {
     private static final long serialVersionUID = 1L;
-    protected CommitError() { super(); }
+
+    public CommitError() {
+        super();
+    }
 }
