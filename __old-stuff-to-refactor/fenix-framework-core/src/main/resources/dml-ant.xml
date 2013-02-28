@@ -1,5 +1,0 @@
-<antlib>
-	<typedef name="dml-domain-generator" classname="dml.antTasks.DmlCompileTask" />
-	<typedef name="dml-post-processor" classname="pt.ist.fenixframework.pstm.antTasks.PostCompileTask" />
-</antlib>
-		

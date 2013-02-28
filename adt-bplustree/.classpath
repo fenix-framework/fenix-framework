@@ -7,6 +7,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="target/generated-sources/dml-maven-plugin"/>
+	<classpathentry kind="src" path="src/main/dml"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
 		<attributes>
 			<attribute name="optional" value="true"/>

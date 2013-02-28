@@ -40,8 +40,9 @@ public abstract class AbstractTransaction extends FenixAbstractTransaction {
 	    throw new RollbackException();
 	}
 
-	if (this.status != Status.STATUS_ACTIVE)
-	    throw new IllegalStateException();
+	if (this.status != Status.STATUS_ACTIVE) {
+		throw new IllegalStateException();
+	}
 
 	this.status = Status.STATUS_COMMITTING;
 
@@ -99,11 +100,13 @@ public abstract class AbstractTransaction extends FenixAbstractTransaction {
 
     @Override
     public void registerSynchronization(Synchronization sync) throws RollbackException, IllegalStateException, SystemException {
-	if (this.status == Status.STATUS_MARKED_ROLLBACK)
-	    throw new RollbackException();
+	if (this.status == Status.STATUS_MARKED_ROLLBACK) {
+		throw new RollbackException();
+	}
 
-	if (this.status != Status.STATUS_ACTIVE)
-	    throw new IllegalStateException();
+	if (this.status != Status.STATUS_ACTIVE) {
+		throw new IllegalStateException();
+	}
 
 	synchronizations.offer(sync);
     }
@@ -111,8 +114,9 @@ public abstract class AbstractTransaction extends FenixAbstractTransaction {
     @Override
     public void rollback() throws IllegalStateException, SystemException {
 	if (this.status == Status.STATUS_PREPARED || this.status == Status.STATUS_COMMITTED
-		|| this.status == Status.STATUS_ROLLEDBACK)
-	    throw new IllegalStateException();
+		|| this.status == Status.STATUS_ROLLEDBACK) {
+		throw new IllegalStateException();
+	}
 
 	this.status = Status.STATUS_ROLLING_BACK;
 	backendRollback();
