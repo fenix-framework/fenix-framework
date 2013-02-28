@@ -38,6 +38,11 @@ public final class DefaultContextFactoryViaReflection extends ContextFactory {
             // GOAL: Class<? extends ContextFactory> factoryClass = BackEndId.getAtomicContextFactoryClass()
             Method getAtomicContextFactoryClass = currentBackendId.getClass().getMethod("getAtomicContextFactoryClass");
             Class<? extends ContextFactory> factoryClass = (Class<? extends ContextFactory>)getAtomicContextFactoryClass.invoke(currentBackendId);
+            
+            if(factoryClass == null) {
+                logger.warn("No atomic context factory class defined!");
+                return null;
+            }
 
             // GOAL: return (AtomicContext)contextFactory.newContext(atomic);
             Method newContext = factoryClass.getMethod("newContext", new Class[]{Atomic.class});

@@ -141,10 +141,11 @@ public abstract class AbstractDomainObject implements DomainObject {
     //     }	
     // }
 
-    // protected void deleteDomainObject() {
+    protected void deleteDomainObject() {
+        throw new UnsupportedOperationException("deleteDomainObject not implemented at this level");
     //     checkDisconnected();
     //     Transaction.deleteObject(this);
-    // }
+    }
 
     // protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,
     //         final int columnCount) throws SQLException {
