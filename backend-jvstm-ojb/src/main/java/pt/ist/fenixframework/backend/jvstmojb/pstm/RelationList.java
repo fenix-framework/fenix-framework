@@ -120,17 +120,23 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
     }
 
     @Override
-    public void justAdd(E2 obj) {
+    public boolean justAdd(E2 obj) {
         TransactionSupport.logAttrChange(listHolder, attributeName);
         elementsToAdd.put(elementsToAdd.get().add(obj));
         elementsToRemove.put(elementsToRemove.get().remove(obj));
+        // HACK!!! This is to be fixed upon migration to RelationAwareSet
+        // I wouldn't like to force a load of the list to be able to return the correct boolean value
+        return true;
     }
 
     @Override
-    public void justRemove(E2 obj) {
+    public boolean justRemove(E2 obj) {
         TransactionSupport.logAttrChange(listHolder, attributeName);
         elementsToRemove.put(elementsToRemove.get().add(obj));
         elementsToAdd.put(elementsToAdd.get().remove(obj));
+        // HACK!!! This is to be fixed upon migration to RelationAwareSet
+        // I wouldn't like to force a load of the list to be able to return the correct boolean value
+        return true;
     }
 
     @Override

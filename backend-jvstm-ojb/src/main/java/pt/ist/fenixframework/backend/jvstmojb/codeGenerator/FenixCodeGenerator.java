@@ -165,7 +165,7 @@ public class FenixCodeGenerator extends CodeGenerator {
     }
 
     @Override
-    protected void generateSetterBody(DomainClass domainClass, String setterName, Slot slot, PrintWriter out) {
+    protected void generateSetterBody(String setterName, Slot slot, PrintWriter out) {
         if (!setterName.startsWith("set$")) {
             String slotName = slot.getName();
             print(out, getSlotExpression(slotName));
@@ -175,7 +175,7 @@ public class FenixCodeGenerator extends CodeGenerator {
             print(out, slotName);
             print(out, ");");
         } else {
-            super.generateSetterBody(domainClass, setterName, slot, out);
+            super.generateSetterBody(setterName, slot, out);
         }
     }
 
@@ -336,8 +336,8 @@ public class FenixCodeGenerator extends CodeGenerator {
     }
 
     @Override
-    protected void generateSlotAccessors(DomainClass domainClass, Slot slot, PrintWriter out) {
-        super.generateSlotAccessors(domainClass, slot, out);
+    protected void generateSlotAccessors(Slot slot, PrintWriter out) {
+        super.generateSlotAccessors(slot, out);
         generateExternalizationGetter(slot.getName(), slot.getSlotType(), out);
         generateInternalizationSetter(slot.getName(), slot.getSlotType(), out);
     }

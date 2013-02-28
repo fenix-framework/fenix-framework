@@ -133,7 +133,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
     }
 
     @Override
-    protected void generateSetterBody(DomainClass domainClass, String setterName, Slot slot, PrintWriter out) {
+    protected void generateSetterBody(String setterName, Slot slot, PrintWriter out) {
         print(out, "((DO_State)this.get$obj$state(true)).");
         print(out, slot.getName());
         print(out, " = ");
