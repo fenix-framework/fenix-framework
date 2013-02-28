@@ -6,6 +6,8 @@ import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 
 import pt.ist.fenixframework.core.AbstractTransaction;
+import pt.ist.fenixframework.txintrospector.TxIntrospector;
+import pt.ist.fenixframework.txintrospector.TxStats;
 
 public class JVSTMMemTransaction extends AbstractTransaction {
 
@@ -18,6 +20,13 @@ public class JVSTMMemTransaction extends AbstractTransaction {
     @Override
     protected void backendRollback() throws IllegalStateException, SystemException {
 	jvstm.Transaction.abort();
+    }
+
+    private final TxIntrospector introspector = TxStats.newInstance();
+
+    @Override
+    public TxIntrospector getTxIntrospector() {
+        return introspector;
     }
 
 }
