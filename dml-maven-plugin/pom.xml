@@ -7,7 +7,7 @@
 	<groupId>dml</groupId>
 	<artifactId>dml-maven-plugin</artifactId>
 	<packaging>maven-plugin</packaging>
-	<version>1.2-SNAPSHOT</version>
+	<version>1.3-SNAPSHOT</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
