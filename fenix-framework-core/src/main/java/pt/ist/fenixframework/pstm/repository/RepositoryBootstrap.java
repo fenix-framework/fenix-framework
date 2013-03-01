@@ -54,10 +54,19 @@ public class RepositoryBootstrap {
             Statement statement = null;
             ResultSet resultSet = null;
             try {
-                statement = connection.createStatement();
-                resultSet = statement.executeQuery("SELECT GET_LOCK('FenixFrameworkInit', 100)");
-                if (!resultSet.next() || (resultSet.getInt(1) != 1)) {
-                    return;
+                int iterations = 0;
+                while (true) {
+                    iterations++;
+                    statement = connection.createStatement();
+                    resultSet = statement.executeQuery("SELECT GET_LOCK('FenixFrameworkInit', 60)");
+                    if (resultSet.next() && (resultSet.getInt(1) == 1)) {
+                        break;
+                    }
+                    if ((iterations % 10) == 0) {
+                        System.out
+                                .println("[RepositoryBootstrap] Warning: Could not yet obtain the FenixFrameworkInit lock. Number of retries: "
+                                        + iterations);
+                    }
                 }
             } finally {
                 if (resultSet != null) {
@@ -196,7 +205,9 @@ public class RepositoryBootstrap {
         try {
             char[] buffer = new char[4096];
             final StringBuilder fileContents = new StringBuilder();
-            for (int n = 0; (n = fileReader.read(buffer)) != -1; fileContents.append(buffer, 0, n));
+            for (int n = 0; (n = fileReader.read(buffer)) != -1; fileContents.append(buffer, 0, n)) {
+                ;
+            }
             return fileContents.toString();
         } finally {
             fileReader.close();

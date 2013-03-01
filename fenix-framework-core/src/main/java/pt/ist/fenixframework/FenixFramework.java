@@ -1,5 +1,9 @@
 package pt.ist.fenixframework;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
 import jvstm.TransactionalCommand;
 import pt.ist.fenixframework.pstm.DataAccessPatterns;
 import pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot;
@@ -97,11 +101,7 @@ public class FenixFramework {
             Transaction.withTransaction(new TransactionalCommand() {
                 @Override
                 public void doIt() {
-                    if (getDomainFenixFrameworkRoot() == null) {
-                        DomainFenixFrameworkRoot fenixFrameworkRoot = new DomainFenixFrameworkRoot();
-                        PersistentRoot.addRoot(DomainFenixFrameworkRoot.ROOT_KEY, fenixFrameworkRoot);
-                    }
-                    getDomainFenixFrameworkRoot().initialize(getDomainModel());
+                    getLockAndInitDomainFenixFrameworkRoot();
                 }
             });
         } catch (Throwable t) {
@@ -111,6 +111,63 @@ public class FenixFramework {
             if (jvstm.Transaction.isInTransaction()) {
                 Transaction.abort();
             }
+        }
+    }
+
+    public static void getLockAndInitDomainFenixFrameworkRoot() {
+        //Most of this connection- and lock-related code was copied from RepositoryBootstrap.updateDataRepositoryStructureIfNeeded()
+        Connection connection = null;
+        try {
+            connection = Transaction.getCurrentJdbcConnection();
+
+            Statement statement = null;
+            ResultSet resultSet = null;
+            try {
+                int iterations = 0;
+                while (true) {
+                    iterations++;
+                    statement = connection.createStatement();
+                    resultSet = statement.executeQuery("SELECT GET_LOCK('FenixFrameworkInit', 60)");
+                    if (resultSet.next() && (resultSet.getInt(1) == 1)) {
+                        break;
+                    }
+                    if ((iterations % 10) == 0) {
+                        System.out
+                                .println("[DomainFenixFrameworkRoot] Warning: Could not yet obtain the FenixFrameworkInit lock. Number of retries: "
+                                        + iterations);
+                    }
+                }
+            } finally {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            }
+
+            try {
+
+                if (getDomainFenixFrameworkRoot() == null) {
+                    DomainFenixFrameworkRoot fenixFrameworkRoot = new DomainFenixFrameworkRoot();
+                    PersistentRoot.addRoot(DomainFenixFrameworkRoot.ROOT_KEY, fenixFrameworkRoot);
+                }
+                getDomainFenixFrameworkRoot().initialize(getDomainModel());
+
+            } finally {
+                Statement statementUnlock = null;
+                try {
+                    statementUnlock = connection.createStatement();
+                    statementUnlock.executeUpdate("DO RELEASE_LOCK('FenixFrameworkInit')");
+                } finally {
+                    if (statementUnlock != null) {
+                        statementUnlock.close();
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new Error(ex);
         }
     }
 
