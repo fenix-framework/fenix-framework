@@ -30,7 +30,7 @@ class StatisticsThread extends Thread {
             try {
                 sleep(SECONDS_BETWEEN_REPORTS * 1000);
             } catch (InterruptedException ie) {
-                // ignore exception
+                return;
             }
             reportStatistics();
         }
