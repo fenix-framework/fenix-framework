@@ -375,6 +375,9 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // the DomainMetaClass was already created, but not yet fully initialized.
             // The init is only considered completed when finalized is set to true.
             newDomainMetaClass.setFinalized(true);
+            System.out.println("[DomainMetaClass] " + newDomainMetaClass.getDomainClass()
+                    + " successfully initialized. Total number of existing objects imported: "
+                    + newDomainMetaClass.getExistingDomainMetaObjectsCount());
         }
     }
 

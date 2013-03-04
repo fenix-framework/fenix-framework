@@ -410,6 +410,10 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     public void executeInheritedPredicates() {
         checkFrameworkNotInitialized();
 
+        if (!hasDomainMetaSuperclass()) {
+            return;
+        }
+
         List<PrivateConsistencyPredicate> privatePredicates = new ArrayList<PrivateConsistencyPredicate>();
         Map<String, PublicConsistencyPredicate> publicPredicates = new HashMap<String, PublicConsistencyPredicate>();
         getDomainMetaSuperclass().fillConsistencyPredicatesOfThisClassAndSuperclasses(privatePredicates, publicPredicates);

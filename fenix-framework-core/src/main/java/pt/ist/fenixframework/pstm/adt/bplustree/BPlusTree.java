@@ -59,6 +59,9 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     private static class ComparatorSupportingLastKey implements Comparator<Comparable>, Serializable {
         // only LAST_KEY knows how to compare itself with others, so we must check for it before
         // delegating the comparison to the Comparables.
+
+        private static final long serialVersionUID = 0L;
+
         @Override
         public int compare(Comparable o1, Comparable o2) {
             if (o1 == LAST_KEY) {

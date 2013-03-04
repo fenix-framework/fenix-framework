@@ -45,15 +45,17 @@ public class FenixFramework {
     public static void bootStrap(Config config) {
         synchronized (INIT_LOCK) {
             if (bootstrapped) {
-                throw new Error("Fenix framework already initialized");
+                throw new Error("Fenix framework already bootstrapped");
             }
 
+            System.out.println("[FenixFramework] Bootstrap started.");
             FenixFramework.config = ((config != null) ? config : new Config());
             config.checkConfig();
             MetadataManager.init(config);
             new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
             DataAccessPatterns.init(config);
             bootstrapped = true;
+            System.out.println("[FenixFramework] Bootstrap finished.");
         }
     }
 
@@ -63,6 +65,7 @@ public class FenixFramework {
                 throw new Error("Fenix framework already initialized");
             }
 
+            System.out.println("[FenixFramework] Initialization started.");
             initDomainFenixFrameworkRoot();
             PersistentRoot.initRootIfNeeded(config);
 
@@ -80,6 +83,7 @@ public class FenixFramework {
                 }
             }
             initialized = true;
+            System.out.println("[FenixFramework] Initialization finished.");
         }
     }
 
