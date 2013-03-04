@@ -264,10 +264,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // Commits the current, and starts a new write transaction.
             Transaction.beginTransaction();
             metaClass.initExistingDomainObjects();
-
-            if (hasSuperclassInDML(metaClass)) {
-                metaClass.initDomainMetaSuperclass(getDomainMetaSuperclassFromDML(metaClass));
-            }
+            metaClass.executeInheritedPredicates();
 
             // Because the initExistingDomainObjects method is split among several transactions,
             // the creation of the DomainMetaClass and its full initialization may not run atomically.
@@ -364,11 +361,13 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // Commits the current, and starts a new write transaction.
             Transaction.beginTransaction();
             DomainMetaClass newDomainMetaClass = new DomainMetaClass(domainClass);
-            newDomainMetaClass.initExistingDomainObjects();
-
             if (hasSuperclassInDML(newDomainMetaClass)) {
                 newDomainMetaClass.initDomainMetaSuperclass(getDomainMetaSuperclassFromDML(newDomainMetaClass));
             }
+            // Commits the current, and starts a new write transaction.
+            Transaction.beginTransaction();
+            newDomainMetaClass.initExistingDomainObjects();
+            newDomainMetaClass.executeInheritedPredicates();
 
             // Because the initExistingDomainObjects method is split among several transactions,
             // the creation of the DomainMetaClass and its full initialization may not run atomically.

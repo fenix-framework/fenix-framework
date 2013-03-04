@@ -392,16 +392,23 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     /**
      * This method should be called only during the initialization of the {@link FenixFramework}.
      * 
-     * Initializes the superclass of this DomainMetaClass to the metaSuperClass
-     * passed as argument. Any inherited consistency predicates from the
-     * superclasses that are not being overridden, will be executed for each
-     * existing object of this DomainMetaClass.
+     * Sets the superclass of this DomainMetaClass to the metaSuperClass passed as argument.
      */
     public void initDomainMetaSuperclass(DomainMetaClass metaSuperclass) {
         checkFrameworkNotInitialized();
         setDomainMetaSuperclass(metaSuperclass);
         System.out.println("[DomainMetaClass] Initializing the meta-superclass of " + getDomainClass() + " to "
                 + metaSuperclass.getDomainClass());
+    }
+
+    /**
+     * This method should be called only during the initialization of the {@link FenixFramework}.
+     * 
+     * Executes any inherited consistency predicates from the superclasses that are not being overridden,
+     * for each existing object of this DomainMetaClass.
+     */
+    public void executeInheritedPredicates() {
+        checkFrameworkNotInitialized();
 
         List<PrivateConsistencyPredicate> privatePredicates = new ArrayList<PrivateConsistencyPredicate>();
         Map<String, PublicConsistencyPredicate> publicPredicates = new HashMap<String, PublicConsistencyPredicate>();
