@@ -1,7 +1,10 @@
 package pt.ist.fenixframework.dml;
 
-import java.util.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 public class DomainClass extends DomainEntity {
     private DomainEntity superclass;

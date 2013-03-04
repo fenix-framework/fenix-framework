@@ -17,10 +17,10 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import pt.ist.fenixframework.DmlCompiler;
-import pt.ist.fenixframework.dml.CodeGenerator;
-import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.core.DmlFile;
 import pt.ist.fenixframework.core.Project;
+import pt.ist.fenixframework.dml.CodeGenerator;
+import pt.ist.fenixframework.dml.CompilerArgs;
 
 public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 

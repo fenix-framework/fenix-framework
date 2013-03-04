@@ -1,12 +1,9 @@
 package pt.ist.fenixframework.dml;
 
-import java.io.PrintWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.util.Iterator;
+import java.io.PrintWriter;
 import java.util.List;
-
-import pt.ist.fenixframework.dml.runtime.Relation;
 
 public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
 

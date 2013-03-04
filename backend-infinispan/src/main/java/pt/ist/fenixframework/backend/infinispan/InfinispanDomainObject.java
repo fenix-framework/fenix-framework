@@ -1,19 +1,15 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-// import pt.ist.fenixframework.DomainObject;
-// import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.IdentityMap;
+// import pt.ist.fenixframework.DomainObject;
+// import pt.ist.fenixframework.FenixFramework;
 
 public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);

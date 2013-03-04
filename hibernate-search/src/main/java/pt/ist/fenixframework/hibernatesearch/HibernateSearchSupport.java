@@ -1,22 +1,24 @@
 package pt.ist.fenixframework.hibernatesearch;
 
 import java.lang.annotation.ElementType;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 import org.hibernate.search.backend.TransactionContext;
 import org.hibernate.search.backend.spi.Work;
 import org.hibernate.search.backend.spi.WorkType;
-import org.hibernate.search.cfg.*;
+import org.hibernate.search.cfg.SearchMapping;
 import org.hibernate.search.engine.spi.SearchFactoryImplementor;
 import org.hibernate.search.spi.SearchFactoryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.dml.DomainClass;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Entry point for interactions with Hibernate-Search.

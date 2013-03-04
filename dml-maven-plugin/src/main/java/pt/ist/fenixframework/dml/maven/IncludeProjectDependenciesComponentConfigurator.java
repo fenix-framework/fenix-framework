@@ -1,9 +1,11 @@
 package pt.ist.fenixframework.dml.maven;
 
 // import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-// import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.codehaus.classworlds.ClassRealm;
 import org.codehaus.plexus.component.configurator.AbstractComponentConfigurator;
@@ -14,12 +16,7 @@ import org.codehaus.plexus.component.configurator.converters.special.ClassRealmC
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluator;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
-
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+// import org.slf4j.Logger;
 
 // IMPORTANT: THE FOLLOWING MUST BE A JAVADOC-STYLE COMMENT.  IT IS NECESSARY FOR THE CORRECT
 // OPERATION OF THIS PLUGIN

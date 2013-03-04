@@ -2,10 +2,7 @@ package pt.ist.fenixframework.core;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class SharedIdentityMap implements IdentityMap {
     private final static SharedIdentityMap instance = new SharedIdentityMap();

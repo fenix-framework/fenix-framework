@@ -2,17 +2,11 @@ package pt.ist.fenixframework.backend.jvstmmem;
 
 import java.util.concurrent.Callable;
 
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
 import javax.transaction.InvalidTransactionException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
 import javax.transaction.Status;
 import javax.transaction.SystemException;
 
 import jvstm.CommitException;
-import jvstm.WriteOnReadException;
-
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.CommitListener;

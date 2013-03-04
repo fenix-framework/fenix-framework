@@ -2,8 +2,6 @@ package pt.ist.fenixframework.dml;
 
 import java.io.PrintWriter;
 
-import pt.ist.fenixframework.FenixFramework;
-
 /**
  * This code generator enhances the default generation by adding indexation to fields
  * annotated to have that behavior. To do so, it:

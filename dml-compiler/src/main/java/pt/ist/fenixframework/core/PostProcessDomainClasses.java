@@ -6,14 +6,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-// import jvstm.ProcessAtomicAnnotations;
-
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+// import jvstm.ProcessAtomicAnnotations;
 
 public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
     private static final String OID_INNER_CLASS_INTERNAL_NAME = Type.getInternalName(DomainObjectAllocator.OID.class);

@@ -1,13 +1,17 @@
 package pt.ist.fenixframework.util;
 
-import org.jgroups.*;
-
 import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.jgroups.Address;
+import org.jgroups.JChannel;
+import org.jgroups.Message;
+import org.jgroups.ReceiverAdapter;
+import org.jgroups.View;
 
 /**
  * Behaves as synchronization point between nodes running Fenix Framework

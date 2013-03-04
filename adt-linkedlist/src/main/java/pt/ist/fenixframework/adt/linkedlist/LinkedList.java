@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import pt.ist.fenixframework.adt.linkedlist.LinkedList_Base;
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 public class LinkedList<T extends Serializable> extends LinkedList_Base implements DomainBasedMap<T> {

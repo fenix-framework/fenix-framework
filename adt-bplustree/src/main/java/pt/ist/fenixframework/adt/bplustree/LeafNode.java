@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class LeafNode extends LeafNode_Base {

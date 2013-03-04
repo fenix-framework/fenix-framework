@@ -2,8 +2,6 @@ package pt.ist.fenixframework.adt.skiplist;
 
 import java.io.Serializable;
 
-import pt.ist.fenixframework.adt.skiplist.SkipListNode_Base;
-
 public class SkipListNode<T extends Serializable> extends SkipListNode_Base {
 
     public SkipListNode() {

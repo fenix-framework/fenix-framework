@@ -1,7 +1,8 @@
 package pt.ist.fenixframework.dml;
 
-import java.util.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DomainRelation extends DomainClass {
     private List<Role> roles = new ArrayList<Role>();

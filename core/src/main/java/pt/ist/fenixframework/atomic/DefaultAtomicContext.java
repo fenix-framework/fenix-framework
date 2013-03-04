@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionManager;
-import pt.ist.fenixframework.core.CommitError;
-import pt.ist.fenixframework.core.WriteOnReadError;
 
 public class /*enum*/DefaultAtomicContext implements AtomicContext {
 

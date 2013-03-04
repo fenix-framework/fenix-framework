@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
 
 @RunWith(JUnit4.class)
 public class BooksTest {

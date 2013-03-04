@@ -1,14 +1,13 @@
 package pt.ist.fenixframework.adt.bplustree;
 
 import java.io.Serializable;
-// import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.Externalization;
+// import java.util.concurrent.atomic.AtomicInteger;
 
 /** The keys comparison function should be consistent with equals. */
 public abstract class AbstractNode<T extends Serializable> extends AbstractNode_Base implements Iterable {

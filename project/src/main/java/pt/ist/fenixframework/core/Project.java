@@ -2,8 +2,8 @@ package pt.ist.fenixframework.core;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,8 +16,8 @@ import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
 
-import pt.ist.fenixframework.core.exception.ProjectException;
 import pt.ist.fenixframework.core.exception.NoProjectNameSpecifiedException;
+import pt.ist.fenixframework.core.exception.ProjectException;
 import pt.ist.fenixframework.core.exception.ProjectPropertiesNotFoundException;
 
 public class Project {

@@ -1,15 +1,8 @@
 package pt.ist.fenixframework.backend.mem;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;

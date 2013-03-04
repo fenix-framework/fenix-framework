@@ -7,13 +7,11 @@
  */
 package pt.ist.fenixframework.backend;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.core.exception.MissingObjectException;
