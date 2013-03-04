@@ -39,10 +39,10 @@ public abstract class CodeGenerator {
             new PrimitiveToWrapperEntry("float", "Float", "0.0f"), new PrimitiveToWrapperEntry("long", "Long", "0L"),
             new PrimitiveToWrapperEntry("double", "Double", "0.0d") };
 
-    private CompilerArgs compArgs;
-    private DomainModel domainModel;
-    private File destDirectory;
-    private File destDirectoryBase;
+    private final CompilerArgs compArgs;
+    private final DomainModel domainModel;
+    private final File destDirectory;
+    private final File destDirectoryBase;
     private String collectionToUse;
 
     public CodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
@@ -171,8 +171,9 @@ public abstract class CodeGenerator {
         });
 
         // don't generate non-base classes for an external definition.
-        if (compArgs.isExternalDefinition(domClass.getSourceFile()))
+        if (compArgs.isExternalDefinition(domClass.getSourceFile())) {
             return;
+        }
 
         File leafClassFile = new File(getDirectoryFor(packageName), domClass.getName() + ".java");
         if (!leafClassFile.exists()) {
@@ -1123,71 +1124,6 @@ public abstract class CodeGenerator {
         print(out, ";");
         endMethodBody(out);
     }
-
-    //     protected void generateMultiplicityConsistencyPredicate(Role role, PrintWriter out) {
-    //         String slotName = role.getName();
-    //         String slotAccessExpression = getSlotExpression(slotName);
-    //         String capitalizedSlotName = capitalize(slotName);
-
-    //         newline(out);
-    //         println(out, "@jvstm.cps.ConsistencyPredicate");
-    //         printMethod(out, "public final", "boolean", "checkMultiplicityOf" + capitalizedSlotName);
-    //         startMethodBody(out);
-
-    //         int lower = role.getMultiplicityLower();
-    //         int upper = role.getMultiplicityUpper();
-
-    //         if (lower > 0) {
-    //             print(out, "if (");
-    //             if (upper == 1) {
-    //                 print(out, "! has");
-    //                 print(out, capitalizedSlotName);
-    //                 print(out, "()");
-    //             } else {
-    //                 print(out, slotAccessExpression);
-    //                 print(out, ".size() < " + lower);
-    //             }
-    //             println(out, ") return false;");
-    //         }
-
-    //         if ((upper > 1) && (upper != Role.MULTIPLICITY_MANY)) {
-    //             print(out, "if (");
-    //             print(out, slotAccessExpression);
-    //             print(out, ".size() > " + upper);
-    //             println(out, ") return false;");
-    //         }
-
-    //         print(out, "return true;");
-    //         endMethodBody(out);
-    //     }
-
-    //     protected void generateSlotConsistencyPredicates(DomainClass domClass, PrintWriter out) {
-    //         if (domClass.hasSlotWithOption(Slot.Option.REQUIRED)) {
-    //             generateRequiredConsistencyPredicate(domClass, out);
-    //         }
-    //     }
-
-    //     protected void generateRequiredConsistencyPredicate(DomainClass domClass, PrintWriter out) {
-    //         newline(out);
-    //         println(out, "@jvstm.cps.ConsistencyPredicate");
-    //         printMethod(out, "private", "boolean", "checkRequiredSlots");
-    //         startMethodBody(out);
-
-    //         for (Slot slot : domClass.getSlotsList()) {
-    //             if (slot.hasOption(Slot.Option.REQUIRED)) {
-    //                 String slotName = slot.getName();
-
-    //                 print(out, "pt.ist.fenixframework.dml.runtime.ConsistencyChecks.checkRequired(this, \"");
-    //                 print(out, slotName);
-    //                 print(out, "\", get");
-    //                 print(out, capitalize(slotName));
-    //                 println(out, "());");
-    //             }
-    //         }
-
-    //         print(out, "return true;");
-    //         endMethodBody(out);
-    //     }
 
     public static String makeGenericType(String baseType, String... argTypes) {
         StringBuilder buf = new StringBuilder();
