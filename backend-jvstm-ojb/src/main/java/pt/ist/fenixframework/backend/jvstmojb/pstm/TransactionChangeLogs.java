@@ -323,21 +323,17 @@ public class TransactionChangeLogs {
 
         @Override
         public void run() {
-            try {
-                while (!initializeServerRecord()) {
-                    // intentionally empty
-                }
+            while (!initializeServerRecord()) {
+                // intentionally empty
+            }
 
-                while (true) {
-                    try {
-                        sleep(SECONDS_BETWEEN_UPDATES * 1000);
-                    } catch (InterruptedException ie) {
-                        return;
-                    }
-                    updateServerRecord();
+            while (true) {
+                try {
+                    sleep(SECONDS_BETWEEN_UPDATES * 1000);
+                } catch (InterruptedException ie) {
+                    return;
                 }
-            } finally {
-                logger.info("Exiting CleanThread!");
+                updateServerRecord();
             }
         }
 
