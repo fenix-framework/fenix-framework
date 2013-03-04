@@ -11,20 +11,20 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.dml.CodeGenerator;
 
 /**
- * This DefaultContextFactoryViaReflection tries to find, via reflection, the {@link pt.ist.fenixframework.atomic.ContextFactory}
+ * This AtomicContextFactoryViaReflection tries to find, via reflection, the {@link pt.ist.fenixframework.atomic.ContextFactory}
  * class of the backend in use. It does so, first by
  * getting the current <code>BackEndId</code> (by reflection) and then by getting the factory class
  * (through <code>getAtomicContextFactoryClass()</code> --- again by reflection). It delegates to
  * that factory the creation of the appropriate {@link AtomicContext}. If it fails, it throws an
  * Error, indicating such condition.
  */
-public final class DefaultContextFactoryViaReflection extends AdviceFactory<Atomic> {
-    private static final Logger logger = LoggerFactory.getLogger(DefaultContextFactoryViaReflection.class);
+public final class AtomicContextFactoryViaReflection extends AdviceFactory<Atomic> {
+    private static final Logger logger = LoggerFactory.getLogger(AtomicContextFactoryViaReflection.class);
 
     private static final String BACKEND_ID_FULL_CLASS_NAME = CodeGenerator.BACKEND_PACKAGE + "."
             + CodeGenerator.ABSTRACT_BACKEND_ID_CLASS;
 
-    private final static AdviceFactory<Atomic> instance = new DefaultContextFactoryViaReflection();
+    private final static AdviceFactory<Atomic> instance = new AtomicContextFactoryViaReflection();
 
     public static AdviceFactory<Atomic> getInstance() {
         return instance;

@@ -13,5 +13,5 @@ public @interface Atomic {
 
     boolean speculativeReadOnly() default true;
 
-    Class<? extends AdviceFactory> adviceFactory() default pt.ist.fenixframework.atomic.DefaultContextFactoryViaReflection.class;
+    Class<? extends AdviceFactory> adviceFactory() default pt.ist.fenixframework.atomic.AtomicContextFactoryViaReflection.class;
 }
