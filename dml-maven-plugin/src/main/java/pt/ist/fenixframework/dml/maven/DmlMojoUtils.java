@@ -27,10 +27,10 @@ public class DmlMojoUtils {
         boolean shouldCompile = false;
 
         for (Artifact artifact : project.getDependencyArtifacts()) {
-            if (artifact.getFile() == null)
+            if (artifact.getFile() == null) {
                 continue;
+            }
             String absolutePath = artifact.getFile().getAbsolutePath();
-            JarFile jarFile = new JarFile(absolutePath);
 
             // check the need to compile
             File file = new File(absolutePath);
@@ -41,11 +41,18 @@ public class DmlMojoUtils {
                 }
                 shouldCompile = true;
             }
+            boolean hasProjectProperties = false;
 
-            if (jarFile.getJarEntry(artifact.getArtifactId() + "/project.properties") != null) {
+            if (artifact.getFile().isDirectory()) {
+                hasProjectProperties = new File(absolutePath + "/" + artifact.getArtifactId() + "/project.properties").exists();
+            } else {
+                JarFile jarFile = new JarFile(absolutePath);
+                hasProjectProperties = jarFile.getJarEntry(artifact.getArtifactId() + "/project.properties") != null;
+                jarFile.close();
+            }
+            if (hasProjectProperties) {
                 dependencies.add(Project.fromName(artifact.getArtifactId()));
             }
-            jarFile.close();
         }
 
         List<DmlFile> dmls = new ArrayList<DmlFile>();
