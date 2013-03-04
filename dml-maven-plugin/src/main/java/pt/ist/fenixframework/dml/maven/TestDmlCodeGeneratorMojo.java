@@ -14,7 +14,7 @@ import org.apache.maven.project.MavenProject;
 
 /**
  * Generate base main classes from the main DML files
- *
+ * 
  * @goal test-generate-domain
  * @phase generate-test-sources
  * @configurator include-project-dependencies
@@ -25,20 +25,21 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Maven Project
+     * 
      * @parameter default-value="${project}"
      */
     private MavenProject mavenProject;
 
     /**
      * Set this to 'true' to bypass compilation of dml test sources.
-     *
+     * 
      * @parameter expression="${maven.test.skip}"
      */
     private boolean skip;
 
     /**
      * File Source Directory
-     *
+     * 
      * @parameter default-value="${basedir}/src/test/dml"
      * @readonly
      * @required
@@ -47,7 +48,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * File Destination Directory
-     *
+     * 
      * @parameter default-value="${basedir}/src/test/java"
      * @readonly
      * @required
@@ -56,7 +57,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Base File Destination Directory
-     *
+     * 
      * @parameter default-value="${project.build.directory}/generated-test-sources/dml-maven-plugin"
      * @readonly
      * @required
@@ -65,6 +66,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Code Generator Class Name
+     * 
      * @parameter expression="${generate-domain.codeGeneratorClassName}"
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
@@ -72,12 +74,14 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Package name
+     * 
      * @parameter expression="${test-generate-domain.packageName}"
      */
     private String packageName = "";
 
     /**
      * Generate Finals Flag
+     * 
      * @parameter expression="${test-generate-domain.generateFinals}"
      *            default-value="false"
      */
@@ -85,6 +89,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Verbose Mode Flag
+     * 
      * @parameter expression="${verbose}"
      *            default-value="false"
      */
@@ -92,6 +97,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Generate Project Properties Flag
+     * 
      * @parameter expression="${test-generate-domain.generateProjectProperties}"
      *            default-value="false"
      */
@@ -99,13 +105,14 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Generic Code Generator Class Parameters
+     * 
      * @parameter
      */
-    private Map<String,String> params;
+    private Map<String, String> params;
 
     @Override
     public void execute() throws MojoExecutionException {
-        if(skip) {
+        if (skip) {
             getLog().info("Not compiling test sources");
         } else {
             super.execute();
@@ -164,8 +171,8 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     }
 
     @Override
-    protected Map<String,String> getParams() {
-	return params;
+    protected Map<String, String> getParams() {
+        return params;
     }
 
     @Override

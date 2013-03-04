@@ -2,7 +2,7 @@ package test;
 
 public abstract class Book extends Book_Base {
 
-    public  Book() {
+    public Book() {
         super();
 
         toString();

@@ -11,7 +11,7 @@ import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
  * This is the ogm configuration manager used by the fenix-framework-backend-ogm project.
  * 
  * @see Config
- *
+ * 
  */
 public class OgmConfig extends HibernateSearchConfig {
     private static final Logger logger = LoggerFactory.getLogger(OgmConfig.class);
@@ -20,7 +20,7 @@ public class OgmConfig extends HibernateSearchConfig {
 
     /**
      * This <strong>required</strong> parameter specifies the location of the XML file used to
-     * configure Infinispan.  This file should be available in the application's classpath.
+     * configure Infinispan. This file should be available in the application's classpath.
      */
     protected String ispnConfigFile = null;
 

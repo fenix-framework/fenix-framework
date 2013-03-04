@@ -33,110 +33,109 @@ public abstract class AbstractTransaction extends FenixAbstractTransaction {
 
     @Override
     public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException,
-	    IllegalStateException, SystemException {
+            IllegalStateException, SystemException {
 
-	if (this.status == Status.STATUS_MARKED_ROLLBACK) {
-	    rollback();
-	    throw new RollbackException();
-	}
+        if (this.status == Status.STATUS_MARKED_ROLLBACK) {
+            rollback();
+            throw new RollbackException();
+        }
 
-	if (this.status != Status.STATUS_ACTIVE) {
-		throw new IllegalStateException();
-	}
+        if (this.status != Status.STATUS_ACTIVE) {
+            throw new IllegalStateException();
+        }
 
-	this.status = Status.STATUS_COMMITTING;
+        this.status = Status.STATUS_COMMITTING;
 
-	try {
-	    notifyBeforeCommit();
-	} catch (Exception e) {
+        try {
+            notifyBeforeCommit();
+        } catch (Exception e) {
 
-	    /*
-	     * An exception in any synchronization's beforeCommit will cause the
-	     * transaction to be rolled back.
-	     */
-	    rollback();
+            /*
+             * An exception in any synchronization's beforeCommit will cause the
+             * transaction to be rolled back.
+             */
+            rollback();
 
-	    throw new RollbackException(e.getMessage());
-	}
-	try {
-	    backendCommit();
-	    this.status = Status.STATUS_COMMITTED;
-	} catch (Exception e) {
-	    rollback();
-	    return;
-	} catch (CommitError e) {
-	    rollback();
-	    return;
-	}
-	notifyAfterCommit();
+            throw new RollbackException(e.getMessage());
+        }
+        try {
+            backendCommit();
+            this.status = Status.STATUS_COMMITTED;
+        } catch (Exception e) {
+            rollback();
+            return;
+        } catch (CommitError e) {
+            rollback();
+            return;
+        }
+        notifyAfterCommit();
     }
 
     protected void notifyBeforeCommit() {
-	for (Synchronization sync : synchronizations) {
-	    sync.beforeCompletion();
-	}
+        for (Synchronization sync : synchronizations) {
+            sync.beforeCompletion();
+        }
     }
 
     protected void notifyAfterCommit() {
-	for (Synchronization sync : synchronizations) {
-	    sync.afterCompletion(this.status);
-	}
+        for (Synchronization sync : synchronizations) {
+            sync.afterCompletion(this.status);
+        }
     }
 
     @Override
     public boolean delistResource(XAResource xaRes, int flag) throws IllegalStateException, SystemException {
-	throw new UnsupportedOperationException("XA Resources are not supported.");
+        throw new UnsupportedOperationException("XA Resources are not supported.");
     }
 
     @Override
     public boolean enlistResource(XAResource xaRes) throws RollbackException, IllegalStateException, SystemException {
-	throw new UnsupportedOperationException("XA Resources are not supported.");
+        throw new UnsupportedOperationException("XA Resources are not supported.");
     }
 
     @Override
     public int getStatus() throws SystemException {
-	return this.status;
+        return this.status;
     }
 
     @Override
     public void registerSynchronization(Synchronization sync) throws RollbackException, IllegalStateException, SystemException {
-	if (this.status == Status.STATUS_MARKED_ROLLBACK) {
-		throw new RollbackException();
-	}
+        if (this.status == Status.STATUS_MARKED_ROLLBACK) {
+            throw new RollbackException();
+        }
 
-	if (this.status != Status.STATUS_ACTIVE) {
-		throw new IllegalStateException();
-	}
+        if (this.status != Status.STATUS_ACTIVE) {
+            throw new IllegalStateException();
+        }
 
-	synchronizations.offer(sync);
+        synchronizations.offer(sync);
     }
 
     @Override
     public void rollback() throws IllegalStateException, SystemException {
-	if (this.status == Status.STATUS_PREPARED || this.status == Status.STATUS_COMMITTED
-		|| this.status == Status.STATUS_ROLLEDBACK) {
-		throw new IllegalStateException();
-	}
+        if (this.status == Status.STATUS_PREPARED || this.status == Status.STATUS_COMMITTED
+                || this.status == Status.STATUS_ROLLEDBACK) {
+            throw new IllegalStateException();
+        }
 
-	this.status = Status.STATUS_ROLLING_BACK;
-	backendRollback();
-	this.status = Status.STATUS_ROLLEDBACK;
+        this.status = Status.STATUS_ROLLING_BACK;
+        backendRollback();
+        this.status = Status.STATUS_ROLLEDBACK;
 
-	notifyAfterCommit();
+        notifyAfterCommit();
     }
 
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {
-	this.status = Status.STATUS_MARKED_ROLLBACK;
+        this.status = Status.STATUS_MARKED_ROLLBACK;
     }
-
 
     /*
      * Abstract part
      */
 
     protected abstract void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
-	    SecurityException, IllegalStateException, SystemException;
+            SecurityException, IllegalStateException, SystemException;
 
     protected abstract void backendRollback() throws IllegalStateException, SystemException;
 

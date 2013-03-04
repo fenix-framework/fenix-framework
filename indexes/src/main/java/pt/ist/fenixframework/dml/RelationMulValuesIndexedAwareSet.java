@@ -12,74 +12,75 @@ import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
 import pt.ist.fenixframework.indexes.UnmodifiableDomainBaseSet;
 
-public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject,E2 extends AbstractDomainObject> extends RelationAwareSet<E1, E2> {
+public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends
+        RelationAwareSet<E1, E2> {
 
     protected DomainBasedMap<LinkedList<E2>> multiValueMap;
 
-    public RelationMulValuesIndexedAwareSet(E1 owner, Relation<E1, E2> relation, DomainBasedMap<LinkedList<E2>> multiValueMap, KeyFunction<? extends Comparable<?>, E2> mapKey) {
-	super(owner, relation, null, mapKey);
-	this.multiValueMap = multiValueMap;
+    public RelationMulValuesIndexedAwareSet(E1 owner, Relation<E1, E2> relation, DomainBasedMap<LinkedList<E2>> multiValueMap,
+            KeyFunction<? extends Comparable<?>, E2> mapKey) {
+        super(owner, relation, null, mapKey);
+        this.multiValueMap = multiValueMap;
     }
 
     @Override
     public boolean justAdd(E2 elem) {
-	DomainBasedMap<E2> subMap = checkIfExists(mapKey.getKey(elem));
-	return subMap.putIfMissing(elem.getOid(), elem);
+        DomainBasedMap<E2> subMap = checkIfExists(mapKey.getKey(elem));
+        return subMap.putIfMissing(elem.getOid(), elem);
     }
 
     @Override
     public boolean justRemove(E2 elem) {
-	DomainBasedMap<E2> subMap = checkIfExists(mapKey.getKey(elem));
-	return subMap.remove(elem.getOid());
+        DomainBasedMap<E2> subMap = checkIfExists(mapKey.getKey(elem));
+        return subMap.remove(elem.getOid());
     }
 
     protected DomainBasedMap<E2> checkIfExists(Comparable<?> key) {
-	LinkedList<E2> subMap = multiValueMap.get(key);
-	if (subMap == null) {
-	    // Note that this Collection is attached here, we can make it dynamic, but is it worth it?
-	    subMap = new LinkedList<E2>();
-	    multiValueMap.put(key, subMap);
-	}
-	return subMap;
+        LinkedList<E2> subMap = multiValueMap.get(key);
+        if (subMap == null) {
+            // Note that this Collection is attached here, we can make it dynamic, but is it worth it?
+            subMap = new LinkedList<E2>();
+            multiValueMap.put(key, subMap);
+        }
+        return subMap;
     }
 
     @Override
     public E2 get(Comparable<?> key) {
- 	throw new UnsupportedOperationException();
-     }
-    
-    public Set<E2> getValues(Comparable<?> key) {
-	return new UnmodifiableDomainBaseSet<E2>(multiValueMap.get(key));
-    }
-    
-    @Override
-    public boolean contains(Object o) {
-	if (o instanceof AbstractDomainObject) {
-	    E2 obj = (E2) o;
-	    DomainBasedMap<E2> subMap = checkIfExists(mapKey.getKey(obj));
-	    return subMap.contains(obj.getOid());
-	} else {
-	    return false;
-	}
+        throw new UnsupportedOperationException();
     }
 
-    
+    public Set<E2> getValues(Comparable<?> key) {
+        return new UnmodifiableDomainBaseSet<E2>(multiValueMap.get(key));
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        if (o instanceof AbstractDomainObject) {
+            E2 obj = (E2) o;
+            DomainBasedMap<E2> subMap = checkIfExists(mapKey.getKey(obj));
+            return subMap.contains(obj.getOid());
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public int size() {
-	int sum = 0;
-	for (DomainBasedMap<E2> subMap : multiValueMap) {
-	    sum += subMap.size();
-	}
-	return sum;
+        int sum = 0;
+        for (DomainBasedMap<E2> subMap : multiValueMap) {
+            sum += subMap.size();
+        }
+        return sum;
     }
 
     @Override
     public Iterator<E2> iterator() {
-	return new RelationMulValuesIndexedAwareIterator(this.multiValueMap);
+        return new RelationMulValuesIndexedAwareIterator(this.multiValueMap);
     }
-    
+
     protected class RelationMulValuesIndexedAwareIterator implements Iterator<E2> {
-	private Iterator<LinkedList<E2>> keyIterator;
+        private Iterator<LinkedList<E2>> keyIterator;
         private Iterator<E2> iterator;
         private E2 current = null;
         private boolean canRemove = false;
@@ -92,10 +93,10 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject,E2
         @Override
         public boolean hasNext() {
             while (!iterator.hasNext()) {
-        	if (!keyIterator.hasNext()) {
-        	    return false;
-        	}
-        	iterator = keyIterator.next().iterator();
+                if (!keyIterator.hasNext()) {
+                    return false;
+                }
+                iterator = keyIterator.next().iterator();
             }
             return true;
         }
@@ -103,10 +104,10 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject,E2
         @Override
         public E2 next() {
             while (!iterator.hasNext()) {
-        	if (!keyIterator.hasNext()) {
-        	    throw new NoSuchElementException();
-        	}
-        	iterator = keyIterator.next().iterator();
+                if (!keyIterator.hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                iterator = keyIterator.next().iterator();
             }
             E2 result = iterator.next();
             canRemove = true;
@@ -116,27 +117,30 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject,E2
 
         @Override
         public void remove() {
-            if (! canRemove) {
+            if (!canRemove) {
                 throw new IllegalStateException();
             } else {
                 canRemove = false;
                 relation.remove(owner, current);
             }
         }
-        
-	private final class EmptyIterator implements Iterator<E2> {
-	    public boolean hasNext() {
-	        return false;
-	    }
 
-	    public E2 next() {
-	        throw new NoSuchElementException();
-	    }
+        private final class EmptyIterator implements Iterator<E2> {
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
 
-	    public void remove() {
-	        throw new UnsupportedOperationException();
-	    }
-	}
+            @Override
+            public E2 next() {
+                throw new NoSuchElementException();
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        }
     }
 
 }

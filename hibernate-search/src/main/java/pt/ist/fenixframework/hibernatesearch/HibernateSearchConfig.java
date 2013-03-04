@@ -17,7 +17,7 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
 
     /**
      * This well-known name specifies the location of the properties file used to configure
-     * Hibernate Search.  This file should be available in the application's classpath.
+     * Hibernate Search. This file should be available in the application's classpath.
      */
     public static final String CONFIG_FILE = "fenix-framework-hibernate-search.properties";
 
@@ -40,10 +40,9 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
         }
 
         // Ensure TxIntrospector is available
-        if (! TxStats.ENABLED) {
-            logger.error("TxIntrospector is disabled!" +
-                         " -> Module Hibernate-search will not be available." +
-                         " Please enable TxIntrospector and rebuild your application");
+        if (!TxStats.ENABLED) {
+            logger.error("TxIntrospector is disabled!" + " -> Module Hibernate-search will not be available."
+                    + " Please enable TxIntrospector and rebuild your application");
             return;
         }
 
@@ -55,8 +54,8 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
     }
 
     /**
-     * Subclasses of this class can overwrite this method, but they should specifically call
-     * <code>super.shutdown()</code> to orderly shutdown the framework and hibernate search.
+     * Subclasses of this class can overwrite this method, but they should specifically call <code>super.shutdown()</code> to
+     * orderly shutdown the framework and hibernate search.
      */
     @Override
     public void shutdown() {

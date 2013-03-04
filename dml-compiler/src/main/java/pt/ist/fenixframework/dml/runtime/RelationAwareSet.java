@@ -6,41 +6,47 @@ import java.util.Set;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends AbstractDomainObject> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
+public class RelationAwareSet<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends AbstractSet<E2> implements
+        Set<E2>, RelationBaseSet<E2> {
     private DomainBasedMap<E2> internalMap;
     protected KeyFunction<? extends Comparable<?>, E2> mapKey;
     protected E1 owner;
-    protected Relation<E1,E2> relation;
+    protected Relation<E1, E2> relation;
 
-    public RelationAwareSet(E1 owner, Relation<E1,E2> relation, DomainBasedMap<E2> internalMap, KeyFunction<? extends Comparable<?>, E2> mapKey) {
+    public RelationAwareSet(E1 owner, Relation<E1, E2> relation, DomainBasedMap<E2> internalMap,
+            KeyFunction<? extends Comparable<?>, E2> mapKey) {
         this.owner = owner;
         this.relation = relation;
         this.internalMap = internalMap;
         this.mapKey = mapKey;
     }
 
+    @Override
     public boolean justAdd(E2 elem) {
         return internalMap.putIfMissing(mapKey.getKey(elem), elem);
     }
 
+    @Override
     public boolean justRemove(E2 elem) {
         return internalMap.remove(mapKey.getKey(elem));
     }
 
+    @Override
     public int size() {
         return internalMap.size();
     }
 
     public E2 get(Comparable<?> key) {
-	return internalMap.get(key);
+        return internalMap.get(key);
     }
-    
+
+    @Override
     public boolean contains(Object o) {
-	if (o instanceof AbstractDomainObject) {
-	    return internalMap.contains(mapKey.getKey((E2)o));
-	} else {
-	    return false;
-	}
+        if (o instanceof AbstractDomainObject) {
+            return internalMap.contains(mapKey.getKey((E2) o));
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -50,16 +56,16 @@ public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends Abstrac
 
     @Override
     public boolean add(E2 o) {
-	return relation.add(owner, o);
+        return relation.add(owner, o);
     }
 
     @Override
     public boolean remove(Object o) {
-	if (o instanceof AbstractDomainObject) {
-	    return relation.remove(owner, (E2)o);
-	} else {
-	    return false;
-	}
+        if (o instanceof AbstractDomainObject) {
+            return relation.remove(owner, (E2) o);
+        } else {
+            return false;
+        }
     }
 
     protected class RelationAwareIterator implements Iterator<E2> {
@@ -86,7 +92,7 @@ public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends Abstrac
 
         @Override
         public void remove() {
-            if (! canRemove) {
+            if (!canRemove) {
                 throw new IllegalStateException();
             } else {
                 canRemove = false;

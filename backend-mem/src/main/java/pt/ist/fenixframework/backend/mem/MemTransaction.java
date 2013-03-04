@@ -10,22 +10,22 @@ import pt.ist.fenixframework.txintrospector.TxStats;
 
 public class MemTransaction extends AbstractTransaction {
 
-	private final TxStats txIntrospector = TxStats.newInstance();
+    private final TxStats txIntrospector = TxStats.newInstance();
 
-	@Override
-	protected void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
-	SecurityException, IllegalStateException, SystemException {
+    @Override
+    protected void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
+            SecurityException, IllegalStateException, SystemException {
 
-	}
+    }
 
-	@Override
-	protected void backendRollback() throws IllegalStateException, SystemException {
+    @Override
+    protected void backendRollback() throws IllegalStateException, SystemException {
 
-	}
+    }
 
-	@Override
-	public TxStats getTxIntrospector() {
-		return txIntrospector;
-	}
+    @Override
+    public TxStats getTxIntrospector() {
+        return txIntrospector;
+    }
 
 }

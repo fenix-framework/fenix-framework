@@ -1,6 +1,10 @@
 package pt.ist.fenixframework.hibernatesearch;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 
 import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.search.cfg.SearchMapping;

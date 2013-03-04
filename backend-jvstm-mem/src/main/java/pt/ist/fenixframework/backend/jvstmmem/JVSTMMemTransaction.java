@@ -13,13 +13,13 @@ public class JVSTMMemTransaction extends AbstractTransaction {
 
     @Override
     protected void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
-	    SecurityException, IllegalStateException, SystemException {
-	jvstm.Transaction.commit();	
+            SecurityException, IllegalStateException, SystemException {
+        jvstm.Transaction.commit();
     }
 
     @Override
     protected void backendRollback() throws IllegalStateException, SystemException {
-	jvstm.Transaction.abort();
+        jvstm.Transaction.abort();
     }
 
     private final TxIntrospector introspector = TxStats.newInstance();

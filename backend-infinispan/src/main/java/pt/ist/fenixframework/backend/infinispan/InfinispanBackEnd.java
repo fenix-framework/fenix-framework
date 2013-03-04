@@ -63,25 +63,25 @@ public class InfinispanBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        OID internalId = (OID)oid;
+        OID internalId = (OID) oid;
         if (logger.isTraceEnabled()) {
             logger.trace("fromOid(" + internalId.getFullId() + ")");
         }
-        
+
         IdentityMap cache = getIdentityMap();
         AbstractDomainObject obj = cache.lookup(internalId);
-        
-	if (obj == null) {
+
+        if (obj == null) {
             if (logger.isTraceEnabled()) {
                 logger.trace("Object not found in IdentityMap: " + internalId.getFullId());
             }
-	    obj = DomainObjectAllocator.allocateObject(internalId.getObjClass(), internalId);
+            obj = DomainObjectAllocator.allocateObject(internalId.getObjClass(), internalId);
 
-	    // cache object and return the canonical object
-	    obj = cache.cache(obj);
-	}
+            // cache object and return the canonical object
+            obj = cache.cache(obj);
+        }
 
-	return (T) obj;
+        return (T) obj;
     }
 
     /**
@@ -101,15 +101,13 @@ public class InfinispanBackEnd implements BackEnd {
         config.waitForExpectedInitialNodes("backend-infinispan-init-barrier");
     }
 
-    
     private void setupCache(InfinispanConfig config) {
         long start = System.currentTimeMillis();
         CacheContainer cc = null;
         try {
             cc = new DefaultCacheManager(config.getIspnConfigFile());
         } catch (java.io.IOException ioe) {
-            String message = "Error creating Infinispan cache manager with configuration file: "
-                + config.getIspnConfigFile();
+            String message = "Error creating Infinispan cache manager with configuration file: " + config.getIspnConfigFile();
             logger.error(message, ioe);
             throw new Error(message, ioe);
         }
@@ -117,8 +115,7 @@ public class InfinispanBackEnd implements BackEnd {
         if (logger.isDebugEnabled()) {
             DateFormat df = new SimpleDateFormat("HH:mm.ss");
             df.setTimeZone(TimeZone.getTimeZone("GMT"));
-            logger.debug("Infinispan initialization took " +
-                         df.format(new Date(System.currentTimeMillis() - start)));
+            logger.debug("Infinispan initialization took " + df.format(new Date(System.currentTimeMillis() - start)));
         }
     }
 
@@ -131,7 +128,7 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     /**
-     * Store in Infinispan.  This method supports null values.  This method is used by the code
+     * Store in Infinispan. This method supports null values. This method is used by the code
      * generated in the Domain Objects.
      */
     public final void cachePut(String key, Object value) {
@@ -139,12 +136,12 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     /**
-     * Reads from Infinispan a value with a given key.  This method is used by the code generated in
+     * Reads from Infinispan a value with a given key. This method is used by the code generated in
      * the Domain Objects.
      */
     public final <T> T cacheGet(String key) {
         Object obj = domainCache.get(key);
-        return (T)(obj instanceof Externalization.NullClass ? null : obj);
+        return (T) (obj instanceof Externalization.NullClass ? null : obj);
     }
-    
+
 }

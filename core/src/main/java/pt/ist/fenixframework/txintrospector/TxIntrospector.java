@@ -58,7 +58,7 @@ public interface TxIntrospector {
      * @return Collection of relation changes
      */
     public Collection<RelationChangelog> getRelationsChangelog();
-    
+
     /**
      * Returns whether the current transaction is a write transaction.
      */
@@ -70,58 +70,57 @@ public interface TxIntrospector {
      */
     public boolean isDeleted(DomainObject object);
 
-
     /**
      * Used to represent a read or write-set entry.
      */
     public static class Entry {
-	public final DomainObject object;
-	public final String attribute;
-	public final Object value;
+        public final DomainObject object;
+        public final String attribute;
+        public final Object value;
 
-	public Entry(DomainObject object, String attribute, Object value) {
-	    this.object = object;
-	    this.attribute = attribute;
-	    this.value = value;
-	}
+        public Entry(DomainObject object, String attribute, Object value) {
+            this.object = object;
+            this.attribute = attribute;
+            this.value = value;
+        }
     }
 
     /**
      * Used to represent a change to a relationship between two objects.
      */
     public static class RelationChangelog {
-	public final String relation;
-	public final DomainObject first;
-	public final DomainObject second;
-	public final boolean remove;
+        public final String relation;
+        public final DomainObject first;
+        public final DomainObject second;
+        public final boolean remove;
 
-	public RelationChangelog(String relation, DomainObject first, DomainObject second, boolean remove) {
-	    this.relation = relation;
-	    this.first = first;
-	    this.second = second;
-	    this.remove = remove;
-	}
+        public RelationChangelog(String relation, DomainObject first, DomainObject second, boolean remove) {
+            this.relation = relation;
+            this.first = first;
+            this.second = second;
+            this.remove = remove;
+        }
 
-	@Override
-	public int hashCode() {
-	    return relation.hashCode() + (first != null ? first.hashCode() : 0) + (second != null ? second.hashCode() : 0);
-	}
+        @Override
+        public int hashCode() {
+            return relation.hashCode() + (first != null ? first.hashCode() : 0) + (second != null ? second.hashCode() : 0);
+        }
 
-	@Override
-	public boolean equals(Object obj) {
-	    if ((obj != null) && (obj instanceof RelationChangelog)) {
-		RelationChangelog other = (RelationChangelog) obj;
-		return this.relation.equals(other.relation)
-			&& (this.first == other.first || (this.first != null && this.first.equals(other.first)))
-			&& (this.second == other.second || (this.second != null && this.second.equals(other.second)));
-	    }
-	    return false;
-	}
+        @Override
+        public boolean equals(Object obj) {
+            if ((obj != null) && (obj instanceof RelationChangelog)) {
+                RelationChangelog other = (RelationChangelog) obj;
+                return this.relation.equals(other.relation)
+                        && (this.first == other.first || (this.first != null && this.first.equals(other.first)))
+                        && (this.second == other.second || (this.second != null && this.second.equals(other.second)));
+            }
+            return false;
+        }
 
-	@Override
-	public String toString() {
-	    return "Relation '" + relation + "' " + first + "---" + second + " (" + (remove ? "removed)" : "changed)");
-	}
+        @Override
+        public String toString() {
+            return "Relation '" + relation + "' " + first + "---" + second + " (" + (remove ? "removed)" : "changed)");
+        }
     }
 
 }

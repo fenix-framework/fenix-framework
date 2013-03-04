@@ -2,8 +2,7 @@ package pt.ist.fenixframework.dml;
 
 import java.io.Serializable;
 
-
-public class Role implements Serializable{
+public class Role implements Serializable {
     public static final int MULTIPLICITY_MANY = -1;
 
     private String name;
@@ -14,7 +13,6 @@ public class Role implements Serializable{
     private String indexProperty;
     private boolean ordered = false;
     private int indexCardinality;
-    
 
     public Role(String name, DomainEntity type) {
         this.name = name;
@@ -67,15 +65,15 @@ public class Role implements Serializable{
     }
 
     public void setIndexCardinality(int cardinality) {
-    	this.indexCardinality = cardinality;
+        this.indexCardinality = cardinality;
     }
-     
+
     public int getIndexCardinality() {
-    	return this.indexCardinality;
+        return this.indexCardinality;
     }
-     
+
     public boolean isIndexed() {
-    	return getIndexProperty() != null;
+        return getIndexProperty() != null;
     }
 
     public void setOrdered(boolean ordered) {
@@ -87,9 +85,6 @@ public class Role implements Serializable{
     }
 
     public boolean needsMultiplicityChecks() {
-        return (multiplicityLower > 0)
-            || ((multiplicityUpper > 1) 
-                && (multiplicityUpper != MULTIPLICITY_MANY));
+        return (multiplicityLower > 0) || ((multiplicityUpper > 1) && (multiplicityUpper != MULTIPLICITY_MANY));
     }
 }
-

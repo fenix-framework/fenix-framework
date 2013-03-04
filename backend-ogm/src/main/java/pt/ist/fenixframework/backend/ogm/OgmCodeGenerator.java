@@ -19,13 +19,11 @@ import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 
 public class OgmCodeGenerator extends IndexesCodeGenerator {
 
-    protected static final String VT_SERIALIZER =
-        ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +
-        ValueTypeSerializationGenerator.SERIALIZATION_METHOD_PREFIX;
+    protected static final String VT_SERIALIZER = ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "."
+            + ValueTypeSerializationGenerator.SERIALIZATION_METHOD_PREFIX;
 
-    protected static final String VT_DESERIALIZER =
-        ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "." +
-        ValueTypeSerializationGenerator.DESERIALIZATION_METHOD_PREFIX;
+    protected static final String VT_DESERIALIZER = ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "."
+            + ValueTypeSerializationGenerator.DESERIALIZATION_METHOD_PREFIX;
 
     protected static final String PRIMARY_KEY_TYPE = "String";
 
@@ -157,8 +155,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         // create the default collection and initialize its foreign key slot
         if (role.getMultiplicityUpper() != 1) {
             onNewline(out);
-            print(out, "this." + makeForeignKeyName(role.getName()) + " = new " +
-        	    getDefaultCollectionFor(role) + "().getExternalId();");
+            print(out, "this." + makeForeignKeyName(role.getName()) + " = new " + getDefaultCollectionFor(role)
+                    + "().getExternalId();");
         }
     }
 
@@ -170,27 +168,15 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     }
 
     private static String[] builtInTypesFromDmlInOgm = {
-        // "char",
-        // "java.lang.Character",
-        // "short",
-        // "java.lang.Short",
-        // "float",
-        // "java.lang.Float",
-        "long",
-        "java.lang.Long",
-        "int",
-        "java.lang.Integer",
-        "double",
-        "java.lang.Double",
-        "java.lang.String",
-        "boolean",
-        "java.lang.Boolean",
-        "byte",
-        "java.lang.Byte",
-        "bytearray",
-        "byte[]"
-    };
-    
+            // "char",
+            // "java.lang.Character",
+            // "short",
+            // "java.lang.Short",
+            // "float",
+            // "java.lang.Float",
+            "long", "java.lang.Long", "int", "java.lang.Integer", "double", "java.lang.Double", "java.lang.String", "boolean",
+            "java.lang.Boolean", "byte", "java.lang.Byte", "bytearray", "byte[]" };
+
     private boolean ogmSupportsType(String typeName) {
         for (String supportedType : builtInTypesFromDmlInOgm) {
             if (supportedType.equals(typeName)) {
@@ -246,7 +232,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
         newline(out);
         printFinalMethod(out, "private", "void", "set" + addHibernateToSlotName(capitalize(slotName)),
-                         makeArg(typeNameFrom, slotName));
+                makeArg(typeNameFrom, slotName));
         startMethodBody(out);
         printWords(out, getSlotExpression(slotName), "=", setterExpression + ";");
         endMethodBody(out);
@@ -266,15 +252,19 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     // smf: This code is the same as in ISPN backend. Should refactor.
     protected void generateRoleMethodAdd(Role role, Role otherRole, PrintWriter out) {
         boolean multOne = (role.getMultiplicityUpper() == 1);
-        
+
         String otherRoleTypeFullName = getTypeFullName(otherRole.getType());
         String roleTypeFullName = getTypeFullName(role.getType());
 
-        printMethod(out, "public", "boolean", "add",
-                    makeArg(otherRoleTypeFullName, "o1"),
-                    makeArg(roleTypeFullName, "o2"),
-                    makeArg(makeGenericType("pt.ist.fenixframework.dml.runtime.Relation",
-                                            otherRoleTypeFullName,roleTypeFullName), "relation"));
+        printMethod(
+                out,
+                "public",
+                "boolean",
+                "add",
+                makeArg(otherRoleTypeFullName, "o1"),
+                makeArg(roleTypeFullName, "o2"),
+                makeArg(makeGenericType("pt.ist.fenixframework.dml.runtime.Relation", otherRoleTypeFullName, roleTypeFullName),
+                        "relation"));
         startMethodBody(out);
         print(out, "if (o1 != null)");
         newBlock(out);
@@ -293,13 +283,11 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     // smf: This code is the same as in ISPN backend. Should refactor.
     protected void generateRoleMethodRemove(Role role, Role otherRole, PrintWriter out) {
         boolean multOne = (role.getMultiplicityUpper() == 1);
-        
+
         String otherRoleTypeFullName = getTypeFullName(otherRole.getType());
         String roleTypeFullName = getTypeFullName(role.getType());
 
-        printMethod(out, "public", "boolean", "remove",
-                    makeArg(otherRoleTypeFullName, "o1"),
-                    makeArg(roleTypeFullName, "o2"));
+        printMethod(out, "public", "boolean", "remove", makeArg(otherRoleTypeFullName, "o1"), makeArg(roleTypeFullName, "o2"));
         startMethodBody(out);
         print(out, "if (o1 != null)");
         newBlock(out);
@@ -310,11 +298,12 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
+    @Override
     protected void generateRoleMethodGetInverseRole(Role role, Role otherRole, PrintWriter out) {
         // the getInverseRole method
-        String inverseRoleType = makeGenericType("pt.ist.fenixframework.dml.runtime.Role",
-                                                 getTypeFullName(role.getType()),
-                                                 getTypeFullName(otherRole.getType()));
+        String inverseRoleType =
+                makeGenericType("pt.ist.fenixframework.dml.runtime.Role", getTypeFullName(role.getType()),
+                        getTypeFullName(otherRole.getType()));
         printMethod(out, "public", inverseRoleType, "getInverseRole");
         startMethodBody(out);
         print(out, "return ");
@@ -358,6 +347,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         println(out, ";");
     }
 
+    @Override
     protected String getSetTypeDeclarationFor(Role role) {
         String elemType = getTypeFullName(role.getType());
         return makeGenericType("java.util.Set", elemType);
@@ -377,28 +367,22 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printFinalMethod(out, "public", typeName, "get" + capitalize(slotName));
         startMethodBody(out);
-        
+
         generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
-        
-        generateRoleSlotMethodsMultOneGetterUpdateFromFK(slotName, makeForeignKeyName(slotName),
-                                                         out);
+
+        generateRoleSlotMethodsMultOneGetterUpdateFromFK(slotName, makeForeignKeyName(slotName), out);
         printWords(out, "return", getSlotExpression(slotName) + ";");
         endMethodBody(out);
     }
 
-    protected void generateRoleSlotMethodsMultOneGetterUpdateFromFK(String slotName,
-                                                                    String fkSlotName,
-                                                                    PrintWriter out) {
+    protected void generateRoleSlotMethodsMultOneGetterUpdateFromFK(String slotName, String fkSlotName, PrintWriter out) {
         print(out, "if (" + slotName + " == null && " + fkSlotName + " != null)");
         newBlock(out);
-        print(out, getSlotExpression(slotName) + " = OgmBackEnd.getInstance().getDomainObject(" +
-              fkSlotName + ");");
+        print(out, getSlotExpression(slotName) + " = OgmBackEnd.getInstance().getDomainObject(" + fkSlotName + ");");
         closeBlock(out);
     }
 
-    protected void generateRoleSlotMethodsMultOneGetterUpdateToFK(String fkSetterName,
-                                                                  String slotName,
-                                                                  PrintWriter out) {
+    protected void generateRoleSlotMethodsMultOneGetterUpdateToFK(String fkSetterName, String slotName, PrintWriter out) {
         print(out, fkSetterName + "(" + slotName + " == null ? null : " + slotName + ".getExternalId());");
     }
 
@@ -426,7 +410,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
-
     // smf: This code is similar to the ISPN backend. Should refactor (consider this method name in superclass?)
     protected void generateRoleSlotMethodsMultOneInternalSetter(Role role, PrintWriter out) {
         String typeName = getTypeFullName(role.getType());
@@ -438,12 +421,10 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
 
         // internal setter, which does not inform the relation
         newline(out);
-        printMethod(out, methodModifiers, "void", setterName + "$unidirectional", makeArg(typeName,
-                                                                                          slotName));
+        printMethod(out, methodModifiers, "void", setterName + "$unidirectional", makeArg(typeName, slotName));
         startMethodBody(out);
         println(out, getSlotExpression(slotName) + " = " + slotName + ";");
-        generateRoleSlotMethodsMultOneGetterUpdateToFK("set" + capitalize(makeForeignKeyName(slotName)),
-                                                       slotName, out);
+        generateRoleSlotMethodsMultOneGetterUpdateToFK("set" + capitalize(makeForeignKeyName(slotName)), slotName, out);
         endMethodBody(out);
     }
 
@@ -455,16 +436,16 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateRelationGetter(String getterName, String valueToReturn, Role role,
-                                          String typeName, PrintWriter out) {
-	newline(out);
-	printFinalMethod(out, "public", typeName, getterName);
+    protected void generateRelationGetter(String getterName, String valueToReturn, Role role, String typeName, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", typeName, getterName);
 
-	startMethodBody(out);
+        startMethodBody(out);
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
         String collectionType = getDefaultCollectionFor(role);
-        println(out, collectionType + " internalSet = OgmBackEnd.getInstance().getDomainObject(" +
-                makeForeignKeyName(role.getName()) + ");");
+        println(out,
+                collectionType + " internalSet = OgmBackEnd.getInstance().getDomainObject(" + makeForeignKeyName(role.getName())
+                        + ");");
 
         print(out, "return new ");
         print(out, getRelationAwareTypeFor(role));
@@ -475,11 +456,12 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         print(out, ", internalSet, keyFunction$$");
         print(out, role.getName());
         print(out, ");");
-	endMethodBody(out);
+        endMethodBody(out);
     }
 
+    @Override
     protected void generateIteratorMethod(Role role, PrintWriter out) {
-	generateIteratorMethod(role, out, getRoleManyGetterExpression(role.getName()));
+        generateIteratorMethod(role, out, getRoleManyGetterExpression(role.getName()));
     }
 
     protected void generateRoleMultGetterSetter(Role role, PrintWriter out) {
@@ -505,9 +487,10 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     protected void generateRoleMultSetter(Role role, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "private", "void", "set" + addHibernateToSlotName(capitalize(role.getName())),
-                         makeArg(getSetTypeDeclarationFor(role), role.getName()));
+                makeArg(getSetTypeDeclarationFor(role), role.getName()));
         startMethodBody(out);
-        printWords(out, "((" + getRelationAwareTypeFor(role) + ")this." + role.getName() + ").setFromHibernate(" + role.getName() + ");");
+        printWords(out, "((" + getRelationAwareTypeFor(role) + ")this." + role.getName() + ").setFromHibernate(" + role.getName()
+                + ");");
         endMethodBody(out);
     }
 
@@ -553,9 +536,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         return slotName + "$via$hibernate";
     }
 
-
     ////////////////////////////////////////////// import from TPCW above
-
 
     @Override
     protected String getRoleOneBaseType() {
@@ -574,7 +555,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         buf.append("    xsi:schemaLocation=\"http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd\"\n");
         buf.append("    version=\"2.0\">\n\n");
 
-        buf.append("    <mapped-superclass class=\"" + getDomainClassRoot() + "\" access=\"FIELD\" metadata-complete=\"false\">\n");
+        buf.append("    <mapped-superclass class=\"" + getDomainClassRoot()
+                + "\" access=\"FIELD\" metadata-complete=\"false\">\n");
         buf.append("        <attributes>\n");
         buf.append("            <id name=\"hibernate$primaryKey\" />\n");
         buf.append("        </attributes>\n");
@@ -730,7 +712,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
             }
         }
 
-
         // ArrayList<Role> theList =
         //     (role.getMultiplicityUpper() == 1
         //      ? (otherRole.getMultiplicityUpper() == 1 ?
@@ -738,8 +719,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         //      : (otherRole.getMultiplicityUpper() == 1 ?
         //         this.ormRoleOneToMany : this.ormRoleManyToMany));
         // theList.add(role);
-             
-        
 
         // if (role.getMultiplicityUpper() == 1) {
         //     if (otherRole.getMultiplicityUpper() == 1) {
@@ -756,10 +735,9 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         // }
     }
 
-
     ///////////////////////////////////////////////////////////////////////////
     // Below are methods specific to the generation of the persistence.xml file
-    
+
     protected void generatePersistenceXml() {
         File file = new File(getBaseDirectoryFor("") + "/META-INF/persistence.xml");
         file.getParentFile().mkdirs();

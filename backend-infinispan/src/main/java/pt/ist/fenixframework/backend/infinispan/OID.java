@@ -1,18 +1,15 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.core.exception.MissingObjectException;
 
 /**
- *  This class provides the internal representation of an DomainObject's identifier in Infinispan.
+ * This class provides the internal representation of an DomainObject's identifier in Infinispan.
  */
 public class OID implements Comparable<OID>, Serializable {
     private static final long serialVersionUID = 1L;
@@ -31,7 +28,7 @@ public class OID implements Comparable<OID>, Serializable {
         this.fullId = objClass.getName() + OID_SEPARATOR + objId;
     }
 
-    public /* smf: tirar o public */ OID(String externalId) {
+    public/* smf: tirar o public */OID(String externalId) {
         String[] tokens = externalId.split(OID_SEPARATOR);
         try {
             this.objClass = Class.forName(tokens[0]);
@@ -61,7 +58,7 @@ public class OID implements Comparable<OID>, Serializable {
             return true;
         }
         if (o instanceof OID) {
-            OID other = (OID)o;
+            OID other = (OID) o;
             // return (this.objClass.equals(other.objClass)
             //         && this.fullId.equals(other.fullId));
             return (this.fullId.equals(other.fullId));

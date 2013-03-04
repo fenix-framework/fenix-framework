@@ -1,7 +1,10 @@
 package pt.ist.fenixframework.dml;
 
-import java.util.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 public class DomainClass extends DomainEntity {
     private DomainEntity superclass;
@@ -54,9 +57,10 @@ public class DomainClass extends DomainEntity {
     }
 
     public boolean hasSlots() {
-        return ((! slots.isEmpty()) || (! roleSlots.isEmpty()));
+        return ((!slots.isEmpty()) || (!roleSlots.isEmpty()));
     }
 
+    @Override
     public Slot findSlot(String slotName) {
         if (slotName == null) {
             return null;
@@ -71,6 +75,7 @@ public class DomainClass extends DomainEntity {
         return (superclass != null) ? superclass.findSlot(slotName) : null;
     }
 
+    @Override
     public void addRoleSlot(Role role) {
         roleSlots.add(role);
     }
@@ -83,6 +88,7 @@ public class DomainClass extends DomainEntity {
         return Collections.unmodifiableList(roleSlots);
     }
 
+    @Override
     public Role findRoleSlot(String roleName) {
         if (roleName == null) {
             return null;

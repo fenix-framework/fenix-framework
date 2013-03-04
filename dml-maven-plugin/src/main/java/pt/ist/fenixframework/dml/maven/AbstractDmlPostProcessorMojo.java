@@ -13,25 +13,29 @@ import pt.ist.fenixframework.core.FullPostProcessDomainClasses;
 public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 
     protected abstract MavenProject getMavenProject();
+
     protected abstract File getDmlSourceDirectory();
+
     protected abstract File getClassesDirectory();
+
     protected abstract String getCodeGeneratorClassName();
+
     protected abstract boolean verbose();
+
     protected abstract List<String> getClasspathElements();
 
     @Override
     public void execute() throws MojoExecutionException {
         if (getMavenProject().getArtifact().getType().equals("pom")) {
-	    getLog().info("Cannot post process domain for pom projects");
-	    return;
-	}
+            getLog().info("Cannot post process domain for pom projects");
+            return;
+        }
 
-	try {
+        try {
             URLClassLoader loader = DmlMojoUtils.augmentClassLoader(getLog(), getClasspathElements());
-            FullPostProcessDomainClasses.apply(getMavenProject().getArtifactId(),
-                                               this.getClassesDirectory(), loader);
-	} catch (Exception e) {
-	    getLog().error(e);
-	}
+            FullPostProcessDomainClasses.apply(getMavenProject().getArtifactId(), this.getClassesDirectory(), loader);
+        } catch (Exception e) {
+            getLog().error(e);
+        }
     }
 }

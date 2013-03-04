@@ -5,7 +5,7 @@ import org.hibernate.search.annotations.Indexed;
 @Indexed
 public class VampireBook extends VampireBook_Base {
 
-    public  VampireBook() {
+    public VampireBook() {
         super();
 
         toString();

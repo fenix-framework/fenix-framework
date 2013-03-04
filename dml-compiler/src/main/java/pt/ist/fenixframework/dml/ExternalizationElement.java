@@ -6,7 +6,7 @@ public class ExternalizationElement implements Serializable {
 
     private ValueType type;
     private String methodName;
-    
+
     public ExternalizationElement(ValueType type, String methodName) {
         this.type = type;
         this.methodName = methodName;

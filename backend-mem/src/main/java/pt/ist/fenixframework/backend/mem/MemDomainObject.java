@@ -1,15 +1,8 @@
 package pt.ist.fenixframework.backend.mem;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
@@ -26,7 +19,7 @@ public class MemDomainObject extends AbstractDomainObjectAdapter {
     }
 
     protected MemDomainObject(DomainObjectAllocator.OID oid) {
-        this.oid = (Long)oid.oid;
+        this.oid = (Long) oid.oid;
     }
 
     @Override
@@ -46,12 +39,11 @@ public class MemDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     public Long getOid() {
-	return oid;
+        return oid;
     }
 
     @Override
     public final String getExternalId() {
-	return String.valueOf(getOid());
+        return String.valueOf(getOid());
     }
 }
-

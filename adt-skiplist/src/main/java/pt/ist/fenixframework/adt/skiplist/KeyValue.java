@@ -8,22 +8,22 @@ public class KeyValue implements Serializable {
 
     public Comparable key;
     public Serializable value;
-    
+
     public KeyValue() {
-	
+
     }
-    
+
     public KeyValue(Comparable key, Serializable value) {
-	this.key = key;
-	this.value = value;
+        this.key = key;
+        this.value = value;
     }
-    
+
     public static Serializable externalizeKeyValue(KeyValue keyValue) {
         return new KeyValueExternalization(keyValue);
     }
 
     public static KeyValue internalizeKeyValue(Serializable externalizedKeyValue) {
-        return ((KeyValueExternalization)externalizedKeyValue).toKeyValue();
+        return ((KeyValueExternalization) externalizedKeyValue).toKeyValue();
     }
 
     private static class KeyValueExternalization implements Serializable {
@@ -36,7 +36,7 @@ public class KeyValue implements Serializable {
         }
 
         KeyValue toKeyValue() {
-            return (KeyValue)Externalization.internalizeSerializable(serializedKeyValue);
+            return (KeyValue) Externalization.internalizeSerializable(serializedKeyValue);
         }
     }
 }

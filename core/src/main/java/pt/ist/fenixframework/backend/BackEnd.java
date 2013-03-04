@@ -5,15 +5,15 @@ import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 
 /**
- * Each concrete back end should implement this interface.  The framework's core already provides a
+ * Each concrete back end should implement this interface. The framework's core already provides a
  * {@link pt.ist.fenixframework.backend.mem.DefaultConfig} with a minimal back end that implements a
  * no-op {@link TransactionManager}.
  */
 public interface BackEnd {
     /**
-     * Get the unique name of this BackEnd.  The String returned by this method should contain only
+     * Get the unique name of this BackEnd. The String returned by this method should contain only
      * valid characters in a filename (because it can be used for configuration by convention
-     *
+     * 
      * @see pt.ist.fenixframework.FenixFramework
      */
     public String getName();
@@ -34,15 +34,15 @@ public interface BackEnd {
     public TransactionManager getTransactionManager();
 
     /**
-     * Backend-specific method to get a {@link DomainObject} given its OID.  Callers of this method
+     * Backend-specific method to get a {@link DomainObject} given its OID. Callers of this method
      * are responsible for providing a valid OID.
-     *
+     * 
      * @param oid The backend-specific identifier of the object to get
      */
     public <T extends DomainObject> T fromOid(Object oid);
 
     /**
-     * Perform any required operations for a successful shutdown of the BackEnd.  After invoking
+     * Perform any required operations for a successful shutdown of the BackEnd. After invoking
      * this method there is no guarantee that the Fenix Framework is able to provide any more
      * services.
      */
