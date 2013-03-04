@@ -1,6 +1,5 @@
 package pt.ist.fenixframework.dml;
 
-import java.util.*;
 import java.io.Serializable;
 import java.net.URL;
 

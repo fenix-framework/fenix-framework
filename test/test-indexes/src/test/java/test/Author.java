@@ -2,7 +2,7 @@ package test;
 
 public class Author extends Author_Base {
 
-    public  Author() {
+    public Author() {
         super();
 
         toString();

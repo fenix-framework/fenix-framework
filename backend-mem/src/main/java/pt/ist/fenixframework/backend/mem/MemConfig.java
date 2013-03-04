@@ -9,7 +9,7 @@ import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
  * This is the default configuration manager used by the fenix-framework-core.
  * 
  * @see Config
- *
+ * 
  */
 public class MemConfig extends HibernateSearchConfig {
     protected final BackEnd backEnd;

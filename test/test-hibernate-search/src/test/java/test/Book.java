@@ -5,7 +5,7 @@ import org.hibernate.search.annotations.IndexedEmbedded;
 
 public abstract class Book extends Book_Base {
 
-    public  Book() {
+    public Book() {
         super();
 
         toString();

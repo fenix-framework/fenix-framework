@@ -10,7 +10,7 @@ import org.apache.maven.project.MavenProject;
 
 /**
  * Generate base main classes from the main DML files
- *
+ * 
  * @goal generate-domain
  * @phase generate-sources
  * @configurator include-project-dependencies
@@ -21,13 +21,14 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Maven Project
+     * 
      * @parameter default-value="${project}"
      */
     private MavenProject mavenProject;
 
     /**
      * File Source Directory
-     *
+     * 
      * @parameter default-value="${basedir}/src/main/dml"
      * @readonly
      * @required
@@ -36,7 +37,7 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * File Destination Directory
-     *
+     * 
      * @parameter default-value="${basedir}/src/main/java"
      * @readonly
      * @required
@@ -45,7 +46,7 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Base File Destination Directory
-     *
+     * 
      * @parameter default-value="${project.build.directory}/generated-sources/dml-maven-plugin"
      * @readonly
      * @required
@@ -54,39 +55,46 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     /**
      * Code Generator Class Name
-     * @parameter expression="${generate-domain.codeGeneratorClassName}" default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
+     * 
+     * @parameter expression="${generate-domain.codeGeneratorClassName}"
+     *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
     private String codeGeneratorClassName;
 
     /**
      * Package name
+     * 
      * @parameter expression="${generate-domain.packageName}"
      */
     private String packageName = "";
 
     /**
      * Generate Finals Flag
+     * 
      * @parameter expression="${generate-domain.generateFinals}" default-value="false"
      */
     private boolean generateFinals;
 
     /**
      * Verbose Mode Flag
+     * 
      * @parameter expression="${verbose}" default-value="false"
      */
     private boolean verbose;
 
     /**
      * Generate Project Properties Flag
+     * 
      * @parameter expression="${generate-domain.generateProjectProperties}" default-value="false"
      */
     private boolean generateProjectProperties;
 
     /**
      * Generic Code Generator Class Parameters
+     * 
      * @parameter
      */
-    private Map<String,String> params;
+    private Map<String, String> params;
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -143,10 +151,10 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     protected String getOutputDirectoryPath() {
         return mavenProject.getBuild().getOutputDirectory();
     }
-     
+
     @Override
-    protected Map<String,String> getParams() {
-	return params;
+    protected Map<String, String> getParams() {
+        return params;
     }
 
     @Override

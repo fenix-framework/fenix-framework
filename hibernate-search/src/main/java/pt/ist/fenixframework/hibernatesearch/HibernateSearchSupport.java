@@ -1,26 +1,28 @@
 package pt.ist.fenixframework.hibernatesearch;
 
 import java.lang.annotation.ElementType;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 import org.hibernate.search.backend.TransactionContext;
 import org.hibernate.search.backend.spi.Work;
 import org.hibernate.search.backend.spi.WorkType;
-import org.hibernate.search.cfg.*;
+import org.hibernate.search.cfg.SearchMapping;
 import org.hibernate.search.engine.spi.SearchFactoryImplementor;
 import org.hibernate.search.spi.SearchFactoryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.dml.DomainClass;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Entry point for interactions with Hibernate-Search.
- *
+ * 
  * This class provides a SearchFactory instance that can be used to perform searches using hibernate-search.
  */
 public class HibernateSearchSupport {
@@ -53,7 +55,8 @@ public class HibernateSearchSupport {
     protected static void updateIndex(TransactionContext context, Collection<DomainObject> objects, WorkType workType) {
         try {
             for (DomainObject obj : objects) {
-                if (!INDEXED_CLASSES.contains(obj.getClass())) continue;
+                if (!INDEXED_CLASSES.contains(obj.getClass()))
+                    continue;
                 searchFactory.getWorker().performWork(new Work<DomainObject>(obj, workType), context);
             }
         } catch (RuntimeException e) {
@@ -69,11 +72,7 @@ public class HibernateSearchSupport {
         // Map the getExternalId() method as a documentId for all domain classes
         // Note that hibernate-search currently requires this method to really exist in the
         // AbstractDomainObject class
-        mapping
-            .entity(AbstractDomainObject.class)
-                .property("externalId", ElementType.METHOD)
-                    .documentId()
-                    .name("id");
+        mapping.entity(AbstractDomainObject.class).property("externalId", ElementType.METHOD).documentId().name("id");
 
         return mapping;
     }

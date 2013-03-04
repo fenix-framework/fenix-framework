@@ -13,32 +13,32 @@ public class HibernateSearchTransactionContext implements TransactionContext {
     private final Transaction transaction;
 
     HibernateSearchTransactionContext(Transaction transaction) {
-	this.transaction = transaction;
+        this.transaction = transaction;
     }
 
     // TransactionContext implementation
 
     @Override
     public Object getTransactionIdentifier() {
-	return this;
+        return this;
     }
 
     @Override
     public boolean isTransactionInProgress() {
-	try {
-	    return transaction.getStatus() == Status.STATUS_ACTIVE;
-	} catch (SystemException e) {
-	    throw new RuntimeException(e);
-	}
+        try {
+            return transaction.getStatus() == Status.STATUS_ACTIVE;
+        } catch (SystemException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void registerSynchronization(Synchronization synchronization) {
-	try {
-	    transaction.registerSynchronization(synchronization);
-	} catch (Exception e) {
-	    throw new RuntimeException(e);
-	}
+        try {
+            transaction.registerSynchronization(synchronization);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

@@ -7,19 +7,17 @@
  */
 package pt.ist.fenixframework.backend;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.core.exception.MissingObjectException;
 
 /**
- *  This class provides an internal representation of a DomainObject's identifier using a UUID.
+ * This class provides an internal representation of a DomainObject's identifier using a UUID.
  */
 public class OID implements Comparable<OID>, Serializable {
     private static final long serialVersionUID = 1L;
@@ -35,7 +33,7 @@ public class OID implements Comparable<OID>, Serializable {
     private final String fullId; // includes class name to avoid repetitive computation
 
     /**
-     * Create a new Object IDentifier for the given class.  For the special class {@link DomainRoot}, it will always return the
+     * Create a new Object IDentifier for the given class. For the special class {@link DomainRoot}, it will always return the
      * same ROOT_OBJECT_ID
      */
     public static OID makeNew(Class objClass) {
@@ -46,7 +44,7 @@ public class OID implements Comparable<OID>, Serializable {
             return new OID(objClass);
         }
     }
-    
+
     private OID(Class objClass) {
         this.objClass = objClass;
         this.fullId = objClass.getName() + OID_SEPARATOR + UUID.randomUUID().toString();
@@ -76,7 +74,7 @@ public class OID implements Comparable<OID>, Serializable {
     public String getFullId() {
         return this.fullId;
     }
-    
+
     public String toExternalId() {
         return fullId;
     }
@@ -87,7 +85,7 @@ public class OID implements Comparable<OID>, Serializable {
             return true;
         }
         if (o instanceof OID) {
-            OID other = (OID)o;
+            OID other = (OID) o;
             // return (this.objClass.equals(other.objClass)
             //         && this.fullId.equals(other.fullId));
             return (this.fullId.equals(other.fullId));

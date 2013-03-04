@@ -8,18 +8,18 @@ public class JVSTMMemConfig extends HibernateSearchConfig {
     protected final BackEnd backEnd;
 
     public JVSTMMemConfig() {
-	this.backEnd = new JVSTMMemBackEnd();
+        this.backEnd = new JVSTMMemBackEnd();
     }
 
     @Override
     protected void init() {
-	DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
-	super.init();
+        DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
+        super.init();
     }
 
     @Override
     public BackEnd getBackEnd() {
-	return this.backEnd;
+        return this.backEnd;
     }
 
 }

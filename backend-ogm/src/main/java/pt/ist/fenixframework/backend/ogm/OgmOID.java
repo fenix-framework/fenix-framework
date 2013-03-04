@@ -1,18 +1,15 @@
 package pt.ist.fenixframework.backend.ogm;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.core.exception.MissingObjectException;
 
 /**
- *  This class provides the internal representation of an DomainObject's identifier in OGM.
+ * This class provides the internal representation of an DomainObject's identifier in OGM.
  */
 public class OgmOID implements Comparable<OgmOID>, Serializable {
     private static final long serialVersionUID = 1L;
@@ -20,17 +17,18 @@ public class OgmOID implements Comparable<OgmOID>, Serializable {
 
     private static final String OID_SEPARATOR = "@";
     private static final String EXTERNAL_ID_ERROR = "Could not process externalId: ";
-    
+
     public static final String ROOT_PK = "ROOT_OBJECT";
     static final OgmOID ROOT_OBJECT_ID = new OgmOID(DomainRoot.class, ROOT_PK);
     // static final OgmOID ROOT_OBJECT_ID = new OgmOID(DomainRoot.class, 1L);
 
     private final Class objClass;
     private final String primaryKey;
+
     // private final Long primaryKey;
 
     OgmOID(Class objClass, String primaryKey) {
-    // OgmOID(Class objClass, Long primaryKey) {
+        // OgmOID(Class objClass, Long primaryKey) {
         this.objClass = objClass;
         this.primaryKey = primaryKey;
     }
@@ -53,7 +51,7 @@ public class OgmOID implements Comparable<OgmOID>, Serializable {
     }
 
     public String getPrimaryKey() {
-    // public Long getPrimaryKey() {
+        // public Long getPrimaryKey() {
         return this.primaryKey;
     }
 
@@ -67,9 +65,8 @@ public class OgmOID implements Comparable<OgmOID>, Serializable {
             return true;
         }
         if (o instanceof OgmOID) {
-            OgmOID other = (OgmOID)o;
-            return (this.objClass.equals(other.objClass)
-                    && this.primaryKey.equals(other.primaryKey));
+            OgmOID other = (OgmOID) o;
+            return (this.objClass.equals(other.objClass) && this.primaryKey.equals(other.primaryKey));
         }
         return false;
     }

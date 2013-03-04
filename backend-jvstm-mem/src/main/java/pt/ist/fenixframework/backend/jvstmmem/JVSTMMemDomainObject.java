@@ -12,35 +12,35 @@ public class JVSTMMemDomainObject extends AbstractDomainObjectAdapter {
     // We need to have the default constructor, because we've added the
     // allocate-instance constructor
     protected JVSTMMemDomainObject() {
-	super();
+        super();
     }
 
     protected JVSTMMemDomainObject(DomainObjectAllocator.OID oid) {
-	this.oid = (Long) oid.oid;
+        this.oid = (Long) oid.oid;
     }
 
     @Override
     protected void ensureOid() {
-	// find successive ids until one is available
-	while (true) {
-	    this.oid = DomainClassInfo.getNextOidFor(this.getClass());
-	    Object cached = SharedIdentityMap.getCache().cache(this);
-	    if (cached == this) {
-		// break the loop once we got this instance cached
-		return;
-	    }
-	}
+        // find successive ids until one is available
+        while (true) {
+            this.oid = DomainClassInfo.getNextOidFor(this.getClass());
+            Object cached = SharedIdentityMap.getCache().cache(this);
+            if (cached == this) {
+                // break the loop once we got this instance cached
+                return;
+            }
+        }
     }
 
     // dealing with domain object identifiers
 
     @Override
     public Long getOid() {
-	return oid;
+        return oid;
     }
 
     @Override
     public final String getExternalId() {
-	return String.valueOf(getOid());
+        return String.valueOf(getOid());
     }
 }

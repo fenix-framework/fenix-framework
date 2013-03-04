@@ -25,36 +25,36 @@ public abstract class AbstractTransactionManager implements TransactionManager {
 
     @Override
     public void begin() throws NotSupportedException, SystemException {
-	begin(false);
+        begin(false);
     }
 
     @Override
     public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException,
-	    IllegalStateException, SystemException {
+            IllegalStateException, SystemException {
 
-	Transaction toCommit = getTransaction();
+        Transaction toCommit = getTransaction();
 
-	if (toCommit == null)
-	    throw new IllegalStateException();
+        if (toCommit == null)
+            throw new IllegalStateException();
 
-	try {
-	    for (CommitListener listener : listeners) {
-		listener.beforeCommit(toCommit);
-	    }
-	} catch (RuntimeException e) {
-	    /**
-	     * As specified in CommitListener.beforeCommit(), any unchecked
-	     * exception will cause the transaction to be rolled back.
-	     */
-	    rollback();
-	    throw new RollbackException(e.getMessage());
-	}
+        try {
+            for (CommitListener listener : listeners) {
+                listener.beforeCommit(toCommit);
+            }
+        } catch (RuntimeException e) {
+            /**
+             * As specified in CommitListener.beforeCommit(), any unchecked
+             * exception will cause the transaction to be rolled back.
+             */
+            rollback();
+            throw new RollbackException(e.getMessage());
+        }
 
-	backendCommit();
+        backendCommit();
 
-	for (CommitListener listener : listeners) {
-	    listener.afterCommit(toCommit);
-	}
+        for (CommitListener listener : listeners) {
+            listener.afterCommit(toCommit);
+        }
 
     }
 
@@ -63,7 +63,7 @@ public abstract class AbstractTransactionManager implements TransactionManager {
      */
     @Override
     public void addCommitListener(CommitListener listener) {
-	listeners.add(listener);
+        listeners.add(listener);
     }
 
     /**
@@ -71,7 +71,7 @@ public abstract class AbstractTransactionManager implements TransactionManager {
      */
     @Override
     public void removeCommitListener(CommitListener listener) {
-	listeners.remove(listener);
+        listeners.remove(listener);
     }
 
     /**
@@ -79,7 +79,7 @@ public abstract class AbstractTransactionManager implements TransactionManager {
      */
     @Override
     public int getStatus() throws SystemException {
-	return this.getTransaction().getStatus();
+        return this.getTransaction().getStatus();
     }
 
     /**
@@ -88,16 +88,16 @@ public abstract class AbstractTransactionManager implements TransactionManager {
     @Override
     public void rollback() throws IllegalStateException, SecurityException, SystemException {
 
-	Transaction toRollback = getTransaction();
+        Transaction toRollback = getTransaction();
 
-	if (toRollback == null)
-	    throw new IllegalStateException();
+        if (toRollback == null)
+            throw new IllegalStateException();
 
-	backendRollback();
+        backendRollback();
 
-	for (CommitListener listener : listeners) {
-	    listener.afterCommit(toRollback);
-	}
+        for (CommitListener listener : listeners) {
+            listener.afterCommit(toRollback);
+        }
     }
 
     /**
@@ -105,11 +105,11 @@ public abstract class AbstractTransactionManager implements TransactionManager {
      */
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {
-	this.getTransaction().setRollbackOnly();
+        this.getTransaction().setRollbackOnly();
     }
 
     protected abstract void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
-	    SecurityException, IllegalStateException, SystemException;
+            SecurityException, IllegalStateException, SystemException;
 
     protected abstract void backendRollback() throws SecurityException, SystemException;
 

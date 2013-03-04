@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Miscellaneous utility methods 
+ * Miscellaneous utility methods
  */
 public class Misc {
     private static final Logger logger = LoggerFactory.getLogger(Misc.class);

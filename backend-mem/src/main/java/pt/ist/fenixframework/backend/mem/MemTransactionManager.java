@@ -20,104 +20,104 @@ public class MemTransactionManager extends AbstractTransactionManager {
 
     @Override
     public Transaction getTransaction() {
-	return this.transaction;
+        return this.transaction;
     }
 
     @Override
     public <T> T withTransaction(CallableWithoutException<T> command) {
-	if (transaction != null)
-	    return command.call();
+        if (transaction != null)
+            return command.call();
 
-	try {
-	    T ret = null;
-	    begin();
-	    ret = command.call();
-	    commit();
-	    return ret;
-	} catch (RuntimeException e) {
-	    try {
-		rollback();
-	    } catch (Exception ex) {
-		throw new RuntimeException(ex);
-	    }
-	    throw e;
-	} catch (Exception e) {
-	    throw new RuntimeException(e);
-	}
+        try {
+            T ret = null;
+            begin();
+            ret = command.call();
+            commit();
+            return ret;
+        } catch (RuntimeException e) {
+            try {
+                rollback();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {
-	if (transaction != null)
-	    return command.call();
+        if (transaction != null)
+            return command.call();
 
-	try {
-	    T ret = null;
-	    begin();
-	    ret = command.call();
-	    commit();
-	    return ret;
-	} catch (Exception e) {
-	    rollback();
-	    throw e;
-	}
+        try {
+            T ret = null;
+            begin();
+            ret = command.call();
+            commit();
+            return ret;
+        } catch (Exception e) {
+            rollback();
+            throw e;
+        }
     }
 
     @Override
     public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
-	if (transaction != null)
-	    return command.call();
+        if (transaction != null)
+            return command.call();
 
-	try {
-	    T ret = null;
-	    begin();
-	    ret = command.call();
-	    commit();
-	    return ret;
-	} catch (Exception e) {
-	    rollback();
-	    throw e;
-	}
+        try {
+            T ret = null;
+            begin();
+            ret = command.call();
+            commit();
+            return ret;
+        } catch (Exception e) {
+            rollback();
+            throw e;
+        }
     }
 
     @Override
     public void begin(boolean readOnly) throws NotSupportedException, SystemException {
-	this.transaction = new MemTransaction();
+        this.transaction = new MemTransaction();
     }
 
     @Override
     public void resume(javax.transaction.Transaction tobj) throws InvalidTransactionException, IllegalStateException,
-	    SystemException {
-	if (!(tobj instanceof MemTransaction))
-	    throw new InvalidTransactionException(String.valueOf(tobj));
+            SystemException {
+        if (!(tobj instanceof MemTransaction))
+            throw new InvalidTransactionException(String.valueOf(tobj));
 
-	this.transaction = (MemTransaction) tobj;
+        this.transaction = (MemTransaction) tobj;
     }
 
     @Override
     public void setTransactionTimeout(int seconds) throws SystemException {
-	throw new UnsupportedOperationException("Timeouts are not supported.");
+        throw new UnsupportedOperationException("Timeouts are not supported.");
     }
 
     @Override
     public javax.transaction.Transaction suspend() throws SystemException {
-	Transaction tx = this.transaction;
+        Transaction tx = this.transaction;
 
-	this.transaction = null;
+        this.transaction = null;
 
-	return tx;
+        return tx;
     }
 
     @Override
-    protected void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException,
-	    IllegalStateException, SystemException {
-	this.transaction.commit();
-	this.transaction = null;
+    protected void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException,
+            SecurityException, IllegalStateException, SystemException {
+        this.transaction.commit();
+        this.transaction = null;
     }
 
     @Override
     protected void backendRollback() throws SecurityException, SystemException {
-	this.transaction.rollback();
-	this.transaction = null;
+        this.transaction.rollback();
+        this.transaction = null;
     }
 }

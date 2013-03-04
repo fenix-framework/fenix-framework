@@ -1,7 +1,5 @@
 package pt.ist.fenixframework.util;
 
-import org.jgroups.*;
-
 import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Map;
@@ -9,9 +7,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.jgroups.Address;
+import org.jgroups.JChannel;
+import org.jgroups.Message;
+import org.jgroups.ReceiverAdapter;
+import org.jgroups.View;
+
 /**
  * Behaves as synchronization point between nodes running Fenix Framework
- *
+ * 
  * @author Pedro Ruivo
  * @since 2.1
  */
@@ -33,12 +37,15 @@ public class NodeBarrier extends ReceiverAdapter {
     }
 
     /**
-     * Blocks the thread execution until {@param expectedMembers} nodes has reached this {@param barrierName}
-     *
-     * @param barrierName     the barrier name
+     * Blocks the thread execution until
+     * 
+     * @param expectedMembers nodes has reached this
+     * @param barrierName
+     * 
+     * @param barrierName the barrier name
      * @param expectedMembers the number of expected members
      * @throws Exception if this node has failed to send the barrier synchronization message or it was
-     *                   interrupted while waiting
+     *             interrupted while waiting
      */
     public final void blockUntil(String barrierName, int expectedMembers) throws Exception {
         connectIfNeeded();

@@ -1,14 +1,11 @@
 package pt.ist.fenixframework.backend.ogm;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.Serializable;
 
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.EntityMode;
-
-import java.io.Serializable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 
@@ -37,7 +34,7 @@ public class AllocationInterceptor extends EmptyInterceptor {
 
         try {
             Class clazz = Class.forName(entityName);
-            OgmOID oid = new OgmOID(clazz, (String)id);
+            OgmOID oid = new OgmOID(clazz, (String) id);
             return DomainObjectAllocator.allocateObject(clazz, oid);
         } catch (ClassNotFoundException ex) {
             // Should not occur.

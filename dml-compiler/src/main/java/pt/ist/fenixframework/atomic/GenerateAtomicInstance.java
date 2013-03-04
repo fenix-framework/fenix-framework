@@ -1,20 +1,37 @@
 package pt.ist.fenixframework.atomic;
 
+import static java.io.File.separatorChar;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
+import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.V1_6;
+
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
-import static java.io.File.separatorChar;
+import java.io.InputStream;
 
-import org.objectweb.asm.*;
-import org.objectweb.asm.tree.*;
-import static org.objectweb.asm.Opcodes.*;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 
 public final class GenerateAtomicInstance {
 
     private static final String ATOMIC_INSTANCE = "pt/ist/fenixframework/atomic/AtomicInstance";
 
-    private GenerateAtomicInstance() { }
+    private GenerateAtomicInstance() {
+    }
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
@@ -31,7 +48,8 @@ public final class GenerateAtomicInstance {
         cr.accept(cNode, 0);
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        cw.visit(V1_6, ACC_PUBLIC | ACC_FINAL, ATOMIC_INSTANCE, null, "java/lang/Object", new String[] { "pt/ist/fenixframework/Atomic" });
+        cw.visit(V1_6, ACC_PUBLIC | ACC_FINAL, ATOMIC_INSTANCE, null, "java/lang/Object",
+                new String[] { "pt/ist/fenixframework/Atomic" });
         cw.visitSource("Atomic Instance Class", null);
 
         // Generate fields
@@ -42,7 +60,8 @@ public final class GenerateAtomicInstance {
         // Generate constructor
         {
             StringBuffer ctorDescriptor = new StringBuffer("(");
-            for (MethodNode annotationElems : cNode.methods) ctorDescriptor.append(getReturnTypeDescriptor(annotationElems));
+            for (MethodNode annotationElems : cNode.methods)
+                ctorDescriptor.append(getReturnTypeDescriptor(annotationElems));
             ctorDescriptor.append(")V");
 
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", ctorDescriptor.toString(), null, null);
@@ -53,7 +72,7 @@ public final class GenerateAtomicInstance {
             for (MethodNode annotationElems : cNode.methods) {
                 Type t = Type.getReturnType(annotationElems.desc);
                 mv.visitVarInsn(ALOAD, 0);
-                mv.visitVarInsn(t.getOpcode(ILOAD), localsPos+1);
+                mv.visitVarInsn(t.getOpcode(ILOAD), localsPos + 1);
                 mv.visitFieldInsn(PUTFIELD, ATOMIC_INSTANCE, annotationElems.name, t.getDescriptor());
                 localsPos += t.getSize();
             }
@@ -75,8 +94,9 @@ public final class GenerateAtomicInstance {
 
         // Generate annotationType() method
         {
-            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "annotationType", "()Ljava/lang/Class;",
-                    "()Ljava/lang/Class<+Ljava/lang/annotation/Annotation;>;", null);
+            MethodVisitor mv =
+                    cw.visitMethod(ACC_PUBLIC, "annotationType", "()Ljava/lang/Class;",
+                            "()Ljava/lang/Class<+Ljava/lang/annotation/Annotation;>;", null);
             mv.visitCode();
             mv.visitLdcInsn(Type.getType(pt.ist.fenixframework.Atomic.class));
             mv.visitInsn(ARETURN);
@@ -87,11 +107,9 @@ public final class GenerateAtomicInstance {
         // Write Class
         FileOutputStream fos = null;
         try {
-            File parentDir = new File(buildDir,
-                                      "pt" + separatorChar
-                                      + "ist" + separatorChar
-                                      + "fenixframework" + separatorChar
-                                      + "atomic" + separatorChar);
+            File parentDir =
+                    new File(buildDir, "pt" + separatorChar + "ist" + separatorChar + "fenixframework" + separatorChar + "atomic"
+                            + separatorChar);
             if (!parentDir.exists() && !parentDir.mkdirs()) {
                 throw new IOException("Could not create required directory: " + parentDir);
             }
@@ -103,7 +121,8 @@ public final class GenerateAtomicInstance {
             if (fos != null) {
                 try {
                     fos.close();
-                } catch (IOException e) { }
+                } catch (IOException e) {
+                }
             }
         }
     }

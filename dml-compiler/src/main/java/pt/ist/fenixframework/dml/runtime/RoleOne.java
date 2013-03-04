@@ -8,8 +8,9 @@ import pt.ist.fenixframework.DomainObject;
  * multiplicity one.
  */
 
-public abstract class RoleOne<C1 extends DomainObject,C2 extends DomainObject> implements Role<C1,C2> {
-    public boolean add(C1 o1, C2 o2, Relation<C1,C2> relation) {
+public abstract class RoleOne<C1 extends DomainObject, C2 extends DomainObject> implements Role<C1, C2> {
+    @Override
+    public boolean add(C1 o1, C2 o2, Relation<C1, C2> relation) {
         if (o1 != null) {
             C2 old2 = getValue(o1);
             if (o2 != old2) {
@@ -20,6 +21,7 @@ public abstract class RoleOne<C1 extends DomainObject,C2 extends DomainObject> i
         return true;
     }
 
+    @Override
     public boolean remove(C1 o1, C2 o2) {
         if (o1 != null) {
             setValue(o1, null);
@@ -28,5 +30,6 @@ public abstract class RoleOne<C1 extends DomainObject,C2 extends DomainObject> i
     }
 
     public abstract C2 getValue(C1 o1);
+
     public abstract void setValue(C1 o1, C2 o2);
 }

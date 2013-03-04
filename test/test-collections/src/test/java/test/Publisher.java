@@ -2,7 +2,7 @@ package test;
 
 public class Publisher extends Publisher_Base {
 
-    public  Publisher() {
+    public Publisher() {
         super();
 
         toString();

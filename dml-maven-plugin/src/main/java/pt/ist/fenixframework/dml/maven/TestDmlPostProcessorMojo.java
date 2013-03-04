@@ -10,7 +10,7 @@ import org.apache.maven.project.MavenProject;
 /**
  * Goal which injects the constructors into the bytecode of the DML compiled
  * classes
- *
+ * 
  * @goal test-post-compile
  * @phase process-test-classes
  * @requiresDependencyResolution test
@@ -20,20 +20,21 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Maven Project
+     * 
      * @parameter default-value="${project}"
      */
     private MavenProject mavenProject;
 
     /**
      * Setting this to 'true' skips post-processing of dml compiled test classes.
-     *
+     * 
      * @parameter expression="${maven.test.skip}"
      */
     private boolean skip;
 
     /**
      * File Source Directory
-     *
+     * 
      * @parameter default-value="${basedir}/src/test/dml"
      * @readonly
      * @required
@@ -42,7 +43,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Classes Directory
-     *
+     * 
      * @parameter default-value="${project.build.testOutputDirectory}"
      * @readonly
      * @required
@@ -51,6 +52,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Code Generator Class Name
+     * 
      * @parameter expression="${generate-domain.codeGeneratorClassName}"
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
@@ -58,6 +60,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Verbose Mode Flag
+     * 
      * @parameter expression="${generate-domain.verbose}"
      *            default-value="false"
      */
@@ -65,7 +68,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        if(skip) {
+        if (skip) {
             getLog().info("Not post-processing test sources");
         } else {
             super.execute();

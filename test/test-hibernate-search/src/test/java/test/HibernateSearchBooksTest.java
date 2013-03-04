@@ -1,27 +1,28 @@
 package test;
 
-import java.util.*;
+import static org.junit.Assert.assertTrue;
 
-import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.DomainRoot;
-
-import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.hibernatesearch.HibernateSearchSupport;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.apache.lucene.search.Query;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.engine.spi.EntityInfo;
 import org.hibernate.search.query.engine.spi.HSQuery;
-
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.*;
+import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.DomainRoot;
+import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.hibernatesearch.HibernateSearchSupport;
 
 @RunWith(JUnit4.class)
 public class HibernateSearchBooksTest {
@@ -68,8 +69,8 @@ public class HibernateSearchBooksTest {
 
     @Atomic
     public void test03part1() {
-        Collection<DomainObject> queryResults = performQuery(VampireBook.class, "publisher.id",
-                getPublisherByName(LITTLE).getExternalId());
+        Collection<DomainObject> queryResults =
+                performQuery(VampireBook.class, "publisher.id", getPublisherByName(LITTLE).getExternalId());
 
         assertTrue(queryResults.size() == 2);
         assertTrue(queryResults.contains(getBookByName(FEW_MOON)));
@@ -80,8 +81,8 @@ public class HibernateSearchBooksTest {
 
     @Atomic
     public void test03part2() {
-        Collection<DomainObject> queryResults = performQuery(VampireBook.class, "publisher.id",
-                getPublisherByName(LITTLE).getExternalId());
+        Collection<DomainObject> queryResults =
+                performQuery(VampireBook.class, "publisher.id", getPublisherByName(LITTLE).getExternalId());
 
         assertTrue(queryResults.size() == 1);
         assertTrue(queryResults.contains(getBookByName(FEW_MOON)));
@@ -91,8 +92,8 @@ public class HibernateSearchBooksTest {
 
     @Atomic
     public void test03part3() {
-        Collection<DomainObject> queryResults = performQuery(VampireBook.class, "publisher.id",
-                getPublisherByName(LITTLE).getExternalId());
+        Collection<DomainObject> queryResults =
+                performQuery(VampireBook.class, "publisher.id", getPublisherByName(LITTLE).getExternalId());
 
         assertTrue(queryResults.size() == 0);
     }
@@ -102,8 +103,9 @@ public class HibernateSearchBooksTest {
 
         QueryBuilder qb = HibernateSearchSupport.getSearchFactory().buildQueryBuilder().forEntity(cls).get();
         Query query = qb.keyword().onField(field).matching(queryString).createQuery();
-        HSQuery hsQuery = HibernateSearchSupport.getSearchFactory().createHSQuery().luceneQuery(query)
-                .targetedEntities(Arrays.<Class<?>>asList(cls));
+        HSQuery hsQuery =
+                HibernateSearchSupport.getSearchFactory().createHSQuery().luceneQuery(query)
+                        .targetedEntities(Arrays.<Class<?>> asList(cls));
         hsQuery.getTimeoutManager().start();
         for (EntityInfo ei : hsQuery.queryEntityInfos()) {
             matchingObjects.add(FenixFramework.getDomainObject((String) ei.getId()));

@@ -16,48 +16,48 @@ public class JTADelegatingTransaction extends FenixAbstractTransaction {
     private final javax.transaction.Transaction delegateTx;
 
     public JTADelegatingTransaction(javax.transaction.Transaction delegateTx) {
-	super();
-	this.delegateTx = delegateTx;
+        super();
+        this.delegateTx = delegateTx;
     }
 
     @Override
     public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException,
-	    SystemException {
-	delegateTx.commit();
+            SystemException {
+        delegateTx.commit();
     }
 
     @Override
     public boolean delistResource(XAResource xaRes, int flag) throws IllegalStateException, SystemException {
-	return delegateTx.delistResource(xaRes, flag);
+        return delegateTx.delistResource(xaRes, flag);
     }
 
     @Override
     public boolean enlistResource(XAResource xaRes) throws RollbackException, IllegalStateException, SystemException {
-	return delegateTx.enlistResource(xaRes);
+        return delegateTx.enlistResource(xaRes);
     }
 
     @Override
     public int getStatus() throws SystemException {
-	return delegateTx.getStatus();
+        return delegateTx.getStatus();
     }
 
     @Override
     public void registerSynchronization(Synchronization sync) throws RollbackException, IllegalStateException, SystemException {
-	delegateTx.registerSynchronization(sync);
+        delegateTx.registerSynchronization(sync);
     }
 
     @Override
     public void rollback() throws IllegalStateException, SystemException {
-	delegateTx.rollback();
+        delegateTx.rollback();
     }
 
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {
-	delegateTx.setRollbackOnly();
+        delegateTx.setRollbackOnly();
     }
 
     private final TxIntrospector introspector = TxStats.newInstance();
-    
+
     @Override
     public TxIntrospector getTxIntrospector() {
         return introspector;

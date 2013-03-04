@@ -1,18 +1,18 @@
 package pt.ist.fenixframework.dml;
 
-import java.util.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DomainRelation extends DomainClass {
     private List<Role> roles = new ArrayList<Role>();
-
 
     public DomainRelation(URL sourceFile, String name, DomainRelation superrelation, List interfaces) {
         super(sourceFile, name, superrelation, interfaces);
     }
 
     public DomainRelation getSuperrelation() {
-        return (DomainRelation)getSuperclass();
+        return (DomainRelation) getSuperclass();
     }
 
     public void addRole(Role role) {
@@ -48,4 +48,3 @@ public class DomainRelation extends DomainClass {
         result.addAll(rel.roles);
     }
 }
-

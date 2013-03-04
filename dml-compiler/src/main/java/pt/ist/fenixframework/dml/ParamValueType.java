@@ -12,30 +12,37 @@ public class ParamValueType implements ValueType {
         this.typeArguments = typeArguments;
     }
 
+    @Override
     public PlainValueType getBaseType() {
         return baseType;
     }
 
+    @Override
     public String getDomainName() {
         return baseType.getDomainName();
     }
 
+    @Override
     public String getFullname() {
         return baseType.getFullname() + typeArguments;
     }
 
+    @Override
     public boolean isBuiltin() {
         return baseType.isBuiltin();
     }
 
+    @Override
     public boolean isEnum() {
         return baseType.isEnum();
     }
 
+    @Override
     public List<ExternalizationElement> getExternalizationElements() {
         return baseType.getExternalizationElements();
     }
 
+    @Override
     public String getInternalizationMethodName() {
         return baseType.getInternalizationMethodName();
     }

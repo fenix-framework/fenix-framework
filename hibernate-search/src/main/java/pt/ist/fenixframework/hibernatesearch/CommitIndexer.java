@@ -24,12 +24,12 @@ class CommitIndexer implements CommitListener {
     @Override
     public void beforeCommit(Transaction transaction) {
 
-	TransactionContext context = new HibernateSearchTransactionContext(transaction);
+        TransactionContext context = new HibernateSearchTransactionContext(transaction);
 
-	TxIntrospector introspector = transaction.getTxIntrospector();
+        TxIntrospector introspector = transaction.getTxIntrospector();
 
-	HibernateSearchSupport.updateIndex(context, introspector.getNewObjects(), WorkType.ADD);
-	HibernateSearchSupport.updateIndex(context, introspector.getModifiedObjects(), WorkType.UPDATE);
+        HibernateSearchSupport.updateIndex(context, introspector.getNewObjects(), WorkType.ADD);
+        HibernateSearchSupport.updateIndex(context, introspector.getModifiedObjects(), WorkType.UPDATE);
 
     }
 

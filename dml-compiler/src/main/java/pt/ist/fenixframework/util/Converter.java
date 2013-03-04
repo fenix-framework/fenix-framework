@@ -14,10 +14,10 @@ public class Converter {
     }
 
     public static URL[] resourceToURLArray(String resource) {
-        return resourcesToURLArray(new String[]{resource});
+        return resourcesToURLArray(new String[] { resource });
     }
 
-    public static URL[] resourcesToURLArray(String [] resources) {
+    public static URL[] resourcesToURLArray(String[] resources) {
         final URL[] urls = new URL[resources.length];
         for (int i = 0; i < resources.length; i++) {
             urls[i] = resourceToURL(resources[i]);
@@ -44,10 +44,10 @@ public class Converter {
     }
 
     public static URL[] filenameToURLArray(String filename) {
-        return filenamesToURLArray(new String[]{filename});
+        return filenamesToURLArray(new String[] { filename });
     }
 
-    public static URL[] filenamesToURLArray(String [] filenames) {
+    public static URL[] filenamesToURLArray(String[] filenames) {
         final URL[] urls = new URL[filenames.length];
         for (int i = 0; i < filenames.length; i++) {
             urls[i] = filenameToURL(filenames[i]);
