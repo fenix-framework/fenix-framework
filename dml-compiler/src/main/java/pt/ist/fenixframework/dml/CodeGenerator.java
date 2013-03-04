@@ -661,9 +661,6 @@ public abstract class CodeGenerator {
      * as an instance initializer with the parameter <code>allocateInstance = false</code>.
      */
     protected void generateInitInstance(DomainClass domClass, PrintWriter out) {
-        // generate initInstance method to be used by OJB.  This is used in the
-        // PostProcessDomainClasses. Maybe we could disable it..., or at least move it to a specific
-        // backend.
         generateInitInstanceNoArg(domClass, out);
 
         // generate initInstance method

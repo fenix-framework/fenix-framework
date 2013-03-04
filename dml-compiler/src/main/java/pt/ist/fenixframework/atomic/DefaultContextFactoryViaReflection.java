@@ -5,6 +5,8 @@ import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.esw.advice.Advice;
+import pt.ist.esw.advice.AdviceFactory;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.dml.CodeGenerator;
 
@@ -16,15 +18,22 @@ import pt.ist.fenixframework.dml.CodeGenerator;
  * that factory the creation of the appropriate {@link AtomicContext}. If it fails, it throws an
  * Error, indicating such condition.
  */
-public final class DefaultContextFactoryViaReflection extends ContextFactory {
+public final class DefaultContextFactoryViaReflection extends AdviceFactory<Atomic> {
     private static final Logger logger = LoggerFactory.getLogger(DefaultContextFactoryViaReflection.class);
 
     private static final String BACKEND_ID_FULL_CLASS_NAME = CodeGenerator.BACKEND_PACKAGE + "."
             + CodeGenerator.ABSTRACT_BACKEND_ID_CLASS;
 
+    private final static AdviceFactory<Atomic> instance = new DefaultContextFactoryViaReflection();
+
+    public static AdviceFactory<Atomic> getInstance() {
+        return instance;
+    }
+
     // This code uses reflection, but it only runs once per occurrence of the @Atomic annotation in
     // the code, regardless of the number of times that such method runs.
-    public static AtomicContext newContext(Atomic atomic) {
+    @Override
+    public Advice newAdvice(Atomic atomic) {
         logger.trace("Creating a new AtomicContext via reflection");
 
         try {
@@ -33,7 +42,7 @@ public final class DefaultContextFactoryViaReflection extends ContextFactory {
             Method getInstance = backendIdClass.getMethod("getBackEndId");
             Object currentBackendId = getInstance.invoke(null);
 
-            // GOAL: Class<? extends ContextFactory> factoryClass = BackEndId.getAtomicContextFactoryClass()
+            // GOAL: Class<? extends ContextFactory> factoryClass = currentBackendId.getAtomicContextFactoryClass()
             Method getAtomicContextFactoryClass = currentBackendId.getClass().getMethod("getAtomicContextFactoryClass");
             Class<? extends ContextFactory> factoryClass =
                     (Class<? extends ContextFactory>) getAtomicContextFactoryClass.invoke(currentBackendId);

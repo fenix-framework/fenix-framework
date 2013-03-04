@@ -9,12 +9,7 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionManager;
 
-public class /*enum*/DefaultAtomicContext implements AtomicContext {
-
-    // FLATTEN_READONLY(true, true),
-    // FLATTEN_READWRITE(true, false),
-    // READ_ONLY(false, true),
-    // READ_WRITE(false, false);
+public class DefaultAtomicContext extends AtomicContext {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultAtomicContext.class);
 
@@ -23,42 +18,6 @@ public class /*enum*/DefaultAtomicContext implements AtomicContext {
     DefaultAtomicContext(Atomic atomic) {
         this.atomic = atomic;
     }
-
-    // @Override
-    // public final <V> V doTransactionally(Callable<V> method) throws Exception {
-    //     if (logger.isDebugEnabled()) {
-    //         logger.debug("Handling @Atomic call from " + Thread.currentThread().getStackTrace()[2]);
-    //     }
-    //     TransactionManager tm = FenixFramework.getTransactionManager();
-
-    //     boolean inTransaction = (tm.getTransaction() != null);
-    //     if (flattenTx && inTransaction) {
-    //         return method.call();
-    //     }
-
-    //     boolean readOnly = tryReadOnly;
-    //     while (true) {
-    //         tm.begin(readOnly);
-    //         boolean txFinished = false;
-    //         try {
-    //             V result = method.call();
-    //             tm.commit();
-    //             txFinished = true;
-    //             return result;
-    //         } catch (WriteOnReadError wore) {
-    //             tm.rollback();
-    //             txFinished = true;
-    //             readOnly = false;
-    //         } catch (CommitError ce) {
-    //             tm.rollback();
-    //             txFinished = true;
-    //         } finally {
-    //             if (!txFinished) {
-    //                 tm.rollback();
-    //             }
-    //         }
-    //     }
-    // }
 
     @Override
     public final <V> V doTransactionally(final Callable<V> method) throws Exception {

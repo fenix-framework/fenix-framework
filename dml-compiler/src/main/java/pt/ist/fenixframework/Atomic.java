@@ -3,6 +3,8 @@ package pt.ist.fenixframework;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
+import pt.ist.esw.advice.AdviceFactory;
+
 @Target(ElementType.METHOD)
 public @interface Atomic {
     boolean readOnly() default false;
@@ -11,5 +13,5 @@ public @interface Atomic {
 
     boolean speculativeReadOnly() default true;
 
-    Class<? extends pt.ist.fenixframework.atomic.ContextFactory> contextFactory() default pt.ist.fenixframework.atomic.DefaultContextFactoryViaReflection.class;
+    Class<? extends AdviceFactory> adviceFactory() default pt.ist.fenixframework.atomic.DefaultContextFactoryViaReflection.class;
 }
