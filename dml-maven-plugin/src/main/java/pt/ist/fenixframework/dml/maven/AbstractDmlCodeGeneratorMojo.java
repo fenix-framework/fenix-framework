@@ -24,98 +24,98 @@ import pt.ist.fenixframework.core.Project;
 
 public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
-	protected abstract MavenProject getMavenProject();
+    protected abstract MavenProject getMavenProject();
 
-	protected abstract String getCodeGeneratorClassName();
+    protected abstract String getCodeGeneratorClassName();
 
-	protected abstract File getDmlSourceDirectory();
+    protected abstract File getDmlSourceDirectory();
 
-	protected abstract File getGeneratedSourcesDirectory();
+    protected abstract File getGeneratedSourcesDirectory();
 
-	protected abstract File getSourcesDirectory();
+    protected abstract File getSourcesDirectory();
 
-	protected abstract String getOutputDirectoryPath();
+    protected abstract String getOutputDirectoryPath();
 
-	protected abstract String getPackageName();
+    protected abstract String getPackageName();
 
-	protected abstract boolean verbose();
+    protected abstract boolean verbose();
 
-	protected abstract boolean generateFinals();
+    protected abstract boolean generateFinals();
 
-	protected abstract boolean generateProjectProperties();
+    protected abstract boolean generateProjectProperties();
 
-	protected abstract Map<String,String> getParams();
+    protected abstract Map<String, String> getParams();
 
-	protected abstract List<String> getClasspathElements();
+    protected abstract List<String> getClasspathElements();
 
     @Override
     public void execute() throws MojoExecutionException {
-	if (getMavenProject().getArtifact().getType().equals("pom")) {
-	    getLog().info("Cannot generate domain for pom projects");
-	    return;
-	}
+        if (getMavenProject().getArtifact().getType().equals("pom")) {
+            getLog().info("Cannot generate domain for pom projects");
+            return;
+        }
 
-	DmlMojoUtils.augmentClassLoader(getLog(), getClasspathElements());
+        DmlMojoUtils.augmentClassLoader(getLog(), getClasspathElements());
 
-	CompilerArgs compArgs = null;
-	long latestBuildTime = getGeneratedSourcesDirectory().lastModified();
+        CompilerArgs compArgs = null;
+        long latestBuildTime = getGeneratedSourcesDirectory().lastModified();
 
-	boolean shouldCompile = getMavenProject().getArtifact().getType().trim().equalsIgnoreCase("war");
-	List<URL> dmlFiles = new ArrayList<URL>();
-	if (getDmlSourceDirectory().exists()) {
-	    DirectoryScanner scanner = new DirectoryScanner();
-	    scanner.setBasedir(getDmlSourceDirectory());
+        boolean shouldCompile = getMavenProject().getArtifact().getType().trim().equalsIgnoreCase("war");
+        List<URL> dmlFiles = new ArrayList<URL>();
+        if (getDmlSourceDirectory().exists()) {
+            DirectoryScanner scanner = new DirectoryScanner();
+            scanner.setBasedir(getDmlSourceDirectory());
 
-	    String[] includes = { "**\\*.dml" };
-	    scanner.setIncludes(includes);
-	    scanner.scan();
+            String[] includes = { "**\\*.dml" };
+            scanner.setIncludes(includes);
+            scanner.scan();
 
-	    Resource resource = new Resource();
-	    resource.setDirectory(getDmlSourceDirectory().getAbsolutePath());
-	    resource.addInclude("*.dml");
-	    getMavenProject().addResource(resource);
-	    getMavenProject().addTestResource(resource);
+            Resource resource = new Resource();
+            resource.setDirectory(getDmlSourceDirectory().getAbsolutePath());
+            resource.addInclude("*.dml");
+            getMavenProject().addResource(resource);
+            getMavenProject().addTestResource(resource);
 
-	    for (String includedFile : scanner.getIncludedFiles()) {
-		String filePath = getDmlSourceDirectory().getAbsolutePath() + "/" + includedFile;
-		File file = new File(filePath);
-		try {
-		    dmlFiles.add(file.toURI().toURL());
-		} catch (MalformedURLException e) {
-		    getLog().error(e);
-		}
-		boolean isModified = file.lastModified() > latestBuildTime;
-		if (verbose()) {
-		    getLog().info(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
-		}
-		shouldCompile = shouldCompile || isModified;
-	    }
-	    Collections.sort(dmlFiles, new Comparator<URL>() {
-                    @Override
-                    public int compare(URL o1, URL o2) {
-                        return o1.toExternalForm().compareTo(o2.toExternalForm());
-                    }
-                });
-	}
+            for (String includedFile : scanner.getIncludedFiles()) {
+                String filePath = getDmlSourceDirectory().getAbsolutePath() + "/" + includedFile;
+                File file = new File(filePath);
+                try {
+                    dmlFiles.add(file.toURI().toURL());
+                } catch (MalformedURLException e) {
+                    getLog().error(e);
+                }
+                boolean isModified = file.lastModified() > latestBuildTime;
+                if (verbose()) {
+                    getLog().info(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
+                }
+                shouldCompile = shouldCompile || isModified;
+            }
+            Collections.sort(dmlFiles, new Comparator<URL>() {
+                @Override
+                public int compare(URL o1, URL o2) {
+                    return o1.toExternalForm().compareTo(o2.toExternalForm());
+                }
+            });
+        }
 
-	try {
-	    Project project = DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(),
-                                                      getGeneratedSourcesDirectory(), dmlFiles,
-                                                      getLog(), verbose());
+        try {
+            Project project =
+                    DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(), getGeneratedSourcesDirectory(), dmlFiles,
+                            getLog(), verbose());
 
-	    List<URL> allDmls = new ArrayList<URL>();
-	    for (DmlFile dmlFile : project.getFullDmlSortedList()) {
-		allDmls.add(dmlFile.getUrl());
-	    }
+            List<URL> allDmls = new ArrayList<URL>();
+            for (DmlFile dmlFile : project.getFullDmlSortedList()) {
+                allDmls.add(dmlFile.getUrl());
+            }
 
-	    project.generateProjectProperties(getOutputDirectoryPath());
+            project.generateProjectProperties(getOutputDirectoryPath());
 
-	    if (allDmls.isEmpty()) {
-		getLog().info("No dml files found to generate domain");
-		return;
-	    }
+            if (allDmls.isEmpty()) {
+                getLog().info("No dml files found to generate domain");
+                return;
+            }
 
-	    if (project.shouldCompile() || shouldCompile) {
+            if (project.shouldCompile() || shouldCompile) {
                 // Split all DML files in two sets: local and external.
                 List<URL> localDmls = new ArrayList<URL>();
                 for (DmlFile dmlFile : project.getDmls()) {
@@ -123,21 +123,22 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 }
                 List<URL> externalDmls = new ArrayList<URL>(allDmls);
                 externalDmls.removeAll(localDmls);
-            
-		getSourcesDirectory().mkdirs();
-		getSourcesDirectory().setLastModified(System.currentTimeMillis());
-		if (verbose()) {
-		    getLog().info("Using generator: " + getCodeGeneratorClass().getName());
-		}
-		Map<String,String> realParams = getParams() == null ? new HashMap<String,String>() : getParams();
 
-		compArgs = new CompilerArgs(getSourcesDirectory(), getGeneratedSourcesDirectory(), getPackageName(),
-                                            generateFinals(), getCodeGeneratorClass(), localDmls, externalDmls, realParams);
+                getSourcesDirectory().mkdirs();
+                getSourcesDirectory().setLastModified(System.currentTimeMillis());
+                if (verbose()) {
+                    getLog().info("Using generator: " + getCodeGeneratorClass().getName());
+                }
+                Map<String, String> realParams = getParams() == null ? new HashMap<String, String>() : getParams();
+
+                compArgs =
+                        new CompilerArgs(getSourcesDirectory(), getGeneratedSourcesDirectory(), getPackageName(),
+                                generateFinals(), getCodeGeneratorClass(), localDmls, externalDmls, realParams);
 
                 DmlCompiler.compile(compArgs);
-	    } else {
-		if (verbose()) {
-		    getLog().info("All dml files are up to date. Skipping generation...");
+            } else {
+                if (verbose()) {
+                    getLog().info("All dml files are up to date. Skipping generation...");
                 }
             }
         } catch (Exception e) {
@@ -145,9 +146,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
         }
     }
 
-	public Class<? extends CodeGenerator> getCodeGeneratorClass()
-			throws ClassNotFoundException {
-		return (Class<? extends CodeGenerator>) Class
-				.forName(getCodeGeneratorClassName());
-	}
+    public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
+        return (Class<? extends CodeGenerator>) Class.forName(getCodeGeneratorClassName());
+    }
 }

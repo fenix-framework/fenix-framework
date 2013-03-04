@@ -35,7 +35,7 @@ public abstract class OgmDomainObject extends AbstractDomainObjectAdapter {
 
     protected OgmDomainObject(DomainObjectAllocator.OID oid) {
         super(oid);
-        this.oid = (OgmOID)oid.oid;
+        this.oid = (OgmOID) oid.oid;
         this.hibernate$primaryKey = this.oid.getPrimaryKey();
     }
 
@@ -46,7 +46,7 @@ public abstract class OgmDomainObject extends AbstractDomainObjectAdapter {
         } else {
             hibernate$primaryKey = UUID.randomUUID().toString();
         }
-        
+
         this.oid = new OgmOID(this.getClass(), this.hibernate$primaryKey);
         OgmBackEnd.getInstance().save(this);
         logger.debug("Saved " + this);
@@ -64,13 +64,12 @@ public abstract class OgmDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     public OgmOID getOid() {
-	return this.oid;
+        return this.oid;
     }
 
     @Override
     public final String getExternalId() {
-	return oid.toExternalId();
+        return oid.toExternalId();
     }
 
 }
-

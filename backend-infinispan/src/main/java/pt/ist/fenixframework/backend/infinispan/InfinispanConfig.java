@@ -12,7 +12,7 @@ import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
  * project.
  * 
  * @see Config
- *
+ * 
  */
 public class InfinispanConfig extends HibernateSearchConfig {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
@@ -47,12 +47,11 @@ public class InfinispanConfig extends HibernateSearchConfig {
 
     /**
      * This <strong>required</strong> parameter specifies the location of the XML file used to
-     * configure Infinispan.  This file should be available in the application's classpath.
+     * configure Infinispan. This file should be available in the application's classpath.
      */
     protected String ispnConfigFile = null;
 
     protected final InfinispanBackEnd backEnd;
-
 
     public InfinispanConfig() {
         this.backEnd = InfinispanBackEnd.getInstance();

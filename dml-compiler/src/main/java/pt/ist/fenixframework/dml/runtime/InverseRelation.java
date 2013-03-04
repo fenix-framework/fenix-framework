@@ -2,12 +2,13 @@ package pt.ist.fenixframework.dml.runtime;
 
 import pt.ist.fenixframework.DomainObject;
 
-public class InverseRelation<C1 extends DomainObject,C2 extends DomainObject> implements Relation<C1,C2> {
-    private Relation<C2,C1> inverseRelation;
+public class InverseRelation<C1 extends DomainObject, C2 extends DomainObject> implements Relation<C1, C2> {
+    private Relation<C2, C1> inverseRelation;
     private final String name;
+
     //private LinkedList<InverseListener<C2,C1>> inverseListeners = null;
 
-    public InverseRelation(Relation<C2,C1> inverseRelation, String name) {
+    public InverseRelation(Relation<C2, C1> inverseRelation, String name) {
         this.inverseRelation = inverseRelation;
         this.name = name;
     }
@@ -20,7 +21,7 @@ public class InverseRelation<C1 extends DomainObject,C2 extends DomainObject> im
         return inverseRelation.remove(o2, o1);
     }
 
-    public Relation<C2,C1> getInverseRelation() {
+    public Relation<C2, C1> getInverseRelation() {
         return inverseRelation;
     }
 

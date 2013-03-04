@@ -28,7 +28,7 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
 
     protected InfinispanDomainObject(DomainObjectAllocator.OID oid) {
         super(oid);
-        this.oid = (OID)oid.oid;
+        this.oid = (OID) oid.oid;
     }
 
     @Override
@@ -54,13 +54,12 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     public OID getOid() {
-	return this.oid;
+        return this.oid;
     }
 
     @Override
     public final String getExternalId() {
-	return oid.toExternalId();
+        return oid.toExternalId();
     }
 
 }
-

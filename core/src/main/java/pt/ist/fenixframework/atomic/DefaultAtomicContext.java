@@ -11,7 +11,7 @@ import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.core.CommitError;
 import pt.ist.fenixframework.core.WriteOnReadError;
 
-public class /*enum*/ DefaultAtomicContext implements AtomicContext {
+public class /*enum*/DefaultAtomicContext implements AtomicContext {
 
     // FLATTEN_READONLY(true, true),
     // FLATTEN_READWRITE(true, false),
@@ -22,7 +22,7 @@ public class /*enum*/ DefaultAtomicContext implements AtomicContext {
 
     private final Atomic atomic;
 
-    DefaultAtomicContext(Atomic atomic)   {
+    DefaultAtomicContext(Atomic atomic) {
         this.atomic = atomic;
     }
 
@@ -68,7 +68,7 @@ public class /*enum*/ DefaultAtomicContext implements AtomicContext {
             logger.debug("Handling @Atomic call from " + Thread.currentThread().getStackTrace()[2]);
         }
         TransactionManager tm = FenixFramework.getTransactionManager();
-        
+
         return tm.withTransaction(method, this.atomic);
     }
 }

@@ -54,7 +54,7 @@ public class DomainClass extends DomainEntity {
     }
 
     public boolean hasSlots() {
-        return ((! slots.isEmpty()) || (! roleSlots.isEmpty()));
+        return ((!slots.isEmpty()) || (!roleSlots.isEmpty()));
     }
 
     public Slot findSlot(String slotName) {

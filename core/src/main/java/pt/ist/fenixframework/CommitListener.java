@@ -24,8 +24,7 @@ public interface CommitListener {
 
     /**
      * This method is called after any {@link Transaction} is committed. The
-     * outcome of the transaction can be determined by calling
-     * {@code Transaction.getStatus()}
+     * outcome of the transaction can be determined by calling {@code Transaction.getStatus()}
      * 
      * @param transaction
      *            The transaction that was committed/rolled-back.

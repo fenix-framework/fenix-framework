@@ -6,7 +6,7 @@ import java.io.PrintWriter;
  * Code generator used for TxIntrospector information gathering.
  * Disabled by default. You can enable it by adding
  * <params>
- *     <ptIstTxIntrospectorEnable>true</ptIstTxIntrospectorEnable>
+ * <ptIstTxIntrospectorEnable>true</ptIstTxIntrospectorEnable>
  * </params>
  * to the configuration section of the dml-maven-plugin plugin in your pom.xml.
  * 
@@ -16,14 +16,13 @@ import java.io.PrintWriter;
  */
 public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
     public static final String TXINTROSPECTOR_ON_CONFIG_KEY =
-        pt.ist.fenixframework.txintrospector.TxIntrospector.TXINTROSPECTOR_ON_CONFIG_KEY;
+            pt.ist.fenixframework.txintrospector.TxIntrospector.TXINTROSPECTOR_ON_CONFIG_KEY;
     public static final String TXINTROSPECTOR_ON_CONFIG_VALUE =
-        pt.ist.fenixframework.txintrospector.TxIntrospector.TXINTROSPECTOR_ON_CONFIG_VALUE;
+            pt.ist.fenixframework.txintrospector.TxIntrospector.TXINTROSPECTOR_ON_CONFIG_VALUE;
 
-    private static final String TXSTATS_FULL_CLASS =
-        pt.ist.fenixframework.txintrospector.TxStats.class.getName();
+    private static final String TXSTATS_FULL_CLASS = pt.ist.fenixframework.txintrospector.TxStats.class.getName();
     private static final String TX_STATS_INSTANCE = "((" + TXSTATS_FULL_CLASS + ")"
-	    + pt.ist.fenixframework.FenixFramework.class.getName() + ".getTransaction().getTxIntrospector())";
+            + pt.ist.fenixframework.FenixFramework.class.getName() + ".getTransaction().getTxIntrospector())";
 
     private final boolean enabled;
 
@@ -74,7 +73,7 @@ public class TxIntrospectorCodeGenerator extends DAPCodeGenerator {
             // add parameter in static initializer block
             newline(out);
             newBlock(out);
-            print(out, "setParam(\"" + TXINTROSPECTOR_ON_CONFIG_KEY + "\", \"" +TXINTROSPECTOR_ON_CONFIG_VALUE + "\");");
+            print(out, "setParam(\"" + TXINTROSPECTOR_ON_CONFIG_KEY + "\", \"" + TXINTROSPECTOR_ON_CONFIG_VALUE + "\");");
             closeBlock(out);
         }
         super.generateBackEndIdClassBody(out);

@@ -2,7 +2,7 @@ package test;
 
 public class VampireBook extends VampireBook_Base {
 
-    public  VampireBook() {
+    public VampireBook() {
         super();
 
         toString();

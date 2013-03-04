@@ -5,14 +5,14 @@ package pt.ist.fenixframework.dml;
  */
 public class DmlCompilerException extends Exception {
     public DmlCompilerException(String message) {
-	super(message);
+        super(message);
     }
 
     public DmlCompilerException(String message, Throwable cause) {
-	super(message, cause);
+        super(message, cause);
     }
 
     public DmlCompilerException(Throwable cause) {
-	super(cause);
+        super(cause);
     }
 }

@@ -25,37 +25,36 @@ import java.util.List;
 // OPERATION OF THIS PLUGIN
 /**
  * A custom ComponentConfigurator which adds the project's runtime classpath elements to the plugin
- *
+ * 
  * @author Brian Jackson
  * @since Aug 1, 2008 3:04:17 PM
- *
+ * 
  * @plexus.component role="org.codehaus.plexus.component.configurator.ComponentConfigurator"
  *                   role-hint="include-project-dependencies"
  * @plexus.requirement role="org.codehaus.plexus.component.configurator.converters.lookup.ConverterLookup"
- *                   role-hint="default"
- *
- * From: http://stackoverflow.com/questions/2659048/add-maven-build-classpath-to-plugin-execution-classpath
+ *                     role-hint="default"
+ * 
+ *                     From: http://stackoverflow.com/questions/2659048/add-maven-build-classpath-to-plugin-execution-classpath
  */
-public class IncludeProjectDependenciesComponentConfigurator extends AbstractComponentConfigurator { 
+public class IncludeProjectDependenciesComponentConfigurator extends AbstractComponentConfigurator {
 
     // private static final Logger LOGGER = LoggerFactory.getLogger(IncludeProjectDependenciesComponentConfigurator.class);
 
-    public void configureComponent( Object component, PlexusConfiguration configuration,
-                                    ExpressionEvaluator expressionEvaluator, ClassRealm containerRealm,
-                                    ConfigurationListener listener )
-        throws ComponentConfigurationException {
+    public void configureComponent(Object component, PlexusConfiguration configuration, ExpressionEvaluator expressionEvaluator,
+            ClassRealm containerRealm, ConfigurationListener listener) throws ComponentConfigurationException {
 
         addProjectDependenciesToClassRealm(expressionEvaluator, containerRealm);
 
-        converterLookup.registerConverter( new ClassRealmConverter( containerRealm ) );
+        converterLookup.registerConverter(new ClassRealmConverter(containerRealm));
 
         ObjectWithFieldsConverter converter = new ObjectWithFieldsConverter();
 
-        converter.processConfiguration( converterLookup, component, containerRealm.getClassLoader(), configuration,
-                                        expressionEvaluator, listener );
+        converter.processConfiguration(converterLookup, component, containerRealm.getClassLoader(), configuration,
+                expressionEvaluator, listener);
     }
 
-    private void addProjectDependenciesToClassRealm(ExpressionEvaluator expressionEvaluator, ClassRealm containerRealm) throws ComponentConfigurationException {
+    private void addProjectDependenciesToClassRealm(ExpressionEvaluator expressionEvaluator, ClassRealm containerRealm)
+            throws ComponentConfigurationException {
         List<String> runtimeClasspathElements;
         try {
             //noinspection unchecked

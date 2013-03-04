@@ -14,27 +14,27 @@ public class Externalization {
     // The NullClass and the NULL_OBJECT are public so that they can be used by anyone who needs an
     // object representation for null
     public static class NullClass implements Serializable {
-	private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
     }
+
     public static final NullClass NULL_OBJECT = new NullClass();
 
-
     public static byte[] externalizeObject(Object obj) {
-	if (obj == null) {
-	    return externalizeSerializable(NULL_OBJECT);
-	} else if (!(obj instanceof Serializable)) {
-	    throw new UnsupportedOperationException(obj.getClass().getName());
-	}
-	return externalizeSerializable((Serializable)obj);
+        if (obj == null) {
+            return externalizeSerializable(NULL_OBJECT);
+        } else if (!(obj instanceof Serializable)) {
+            throw new UnsupportedOperationException(obj.getClass().getName());
+        }
+        return externalizeSerializable((Serializable) obj);
     }
 
     public static <T> T internalizeObject(byte[] bytes) {
-	Object obj = internalizeSerializable(bytes);
-	if (obj instanceof NullClass) {
-	    return null;
-	} else {
-	    return (T)obj;
-	}
+        Object obj = internalizeSerializable(bytes);
+        if (obj instanceof NullClass) {
+            return null;
+        } else {
+            return (T) obj;
+        }
     }
 
     public static byte[] externalizeSerializable(Serializable obj) {
@@ -52,8 +52,6 @@ public class Externalization {
     public static <T> T internalizeSerializableGZiped(byte[] bytes) {
         return (T) internalizeSerializable(bytes, true);
     }
-
-
 
     private static byte[] externalizeSerializable(Serializable obj, boolean gziped) {
         try {

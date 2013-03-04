@@ -10,7 +10,7 @@ public class Externalizer {
     }
 
     public static ForwardArray internalizeNodeArray(Serializable externalizedNodeArray) {
-        return ((NodeArrayExternalization)externalizedNodeArray).toNodeArray();
+        return ((NodeArrayExternalization) externalizedNodeArray).toNodeArray();
     }
 
     private static class NodeArrayExternalization implements Serializable {
@@ -23,8 +23,8 @@ public class Externalizer {
         }
 
         ForwardArray toNodeArray() {
-            return (ForwardArray)Externalization.internalizeSerializable(serializedNodeArray);
+            return (ForwardArray) Externalization.internalizeSerializable(serializedNodeArray);
         }
     }
-    
+
 }

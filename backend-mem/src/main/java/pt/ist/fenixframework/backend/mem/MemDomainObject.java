@@ -26,7 +26,7 @@ public class MemDomainObject extends AbstractDomainObjectAdapter {
     }
 
     protected MemDomainObject(DomainObjectAllocator.OID oid) {
-        this.oid = (Long)oid.oid;
+        this.oid = (Long) oid.oid;
     }
 
     @Override
@@ -46,12 +46,11 @@ public class MemDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     public Long getOid() {
-	return oid;
+        return oid;
     }
 
     @Override
     public final String getExternalId() {
-	return String.valueOf(getOid());
+        return String.valueOf(getOid());
     }
 }
-

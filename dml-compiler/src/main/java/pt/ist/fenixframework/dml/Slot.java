@@ -5,14 +5,15 @@ import java.util.EnumSet;
 import java.util.Set;
 
 public class Slot implements Serializable {
-    
-    public enum Option { REQUIRED }
 
+    public enum Option {
+        REQUIRED
+    }
 
     private String name;
     private ValueType type;
     private Set<Option> slotOptions = EnumSet.noneOf(Option.class);
-    
+
     public Slot(String name, ValueType type) {
         this.name = name;
         this.type = type;
@@ -46,7 +47,7 @@ public class Slot implements Serializable {
     public boolean hasOption(Option option) {
         return slotOptions.contains(option);
     }
-    
+
 //     public void generateSlotDeclaration(CodeWriter out) {
 //         out.write(type);
 //         out.write(" ");

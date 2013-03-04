@@ -2,12 +2,11 @@ package pt.ist.fenixframework.dml;
 
 import java.util.List;
 
-
 public class EnumValueType implements ValueType {
 
     private String domainName;
     private String fullTypeName;
-    
+
     public EnumValueType(String domainName, String fullTypeName) {
         this.domainName = domainName;
         this.fullTypeName = fullTypeName;

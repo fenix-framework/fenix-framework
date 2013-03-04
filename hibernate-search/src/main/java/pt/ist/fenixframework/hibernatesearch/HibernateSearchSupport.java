@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Entry point for interactions with Hibernate-Search.
- *
+ * 
  * This class provides a SearchFactory instance that can be used to perform searches using hibernate-search.
  */
 public class HibernateSearchSupport {
@@ -53,7 +53,8 @@ public class HibernateSearchSupport {
     protected static void updateIndex(TransactionContext context, Collection<DomainObject> objects, WorkType workType) {
         try {
             for (DomainObject obj : objects) {
-                if (!INDEXED_CLASSES.contains(obj.getClass())) continue;
+                if (!INDEXED_CLASSES.contains(obj.getClass()))
+                    continue;
                 searchFactory.getWorker().performWork(new Work<DomainObject>(obj, workType), context);
             }
         } catch (RuntimeException e) {
@@ -69,11 +70,7 @@ public class HibernateSearchSupport {
         // Map the getExternalId() method as a documentId for all domain classes
         // Note that hibernate-search currently requires this method to really exist in the
         // AbstractDomainObject class
-        mapping
-            .entity(AbstractDomainObject.class)
-                .property("externalId", ElementType.METHOD)
-                    .documentId()
-                    .name("id");
+        mapping.entity(AbstractDomainObject.class).property("externalId", ElementType.METHOD).documentId().name("id");
 
         return mapping;
     }

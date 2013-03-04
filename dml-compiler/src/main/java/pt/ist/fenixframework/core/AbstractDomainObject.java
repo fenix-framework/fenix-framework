@@ -12,15 +12,15 @@ import pt.ist.fenixframework.DomainObject;
 
 /**
  * This is the top-level class for every DomainObject. Each backend should provide a subclass of
- * this class, with a backend-specific implementation of both {@link DomainObject#getExternalId()}
- * and {@link #getOid()}.  In this class, they simply throw an {@link
- * UnsupportedOperationException}.  The method {@link DomainObject#getExternalId()} should be used
+ * this class, with a backend-specific implementation of both {@link DomainObject#getExternalId()} and {@link #getOid()}. In this
+ * class, they simply throw an {@link UnsupportedOperationException}. The method {@link DomainObject#getExternalId()} should be
+ * used
  * by the user of the framework, whereas the method {@link #getOid()} should be used by code within
- * the framework.  This allows for a more efficient implementation of the object's internal
+ * the framework. This allows for a more efficient implementation of the object's internal
  * identifier, other than the String type imposed on the external identifier.
- *
- * Additionally, the subclass must also implement {@link #ensureOid()}, {@link
- * #makeSerializedForm()}, and {@link SerializedForm#fromExternalId(String)}.  See their
+ * 
+ * Additionally, the subclass must also implement {@link #ensureOid()}, {@link #makeSerializedForm()}, and
+ * {@link SerializedForm#fromExternalId(String)}. See their
  * documentation for further explanation.
  */
 public abstract class AbstractDomainObject implements DomainObject {
@@ -32,7 +32,7 @@ public abstract class AbstractDomainObject implements DomainObject {
     }
 
     /**
-     * Returns an internal global representation of this object.  Although, it can be implemented
+     * Returns an internal global representation of this object. Although, it can be implemented
      * simply as a call to {@link #getExternalId()}, this method enables code **within** the
      * framework to leverage on the knowledge of the concrete identifier, thus being more efficient.
      * <strong>This method should only be used by code internal to the framework</strong>.
@@ -42,33 +42,33 @@ public abstract class AbstractDomainObject implements DomainObject {
     }
 
     /**
-     * Default, no-arg constructor.  Calls {@link #ensureOid()} to set the object's identifier.
+     * Default, no-arg constructor. Calls {@link #ensureOid()} to set the object's identifier.
      * Every {@link DomainObject} constructor (except for the special allocate-instance constructor)
      * should ensure that {@link #ensureOid()} is called once during object creation.
-     *
+     * 
      * @see #ensureOid
      */
     protected AbstractDomainObject() {
         super();
         ensureOid();
     }
-    
+
     /**
      * This constructor exists only as part of the allocate-instance protocol and should never be
-     * explicitly invoked by the programmer.  Each backend must implement this constructor, and
-     * decide how the OID gets restored to the object.  Note that the classes modelled in DML are
+     * explicitly invoked by the programmer. Each backend must implement this constructor, and
+     * decide how the OID gets restored to the object. Note that the classes modelled in DML are
      * automatically injected with this constructor, which simply delegates the operation to their
      * superclass's constructor.
-     *
-     * In this class, this constructor is empty.  It is here just as a placeholder for this
+     * 
+     * In this class, this constructor is empty. It is here just as a placeholder for this
      * documentation.
      */
-    protected AbstractDomainObject(DomainObjectAllocator.OID oid) { }
-
+    protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
+    }
 
     /**
-     * Set the identifier (<code>oid</code>) of the object that is being created.  This method is
-     * invoked by the no-arg constructor.  It is only intented to be invoked from within a
+     * Set the identifier (<code>oid</code>) of the object that is being created. This method is
+     * invoked by the no-arg constructor. It is only intented to be invoked from within a
      * constructor (with the exception of {@link #AbstractDomainObject(DomainObjectAllocator.OID)},
      * which has its own way of restoring the object's id.
      */
@@ -78,12 +78,12 @@ public abstract class AbstractDomainObject implements DomainObject {
 
     @Override
     public final int hashCode() {
-	return super.hashCode();
+        return super.hashCode();
     }
 
     @Override
     public final boolean equals(Object obj) {
-	return super.equals(obj);
+        return super.equals(obj);
     }
 
     // VersionedSubject getSlotNamed(String attrName) {
@@ -143,8 +143,8 @@ public abstract class AbstractDomainObject implements DomainObject {
 
     protected void deleteDomainObject() {
         throw new UnsupportedOperationException("deleteDomainObject not implemented at this level");
-    //     checkDisconnected();
-    //     Transaction.deleteObject(this);
+        //     checkDisconnected();
+        //     Transaction.deleteObject(this);
     }
 
     // protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,
@@ -176,11 +176,11 @@ public abstract class AbstractDomainObject implements DomainObject {
     }
 
     /**
-     * Creates the concrete instance of SerializedForm for this DomainObject.  This method is
-     * invoked when serialization of the DomainObject occurs.  Final users of this framework should
-     * never invoke this method explicitly.  Backend developers should provide an implementation for
+     * Creates the concrete instance of SerializedForm for this DomainObject. This method is
+     * invoked when serialization of the DomainObject occurs. Final users of this framework should
+     * never invoke this method explicitly. Backend developers should provide an implementation for
      * this method in their subclasses of AbstractDomainObject.
-     *
+     * 
      * @return The corresponding SerializedForm
      */
     protected SerializedForm makeSerializedForm() {
@@ -211,13 +211,13 @@ public abstract class AbstractDomainObject implements DomainObject {
         }
 
         /**
-         * Returns a DomainObject given its externalId.  This method is invoked when
+         * Returns a DomainObject given its externalId. This method is invoked when
          * de-serialization of a previously serialized DomainObject occurs.
-         *
-         * Final users of this framework should not invoke this method explicitly.  Backend
+         * 
+         * Final users of this framework should not invoke this method explicitly. Backend
          * developers should provide an implementation for this method in their subclasses of
          * AbstractDomainObject.SerializedForm.
-         *
+         * 
          * @param externalId The object's external identifier
          * @return The corresponding DomainObject
          */

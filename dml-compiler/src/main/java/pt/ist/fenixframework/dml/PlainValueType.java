@@ -3,15 +3,13 @@ package pt.ist.fenixframework.dml;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class PlainValueType implements ValueType {
 
     private String domainName;
     private String fullTypeName;
-    
+
     private List<ExternalizationElement> extElements = new ArrayList<ExternalizationElement>();
     private String internalizationMethodName = null;
-
 
     public PlainValueType(String fullTypeName) {
         this.fullTypeName = fullTypeName;

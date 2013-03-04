@@ -33,7 +33,7 @@ public abstract class FFDAPConfig extends Config {
 
     /**
      * This well-known name specifies the location of the properties file used to configure the
-     * <strong>Data Access Patterns</strong> framework.  This file should be available in the
+     * <strong>Data Access Patterns</strong> framework. This file should be available in the
      * application's classpath.
      */
     public static final String CONFIG_FILE = "dap.properties";
@@ -44,19 +44,19 @@ public abstract class FFDAPConfig extends Config {
         String dap = BackEndId.getBackEndId().getParam(DAPCodeGenerator.DAP_ON_CONFIG_KEY);
         return (dap != null) && dap.trim().equalsIgnoreCase(DAPCodeGenerator.DAP_ON_CONFIG_VALUE);
     }
-    
+
     /*
      * Registers the DAP JMX interface so that it is available for invocation from external sources.
      */
     @Override
     protected void init() {
         try {
-            if (!dapEnabled) return;
+            if (!dapEnabled)
+                return;
 
             logger.debug("Initialing Data Access Patterns module.");
             DAPConfig dapConfig;
-            URL dapConfigURL = Thread.currentThread().getContextClassLoader().
-                getResource(CONFIG_FILE);
+            URL dapConfigURL = Thread.currentThread().getContextClassLoader().getResource(CONFIG_FILE);
             if (dapConfigURL == null) {
                 logger.info("Resource '" + CONFIG_FILE + "' not found.  Using default values.");
                 dapConfig = new DAPConfig();
@@ -80,5 +80,5 @@ public abstract class FFDAPConfig extends Config {
             dapEnabled = false;
         }
     }
-    
+
 }

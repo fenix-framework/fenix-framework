@@ -49,9 +49,8 @@ public class OgmTransactionManager implements TransactionManager {
         logger.debug("Created EntityManagerFactory: " + emf);
 
         SessionFactoryImplementor sessionFactory =
-            (SessionFactoryImplementor)((HibernateEntityManagerFactory)emf).getSessionFactory();
-        delegateTxManager = sessionFactory.getServiceRegistry().getService(JtaPlatform.class).
-            retrieveTransactionManager();
+                (SessionFactoryImplementor) ((HibernateEntityManagerFactory) emf).getSessionFactory();
+        delegateTxManager = sessionFactory.getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager();
     }
 
     private final ThreadLocal<EntityManager> currentEntityManager = new ThreadLocal<EntityManager>();
@@ -62,7 +61,7 @@ public class OgmTransactionManager implements TransactionManager {
 
     @Override
     public void begin() throws NotSupportedException, SystemException {
-	begin(false);
+        begin(false);
     }
 
     @Override
@@ -80,47 +79,46 @@ public class OgmTransactionManager implements TransactionManager {
     }
 
     @Override
-    public void commit() throws RollbackException, HeuristicMixedException,
-                                HeuristicRollbackException, SystemException {
+    public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
         logger.trace("Commit transaction");
 
-	pt.ist.fenixframework.Transaction tx = getTransaction();
+        pt.ist.fenixframework.Transaction tx = getTransaction();
 
-	try {
-	    for (CommitListener listener : listeners) {
-		listener.beforeCommit(tx);
-	    }
-	} catch (RuntimeException e) {
-	    /**
-	     * As specified in CommitListener.beforeCommit(), any unchecked
-	     * exception will cause the transaction to be rolled back.
-	     */
-	    rollback();
-	    throw new RollbackException(e.getMessage());
-	}
-	try {
-	    EntityManager em = currentEntityManager.get();
+        try {
+            for (CommitListener listener : listeners) {
+                listener.beforeCommit(tx);
+            }
+        } catch (RuntimeException e) {
+            /**
+             * As specified in CommitListener.beforeCommit(), any unchecked
+             * exception will cause the transaction to be rolled back.
+             */
+            rollback();
+            throw new RollbackException(e.getMessage());
+        }
+        try {
+            EntityManager em = currentEntityManager.get();
 
-	    em.flush();
-	    delegateTxManager.commit();
-	    em.close();
+            em.flush();
+            delegateTxManager.commit();
+            em.close();
 
-	    currentEntityManager.set(null);
-	} finally {
-	    for (CommitListener listener : listeners) {
-		listener.afterCommit(tx);
-	    }
-	}
+            currentEntityManager.set(null);
+        } finally {
+            for (CommitListener listener : listeners) {
+                listener.afterCommit(tx);
+            }
+        }
     }
 
     @Override
     public pt.ist.fenixframework.Transaction getTransaction() {
-	try {
-	    Transaction tx = delegateTxManager.getTransaction();
-	    return TxMap.getTx(tx);
-	} catch (Exception e) {
-	    return null;
-	}
+        try {
+            Transaction tx = delegateTxManager.getTransaction();
+            return TxMap.getTx(tx);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
@@ -142,7 +140,7 @@ public class OgmTransactionManager implements TransactionManager {
 
     @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {
-	return withTransaction(command, null);
+        return withTransaction(command, null);
     }
 
     /**
@@ -176,14 +174,14 @@ public class OgmTransactionManager implements TransactionManager {
             } catch (CacheException ce) {
                 //If the execution fails
                 logException(ce);
-            } catch(RollbackException re) {
+            } catch (RollbackException re) {
                 //If the transaction was marked for rollback only, the transaction is rolled back and this exception is thrown.
                 logException(re);
-            } catch(HeuristicMixedException hme) {
+            } catch (HeuristicMixedException hme) {
                 //If a heuristic decision was made and some some parts of the transaction have been committed while other parts have been rolled back.
                 //Pedro -- most of the time, happens when some nodes fails...
                 logException(hme);
-            } catch(HeuristicRollbackException hre) {
+            } catch (HeuristicRollbackException hre) {
                 //If a heuristic decision to roll back the transaction was made
                 logException(hre);
             } catch (Exception e) { // any other exception gets out
@@ -193,7 +191,7 @@ public class OgmTransactionManager implements TransactionManager {
                 if (!txFinished) {
                     try {
                         rollback();
-                    } catch(IllegalStateException ise) {
+                    } catch (IllegalStateException ise) {
                         // If the transaction is in a state where it cannot be rolled back.
                         // Pedro -- happen when the commit fails. When commit fails, it invokes the rollback().
                         //          so rollback() will be invoked again, but the transaction no longer exists
@@ -213,7 +211,6 @@ public class OgmTransactionManager implements TransactionManager {
         throw new RuntimeException("code never reached");
     }
 
-
     // private static final Random rand = new Random();
     // private void waitingBeforeRetry() {
     //     try {
@@ -231,27 +228,27 @@ public class OgmTransactionManager implements TransactionManager {
 
     @Override
     public int getStatus() throws SystemException {
-	return delegateTxManager.getStatus();
+        return delegateTxManager.getStatus();
     }
 
     @Override
     public void resume(Transaction tx) throws InvalidTransactionException, IllegalStateException, SystemException {
-	delegateTxManager.resume(tx);
+        delegateTxManager.resume(tx);
     }
 
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {
-	delegateTxManager.setRollbackOnly();
+        delegateTxManager.setRollbackOnly();
     }
 
     @Override
     public void setTransactionTimeout(int timeout) throws SystemException {
-	delegateTxManager.setTransactionTimeout(timeout);
+        delegateTxManager.setTransactionTimeout(timeout);
     }
 
     @Override
     public Transaction suspend() throws SystemException {
-	return delegateTxManager.suspend();
+        return delegateTxManager.suspend();
     }
 
     private final ConcurrentLinkedQueue<CommitListener> listeners = new ConcurrentLinkedQueue<CommitListener>();
@@ -261,7 +258,7 @@ public class OgmTransactionManager implements TransactionManager {
      */
     @Override
     public void addCommitListener(CommitListener listener) {
-	listeners.add(listener);
+        listeners.add(listener);
     }
 
     /**
@@ -269,8 +266,7 @@ public class OgmTransactionManager implements TransactionManager {
      */
     @Override
     public void removeCommitListener(CommitListener listener) {
-	listeners.remove(listener);
+        listeners.remove(listener);
     }
 
 }
-

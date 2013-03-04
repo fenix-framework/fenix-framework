@@ -7,7 +7,7 @@ import org.hibernate.search.annotations.Indexed;
 @Indexed
 public class Author extends Author_Base {
 
-    public  Author() {
+    public Author() {
         super();
 
         toString();

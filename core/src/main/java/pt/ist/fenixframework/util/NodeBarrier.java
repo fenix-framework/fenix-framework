@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Behaves as synchronization point between nodes running Fenix Framework
- *
+ * 
  * @author Pedro Ruivo
  * @since 2.1
  */
@@ -33,12 +33,15 @@ public class NodeBarrier extends ReceiverAdapter {
     }
 
     /**
-     * Blocks the thread execution until {@param expectedMembers} nodes has reached this {@param barrierName}
-     *
-     * @param barrierName     the barrier name
+     * Blocks the thread execution until
+     * 
+     * @param expectedMembers nodes has reached this
+     * @param barrierName}
+     * 
+     * @param barrierName the barrier name
      * @param expectedMembers the number of expected members
      * @throws Exception if this node has failed to send the barrier synchronization message or it was
-     *                   interrupted while waiting
+     *             interrupted while waiting
      */
     public final void blockUntil(String barrierName, int expectedMembers) throws Exception {
         connectIfNeeded();

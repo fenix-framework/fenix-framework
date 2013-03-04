@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
 public class AuthorTest {
-    
+
     @AfterClass
     public static void shutdown() {
         FenixFramework.shutdown();
@@ -23,5 +23,5 @@ public class AuthorTest {
     public void testSimpleBootStrap() {
         assertTrue(FenixFramework.isInitialized());
     }
-    
+
 }

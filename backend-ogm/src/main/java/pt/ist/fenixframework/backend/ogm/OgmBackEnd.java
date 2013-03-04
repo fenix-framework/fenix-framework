@@ -66,12 +66,11 @@ public class OgmBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        OgmOID internalId = (OgmOID)oid;
+        OgmOID internalId = (OgmOID) oid;
         if (logger.isTraceEnabled()) {
             logger.trace("fromOid(" + internalId + ")");
         }
-        return (T)transactionManager.getEntityManager().find(internalId.getObjClass(),
-                                                             internalId.getPrimaryKey());
+        return (T) transactionManager.getEntityManager().find(internalId.getObjClass(), internalId.getPrimaryKey());
     }
 
     @Override
@@ -88,7 +87,6 @@ public class OgmBackEnd implements BackEnd {
         logger.debug("Saving " + obj.getClass());
         transactionManager.getEntityManager().persist(obj);
     }
-
 
     // protected IdentityMap getIdentityMap() {
     //     return SharedIdentityMap.getCache();

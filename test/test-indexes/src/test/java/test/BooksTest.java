@@ -41,40 +41,40 @@ public class BooksTest {
     @Test
     @Atomic
     public void test01() {
-	Set<Author> stokers = FenixFramework.getDomainRoot().getTheAuthorsByName(BRAM_STOKER);
-	
-	assertTrue(stokers.size() == 2);
-	assertTrue(stokers.contains(getAuthorByNameAndAge(BRAM_STOKER, 125)));
-	assertTrue(stokers.contains(getAuthorByNameAndAge(BRAM_STOKER, 60)));
-	
-	Set<Author> meh = FenixFramework.getDomainRoot().getTheAuthorsByName(MEH);
-	assertTrue(meh.size() == 1);
-	assertTrue(meh.contains(getAuthorByName(MEH)));
-	
-	Set<Author> empty = FenixFramework.getDomainRoot().getTheAuthorsByName("EMPTY");
-	assertTrue(empty.size() == 0);
+        Set<Author> stokers = FenixFramework.getDomainRoot().getTheAuthorsByName(BRAM_STOKER);
+
+        assertTrue(stokers.size() == 2);
+        assertTrue(stokers.contains(getAuthorByNameAndAge(BRAM_STOKER, 125)));
+        assertTrue(stokers.contains(getAuthorByNameAndAge(BRAM_STOKER, 60)));
+
+        Set<Author> meh = FenixFramework.getDomainRoot().getTheAuthorsByName(MEH);
+        assertTrue(meh.size() == 1);
+        assertTrue(meh.contains(getAuthorByName(MEH)));
+
+        Set<Author> empty = FenixFramework.getDomainRoot().getTheAuthorsByName("EMPTY");
+        assertTrue(empty.size() == 0);
     }
 
     @Test
     @Atomic
     public void test02() {
-	Book dracula = FenixFramework.getDomainRoot().getTheBooksByBookName(DRACULA);
-	
-	assertTrue(dracula.equals(getBookByName(DRACULA)));
-	
-	Set<Author> stokers = dracula.getAuthorsByName(BRAM_STOKER);
-	assertTrue(stokers.size() == 1);
-	assertTrue(stokers.contains(getAuthorByNameAndAge(BRAM_STOKER, 125)));
-	
-	Set<Author> archibald = dracula.getAuthorsByName(ARCHIBALD);
-	assertTrue(archibald.size() == 0);
-	
-	Publisher pub = dracula.getPublisher();
-	assertTrue(pub.getPublisherName().equals(ARCHIBALD));
-	
-	assertTrue(pub.getBooksPublishedByBookName(DRACULA) == dracula);
+        Book dracula = FenixFramework.getDomainRoot().getTheBooksByBookName(DRACULA);
+
+        assertTrue(dracula.equals(getBookByName(DRACULA)));
+
+        Set<Author> stokers = dracula.getAuthorsByName(BRAM_STOKER);
+        assertTrue(stokers.size() == 1);
+        assertTrue(stokers.contains(getAuthorByNameAndAge(BRAM_STOKER, 125)));
+
+        Set<Author> archibald = dracula.getAuthorsByName(ARCHIBALD);
+        assertTrue(archibald.size() == 0);
+
+        Publisher pub = dracula.getPublisher();
+        assertTrue(pub.getPublisherName().equals(ARCHIBALD));
+
+        assertTrue(pub.getBooksPublishedByBookName(DRACULA) == dracula);
     }
-    
+
     @Test
     public void test03() {
         // Test done in multiple parts, to check that the indexes are being correctly updated after
@@ -83,53 +83,53 @@ public class BooksTest {
         test03part2();
         test03part3();
     }
-    
+
     @Atomic
     public void test03part1() {
-	Publisher little = FenixFramework.getDomainRoot().getThePublishersByPublisherName(LITTLE);
-	
-	assertTrue(little.equals(getPublisherByName(LITTLE)));
-	
-	Set<Book> booksPublishedByLittle = little.getBooksPublished();
-	assertTrue(booksPublishedByLittle.size() == 2);
-	assertTrue(booksPublishedByLittle.contains(getBookByName(FEW_MOON)));
-	assertTrue(booksPublishedByLittle.contains(getBookByName(TWOLIGHTS)));
-	
-	assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS).equals(getBookByName(TWOLIGHTS)));
-	assertTrue(little.getBooksPublishedByBookName(FEW_MOON).equals(getBookByName(FEW_MOON)));
-	
-	getBookByName(TWOLIGHTS).removePublisher();
+        Publisher little = FenixFramework.getDomainRoot().getThePublishersByPublisherName(LITTLE);
+
+        assertTrue(little.equals(getPublisherByName(LITTLE)));
+
+        Set<Book> booksPublishedByLittle = little.getBooksPublished();
+        assertTrue(booksPublishedByLittle.size() == 2);
+        assertTrue(booksPublishedByLittle.contains(getBookByName(FEW_MOON)));
+        assertTrue(booksPublishedByLittle.contains(getBookByName(TWOLIGHTS)));
+
+        assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS).equals(getBookByName(TWOLIGHTS)));
+        assertTrue(little.getBooksPublishedByBookName(FEW_MOON).equals(getBookByName(FEW_MOON)));
+
+        getBookByName(TWOLIGHTS).removePublisher();
     }
-    
+
     @Atomic
     public void test03part2() {
-	Publisher little = FenixFramework.getDomainRoot().getThePublishersByPublisherName(LITTLE);
-	
-	assertTrue(little.equals(getPublisherByName(LITTLE)));
-	
-	Set<Book> booksPublishedByLittle = little.getBooksPublished();
-	assertTrue(booksPublishedByLittle.size() == 1);
-	assertTrue(booksPublishedByLittle.contains(getBookByName(FEW_MOON)));
+        Publisher little = FenixFramework.getDomainRoot().getThePublishersByPublisherName(LITTLE);
 
-	assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS) == null);
-	assertTrue(little.getBooksPublishedByBookName(FEW_MOON).equals(getBookByName(FEW_MOON)));
-	
-	booksPublishedByLittle.clear();
+        assertTrue(little.equals(getPublisherByName(LITTLE)));
+
+        Set<Book> booksPublishedByLittle = little.getBooksPublished();
+        assertTrue(booksPublishedByLittle.size() == 1);
+        assertTrue(booksPublishedByLittle.contains(getBookByName(FEW_MOON)));
+
+        assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS) == null);
+        assertTrue(little.getBooksPublishedByBookName(FEW_MOON).equals(getBookByName(FEW_MOON)));
+
+        booksPublishedByLittle.clear();
     }
-    
+
     @Atomic
     public void test03part3() {
-	Publisher little = FenixFramework.getDomainRoot().getThePublishersByPublisherName(LITTLE);
-	
-	assertTrue(little.equals(getPublisherByName(LITTLE)));
-	
-	Set<Book> booksPublishedByLittle = little.getBooksPublished();
-	assertTrue(booksPublishedByLittle.size() == 0);
-	
-	assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS) == null);
-	assertTrue(little.getBooksPublishedByBookName(FEW_MOON) == null);
+        Publisher little = FenixFramework.getDomainRoot().getThePublishersByPublisherName(LITTLE);
+
+        assertTrue(little.equals(getPublisherByName(LITTLE)));
+
+        Set<Book> booksPublishedByLittle = little.getBooksPublished();
+        assertTrue(booksPublishedByLittle.size() == 0);
+
+        assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS) == null);
+        assertTrue(little.getBooksPublishedByBookName(FEW_MOON) == null);
     }
-    
+
     @Before
     @Atomic
     public void init() {
@@ -221,7 +221,7 @@ public class BooksTest {
         }
         return null;
     }
-    
+
     @Atomic
     public static Author getAuthorByNameAndAge(String authorName, int age) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();

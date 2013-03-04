@@ -81,8 +81,7 @@ public interface TransactionManager extends javax.transaction.TransactionManager
     public void begin(boolean readOnly) throws NotSupportedException, SystemException;
 
     /**
-     * Registers a commit listener, that will be called whenever any
-     * {@link Transaction} managed by this Manager is committed.
+     * Registers a commit listener, that will be called whenever any {@link Transaction} managed by this Manager is committed.
      * 
      * @param listener
      *            The listener to be added.
