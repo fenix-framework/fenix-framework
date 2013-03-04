@@ -1,24 +1,33 @@
 <!--
-    This file tells eclipse to ignore goals from dml-maven-plugin, to avoid warnings.
-    In the future, it would be nice if these targets correctly worked with eclipse, instead
-    of just being ignored.
-
-    For more details see http://wiki.eclipse.org/M2E_compatible_maven_plugins
--->
+	This file tells eclipse to run the CodeGeneratorMojo once a project is imported.
+	
+	For more details see http://wiki.eclipse.org/M2E_compatible_maven_plugins -->
 <lifecycleMappingMetadata>
-    <pluginExecutions>
-        <pluginExecution>
-            <pluginExecutionFilter>
-                <goals>
-                    <goal>post-compile</goal>
-                    <goal>generate-domain</goal>
-                    <goal>test-post-compile</goal>
-                    <goal>test-generate-domain</goal>
-                </goals>
-            </pluginExecutionFilter>
-            <action>
-                <ignore></ignore>
-            </action>
-        </pluginExecution>
-    </pluginExecutions>
+	<pluginExecutions>
+		<pluginExecution>
+			<pluginExecutionFilter>
+				<goals>
+					<goal>post-compile</goal>
+					<goal>test-post-compile</goal>
+					<goal>test-generate-domain</goal>
+				</goals>
+			</pluginExecutionFilter>
+			<action>
+				<ignore />
+			</action>
+		</pluginExecution>
+		<pluginExecution>
+			<pluginExecutionFilter>
+				<goals>
+					<goal>generate-domain</goal>
+				</goals>
+			</pluginExecutionFilter>
+			<action>
+				<execute>
+					<runOnIncremental>false</runOnIncremental>
+					<runOnConfiguration>true</runOnConfiguration>
+				</execute>
+			</action>
+		</pluginExecution>
+	</pluginExecutions>
 </lifecycleMappingMetadata>

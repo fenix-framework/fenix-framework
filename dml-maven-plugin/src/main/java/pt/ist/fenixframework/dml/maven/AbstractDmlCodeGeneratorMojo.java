@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -55,7 +56,15 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
             return;
         }
 
-        DmlMojoUtils.augmentClassLoader(getLog(), getClasspathElements());
+        List<String> classpath = new ArrayList<String>(getClasspathElements());
+
+        for (Artifact artifact : getMavenProject().getDependencyArtifacts()) {
+            if (artifact.getFile().isDirectory()) {
+                classpath.add(artifact.getFile().getAbsolutePath());
+            }
+        }
+
+        DmlMojoUtils.augmentClassLoader(getLog(), classpath);
 
         CompilerArgs compArgs = null;
         long latestBuildTime = getGeneratedSourcesDirectory().lastModified();
