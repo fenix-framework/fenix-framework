@@ -264,7 +264,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
                         // abort
                         if (body.value == VBox.NOT_LOADED_VALUE) {
                             logger.error("Couldn't load the attribute {} for class {}", attr, obj.getClass());
-                            throw new VersionNotAvailableException();
+                            throw new VersionNotAvailableException("Couldn't load the attribute " + attr + " for instance " + obj);
                         }
                     }
                 }
