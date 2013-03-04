@@ -9,7 +9,6 @@
 				<goals>
 					<goal>post-compile</goal>
 					<goal>test-post-compile</goal>
-					<goal>test-generate-domain</goal>
 				</goals>
 			</pluginExecutionFilter>
 			<action>
@@ -19,6 +18,7 @@
 		<pluginExecution>
 			<pluginExecutionFilter>
 				<goals>
+					<goal>test-generate-domain</goal>
 					<goal>generate-domain</goal>
 				</goals>
 			</pluginExecutionFilter>
