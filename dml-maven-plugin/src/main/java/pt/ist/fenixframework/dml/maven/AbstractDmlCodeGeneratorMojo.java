@@ -152,6 +152,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
             }
         } catch (Exception e) {
             getLog().error(e);
+            throw new MojoExecutionException("Something went wrong with the Code Generation", e);
         }
     }
 
