@@ -28,6 +28,7 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
         return false;
     }
 
+    @Override
     public T get(Comparable key) {
         ListNode<T> previous = getHead();
         ListNode<T> next = previous.getNext();
@@ -66,6 +67,7 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
         return get(key) != null;
     }
 
+    @Override
     public int size() {
         ListNode<T> iter = getHead().getNext();
         int size = 0;
@@ -76,6 +78,7 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
         return size;
     }
 
+    @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
 

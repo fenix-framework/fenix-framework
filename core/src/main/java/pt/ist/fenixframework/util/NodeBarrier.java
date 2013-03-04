@@ -40,7 +40,7 @@ public class NodeBarrier extends ReceiverAdapter {
      * Blocks the thread execution until
      * 
      * @param expectedMembers nodes has reached this
-     * @param barrierName}
+     * @param barrierName
      * 
      * @param barrierName the barrier name
      * @param expectedMembers the number of expected members

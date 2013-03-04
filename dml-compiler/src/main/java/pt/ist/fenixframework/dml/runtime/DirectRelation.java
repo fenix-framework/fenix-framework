@@ -24,6 +24,7 @@ public class DirectRelation<C1 extends DomainObject, C2 extends DomainObject> im
         }
     }
 
+    @Override
     public boolean add(C1 o1, C2 o2) {
         if (listeners != null) {
             for (RelationListener<C1, C2> l : listeners) {
@@ -44,6 +45,7 @@ public class DirectRelation<C1 extends DomainObject, C2 extends DomainObject> im
         return added;
     }
 
+    @Override
     public boolean remove(C1 o1, C2 o2) {
         if (listeners != null) {
             for (RelationListener<C1, C2> l : listeners) {
@@ -64,6 +66,7 @@ public class DirectRelation<C1 extends DomainObject, C2 extends DomainObject> im
         return removed;
     }
 
+    @Override
     public Relation<C2, C1> getInverseRelation() {
         return inverse;
     }
@@ -83,6 +86,7 @@ public class DirectRelation<C1 extends DomainObject, C2 extends DomainObject> im
         getListeners().remove(listener);
     }
 
+    @Override
     public String getName() {
         return name;
     }

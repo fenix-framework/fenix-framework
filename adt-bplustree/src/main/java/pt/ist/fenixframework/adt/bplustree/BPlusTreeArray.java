@@ -25,6 +25,7 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
             }
         };
 
+        @Override
         public int compareTo(Object c) {
             if (c == null) {
                 // because comparing the other way around would cause a NullPointerException
@@ -35,6 +36,7 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
             return 1; // this key is always greater than any other, except itself.
         }
 
+        @Override
         public String toString() {
             return "LAST_KEY";
         }
@@ -53,6 +55,7 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
     private static class ComparatorSupportingLastKey implements Comparator<Comparable>, Serializable {
         // only LAST_KEY knows how to compare itself with others, so we must check for it before
         // delegating the comparison to the Comparables.
+        @Override
         public int compare(Comparable o1, Comparable o2) {
             if (o1 == LAST_KEY) {
                 return o1.compareTo(o2);
@@ -132,6 +135,7 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
      * Returns the value to which the specified key is mapped, or <code>null</code> if this map
      * contains no mapping for the key.
      */
+    @Override
     public T get(Comparable key) {
         return ((AbstractNodeArray<T>) this.getRoot()).get(key);
     }
@@ -164,6 +168,7 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
     }
 
     /** Returns the number of key-value mappings in this map */
+    @Override
     public int size() {
         return this.getRoot().size();
     }
@@ -172,6 +177,7 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
         return this.getRoot().dump(level, dumpKeysOnly, dumpNodeIds);
     }
 
+    @Override
     public Iterator iterator() {
         return this.getRoot().iterator();
     }

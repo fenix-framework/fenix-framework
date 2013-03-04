@@ -18,6 +18,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
         setEntries(entries);
     }
 
+    @Override
     public AbstractNodeArray insert(Comparable key, Serializable value) {
         DoubleArray<Serializable> localArr = justInsert(key, value);
 
@@ -70,6 +71,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
         leftNode.setNext(rightNode);
     }
 
+    @Override
     public AbstractNodeArray remove(Comparable key) {
         DoubleArray<Serializable> localArr = justRemove(key);
 
@@ -117,6 +119,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
         }
     }
 
+    @Override
     DoubleArray<Serializable>.KeyVal removeBiggestKeyValue() {
         DoubleArray<Serializable> entries = this.getEntries();
         DoubleArray<Serializable>.KeyVal lastEntry = entries.getBiggestKeyValue();
@@ -124,6 +127,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
         return lastEntry;
     }
 
+    @Override
     DoubleArray<Serializable>.KeyVal removeSmallestKeyValue() {
         DoubleArray<Serializable> entries = this.getEntries();
         DoubleArray<Serializable>.KeyVal firstEntry = entries.getSmallestKeyValue();
@@ -131,14 +135,17 @@ public class LeafNodeArray extends LeafNodeArray_Base {
         return firstEntry;
     }
 
+    @Override
     Comparable getSmallestKey() {
         return this.getEntries().firstKey();
     }
 
+    @Override
     void addKeyValue(DoubleArray.KeyVal keyValue) {
         setEntries(this.getEntries().addKeyValue(keyValue));
     }
 
+    @Override
     void mergeWithLeftNode(AbstractNodeArray leftNode, Comparable splitKey) {
         LeafNodeArray left = (LeafNodeArray) leftNode; // this node does not know how to merge with another kind
         setEntries(getEntries().mergeWith(left.getEntries()));
@@ -153,10 +160,12 @@ public class LeafNodeArray extends LeafNodeArray_Base {
         assert (this.getParent() == leftNode.getParent());
     }
 
+    @Override
     public Serializable get(Comparable key) {
         return this.getEntries().get(key);
     }
 
+    @Override
     public Serializable getIndex(int index) {
         if (index < 0) {
             throw new IndexOutOfBoundsException();
@@ -173,6 +182,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
         }
     }
 
+    @Override
     public AbstractNodeArray removeIndex(int index) {
         if (index < 0) {
             throw new IndexOutOfBoundsException();
@@ -189,18 +199,22 @@ public class LeafNodeArray extends LeafNodeArray_Base {
         }
     }
 
+    @Override
     public boolean containsKey(Comparable key) {
         return this.getEntries().containsKey(key);
     }
 
+    @Override
     int shallowSize() {
         return this.getEntries().length();
     }
 
+    @Override
     public int size() {
         return this.getEntries().length();
     }
 
+    @Override
     public Iterator<Serializable> iterator() {
         return new LeafNodeArrayIterator(this);
     }
@@ -216,6 +230,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
             this.current = LeafNodeArray;
         }
 
+        @Override
         public boolean hasNext() {
             if (index < values.length) {
                 return true;
@@ -224,6 +239,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
             }
         }
 
+        @Override
         public Serializable next() {
             if (index >= values.length) {
                 LeafNodeArray nextNode = this.current.getNext();
@@ -239,12 +255,14 @@ public class LeafNodeArray extends LeafNodeArray_Base {
             return values[index - 1];
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException("This implementation does not allow element removal via the iterator");
         }
 
     }
 
+    @Override
     public String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds) {
         StringBuilder str = new StringBuilder();
         str.append(BPlusTreeArray.spaces(level));

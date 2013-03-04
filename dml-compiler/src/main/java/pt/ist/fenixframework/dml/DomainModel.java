@@ -297,6 +297,7 @@ public class DomainModel implements Serializable {
         }
     }
 
+    @Override
     public String toString() {
         return "{ classes = " + classes + ", relations = " + relations + " }";
     }

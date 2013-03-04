@@ -122,6 +122,7 @@ public abstract class CodeGenerator {
      */
     protected void generateBackEndId() {
         writeToFile(new File(getBaseDirectoryFor(BACKEND_PACKAGE), CURRENT_BACKEND_ID_CLASS + ".java"), new WriteProcedure() {
+            @Override
             public void doIt(PrintWriter out) {
                 generateFilePreamble(BACKEND_PACKAGE, out);
                 generateCurrentBackEndIdClass(CURRENT_BACKEND_ID_CLASS, out);
@@ -154,7 +155,7 @@ public abstract class CodeGenerator {
 
     protected void generateClasses(Iterator<DomainClass> classesIter) {
         while (classesIter.hasNext()) {
-            generateOneClass((DomainClass) classesIter.next());
+            generateOneClass(classesIter.next());
         }
     }
 
@@ -162,6 +163,7 @@ public abstract class CodeGenerator {
         final String packageName = domClass.getPackageName();
 
         writeToFile(new File(getBaseDirectoryFor(packageName), domClass.getBaseName() + ".java"), new WriteProcedure() {
+            @Override
             public void doIt(PrintWriter out) {
                 generateFilePreamble(packageName, out);
                 generateBaseClass(domClass, out);
@@ -175,6 +177,7 @@ public abstract class CodeGenerator {
         File leafClassFile = new File(getDirectoryFor(packageName), domClass.getName() + ".java");
         if (!leafClassFile.exists()) {
             writeToFile(leafClassFile, new WriteProcedure() {
+                @Override
                 public void doIt(PrintWriter out) {
                     generatePublicFilePreamble(packageName, out);
                     generatePublicClass(domClass, out);

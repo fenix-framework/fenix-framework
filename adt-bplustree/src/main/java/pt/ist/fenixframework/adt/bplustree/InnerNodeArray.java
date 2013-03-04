@@ -192,6 +192,7 @@ public class InnerNodeArray extends InnerNodeArray_Base {
         setSubNodes(getSubNodes().removeKey(previousEntryKey));
     }
 
+    @Override
     void mergeWithLeftNode(AbstractNodeArray leftNode, Comparable splitKey) {
         InnerNodeArray left = (InnerNodeArray) leftNode;  // this node does not know how to merge with another kind
 

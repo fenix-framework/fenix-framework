@@ -9,6 +9,7 @@ import pt.ist.fenixframework.DomainObject;
  */
 
 public abstract class RoleMany<C1 extends DomainObject, C2 extends DomainObject> implements Role<C1, C2> {
+    @Override
     public boolean add(C1 o1, C2 o2, Relation<C1, C2> relation) {
         if ((o1 != null) && (o2 != null)) {
             return getSet(o1).justAdd(o2);
@@ -16,6 +17,7 @@ public abstract class RoleMany<C1 extends DomainObject, C2 extends DomainObject>
         return false;
     }
 
+    @Override
     public boolean remove(C1 o1, C2 o2) {
         if ((o1 != null) && (o2 != null)) {
             return getSet(o1).justRemove(o2);

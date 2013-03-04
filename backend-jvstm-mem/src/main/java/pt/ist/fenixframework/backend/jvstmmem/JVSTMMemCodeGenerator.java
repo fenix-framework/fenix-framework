@@ -227,6 +227,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
+    @Override
     protected void generateIteratorMethod(Role role, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"

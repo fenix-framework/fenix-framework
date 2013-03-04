@@ -98,6 +98,7 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
         }
     }
 
+    @Override
     protected String getRelationAwareBaseTypeFor(Role role) {
         if (role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY) {
             return RelationMulValuesIndexedAwareSet.class.getName();

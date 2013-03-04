@@ -13,18 +13,22 @@ public class InverseRelation<C1 extends DomainObject, C2 extends DomainObject> i
         this.name = name;
     }
 
+    @Override
     public boolean add(C1 o1, C2 o2) {
         return inverseRelation.add(o2, o1);
     }
 
+    @Override
     public boolean remove(C1 o1, C2 o2) {
         return inverseRelation.remove(o2, o1);
     }
 
+    @Override
     public Relation<C2, C1> getInverseRelation() {
         return inverseRelation;
     }
 
+    @Override
     public String getName() {
         return name;
     }

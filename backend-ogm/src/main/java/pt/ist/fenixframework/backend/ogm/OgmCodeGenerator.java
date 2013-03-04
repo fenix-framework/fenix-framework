@@ -298,6 +298,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
+    @Override
     protected void generateRoleMethodGetInverseRole(Role role, Role otherRole, PrintWriter out) {
         // the getInverseRole method
         String inverseRoleType =
@@ -346,6 +347,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         println(out, ";");
     }
 
+    @Override
     protected String getSetTypeDeclarationFor(Role role) {
         String elemType = getTypeFullName(role.getType());
         return makeGenericType("java.util.Set", elemType);
@@ -457,6 +459,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
+    @Override
     protected void generateIteratorMethod(Role role, PrintWriter out) {
         generateIteratorMethod(role, out, getRoleManyGetterExpression(role.getName()));
     }

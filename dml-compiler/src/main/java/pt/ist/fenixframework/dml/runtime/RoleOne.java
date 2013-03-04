@@ -9,6 +9,7 @@ import pt.ist.fenixframework.DomainObject;
  */
 
 public abstract class RoleOne<C1 extends DomainObject, C2 extends DomainObject> implements Role<C1, C2> {
+    @Override
     public boolean add(C1 o1, C2 o2, Relation<C1, C2> relation) {
         if (o1 != null) {
             C2 old2 = getValue(o1);
@@ -20,6 +21,7 @@ public abstract class RoleOne<C1 extends DomainObject, C2 extends DomainObject> 
         return true;
     }
 
+    @Override
     public boolean remove(C1 o1, C2 o2) {
         if (o1 != null) {
             setValue(o1, null);

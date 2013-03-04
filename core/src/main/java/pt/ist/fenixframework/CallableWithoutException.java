@@ -8,5 +8,6 @@ import java.util.concurrent.Callable;
  */
 public interface CallableWithoutException<V> extends Callable<V> {
 
+    @Override
     public V call();
 }

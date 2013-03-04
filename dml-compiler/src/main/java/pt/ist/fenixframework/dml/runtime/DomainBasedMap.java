@@ -19,5 +19,6 @@ public interface DomainBasedMap<T extends Serializable> extends DomainObject, It
 
     public int size();
 
+    @Override
     public Iterator<T> iterator();
 }

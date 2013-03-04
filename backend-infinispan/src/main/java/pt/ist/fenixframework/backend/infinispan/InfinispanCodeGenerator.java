@@ -369,6 +369,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
+    @Override
     protected void generateIteratorMethod(Role role, PrintWriter out) {
         generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "Iterator", "get" + capitalize(role.getName())
                 + "()");

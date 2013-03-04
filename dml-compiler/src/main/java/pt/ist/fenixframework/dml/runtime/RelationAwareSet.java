@@ -21,14 +21,17 @@ public class RelationAwareSet<E1 extends AbstractDomainObject, E2 extends Abstra
         this.mapKey = mapKey;
     }
 
+    @Override
     public boolean justAdd(E2 elem) {
         return internalMap.putIfMissing(mapKey.getKey(elem), elem);
     }
 
+    @Override
     public boolean justRemove(E2 elem) {
         return internalMap.remove(mapKey.getKey(elem));
     }
 
+    @Override
     public int size() {
         return internalMap.size();
     }
@@ -37,6 +40,7 @@ public class RelationAwareSet<E1 extends AbstractDomainObject, E2 extends Abstra
         return internalMap.get(key);
     }
 
+    @Override
     public boolean contains(Object o) {
         if (o instanceof AbstractDomainObject) {
             return internalMap.contains(mapKey.getKey((E2) o));

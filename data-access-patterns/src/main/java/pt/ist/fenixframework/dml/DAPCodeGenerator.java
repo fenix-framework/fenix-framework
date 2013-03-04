@@ -200,6 +200,7 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
     }
 
     //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
+    @Override
     protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {
         newline(out);
         printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"

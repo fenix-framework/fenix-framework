@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import pt.ist.fenixframework.core.Externalization;
+
 // import java.util.concurrent.atomic.AtomicInteger;
 
 /** The keys comparison function should be consistent with equals. */

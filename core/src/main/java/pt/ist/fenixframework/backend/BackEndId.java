@@ -84,7 +84,7 @@ public abstract class BackEndId {
         try {
             Class<CurrentBackEndId> currentBackEndIdClass =
                     (Class<CurrentBackEndId>) Class.forName(CurrentBackEndId.class.getName());
-            BackEndId beId = (BackEndId) currentBackEndIdClass.newInstance();
+            BackEndId beId = currentBackEndIdClass.newInstance();
             return beId;
         } catch (ClassNotFoundException e) {
             ex = e;

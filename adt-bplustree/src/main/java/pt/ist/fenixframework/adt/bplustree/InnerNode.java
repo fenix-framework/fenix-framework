@@ -212,6 +212,7 @@ public class InnerNode extends InnerNode_Base {
         setSubNodes(newMap);
     }
 
+    @Override
     void mergeWithLeftNode(AbstractNode leftNode, Comparable splitKey) {
         InnerNode left = (InnerNode) leftNode;  // this node does not know how to merge with another kind
 

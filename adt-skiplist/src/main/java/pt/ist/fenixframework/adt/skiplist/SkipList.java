@@ -12,6 +12,7 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
     private transient final static double probability = 0.25;
     private transient final static int maxLevel = 32;
     private transient final static ThreadLocal<Random> random = new ThreadLocal<Random>() {
+        @Override
         protected Random initialValue() {
             return new Random();
         }
@@ -143,6 +144,7 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
         return get(key) != null;
     }
 
+    @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
 

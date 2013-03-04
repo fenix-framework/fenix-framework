@@ -14,14 +14,17 @@ public class RoleEmpty<C1 extends DomainObject, C2 extends DomainObject> impleme
         this.inverseRole = inverseRole;
     }
 
+    @Override
     public boolean add(C1 o1, C2 o2, Relation<C1, C2> relation) {
         return true;
     }
 
+    @Override
     public boolean remove(C1 o1, C2 o2) {
         return true;
     }
 
+    @Override
     public Role<C2, C1> getInverseRole() {
         return inverseRole;
     }

@@ -21,6 +21,7 @@ public class LeafNode extends LeafNode_Base {
         return new TreeMap<Comparable, Serializable>(getEntries());
     }
 
+    @Override
     public AbstractNode insert(Comparable key, Serializable value) {
         TreeMap<Comparable, Serializable> localMap = justInsert(key, value);
 
@@ -82,6 +83,7 @@ public class LeafNode extends LeafNode_Base {
         leftNode.setNext(rightNode);
     }
 
+    @Override
     public AbstractNode remove(Comparable key) {
         TreeMap<Comparable, Serializable> localMap = justRemove(key);
 
@@ -130,6 +132,7 @@ public class LeafNode extends LeafNode_Base {
         }
     }
 
+    @Override
     Map.Entry<Comparable, Serializable> removeBiggestKeyValue() {
         TreeMap<Comparable, Serializable> newMap = duplicateMap();
         Map.Entry<Comparable, Serializable> lastEntry = newMap.pollLastEntry();
@@ -137,6 +140,7 @@ public class LeafNode extends LeafNode_Base {
         return lastEntry;
     }
 
+    @Override
     Map.Entry<Comparable, Serializable> removeSmallestKeyValue() {
         TreeMap<Comparable, Serializable> newMap = duplicateMap();
         Map.Entry<Comparable, Serializable> firstEntry = newMap.pollFirstEntry();
@@ -144,16 +148,19 @@ public class LeafNode extends LeafNode_Base {
         return firstEntry;
     }
 
+    @Override
     Comparable getSmallestKey() {
         return this.getEntries().firstKey();
     }
 
+    @Override
     void addKeyValue(Map.Entry keyValue) {
         TreeMap<Comparable, Serializable> newMap = duplicateMap();
         newMap.put((Comparable) keyValue.getKey(), (Serializable) keyValue.getValue());
         setEntries(newMap);
     }
 
+    @Override
     void mergeWithLeftNode(AbstractNode leftNode, Comparable splitKey) {
         LeafNode left = (LeafNode) leftNode; // this node does not know how to merge with another kind
 
@@ -172,10 +179,12 @@ public class LeafNode extends LeafNode_Base {
         assert (this.getParent() == leftNode.getParent());
     }
 
+    @Override
     public Serializable get(Comparable key) {
         return this.getEntries().get(key);
     }
 
+    @Override
     public Serializable getIndex(int index) {
         if (index < 0) {
             throw new IndexOutOfBoundsException();
@@ -196,6 +205,7 @@ public class LeafNode extends LeafNode_Base {
         }
     }
 
+    @Override
     public AbstractNode removeIndex(int index) {
         if (index < 0) {
             throw new IndexOutOfBoundsException();
@@ -216,14 +226,17 @@ public class LeafNode extends LeafNode_Base {
         }
     }
 
+    @Override
     public boolean containsKey(Comparable key) {
         return this.getEntries().containsKey(key);
     }
 
+    @Override
     int shallowSize() {
         return this.getEntries().size();
     }
 
+    @Override
     public int size() {
         return this.getEntries().size();
     }
@@ -233,6 +246,7 @@ public class LeafNode extends LeafNode_Base {
         return new LeafNodeKeysIterator(this);
     }
 
+    @Override
     public Iterator<Serializable> iterator() {
         return new LeafNodeValuesIterator(this);
     }
@@ -248,6 +262,7 @@ public class LeafNode extends LeafNode_Base {
 
         protected abstract Iterator<T> getInternalIterator(LeafNode leafNode);
 
+        @Override
         public boolean hasNext() {
             if (this.iterator.hasNext()) {
                 return true;
@@ -256,6 +271,7 @@ public class LeafNode extends LeafNode_Base {
             }
         }
 
+        @Override
         public T next() {
             if (!this.iterator.hasNext()) {
                 LeafNode nextNode = this.current.getNext();
@@ -269,6 +285,7 @@ public class LeafNode extends LeafNode_Base {
             return this.iterator.next();
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException("This implementation does not allow element removal via the iterator");
         }
@@ -281,6 +298,7 @@ public class LeafNode extends LeafNode_Base {
             super(leafNode);
         }
 
+        @Override
         protected Iterator<Serializable> getInternalIterator(LeafNode leafNode) {
             return leafNode.getEntries().values().iterator();
         }
@@ -293,12 +311,14 @@ public class LeafNode extends LeafNode_Base {
             super(leafNode);
         }
 
+        @Override
         protected Iterator<Comparable> getInternalIterator(LeafNode leafNode) {
             return leafNode.getEntries().keySet().iterator();
         }
 
     }
 
+    @Override
     public String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds) {
         StringBuilder str = new StringBuilder();
         str.append(BPlusTree.spaces(level));

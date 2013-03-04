@@ -134,14 +134,17 @@ public class UnmodifiableDomainBaseSet<T extends AbstractDomainObject> implement
         @Override
         public Iterator<T> iterator() {
             return new Iterator<T>() {
+                @Override
                 public boolean hasNext() {
                     return false;
                 }
 
+                @Override
                 public T next() {
                     throw new NoSuchElementException();
                 }
 
+                @Override
                 public void remove() {
                     throw new UnsupportedOperationException();
                 }

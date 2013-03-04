@@ -24,27 +24,33 @@ public class PlainValueType implements ValueType {
         this.domainName = domainName;
     }
 
+    @Override
     public PlainValueType getBaseType() {
         return this;
     }
 
+    @Override
     public String getDomainName() {
         return domainName;
     }
 
+    @Override
     public String getFullname() {
         return fullTypeName;
     }
 
+    @Override
     public boolean isBuiltin() {
         // builtin value-types have no externalization elements
         return extElements.isEmpty();
     }
 
+    @Override
     public boolean isEnum() {
         return false;
     }
 
+    @Override
     public List<ExternalizationElement> getExternalizationElements() {
         return extElements;
     }
@@ -53,6 +59,7 @@ public class PlainValueType implements ValueType {
         this.extElements.add(extElement);
     }
 
+    @Override
     public String getInternalizationMethodName() {
         return internalizationMethodName;
     }

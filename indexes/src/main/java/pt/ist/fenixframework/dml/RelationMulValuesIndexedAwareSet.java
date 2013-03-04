@@ -126,14 +126,17 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject, E
         }
 
         private final class EmptyIterator implements Iterator<E2> {
+            @Override
             public boolean hasNext() {
                 return false;
             }
 
+            @Override
             public E2 next() {
                 throw new NoSuchElementException();
             }
 
+            @Override
             public void remove() {
                 throw new UnsupportedOperationException();
             }
