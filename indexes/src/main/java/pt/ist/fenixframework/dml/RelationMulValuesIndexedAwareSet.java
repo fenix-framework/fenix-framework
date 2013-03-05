@@ -15,12 +15,48 @@ import pt.ist.fenixframework.indexes.UnmodifiableDomainBaseSet;
 public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends
         RelationAwareSet<E1, E2> {
 
-    protected DomainBasedMap<LinkedList<E2>> multiValueMap;
+    // All accesses to the internalMap should go through the getInternalMap() method!
+    private DomainBasedMap<LinkedList<E2>> multiValueMap;
+    protected final DomainBasedMap.Getter<LinkedList<E2>> multiValueMapGetter;
+
+    public RelationMulValuesIndexedAwareSet(E1 owner, Relation<E1, E2> relation, KeyFunction<? extends Comparable<?>, E2> mapKey,
+            DomainBasedMap<LinkedList<E2>> multiValueMap, DomainBasedMap.Getter<LinkedList<E2>> multiValueMapGetter) {
+        super(owner, relation, (DomainBasedMap<E2>) null, mapKey);
+        this.multiValueMap = multiValueMap;
+        this.multiValueMapGetter = multiValueMapGetter;
+    }
 
     public RelationMulValuesIndexedAwareSet(E1 owner, Relation<E1, E2> relation, DomainBasedMap<LinkedList<E2>> multiValueMap,
             KeyFunction<? extends Comparable<?>, E2> mapKey) {
-        super(owner, relation, null, mapKey);
-        this.multiValueMap = multiValueMap;
+        this(owner, relation, mapKey, multiValueMap, null);
+    }
+
+    public RelationMulValuesIndexedAwareSet(E1 owner, Relation<E1, E2> relation,
+            DomainBasedMap.Getter<LinkedList<E2>> multiValueMapGetter, KeyFunction<? extends Comparable<?>, E2> mapKey) {
+        this(owner, relation, mapKey, null, multiValueMapGetter);
+    }
+
+    /**
+     * Provide access to the multiValuelMap. This method should be used by any other method that needs to access the
+     * multiValueMap.
+     * 
+     * @return The reference to the map to use
+     */
+    // This method replicates behavior equivalent to that of the getInternalMap() in the super class.  Please see comments there.  
+    protected DomainBasedMap<LinkedList<E2>> getMultiValueMap() {
+        DomainBasedMap<LinkedList<E2>> localRef = multiValueMap;
+        if (localRef == null) {
+            localRef = reloadMultiValueMap();
+            // here we assume that reloadMultiValueMap will always return the same instance, so at most we're just setting the
+            // same thing repeatedly.
+            multiValueMap = localRef;
+        }
+        return localRef;
+    }
+
+    // This method replicates behavior equivalent to that of the reloadInternalMap() in the super class.  Please see comments there.  
+    private DomainBasedMap<LinkedList<E2>> reloadMultiValueMap() {
+        return multiValueMapGetter.get();
     }
 
     @Override
@@ -36,11 +72,11 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject, E
     }
 
     protected DomainBasedMap<E2> checkIfExists(Comparable<?> key) {
-        LinkedList<E2> subMap = multiValueMap.get(key);
+        LinkedList<E2> subMap = getMultiValueMap().get(key);
         if (subMap == null) {
             // Note that this Collection is attached here, we can make it dynamic, but is it worth it?
             subMap = new LinkedList<E2>();
-            multiValueMap.put(key, subMap);
+            getMultiValueMap().put(key, subMap);
         }
         return subMap;
     }
@@ -51,7 +87,7 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject, E
     }
 
     public Set<E2> getValues(Comparable<?> key) {
-        return new UnmodifiableDomainBaseSet<E2>(multiValueMap.get(key));
+        return new UnmodifiableDomainBaseSet<E2>(getMultiValueMap().get(key));
     }
 
     @Override
@@ -68,7 +104,7 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject, E
     @Override
     public int size() {
         int sum = 0;
-        for (DomainBasedMap<E2> subMap : multiValueMap) {
+        for (DomainBasedMap<E2> subMap : getMultiValueMap()) {
             sum += subMap.size();
         }
         return sum;
@@ -76,11 +112,11 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject, E
 
     @Override
     public Iterator<E2> iterator() {
-        return new RelationMulValuesIndexedAwareIterator(this.multiValueMap);
+        return new RelationMulValuesIndexedAwareIterator(getMultiValueMap());
     }
 
     protected class RelationMulValuesIndexedAwareIterator implements Iterator<E2> {
-        private Iterator<LinkedList<E2>> keyIterator;
+        private final Iterator<LinkedList<E2>> keyIterator;
         private Iterator<E2> iterator;
         private E2 current = null;
         private boolean canRemove = false;
