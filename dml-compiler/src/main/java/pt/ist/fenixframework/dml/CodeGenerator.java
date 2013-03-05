@@ -19,6 +19,7 @@ public abstract class CodeGenerator {
     public static final String CURRENT_BACKEND_ID_CLASS = "CurrentBackEndId";
     public static final String CURRENT_BACKEND_ID_FULL_CLASS = BACKEND_PACKAGE + "." + CURRENT_BACKEND_ID_CLASS;
     public static final String COLLECTION_CLASS_NAME_KEY = "collectionClassName";
+    public static final String DEFAULT_DOMAIN_BASED_MAP = "pt.ist.fenixframework.dml.runtime.StubDomainBasedMap";
 
     protected static class PrimitiveToWrapperEntry {
         public final String primitiveType;
@@ -54,7 +55,7 @@ public abstract class CodeGenerator {
                         compArgs.packageName);
         String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
         if (collectionName == null || collectionName.isEmpty()) {
-            this.collectionToUse = "java.util.HashSet";
+            this.collectionToUse = DEFAULT_DOMAIN_BASED_MAP;
         } else {
             this.collectionToUse = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
         }
