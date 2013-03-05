@@ -20,6 +20,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- PLEASE KEEP THIS LIST SORTED ALPHABETICALLY!!!  THANKS -->
+        <version.advice>1.2</version.advice>
         <version.antlr>2.7.7</version.antlr>
         <version.apache.ant>1.8.2</version.apache.ant>
         <version.asm>4.0</version.asm>
@@ -315,11 +316,16 @@
                 <artifactId>jgroups</artifactId>
                 <version>${version.jgroups}</version>
             </dependency>
-	        <dependency>
-	        	<groupId>mysql</groupId>
-	        	<artifactId>mysql-connector-java</artifactId>
-	        	<version>${version.mysql.connector}</version>
-	        </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${version.mysql.connector}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist.esw</groupId>
+                <artifactId>advice</artifactId>
+                <version>${version.advice}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -328,6 +334,11 @@
         <repository>
             <id>fenix-ashes-maven-repository</id>
             <url>https://fenix-ashes.ist.utl.pt/maven-public</url>
+        </repository>
+
+        <repository>
+            <id>inesc-id-esw-repository</id>
+            <url>http://inesc-id-esw.github.com/maven-repo/</url>
         </repository>
 
         <repository>

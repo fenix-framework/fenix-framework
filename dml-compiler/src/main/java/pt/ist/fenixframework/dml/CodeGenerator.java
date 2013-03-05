@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 
-import pt.ist.fenixframework.atomic.ContextFactory;
+import pt.ist.fenixframework.atomic.AtomicContextFactory;
 import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
 
 /**
@@ -272,7 +272,7 @@ public abstract class CodeGenerator {
 
         // getAtomicContextFactoryClass
         newline(out);
-        printMethod(out, "public", "Class<? extends pt.ist.fenixframework.atomic.ContextFactory>", "getAtomicContextFactoryClass");
+        printMethod(out, "public", "Class<? extends pt.ist.fenixframework.atomic.AtomicContextFactory>", "getAtomicContextFactoryClass");
         startMethodBody(out);
         Class factory = getAtomicContextFactoryClass();
         if (factory != null) {
@@ -661,9 +661,6 @@ public abstract class CodeGenerator {
      * as an instance initializer with the parameter <code>allocateInstance = false</code>.
      */
     protected void generateInitInstance(DomainClass domClass, PrintWriter out) {
-        // generate initInstance method to be used by OJB.  This is used in the
-        // PostProcessDomainClasses. Maybe we could disable it..., or at least move it to a specific
-        // backend.
         generateInitInstanceNoArg(domClass, out);
 
         // generate initInstance method
@@ -1275,7 +1272,7 @@ public abstract class CodeGenerator {
     protected abstract String getDefaultConfigClassName();
 
     /**
-     * Get the class that implements the ContextFactory for AtomicContexts
+     * Get the class that implements the AtomicContextFactory for AtomicContexts
      */
-    protected abstract Class<? extends ContextFactory> getAtomicContextFactoryClass();
+    protected abstract Class<? extends AtomicContextFactory> getAtomicContextFactoryClass();
 }

@@ -45,18 +45,20 @@
                 <version>${version.maven.exec-plugin}</version>
                 <executions>
                     <execution>
+                        <id>generate-atomic-instance</id>
                         <phase>process-classes</phase>
                         <goals>
                             <goal>java</goal>
                         </goals>
+                        <configuration>
+                            <mainClass>pt.ist.esw.advice.GenerateAnnotationInstance</mainClass>
+                            <arguments>
+                                <argument>pt.ist.fenixframework.Atomic</argument>
+                                <argument>${project.build.outputDirectory}</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <mainClass>pt.ist.fenixframework.atomic.GenerateAtomicInstance</mainClass>
-                    <arguments>
-                        <argument>${project.build.outputDirectory}</argument>
-                    </arguments>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -90,7 +92,10 @@
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-debug-all</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>pt.ist.esw</groupId>
+            <artifactId>advice</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>

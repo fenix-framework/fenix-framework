@@ -33,19 +33,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${version.maven.jar-plugin}</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/*_Base*</exclude>
-                        <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>
-                        <exclude>pt/ist/fenixframework/backend/CurrentBackEndId*</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
             <!-- needed by the ogm backend -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

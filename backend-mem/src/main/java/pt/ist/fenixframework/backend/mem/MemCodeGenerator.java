@@ -1,7 +1,7 @@
 package pt.ist.fenixframework.backend.mem;
 
-import pt.ist.fenixframework.atomic.ContextFactory;
-import pt.ist.fenixframework.atomic.DefaultContextFactory;
+import pt.ist.fenixframework.atomic.AtomicContextFactory;
+import pt.ist.fenixframework.atomic.DefaultAtomicContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
@@ -28,8 +28,8 @@ public class MemCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected Class<? extends ContextFactory> getAtomicContextFactoryClass() {
-        return DefaultContextFactory.class;
+    protected Class<? extends AtomicContextFactory> getAtomicContextFactoryClass() {
+        return DefaultAtomicContextFactory.class;
     }
 
 }
