@@ -54,7 +54,7 @@ public class RepositoryBootstrap {
     public void updateDataRepositoryStructureIfNeeded() {
         Connection connection = null;
         try {
-            connection = getConnection();
+            connection = getConnection(config);
 
             Statement statement = null;
             ResultSet resultSet = null;
@@ -115,6 +115,7 @@ public class RepositoryBootstrap {
             connection.commit();
         } catch (Exception ex) {
             ex.printStackTrace();
+            throw new Error(ex);
         } finally {
             if (connection != null) {
                 try {
@@ -149,7 +150,7 @@ public class RepositoryBootstrap {
         executeSqlInstructions(connection, sqlInstructions);
     }
 
-    private Connection getConnection() throws ClassNotFoundException, SQLException {
+    public static Connection getConnection(Config config) throws ClassNotFoundException, SQLException {
         final String driverName = "com.mysql.jdbc.Driver";
         Class.forName(driverName);
         final String url = "jdbc:mysql:" + config.getDbAlias();

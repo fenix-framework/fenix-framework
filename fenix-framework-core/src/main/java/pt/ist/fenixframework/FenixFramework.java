@@ -2,6 +2,7 @@ package pt.ist.fenixframework;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import jvstm.TransactionalCommand;
@@ -66,7 +67,7 @@ public class FenixFramework {
             }
 
             System.out.println("[FenixFramework] Initialization started.");
-            initDomainFenixFrameworkRoot();
+            getLockAndInitDomainFenixFrameworkRoot();
             PersistentRoot.initRootIfNeeded(config);
 
             FenixFrameworkPlugin[] plugins = config.getPlugins();
@@ -105,7 +106,11 @@ public class FenixFramework {
             Transaction.withTransaction(new TransactionalCommand() {
                 @Override
                 public void doIt() {
-                    getLockAndInitDomainFenixFrameworkRoot();
+                    if (getDomainFenixFrameworkRoot() == null) {
+                        DomainFenixFrameworkRoot fenixFrameworkRoot = new DomainFenixFrameworkRoot();
+                        PersistentRoot.addRoot(DomainFenixFrameworkRoot.ROOT_KEY, fenixFrameworkRoot);
+                    }
+                    getDomainFenixFrameworkRoot().initialize(getDomainModel());
                 }
             });
         } catch (Throwable t) {
@@ -118,11 +123,15 @@ public class FenixFramework {
         }
     }
 
-    public static void getLockAndInitDomainFenixFrameworkRoot() {
-        //Most of this connection- and lock-related code was copied from RepositoryBootstrap.updateDataRepositoryStructureIfNeeded()
+    /**
+     * Initializes the {@link DomainFenixFrameworkRoot} after obtaining a db-lock, to guarantee that only one application server
+     * at a time executes this code.
+     */
+    private static void getLockAndInitDomainFenixFrameworkRoot() {
+        //Most of this lock-related code was copied from RepositoryBootstrap.updateDataRepositoryStructureIfNeeded()
         Connection connection = null;
         try {
-            connection = Transaction.getCurrentJdbcConnection();
+            connection = RepositoryBootstrap.getConnection(config);
 
             Statement statement = null;
             ResultSet resultSet = null;
@@ -152,13 +161,7 @@ public class FenixFramework {
             }
 
             try {
-
-                if (getDomainFenixFrameworkRoot() == null) {
-                    DomainFenixFrameworkRoot fenixFrameworkRoot = new DomainFenixFrameworkRoot();
-                    PersistentRoot.addRoot(DomainFenixFrameworkRoot.ROOT_KEY, fenixFrameworkRoot);
-                }
-                getDomainFenixFrameworkRoot().initialize(getDomainModel());
-
+                initDomainFenixFrameworkRoot();
             } finally {
                 Statement statementUnlock = null;
                 try {
@@ -170,9 +173,19 @@ public class FenixFramework {
                     }
                 }
             }
+
+            connection.commit();
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new Error(ex);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    // nothing can be done.
+                }
+            }
         }
     }
 
