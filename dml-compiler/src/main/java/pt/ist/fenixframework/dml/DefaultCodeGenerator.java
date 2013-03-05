@@ -1,6 +1,6 @@
 package pt.ist.fenixframework.dml;
 
-import pt.ist.fenixframework.atomic.ContextFactory;
+import pt.ist.fenixframework.atomic.AtomicContextFactory;
 
 public class DefaultCodeGenerator extends CodeGenerator {
 
@@ -19,7 +19,7 @@ public class DefaultCodeGenerator extends CodeGenerator {
     }
 
     @Override
-    protected Class<? extends ContextFactory> getAtomicContextFactoryClass() {
+    protected Class<? extends AtomicContextFactory> getAtomicContextFactoryClass() {
         return null;
     }
 

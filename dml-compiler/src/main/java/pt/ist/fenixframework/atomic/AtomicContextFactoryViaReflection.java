@@ -11,12 +11,10 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.dml.CodeGenerator;
 
 /**
- * This AtomicContextFactoryViaReflection tries to find, via reflection, the {@link pt.ist.fenixframework.atomic.ContextFactory}
- * class of the backend in use. It does so, first by
- * getting the current <code>BackEndId</code> (by reflection) and then by getting the factory class
- * (through <code>getAtomicContextFactoryClass()</code> --- again by reflection). It delegates to
- * that factory the creation of the appropriate {@link AtomicContext}. If it fails, it throws an
- * Error, indicating such condition.
+ * This AtomicContextFactoryViaReflection tries to find, via reflection, the {@link pt.ist.fenixframework.atomic.AtomicContextFactory}
+ * class of the backend in use. It does so, first by getting the current <code>BackEndId</code> (by reflection) and then by
+ * getting the factory class (through <code>getAtomicContextFactoryClass()</code> --- again by reflection). It delegates to
+ * that factory the creation of the appropriate {@link AtomicContext}. If it fails, it throws an Error, indicating such condition.
  */
 public final class AtomicContextFactoryViaReflection extends AdviceFactory<Atomic> {
     private static final Logger logger = LoggerFactory.getLogger(AtomicContextFactoryViaReflection.class);
@@ -42,10 +40,10 @@ public final class AtomicContextFactoryViaReflection extends AdviceFactory<Atomi
             Method getInstance = backendIdClass.getMethod("getBackEndId");
             Object currentBackendId = getInstance.invoke(null);
 
-            // GOAL: Class<? extends ContextFactory> factoryClass = currentBackendId.getAtomicContextFactoryClass()
+            // GOAL: Class<? extends AtomicContextFactory> factoryClass = currentBackendId.getAtomicContextFactoryClass()
             Method getAtomicContextFactoryClass = currentBackendId.getClass().getMethod("getAtomicContextFactoryClass");
-            Class<? extends ContextFactory> factoryClass =
-                    (Class<? extends ContextFactory>) getAtomicContextFactoryClass.invoke(currentBackendId);
+            Class<? extends AtomicContextFactory> factoryClass =
+                    (Class<? extends AtomicContextFactory>) getAtomicContextFactoryClass.invoke(currentBackendId);
 
             if (factoryClass == null) {
                 logger.warn("No atomic context factory class defined!");
@@ -56,7 +54,7 @@ public final class AtomicContextFactoryViaReflection extends AdviceFactory<Atomi
             Method newContext = factoryClass.getMethod("newContext", new Class[] { Atomic.class });
             return (AtomicContext) newContext.invoke(null, new Object[] { atomic });
         } catch (Exception e) {
-            throw new Error("Could not obtain an AtomicContext via the ContextFactory", e);
+            throw new Error("Could not obtain an AtomicContext via the AtomicContextFactory", e);
         }
     }
 

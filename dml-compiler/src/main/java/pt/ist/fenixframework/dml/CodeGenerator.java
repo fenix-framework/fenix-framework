@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 
-import pt.ist.fenixframework.atomic.ContextFactory;
+import pt.ist.fenixframework.atomic.AtomicContextFactory;
 import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
 
 /**
@@ -272,7 +272,7 @@ public abstract class CodeGenerator {
 
         // getAtomicContextFactoryClass
         newline(out);
-        printMethod(out, "public", "Class<? extends pt.ist.fenixframework.atomic.ContextFactory>", "getAtomicContextFactoryClass");
+        printMethod(out, "public", "Class<? extends pt.ist.fenixframework.atomic.AtomicContextFactory>", "getAtomicContextFactoryClass");
         startMethodBody(out);
         Class factory = getAtomicContextFactoryClass();
         if (factory != null) {
@@ -1272,7 +1272,7 @@ public abstract class CodeGenerator {
     protected abstract String getDefaultConfigClassName();
 
     /**
-     * Get the class that implements the ContextFactory for AtomicContexts
+     * Get the class that implements the AtomicContextFactory for AtomicContexts
      */
-    protected abstract Class<? extends ContextFactory> getAtomicContextFactoryClass();
+    protected abstract Class<? extends AtomicContextFactory> getAtomicContextFactoryClass();
 }

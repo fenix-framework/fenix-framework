@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
-import pt.ist.fenixframework.atomic.ContextFactory;
+import pt.ist.fenixframework.atomic.AtomicContextFactory;
 import pt.ist.fenixframework.dml.CodeGenerator;
 
 /**
@@ -70,7 +70,7 @@ public abstract class BackEndId {
      * backend provides the factory), because they control the logic required to execute a {@link java.util.concurrent.Callable}
      * within a transactional context.
      */
-    public abstract Class<? extends ContextFactory> getAtomicContextFactoryClass();
+    public abstract Class<? extends AtomicContextFactory> getAtomicContextFactoryClass();
 
     /**
      * Lookup via reflection the {@link pt.ist.fenixframework.backend.CurrentBackEndId} class and
