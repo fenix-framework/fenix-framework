@@ -101,8 +101,8 @@ public class FenixCodeGenerator extends CodeGenerator {
     protected void generateStaticRelationSlots(Role role, PrintWriter out) {
         super.generateStaticRelationSlots(role, out);
 
-        if (role.isFirstRole() || role.getOtherRole().getName() == null) {
-            String relationName = getRelationSlotNameFor(role);
+        if (role.isDirect()) {
+            String relationName = role.getRelation().getName();
 
             // set the relationName of the LoggingRelation object
             newline(out);
