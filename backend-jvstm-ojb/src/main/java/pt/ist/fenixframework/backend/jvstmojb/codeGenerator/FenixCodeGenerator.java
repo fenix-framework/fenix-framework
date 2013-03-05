@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import pt.ist.fenixframework.atomic.AtomicContextFactory;
-import pt.ist.fenixframework.atomic.DefaultContextFactory;
+import pt.ist.fenixframework.atomic.DefaultAtomicContextFactory;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBBackEnd;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.backend.jvstmojb.dml.runtime.ConsistencyChecks;
@@ -754,7 +754,7 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     @Override
     protected Class<? extends AtomicContextFactory> getAtomicContextFactoryClass() {
-        return DefaultContextFactory.class;
+        return DefaultAtomicContextFactory.class;
     }
 
 }

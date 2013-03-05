@@ -2,7 +2,7 @@ package pt.ist.fenixframework.atomic;
 
 import pt.ist.fenixframework.Atomic;
 
-public final class DefaultContextFactory extends AtomicContextFactory {
+public final class DefaultAtomicContextFactory extends AtomicContextFactory {
 
     // Instead of processing the parameters of the Atomic to create a concrete parameterized
     // AtomicContext (which was the original motivation here), this factory simply passes the Atomic
