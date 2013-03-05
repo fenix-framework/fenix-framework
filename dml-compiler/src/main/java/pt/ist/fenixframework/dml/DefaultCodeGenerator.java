@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.dml;
 
 import pt.ist.fenixframework.atomic.AtomicContextFactory;
+import pt.ist.fenixframework.dml.runtime.StubAtomicContextFactory;
 
 public class DefaultCodeGenerator extends CodeGenerator {
 
@@ -20,7 +21,7 @@ public class DefaultCodeGenerator extends CodeGenerator {
 
     @Override
     protected Class<? extends AtomicContextFactory> getAtomicContextFactoryClass() {
-        return null;
+        return StubAtomicContextFactory.class;
     }
 
 }

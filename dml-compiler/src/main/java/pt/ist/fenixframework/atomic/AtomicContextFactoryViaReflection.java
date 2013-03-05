@@ -11,8 +11,9 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.dml.CodeGenerator;
 
 /**
- * This AtomicContextFactoryViaReflection tries to find, via reflection, the {@link pt.ist.fenixframework.atomic.AtomicContextFactory}
- * class of the backend in use. It does so, first by getting the current <code>BackEndId</code> (by reflection) and then by
+ * This AtomicContextFactoryViaReflection tries to find, via reflection, the
+ * {@link pt.ist.fenixframework.atomic.AtomicContextFactory} class of the backend in use. It does so, first by getting the current
+ * <code>BackEndId</code> (by reflection) and then by
  * getting the factory class (through <code>getAtomicContextFactoryClass()</code> --- again by reflection). It delegates to
  * that factory the creation of the appropriate {@link AtomicContext}. If it fails, it throws an Error, indicating such condition.
  */
@@ -44,11 +45,6 @@ public final class AtomicContextFactoryViaReflection extends AdviceFactory<Atomi
             Method getAtomicContextFactoryClass = currentBackendId.getClass().getMethod("getAtomicContextFactoryClass");
             Class<? extends AtomicContextFactory> factoryClass =
                     (Class<? extends AtomicContextFactory>) getAtomicContextFactoryClass.invoke(currentBackendId);
-
-            if (factoryClass == null) {
-                logger.warn("No atomic context factory class defined!");
-                return null;
-            }
 
             // GOAL: return (AtomicContext)contextFactory.newAtomicContext(atomic);
             Method newAtomicContext = factoryClass.getMethod("newAtomicContext", new Class[] { Atomic.class });
