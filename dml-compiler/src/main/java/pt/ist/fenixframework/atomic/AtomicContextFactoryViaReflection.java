@@ -50,9 +50,9 @@ public final class AtomicContextFactoryViaReflection extends AdviceFactory<Atomi
                 return null;
             }
 
-            // GOAL: return (AtomicContext)contextFactory.newContext(atomic);
-            Method newContext = factoryClass.getMethod("newContext", new Class[] { Atomic.class });
-            return (AtomicContext) newContext.invoke(null, new Object[] { atomic });
+            // GOAL: return (AtomicContext)contextFactory.newAtomicContext(atomic);
+            Method newAtomicContext = factoryClass.getMethod("newAtomicContext", new Class[] { Atomic.class });
+            return (AtomicContext) newAtomicContext.invoke(null, new Object[] { atomic });
         } catch (Exception e) {
             throw new Error("Could not obtain an AtomicContext via the AtomicContextFactory", e);
         }

@@ -10,7 +10,7 @@ public final class DefaultAtomicContextFactory extends AtomicContextFactory {
     // delegates the behaviour to the TransactionManager.withTransaction(Callable, Atomic) method.
     // This decision was taken because, the algorithm of the withTransaction is both
     // backend-dependent and atomic-dependent.
-    public static AtomicContext newContext(Atomic atomic) {
+    public static AtomicContext newAtomicContext(Atomic atomic) {
         return new DefaultAtomicContext(atomic);
     }
 }
