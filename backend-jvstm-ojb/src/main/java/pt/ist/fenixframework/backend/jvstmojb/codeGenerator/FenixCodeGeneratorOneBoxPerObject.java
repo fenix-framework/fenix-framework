@@ -207,7 +207,11 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
                 generateSlotDeclaration(out, slot.getTypeName(), slot.getName());
             } else {
                 if (vt.getExternalizationElements().size() == 1) {
-                    generateSlotDeclaration(out, vt.getExternalizationElements().get(0).getType().getFullname(), slot.getName());
+                    ValueType actualType = vt.getExternalizationElements().get(0).getType();
+                    while (!(actualType.isBuiltin() || actualType.isEnum())) {
+                        actualType = actualType.getExternalizationElements().get(0).getType();
+                    }
+                    generateSlotDeclaration(out, actualType.getFullname(), slot.getName());
                 } else {
                     generateSlotDeclaration(out, ValueTypeSerializationGenerator.makeSerializationValueTypeName(vt),
                             slot.getName());
