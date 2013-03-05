@@ -5,6 +5,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import pt.ist.fenixframework.pstm.DomainMetaClass;
 import pt.ist.fenixframework.pstm.DomainMetaObject;
@@ -291,6 +293,15 @@ public class Config {
 
     public String getDbAlias() {
         return dbAlias;
+    }
+
+    public String getDbName() {
+        Pattern pattern = Pattern.compile("//.*/(.*)\\?");
+        Matcher matcher = pattern.matcher(getDbAlias());
+        if (!matcher.find()) {
+            throw new Error("[Config] Malformed dbAlias - could not retrieve dbName.");
+        }
+        return matcher.group(1);
     }
 
     public String getDbUsername() {

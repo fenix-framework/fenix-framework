@@ -126,19 +126,20 @@ public class FenixFramework {
 
             Statement statement = null;
             ResultSet resultSet = null;
+
+            String lockName = RepositoryBootstrap.getDbLockName();
             try {
                 int iterations = 0;
                 while (true) {
                     iterations++;
                     statement = connection.createStatement();
-                    resultSet = statement.executeQuery("SELECT GET_LOCK('FenixFrameworkInit', 60)");
+                    resultSet = statement.executeQuery("SELECT GET_LOCK('" + lockName + "', 60)");
                     if (resultSet.next() && (resultSet.getInt(1) == 1)) {
                         break;
                     }
                     if ((iterations % 10) == 0) {
-                        System.out
-                                .println("[DomainFenixFrameworkRoot] Warning: Could not yet obtain the FenixFrameworkInit lock. Number of retries: "
-                                        + iterations);
+                        System.out.println("[DomainFenixFrameworkRoot] Warning: Could not yet obtain the " + lockName
+                                + " lock. Number of retries: " + iterations);
                     }
                 }
             } finally {
@@ -162,7 +163,7 @@ public class FenixFramework {
                 Statement statementUnlock = null;
                 try {
                     statementUnlock = connection.createStatement();
-                    statementUnlock.executeUpdate("DO RELEASE_LOCK('FenixFrameworkInit')");
+                    statementUnlock.executeUpdate("DO RELEASE_LOCK('" + lockName + "')");
                 } finally {
                     if (statementUnlock != null) {
                         statementUnlock.close();

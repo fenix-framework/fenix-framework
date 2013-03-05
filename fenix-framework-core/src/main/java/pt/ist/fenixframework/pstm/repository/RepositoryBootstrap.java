@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import pt.ist.fenixframework.Config;
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.pstm.MetadataManager;
 
 /**
@@ -46,6 +47,10 @@ public class RepositoryBootstrap {
 
     }
 
+    public static String getDbLockName() {
+        return "FenixFrameworkInit." + FenixFramework.getConfig().getDbName();
+    }
+
     public void updateDataRepositoryStructureIfNeeded() {
         Connection connection = null;
         try {
@@ -58,14 +63,13 @@ public class RepositoryBootstrap {
                 while (true) {
                     iterations++;
                     statement = connection.createStatement();
-                    resultSet = statement.executeQuery("SELECT GET_LOCK('FenixFrameworkInit', 60)");
+                    resultSet = statement.executeQuery("SELECT GET_LOCK('" + getDbLockName() + "', 60)");
                     if (resultSet.next() && (resultSet.getInt(1) == 1)) {
                         break;
                     }
                     if ((iterations % 10) == 0) {
-                        System.out
-                                .println("[RepositoryBootstrap] Warning: Could not yet obtain the FenixFrameworkInit lock. Number of retries: "
-                                        + iterations);
+                        System.out.println("[RepositoryBootstrap] Warning: Could not yet obtain the " + getDbLockName()
+                                + " lock. Number of retries: " + iterations);
                     }
                 }
             } finally {
@@ -100,7 +104,7 @@ public class RepositoryBootstrap {
                 Statement statementUnlock = null;
                 try {
                     statementUnlock = connection.createStatement();
-                    statementUnlock.executeUpdate("DO RELEASE_LOCK('FenixFrameworkInit')");
+                    statementUnlock.executeUpdate("DO RELEASE_LOCK('" + getDbLockName() + "')");
                 } finally {
                     if (statementUnlock != null) {
                         statementUnlock.close();
