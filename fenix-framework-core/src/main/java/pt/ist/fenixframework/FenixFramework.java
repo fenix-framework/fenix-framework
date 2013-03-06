@@ -37,8 +37,6 @@ public class FenixFramework {
     private static Config config;
 
     public static void initialize(Config config) {
-        config.checkIsValid();
-
         bootStrap(config);
         initialize();
     }
@@ -51,7 +49,9 @@ public class FenixFramework {
 
             System.out.println("[FenixFramework] Bootstrap started.");
             FenixFramework.config = ((config != null) ? config : new Config());
-            config.checkConfig();
+            config.checkIsValid();
+            System.out.println("[FenixFramework] Starting the Fenix Framework with a valid config: ");
+            config.print();
             MetadataManager.init(config);
             new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
             DataAccessPatterns.init(config);

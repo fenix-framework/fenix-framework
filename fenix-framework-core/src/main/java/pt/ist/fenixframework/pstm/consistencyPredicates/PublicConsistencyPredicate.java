@@ -92,7 +92,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         overriddenPredicate.removeDomainDependenceRecordsForMetaClassAndSubclasses(getDomainMetaClass());
         setPublicConsistencyPredicateOverridden(overriddenPredicate);
 
-        System.out.println("[ConsistencyPredicates] Initializing overridden predicate of " + getPredicate() + " to "
+        System.out.println("[DomainConsistencyPredicate] Initializing overridden predicate of " + getPredicate() + " to "
                 + overriddenPredicate.getPredicate());
     }
 
@@ -136,7 +136,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         }
         setPublicConsistencyPredicateOverridden(overriddenPredicate);
 
-        System.out.println("[ConsistencyPredicates] Updating overridden predicate of " + getPredicate() + " to "
+        System.out.println("[DomainConsistencyPredicate] Updating overridden predicate of " + getPredicate() + " to "
                 + ((overriddenPredicate == null) ? "null" : overriddenPredicate.getPredicate()));
     }
 
