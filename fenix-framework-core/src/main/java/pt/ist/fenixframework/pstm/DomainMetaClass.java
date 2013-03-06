@@ -287,10 +287,13 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         String tableName = getTableName(domainClass);
         String className = domainClass.getName();
 
+        String metaObjectOidsQuery = "select OID from FF$DOMAIN_META_OBJECT";
+
         String query =
                 "select OID from " + tableName
                         + ", FF$DOMAIN_CLASS_INFO where OID >> 32 = DOMAIN_CLASS_ID and DOMAIN_CLASS_NAME = '" + className
-                        + "' and OID_DOMAIN_META_OBJECT is null order by OID limit " + MAX_NUMBER_OF_OBJECTS_TO_PROCESS;
+                        + "' and (OID_DOMAIN_META_OBJECT is null or OID_DOMAIN_META_OBJECT not in (" + metaObjectOidsQuery
+                        + ")) order by OID limit " + MAX_NUMBER_OF_OBJECTS_TO_PROCESS;
 
         ArrayList<String> oids = new ArrayList<String>();
         try {
