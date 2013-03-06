@@ -33,13 +33,11 @@ public class DirectRelation<C1 extends DomainObject, C2 extends DomainObject> im
         }
 
         boolean added = firstRole.add(o1, o2, this);
-        if (added) {
-            firstRole.getInverseRole().add(o2, o1, inverse);
+        firstRole.getInverseRole().add(o2, o1, inverse);
 
-            if (listeners != null) {
-                for (RelationListener<C1, C2> l : listeners) {
-                    l.afterAdd(this, o1, o2);
-                }
+        if (listeners != null) {
+            for (RelationListener<C1, C2> l : listeners) {
+                l.afterAdd(this, o1, o2);
             }
         }
         return added;
@@ -54,13 +52,11 @@ public class DirectRelation<C1 extends DomainObject, C2 extends DomainObject> im
         }
 
         boolean removed = firstRole.remove(o1, o2);
-        if (removed) {
-            firstRole.getInverseRole().remove(o2, o1);
+        firstRole.getInverseRole().remove(o2, o1);
 
-            if (listeners != null) {
-                for (RelationListener<C1, C2> l : listeners) {
-                    l.afterRemove(this, o1, o2);
-                }
+        if (listeners != null) {
+            for (RelationListener<C1, C2> l : listeners) {
+                l.afterRemove(this, o1, o2);
             }
         }
         return removed;
