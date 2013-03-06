@@ -293,7 +293,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, "((");
         print(out, getTypeFullName(role.getOtherRole().getType()));
         print(out, ") this, ");
-        print(out, getRelationSlotNameFor(role));
+        print(out, getRelationMethodNameFor(role));
         print(out, ", internalSet, keyFunction$$");
         print(out, role.getName());
         print(out, ");");
@@ -405,7 +405,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         buf.append("(");
         buf.append(thisType);
         buf.append(")this, ");
-        buf.append(getRelationSlotNameFor(role));
+        buf.append(getRelationMethodNameFor(role));
         buf.append(", keyFunction$$");
         buf.append(role.getName());
         buf.append(")");

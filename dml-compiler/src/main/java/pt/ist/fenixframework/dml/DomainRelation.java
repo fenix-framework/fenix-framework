@@ -2,10 +2,11 @@ package pt.ist.fenixframework.dml;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DomainRelation extends DomainClass {
-    private List<Role> roles = new ArrayList<Role>();
+    private final List<Role> roles = new ArrayList<Role>();
 
     public DomainRelation(URL sourceFile, String name, DomainRelation superrelation, List interfaces) {
         super(sourceFile, name, superrelation, interfaces);
@@ -18,6 +19,7 @@ public class DomainRelation extends DomainClass {
     public void addRole(Role role) {
         role.setRelation(this);
         roles.add(role);
+        Collections.sort(roles, Role.COMPARATOR_BY_NAME_OR_TYPE);
     }
 
     public int countRoles() {

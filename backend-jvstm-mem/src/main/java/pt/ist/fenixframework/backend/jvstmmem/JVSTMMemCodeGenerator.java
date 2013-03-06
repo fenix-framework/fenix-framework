@@ -153,7 +153,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
         print(out, "((");
         print(out, getTypeFullName(role.getOtherRole().getType()));
         print(out, ") this, ");
-        print(out, getRelationSlotNameFor(role));
+        print(out, getRelationMethodNameFor(role));
         print(out, ", this.");
         print(out, role.getName());
         print(out, ", keyFunction$$");
