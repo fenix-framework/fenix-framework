@@ -236,7 +236,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         buf.append("((");
         buf.append(thisType);
         buf.append(")this, ");
-        buf.append(getRelationSlotNameFor(role));
+        buf.append(getRelationMethodNameFor(role));
         buf.append(", \"");
         buf.append(role.getName());
         buf.append("\", allocateOnly)");

@@ -537,7 +537,7 @@ public abstract class CodeGenerator {
             println(out, ");");
         }
 
-        // Generate relation getter, if the classes are distinct!
+        // Also Generate relation getter, if the classes are distinct!
         if (isDirectRelation || !role.getType().equals(otherRole.getType())) {
             printMethod(out, "public static", getDirectRelationInterfaceType() + genericType, methodName);
             startMethodBody(out);
@@ -638,15 +638,15 @@ public abstract class CodeGenerator {
         return buf.toString();
     }
 
-    protected String getRelationSlotNameFor(Role role) {
+    protected String getRelationMethodNameFor(Role role) {
         // when the two roles of a relation are played by the same class, 
         // we need to give different names to the relation slots because both
         // will be in the same class
 
-        return getRelationSlotNameFor(role, role.isDirect());
+        return getRelationMethodNameFor(role, role.isDirect());
     }
 
-    protected String getRelationSlotNameFor(Role role, boolean direct) {
+    protected String getRelationMethodNameFor(Role role, boolean direct) {
         // when the two roles of a relation are played by the same class, 
         // we need to give different names to the relation slots because both
         // will be in the same class
@@ -901,7 +901,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateRelationAddMethodCall(Role role, String otherArg, String indexParam, PrintWriter out) {
-        print(out, getRelationSlotNameFor(role, true));
+        print(out, getRelationMethodNameFor(role, true));
         print(out, ".add(");
         if (role.isDirect()) {
             print(out, "(");
@@ -918,7 +918,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateRelationRemoveMethodCall(Role role, String otherArg, PrintWriter out) {
-        print(out, getRelationSlotNameFor(role, true));
+        print(out, getRelationMethodNameFor(role, true));
         print(out, ".remove(");
         if (role.isDirect()) {
             print(out, "(");
@@ -1088,7 +1088,7 @@ public abstract class CodeGenerator {
         print(out, "((");
         print(out, getTypeFullName(role.getOtherRole().getType()));
         print(out, ")this, ");
-        print(out, getRelationSlotNameFor(role));
+        print(out, getRelationMethodNameFor(role));
         print(out, ", ");
         print(out, role.getName());
         print(out, ", ");

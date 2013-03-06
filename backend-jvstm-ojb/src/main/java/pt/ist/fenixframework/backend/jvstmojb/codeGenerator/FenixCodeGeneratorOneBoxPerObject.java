@@ -60,7 +60,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
                 print(out, "if (attrName.equals(\"");
                 print(out, role.getName());
                 print(out, "\")) return ");
-                print(out, getRelationSlotNameFor(role));
+                print(out, getRelationMethodNameFor(role));
                 println(out, ";");
             }
         }
@@ -97,7 +97,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
         printWords(out, "return", "get$$relationList(\"");
         print(out, role.getName());
         print(out, "\", ");
-        print(out, getRelationSlotNameFor(role));
+        print(out, getRelationMethodNameFor(role));
         println(out, ");");
 
         endMethodBody(out);
@@ -333,7 +333,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
                 print(out, "get$$relationList(\"");
                 print(out, role.getName());
                 print(out, "\", ");
-                print(out, getRelationSlotNameFor(role));
+                print(out, getRelationMethodNameFor(role));
                 println(out, ");");
             }
         }
