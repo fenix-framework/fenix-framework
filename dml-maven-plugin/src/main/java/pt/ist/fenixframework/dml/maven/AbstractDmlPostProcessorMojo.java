@@ -36,6 +36,7 @@ public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
             FullPostProcessDomainClasses.apply(getMavenProject().getArtifactId(), this.getClassesDirectory(), loader);
         } catch (Exception e) {
             getLog().error(e);
+            throw new MojoExecutionException("Something went wrong with the Post-Processing", e);
         }
     }
 }

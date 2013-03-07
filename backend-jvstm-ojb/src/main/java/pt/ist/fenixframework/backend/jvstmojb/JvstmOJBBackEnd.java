@@ -1,5 +1,10 @@
 package pt.ist.fenixframework.backend.jvstmojb;
 
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Enumeration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,5 +68,31 @@ public class JvstmOJBBackEnd implements BackEnd {
 
     @Override
     public void shutdown() {
+        logger.info("Shutting Down Fenix Framework");
+        deregisterDrivers();
+        logger.info("Fenix Framework Shut Down sucessfully");
     }
+
+    private void deregisterDrivers() {
+        ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+
+        Enumeration<Driver> drivers = DriverManager.getDrivers();
+        while (drivers.hasMoreElements()) {
+            Driver driver = drivers.nextElement();
+
+            ClassLoader loader = driver.getClass().getClassLoader();
+
+            if (loader != null && loader.equals(currentClassLoader)
+                    && driver.getClass().getName().equals("com.mysql.jdbc.Driver")) {
+                try {
+                    DriverManager.deregisterDriver(driver);
+                    logger.info("Successfully deregistered JDBC driver " + driver);
+                } catch (SQLException e) {
+                    logger.warn("Failed to deregister JDBC driver " + driver + ". This may cause a potential leak.", e);
+                }
+            }
+
+        }
+    }
+
 }
