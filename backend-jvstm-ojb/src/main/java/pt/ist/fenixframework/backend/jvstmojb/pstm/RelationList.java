@@ -111,7 +111,9 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
         }
 
         if (newSet != origSet) {
-            box.put(newSet);
+            // Because a nested FenixConsistencyCheckTransaction cannot perform writes, but may need to
+            // consolidate the elements of a relation changed by the parent transaction
+            box.putInParent(newSet);
         }
     }
 

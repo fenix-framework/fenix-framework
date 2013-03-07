@@ -359,8 +359,14 @@ public class TransactionChangeLogs {
                 e.printStackTrace();
                 logger.error("Couldn't initialize the clean thread");
                 //throw new Error("Couldn't initialize the clean thread");
+                if (broker != null) {
+                    broker.abortTransaction();
+                }
             } finally {
                 if (broker != null) {
+                    if (broker.isInTransaction()) {
+                        broker.abortTransaction();
+                    }
                     broker.close();
                 }
             }
@@ -396,15 +402,17 @@ public class TransactionChangeLogs {
                 broker.commitTransaction();
 
                 this.lastTxNumber = currentTxNumber;
-            } catch (Exception e) {
-                e.printStackTrace();
-                logger.error("Couldn't update database in the clean thread");
-                //throw new Error("Couldn't update database in the clean thread");
             } catch (Throwable t) {
                 t.printStackTrace();
                 logger.error("Couldn't update database in the clean thread because of a Throwable.");
+                if ((broker != null) && (broker.isInTransaction())) {
+                    broker.abortTransaction();
+                }
             } finally {
                 if (broker != null) {
+                    if (broker.isInTransaction()) {
+                        broker.abortTransaction();
+                    }
                     broker.close();
                 }
             }

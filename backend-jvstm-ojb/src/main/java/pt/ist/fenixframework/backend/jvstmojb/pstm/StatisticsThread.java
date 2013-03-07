@@ -101,6 +101,9 @@ class StatisticsThread extends Thread {
             // issue just a warning
             e.printStackTrace();
             logger.warn("WARNING: Couldn't insert the statistics data");
+            if ((broker != null) && (broker.isInTransaction())) {
+                broker.abortTransaction();
+            }
         } finally {
             if (broker != null) {
                 if (broker.isInTransaction()) {

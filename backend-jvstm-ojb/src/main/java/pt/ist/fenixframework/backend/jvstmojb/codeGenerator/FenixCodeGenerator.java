@@ -688,7 +688,7 @@ public class FenixCodeGenerator extends CodeGenerator {
 
     protected void generateRequiredConsistencyPredicate(DomainClass domClass, PrintWriter out) {
         newline(out);
-        println(out, "@jvstm.cps.ConsistencyPredicate");
+        println(out, "@pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate");
         printMethod(out, "private", "boolean", "checkRequiredSlots");
         startMethodBody(out);
 
@@ -713,7 +713,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         String capitalizedSlotName = capitalize(slotName);
 
         newline(out);
-        println(out, "@jvstm.cps.ConsistencyPredicate");
+        println(out, "@pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate");
         printMethod(out, "public final", "boolean", "checkMultiplicityOf" + capitalizedSlotName);
         startMethodBody(out);
 

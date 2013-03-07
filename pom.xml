@@ -32,6 +32,7 @@
 		<module>adt-linkedlist</module>
         <module>adt-skiplist</module>
         <module>data-access-patterns</module>
+	<module>consistency-predicates</module>
         <module>txintrospector</module>
         <module>hibernate-search</module>
         <module>indexes</module>

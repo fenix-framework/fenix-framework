@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
+import pt.ist.fenixframework.NoDomainMetaObjects;
+
+@NoDomainMetaObjects
 public class LeafNode extends LeafNode_Base {
 
     public LeafNode() {
@@ -104,6 +107,14 @@ public class LeafNode extends LeafNode_Base {
                 return getParent().getRoot();  // maybe a tiny faster than just getRoot() ?!
             }
         }
+    }
+
+    @Override
+    void delete() {
+        removeNext();
+        removePrevious();
+        removeParent();
+        deleteDomainObject();
     }
 
     private TreeMap<Comparable, Serializable> justRemove(Comparable key) {

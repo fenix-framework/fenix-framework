@@ -13,10 +13,17 @@ import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.NoDomainMetaObjects;
+import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
+import pt.ist.fenixframework.backend.jvstmojb.repository.ResultSetReader;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
+import pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot;
+import pt.ist.fenixframework.pstm.DomainMetaClass;
+import pt.ist.fenixframework.pstm.DomainMetaObject;
 
 public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
@@ -24,6 +31,8 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     // this should be final, but the ensureIdInternal method prevents it
     private long oid;
+
+    private VBox<DomainMetaObject> domainMetaObject;
 
     public class UnableToDetermineIdException extends RuntimeException {
         private static final long serialVersionUID = 3085208774911959073L;
@@ -41,12 +50,27 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         ensureIdInternal();
         // ensureOid();
         TransactionSupport.storeNewObject(this);
+
+        initMetaObject(false);
+
+        if ((!getClass().isAnnotationPresent(NoDomainMetaObjects.class)) && JvstmOJBConfig.canCreateDomainMetaObjects()) {
+            DomainMetaObject metaObject = new DomainMetaObject();
+            metaObject.setDomainObject(this);
+
+            getDomainMetaClass().addExistingDomainMetaObject(getDomainMetaObject());
+        }
     }
 
     protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
         // this constructor exists only as part of the allocate-instance
         // protocol
         this.oid = ((Long) oid.oid).longValue();
+
+        initMetaObject(true);
+    }
+
+    private void initMetaObject(boolean allocateOnly) {
+        domainMetaObject = VBox.makeNew(this, "domainMetaObject", allocateOnly, false);
     }
 
     public final Integer getIdInternal() {
@@ -139,9 +163,45 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         return null;
     }
 
+    public DomainMetaObject getDomainMetaObject() {
+        return domainMetaObject.get(this, "domainMetaObject");
+    }
+
+    public void justSetMetaObject(DomainMetaObject domainMetaObject) {
+        this.domainMetaObject.put(this, "domainMetaObject", domainMetaObject);
+    }
+
+    private void setMetaObject(DomainMetaObject domainMetaObject) {
+        domainMetaObject.setDomainObject(this);
+    }
+
+    private void removeMetaObject() {
+        getDomainMetaObject().removeDomainObject();
+    }
+
+    /**
+     * This should be invoked only when this DO is being deleted.
+     */
+    private void deleteDomainMetaObject() {
+        if (getDomainMetaObject() != null) {
+            getDomainMetaObject().delete();
+        }
+    }
+
+    private Long get$oidDomainMetaObject() {
+        DomainObject value = getDomainMetaObject();
+        return (value == null) ? null : Long.valueOf(value.getExternalId());
+    }
+
     public void readFromResultSet(java.sql.ResultSet rs) throws java.sql.SQLException {
         int txNumber = Transaction.current().getNumber();
         readSlotsFromResultSet(rs, txNumber);
+        readMetaObjectFromResultSet(rs, txNumber);
+    }
+
+    protected void readMetaObjectFromResultSet(java.sql.ResultSet rs, int txNumber) throws SQLException {
+        DomainMetaObject metaObject = ResultSetReader.readDomainObject(rs, "OID_DOMAIN_META_OBJECT");
+        this.domainMetaObject.persistentLoad(metaObject, txNumber);
     }
 
     protected abstract void readSlotsFromResultSet(java.sql.ResultSet rs, int txNumber) throws java.sql.SQLException;
@@ -161,7 +221,12 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     @Override
     protected void deleteDomainObject() {
         checkDisconnected();
+        deleteDomainMetaObject();
         TransactionSupport.deleteObject(this);
+    }
+
+    private DomainMetaClass getDomainMetaClass() {
+        return DomainFenixFrameworkRoot.getInstance().getDomainMetaClass(this.getClass());
     }
 
     protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,
