@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
@@ -154,12 +153,9 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     protected void checkDisconnected() {
     }
 
-    protected void handleAttemptToDeleteConnectedObject() {
-        if (FenixFramework.<JvstmOJBConfig> getConfig().isErrorfIfDeletingObjectNotDisconnected()) {
-            throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this);
-        } else {
-            logger.warn("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this);
-        }
+    protected void handleAttemptToDeleteConnectedObject(String roleName) {
+        throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this + " by role: "
+                + roleName);
     }
 
     @Override

@@ -1,5 +1,11 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
 public class VersionNotAvailableException extends RuntimeException {
-    // intentionally empty
+
+    private static final long serialVersionUID = -3876251268720915840L;
+
+    public VersionNotAvailableException(String message) {
+        super(message);
+    }
+
 }
