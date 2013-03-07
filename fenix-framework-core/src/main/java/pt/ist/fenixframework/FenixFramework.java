@@ -1,5 +1,10 @@
 package pt.ist.fenixframework;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import jvstm.TransactionalCommand;
 import pt.ist.fenixframework.pstm.DataAccessPatterns;
 import pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot;
@@ -32,8 +37,6 @@ public class FenixFramework {
     private static Config config;
 
     public static void initialize(Config config) {
-        config.checkIsValid();
-
         bootStrap(config);
         initialize();
     }
@@ -41,15 +44,19 @@ public class FenixFramework {
     public static void bootStrap(Config config) {
         synchronized (INIT_LOCK) {
             if (bootstrapped) {
-                throw new Error("Fenix framework already initialized");
+                throw new Error("Fenix framework already bootstrapped");
             }
 
+            System.out.println("[FenixFramework] Bootstrap started.");
             FenixFramework.config = ((config != null) ? config : new Config());
-            config.checkConfig();
+            config.checkIsValid();
+            System.out.println("[FenixFramework] Starting the Fenix Framework with a valid config: ");
+            config.print();
             MetadataManager.init(config);
             new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
             DataAccessPatterns.init(config);
             bootstrapped = true;
+            System.out.println("[FenixFramework] Bootstrap finished.");
         }
     }
 
@@ -59,7 +66,8 @@ public class FenixFramework {
                 throw new Error("Fenix framework already initialized");
             }
 
-            initDomainFenixFrameworkRoot();
+            System.out.println("[FenixFramework] Initialization started.");
+            getLockAndInitDomainFenixFrameworkRoot();
             PersistentRoot.initRootIfNeeded(config);
 
             FenixFrameworkPlugin[] plugins = config.getPlugins();
@@ -76,6 +84,7 @@ public class FenixFramework {
                 }
             }
             initialized = true;
+            System.out.println("[FenixFramework] Initialization finished.");
         }
     }
 
@@ -110,6 +119,72 @@ public class FenixFramework {
         } finally {
             if (jvstm.Transaction.isInTransaction()) {
                 Transaction.abort();
+            }
+        }
+    }
+
+    /**
+     * Initializes the {@link DomainFenixFrameworkRoot} after obtaining a db-lock, to guarantee that only one application server
+     * at a time executes this code.
+     */
+    private static void getLockAndInitDomainFenixFrameworkRoot() {
+        //Most of this lock-related code was copied from RepositoryBootstrap.updateDataRepositoryStructureIfNeeded()
+        Connection connection = null;
+        try {
+            connection = RepositoryBootstrap.getConnection(config);
+
+            Statement statement = null;
+            ResultSet resultSet = null;
+
+            String lockName = RepositoryBootstrap.getDbLockName();
+            try {
+                int iterations = 0;
+                while (true) {
+                    iterations++;
+                    statement = connection.createStatement();
+                    resultSet = statement.executeQuery("SELECT GET_LOCK('" + lockName + "', 60)");
+                    if (resultSet.next() && (resultSet.getInt(1) == 1)) {
+                        break;
+                    }
+                    if ((iterations % 10) == 0) {
+                        System.out.println("[DomainFenixFrameworkRoot] Warning: Could not yet obtain the " + lockName
+                                + " lock. Number of retries: " + iterations);
+                    }
+                }
+            } finally {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            }
+
+            try {
+                initDomainFenixFrameworkRoot();
+            } finally {
+                Statement statementUnlock = null;
+                try {
+                    statementUnlock = connection.createStatement();
+                    statementUnlock.executeUpdate("DO RELEASE_LOCK('" + lockName + "')");
+                } finally {
+                    if (statementUnlock != null) {
+                        statementUnlock.close();
+                    }
+                }
+            }
+
+            connection.commit();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new Error(ex);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    // nothing can be done.
+                }
             }
         }
     }

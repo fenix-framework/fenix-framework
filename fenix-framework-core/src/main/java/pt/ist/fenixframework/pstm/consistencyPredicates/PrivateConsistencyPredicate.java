@@ -22,7 +22,7 @@ public class PrivateConsistencyPredicate extends PrivateConsistencyPredicate_Bas
         super();
         setPredicate(predicateMethod);
         setDomainMetaClass(metaClass);
-        System.out.println("[ConsistencyPredicates] Created a " + getClass().getSimpleName() + " for " + getPredicate());
+        System.out.println("[DomainConsistencyPredicate] Created a " + getClass().getSimpleName() + " for " + getPredicate());
     }
 
     @Override

@@ -5,6 +5,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import pt.ist.fenixframework.pstm.DomainMetaClass;
 import pt.ist.fenixframework.pstm.DomainMetaObject;
@@ -251,7 +253,10 @@ public class Config {
         }
     }
 
-    public void checkConfig() {
+    /**
+     * Checks if the current config parameters are all valid. Throws an <code>Error</code> otherwise.
+     */
+    public void checkIsValid() {
         if ((domainModelPath == null) && (domainModelPaths == null)) {
             missingRequired("domainModelPath or domainModelPaths");
         }
@@ -259,6 +264,14 @@ public class Config {
         if ((domainModelPath != null) && (domainModelPaths != null)) {
             throw new Error("It is not possible to specify both the 'domainModelPath' "
                     + "and 'domainModelPaths' parameters in the FenixFramework config.");
+        }
+
+        /**
+         * @see DomainMetaObject#delete()
+         */
+        if ((canCreateDomainMetaObjects) && (!errorfIfDeletingObjectNotDisconnected)) {
+            throw new Error(
+                    "If the parameter canCreateDomainMetaObjects is set to true, then errorfIfDeletingObjectNotDisconnected must also be set to true.");
         }
 
         checkRequired(dbAlias, "dbAlias");
@@ -291,6 +304,15 @@ public class Config {
 
     public String getDbAlias() {
         return dbAlias;
+    }
+
+    public String getDbName() {
+        Pattern pattern = Pattern.compile("//.*/(.*)\\?");
+        Matcher matcher = pattern.matcher(getDbAlias());
+        if (!matcher.find()) {
+            throw new Error("[Config] Malformed dbAlias - could not retrieve dbName.");
+        }
+        return matcher.group(1);
     }
 
     public String getDbUsername() {
@@ -341,18 +363,32 @@ public class Config {
         return collectDataAccessPatternsPath;
     }
 
-    /**
-     * Checks that, if the parameter <code>canCreateDomainMetaObjects</code> is
-     * set to true, then <code>errorfIfDeletingObjectNotDisconnected</code> is
-     * also set to true.
-     * 
-     * @see DomainMetaObject#delete()
-     */
-    public void checkIsValid() {
-        if ((canCreateDomainMetaObjects) && (!errorfIfDeletingObjectNotDisconnected)) {
-            throw new Error(
-                    "If the parameter canCreateDomainMetaObjects is set to true, then errorfIfDeletingObjectNotDisconnected must also be set to true.");
-        }
-    }
+    public void print() {
+        System.out.println("[Config] domainModelPath: " + domainModelPath);
+        System.out.println("[Config] domainModelPaths: " + domainModelPaths);
 
+        System.out.println("[Config] dbAlias: " + dbAlias);
+        System.out.println("[Config] dbName: " + getDbName());
+        System.out.println("[Config] dbUsername: " + dbUsername);
+        // The password should never be shown, or even mentioned
+        //System.out.println("[Config] dbPassword: *hidden*");
+
+        System.out.println("[Config] appName: " + appName);
+        System.out.println("[Config] errorIfChangingDeletedObject: " + errorIfChangingDeletedObject);
+
+        System.out.println("[Config] createRepositoryStructureIfNotExists: " + createRepositoryStructureIfNotExists);
+        System.out.println("[Config] updateRepositoryStructureIfNeeded: " + updateRepositoryStructureIfNeeded);
+
+        System.out.println("[Config] rootClass: " + rootClass.getName());
+        System.out.println("[Config] domainModelClass: " + domainModelClass.getName());
+
+        System.out.println("[Config] collectDataAccessPatterns: " + collectDataAccessPatterns);
+        System.out.println("[Config] collectDataAccessPatternsPath: " + collectDataAccessPatternsPath);
+
+        System.out.println("[Config] errorfIfDeletingObjectNotDisconnected: " + errorfIfDeletingObjectNotDisconnected);
+
+        System.out.println("[Config] plugins: " + plugins);
+
+        System.out.println("[Config] canCreateDomainMetaObjects: " + canCreateDomainMetaObjects);
+    }
 }

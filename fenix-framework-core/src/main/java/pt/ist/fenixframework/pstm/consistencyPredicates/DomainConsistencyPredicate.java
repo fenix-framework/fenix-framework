@@ -174,6 +174,10 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
                         (Boolean) pair.second);
             }
         }
+
+        Transaction.beginTransaction();
+        System.out.println("[DomainConsistencyPredicate] Transaction finished. Number of processed "
+                + metaClass.getDomainClass().getSimpleName() + " objects: " + count);
     }
 
     /**
