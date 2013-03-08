@@ -294,7 +294,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         String tableName = getTableName(domainClass);
         String className = domainClass.getName();
 
-        String metaObjectOidsQuery = "select OID from FF$DOMAIN_META_OBJECT";
+        String metaObjectOidsQuery = "select OID from DOMAIN_META_OBJECT";
 
         String query =
                 "select OID from " + tableName
@@ -508,7 +508,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         String tableName = getTableName();
 
         String metaObjectsToDeleteQuery =
-                "select OID from FF$DOMAIN_META_OBJECT where OID_DOMAIN_META_CLASS = '" + getExternalId() + "'";
+                "select OID from DOMAIN_META_OBJECT where OID_DOMAIN_META_CLASS = '" + getExternalId() + "'";
 
         String clearDomainObjectsQuery =
                 "update " + tableName + " set OID_DOMAIN_META_OBJECT = null " + "where OID_DOMAIN_META_OBJECT in ("
@@ -523,7 +523,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         }
 
         String clearDependenceRecordsQuery =
-                "delete from FF$DOMAIN_DEPENDENCE_RECORD where OID_DEPENDENT_DOMAIN_META_OBJECT " + "in ("
+                "delete from DOMAIN_DEPENDENCE_RECORD where OID_DEPENDENT_DOMAIN_META_OBJECT " + "in ("
                         + metaObjectsToDeleteQuery + ")";
 
         try {
@@ -533,7 +533,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         }
 
         String clearIndirectionTable =
-                "delete from FF$DEPENDED_DOMAIN_META_OBJECTS_DEPENDING_DEPENDENCE_RECORDS" + " where OID_DOMAIN_META_OBJECT in ("
+                "delete from DEPENDED_DOMAIN_META_OBJECTS_DEPENDING_DEPENDENCE_RECORDS" + " where OID_DOMAIN_META_OBJECT in ("
                         + metaObjectsToDeleteQuery + ")";
 
         try {
@@ -547,8 +547,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         bPlusTree.delete();
         removeExistingDomainMetaObjects();
 
-        String deleteMetaObjectsQuery =
-                "delete from FF$DOMAIN_META_OBJECT where OID_DOMAIN_META_CLASS = '" + getExternalId() + "'";
+        String deleteMetaObjectsQuery = "delete from DOMAIN_META_OBJECT where OID_DOMAIN_META_CLASS = '" + getExternalId() + "'";
 
         try {
             getCurrentJdbcConnection().createStatement().executeUpdate(deleteMetaObjectsQuery);

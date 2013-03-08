@@ -27,7 +27,7 @@ public class FinalConsistencyPredicate extends FinalConsistencyPredicate_Base {
         super();
         setPredicate(predicateMethod);
         setDomainMetaClass(metaClass);
-        logger.info("Created a {} for {}".getClass().getSimpleName(), getPredicate());
+        logger.info("Created a {} for {}", getClass().getSimpleName(), getPredicate());
     }
 
     @Override
