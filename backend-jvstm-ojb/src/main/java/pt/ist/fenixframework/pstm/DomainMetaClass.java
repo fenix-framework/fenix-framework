@@ -271,7 +271,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
             // Each transaction processes a maximum of MAX_NUMBER_OF_OBJECTS_TO_PROCESS objects in order to avoid OutOfMemoryExceptions.
             // Because the JDBC query only returns objects that have no DomainMetaObjects, there is no problem with
             // processing only an incomplete part of the objects of this class.
-            Transaction.beginTransaction();
+            DomainFenixFrameworkRoot.checkpointTransaction();
         }
     }
 

@@ -21,6 +21,7 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
+import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
@@ -351,8 +352,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             }
 
             logger.info("Resuming the initialization of the DomainMetaClass: " + metaClass.getDomainClass().getSimpleName());
-            // Commits the current, and starts a new write transaction.
-            Transaction.beginTransaction();
+
+            checkpointTransaction();
             metaClass.initExistingDomainObjects();
             metaClass.executeInheritedPredicates();
 
@@ -448,14 +449,14 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      */
     private void createNewMetaClasses(Collection<Class<? extends AbstractDomainObject>> newClassesToAddTopDown) {
         for (Class<? extends AbstractDomainObject> domainClass : newClassesToAddTopDown) {
-            // Commits the current, and starts a new write transaction.
-            Transaction.beginTransaction();
+
+            checkpointTransaction();
             DomainMetaClass newDomainMetaClass = new DomainMetaClass(domainClass);
             if (hasSuperclassInDML(newDomainMetaClass)) {
                 newDomainMetaClass.initDomainMetaSuperclass(getDomainMetaSuperclassFromDML(newDomainMetaClass));
             }
-            // Commits the current, and starts a new write transaction.
-            Transaction.beginTransaction();
+
+            checkpointTransaction();
             newDomainMetaClass.initExistingDomainObjects();
             newDomainMetaClass.executeInheritedPredicates();
 
@@ -606,8 +607,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      */
     private void createAndExecuteNewPredicates(Set<Method> newPredicatesToAdd, DomainMetaClass metaClass) {
         for (Method predicateMethod : newPredicatesToAdd) {
-            // Commits the current, and starts a new write transaction.
-            Transaction.beginTransaction();
+
+            checkpointTransaction();
             DomainConsistencyPredicate newConsistencyPredicate =
                     DomainConsistencyPredicate.createNewDomainConsistencyPredicate(predicateMethod, metaClass);
             newConsistencyPredicate.initConsistencyPredicateOverridden();
@@ -657,7 +658,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // Commits the current, and starts a new write transaction.
             // This is necessary to split the load of the mass deletion of DomainDependenceRecords among several transactions.
             // Each transaction fully processes one DomainConsistencyPredicate.
-            Transaction.beginTransaction();
+            checkpointTransaction();
             knownConsistencyPredicate.delete();
         }
     }
@@ -717,8 +718,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
 
             logger.info("Resuming the initialization of the consistency predicate: "
                     + consistencyPredicate.getPredicate().getName());
-            // Commits the current, and starts a new write transaction.
-            Transaction.beginTransaction();
+            checkpointTransaction();
             consistencyPredicate.executeConsistencyPredicateForMetaClassAndSubclasses(metaClass);
 
             // Because the executeConsistencyPredicateForMetaClassAndSubclasses method is split among several transactions,
@@ -761,9 +761,31 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
                 // Commits the current, and starts a new write transaction.
                 // This is necessary to split the load of the mass deletion of objects among several transactions.
                 // Each transaction fully processes one DomainMetaClass.
-                Transaction.beginTransaction();
+                checkpointTransaction();
                 metaClass.delete();
             }
         }
+    }
+
+    /**
+     * Commits the current, and starts a new write transaction.
+     */
+    public static void checkpointTransaction() {
+        if (FenixFramework.isInitialized()) {
+            throw new Error("Cannot checkpoint transactions after Framework Initialization.");
+        }
+        try {
+            TransactionManager txManager = FenixFramework.getTransactionManager();
+
+            if (txManager.getTransaction() != null) {
+                txManager.commit();
+            }
+
+            txManager.begin(false);
+        } catch (Exception e) {
+            logger.error("An error has ocurred while checkpointing the transaction!", e);
+            throw new Error(e);
+        }
+
     }
 }

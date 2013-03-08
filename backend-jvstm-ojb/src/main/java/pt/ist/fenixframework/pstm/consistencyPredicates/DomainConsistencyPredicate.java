@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Set;
 
+import jvstm.Transaction;
 import jvstm.cps.ConsistencyCheckTransaction;
 import jvstm.cps.Depended;
 
@@ -163,7 +164,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
                 // Each transaction processes a maximum of MAX_NUMBER_OF_OBJECTS_TO_PROCESS objects in order to avoid OutOfMemoryExceptions.
                 // Because this method checks for repeated OwnDependenceRecords of each meta object being checked, there is no problem with
                 // processing only an incomplete part of the objects of the given class.
-                Transaction.beginTransaction();
+                DomainFenixFrameworkRoot.checkpointTransaction();
                 logger.info("Transaction finished. Number of processed " + metaClass.getDomainClass().getSimpleName()
                         + " objects: " + count);
             }
@@ -180,7 +181,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
             }
         }
 
-        Transaction.beginTransaction();
+        DomainFenixFrameworkRoot.checkpointTransaction();
         logger.info("Transaction finished. Number of processed " + metaClass.getDomainClass().getSimpleName() + " objects: "
                 + count);
     }
@@ -275,7 +276,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
                 // Each transaction processes a maximum of MAX_NUMBER_OF_OBJECTS_TO_PROCESS objects in order to avoid OutOfMemoryExceptions.
                 // Because this method sets the current predicate as not finalized, there is no problem with processing only an incomplete part
                 // of the DomainDependenceRecords.
-                Transaction.beginTransaction();
+                DomainFenixFrameworkRoot.checkpointTransaction();
                 logger.info("Transaction finished. Number of deleted DomainDependenceRecords: " + count);
             }
             dependenceRecord.delete();
