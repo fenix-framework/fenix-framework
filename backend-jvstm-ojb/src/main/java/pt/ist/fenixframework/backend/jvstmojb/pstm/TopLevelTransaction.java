@@ -761,16 +761,16 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     private HashMap<RelationTupleChange, RelationTupleChange> relationTupleChanges = null;
 
     @Override
-    public void logRelationAdd(String relationName, AbstractDomainObject o1, AbstractDomainObject o2) {
+    public void logRelationAdd(String relationName, DomainObject o1, DomainObject o2) {
         logRelationTuple(relationName, o1, o2, false);
     }
 
     @Override
-    public void logRelationRemove(String relationName, AbstractDomainObject o1, AbstractDomainObject o2) {
+    public void logRelationRemove(String relationName, DomainObject o1, DomainObject o2) {
         logRelationTuple(relationName, o1, o2, true);
     }
 
-    private void logRelationTuple(String relationName, AbstractDomainObject o1, AbstractDomainObject o2, boolean remove) {
+    private void logRelationTuple(String relationName, DomainObject o1, DomainObject o2, boolean remove) {
         if (relationTupleChanges == null) {
             relationTupleChanges = new HashMap<RelationTupleChange, RelationTupleChange>();
         }
@@ -794,11 +794,11 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
     private static class RelationTupleChange {
         final String relationName;
-        final AbstractDomainObject obj1;
-        final AbstractDomainObject obj2;
+        final DomainObject obj1;
+        final DomainObject obj2;
         final boolean remove;
 
-        RelationTupleChange(String relationName, AbstractDomainObject obj1, AbstractDomainObject obj2, boolean remove) {
+        RelationTupleChange(String relationName, DomainObject obj1, DomainObject obj2, boolean remove) {
             this.relationName = relationName;
             this.obj1 = obj1;
             this.obj2 = obj2;

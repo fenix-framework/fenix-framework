@@ -12,6 +12,7 @@ import jvstm.cps.Depended;
 
 import org.apache.ojb.broker.PersistenceBroker;
 
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.pstm.DomainMetaObject;
 
@@ -116,12 +117,12 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction implements
     }
 
     @Override
-    public void logRelationAdd(String relationName, AbstractDomainObject o1, AbstractDomainObject o2) {
+    public void logRelationAdd(String relationName, DomainObject o1, DomainObject o2) {
         throw new Error("It doesn't make sense to call logRelationAdd for a FenixConsistencyCheckTransaction");
     }
 
     @Override
-    public void logRelationRemove(String relationName, AbstractDomainObject o1, AbstractDomainObject o2) {
+    public void logRelationRemove(String relationName, DomainObject o1, DomainObject o2) {
         throw new Error("It doesn't make sense to call logRelationRemove for a FenixConsistencyCheckTransaction");
     }
 }

@@ -4,6 +4,8 @@ import jvstm.PerTxBox;
 
 import org.apache.ojb.broker.PersistenceBroker;
 
+import pt.ist.fenixframework.DomainObject;
+
 public interface FenixTransaction {
     public void setReadOnly();
 
@@ -23,7 +25,7 @@ public interface FenixTransaction {
 
     public boolean isBoxValueLoaded(VBox vbox);
 
-    public void logRelationAdd(String relationName, AbstractDomainObject o1, AbstractDomainObject o2);
+    public void logRelationAdd(String relationName, DomainObject o1, DomainObject o2);
 
-    public void logRelationRemove(String relationName, AbstractDomainObject o1, AbstractDomainObject o2);
+    public void logRelationRemove(String relationName, DomainObject o1, DomainObject o2);
 }

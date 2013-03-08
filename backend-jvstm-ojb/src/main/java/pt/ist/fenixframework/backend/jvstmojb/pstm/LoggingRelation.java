@@ -1,9 +1,10 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.dml.runtime.DirectRelation;
 import pt.ist.fenixframework.dml.runtime.Role;
 
-public class LoggingRelation<C1 extends AbstractDomainObject, C2 extends AbstractDomainObject> extends DirectRelation<C1, C2> {
+public class LoggingRelation<C1 extends DomainObject, C2 extends DomainObject> extends DirectRelation<C1, C2> {
     private String relationName;
 
     public LoggingRelation(Role<C1, C2> firstRole, String name) {

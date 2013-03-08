@@ -543,7 +543,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         printMethod(out, "private", "java.lang.Long", "get$oid" + capitalize(name));
         startMethodBody(out);
         print(out, DOMAIN_CLASS_ROOT);
-        print(out, " value = ");
+        print(out, " value = (" + DOMAIN_CLASS_ROOT + ") ");
         generateGetSlotExpression(name, out);
         println(out, ";");
         print(out, "return (value == null) ? null : value.getOid();");
