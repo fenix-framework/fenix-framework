@@ -7,6 +7,10 @@ import java.util.Set;
 
 import jvstm.cps.ConsistencyCheckTransaction;
 import jvstm.cps.Depended;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
@@ -29,6 +33,8 @@ import pt.ist.fenixframework.pstm.DomainMetaObject;
  **/
 @NoDomainMetaObjects
 public abstract class DomainConsistencyPredicate extends DomainConsistencyPredicate_Base {
+
+    private static final Logger logger = LoggerFactory.getLogger(DomainConsistencyPredicate.class);
 
     private static final int MAX_NUMBER_OF_OBJECTS_TO_PROCESS = 5000;
 
@@ -146,8 +152,8 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         if (metaObjects.isEmpty() || getPredicate() == null) {
             return;
         }
-        System.out.println("[DomainConsistencyPredicate] Executing startup consistency predicate: " + getPredicate().getName()
-                + " for the class: " + metaClass.getDomainClass().getSimpleName());
+        logger.info("Executing startup consistency predicate: " + getPredicate().getName() + " for the class: "
+                + metaClass.getDomainClass().getSimpleName());
         int count = 0;
         for (DomainMetaObject existingMetaObject : metaObjects) {
             count++;
@@ -158,8 +164,8 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
                 // Because this method checks for repeated OwnDependenceRecords of each meta object being checked, there is no problem with
                 // processing only an incomplete part of the objects of the given class.
                 Transaction.beginTransaction();
-                System.out.println("[DomainConsistencyPredicate] Transaction finished. Number of processed "
-                        + metaClass.getDomainClass().getSimpleName() + " objects: " + count);
+                logger.info("Transaction finished. Number of processed " + metaClass.getDomainClass().getSimpleName()
+                        + " objects: " + count);
             }
 
             // The predicate was already checked during a previous incomplete initialization of this DomainConsistencyPredicate
@@ -175,8 +181,8 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         }
 
         Transaction.beginTransaction();
-        System.out.println("[DomainConsistencyPredicate] Transaction finished. Number of processed "
-                + metaClass.getDomainClass().getSimpleName() + " objects: " + count);
+        logger.info("Transaction finished. Number of processed " + metaClass.getDomainClass().getSimpleName() + " objects: "
+                + count);
     }
 
     /**
@@ -257,7 +263,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
      **/
     public void classDelete() {
         checkFrameworkNotInitialized();
-        System.out.println("[DomainConsistencyPredicate] Deleting predicate " + getPredicate()
+        logger.info("Deleting predicate " + getPredicate()
                 + ((getPredicate() == null) ? " of " + getDomainMetaClass().getDomainClass() : ""));
         setFinalized(false);
         int count = 0;
@@ -270,8 +276,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
                 // Because this method sets the current predicate as not finalized, there is no problem with processing only an incomplete part
                 // of the DomainDependenceRecords.
                 Transaction.beginTransaction();
-                System.out.println("[DomainConsistencyPredicate] Transaction finished. Number of deleted "
-                        + "DomainDependenceRecords: " + count);
+                logger.info("Transaction finished. Number of deleted DomainDependenceRecords: " + count);
             }
             dependenceRecord.delete();
         }

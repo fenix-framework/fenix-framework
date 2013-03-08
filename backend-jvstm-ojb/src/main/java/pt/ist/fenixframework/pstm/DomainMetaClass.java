@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ojb.broker.accesslayer.LookupException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
@@ -42,6 +44,8 @@ import pt.ist.fenixframework.pstm.consistencyPredicates.PublicConsistencyPredica
  **/
 @NoDomainMetaObjects
 public class DomainMetaClass extends DomainMetaClass_Base {
+
+    private static final Logger logger = LoggerFactory.getLogger(DomainMetaClass.class);
 
     private static final int MAX_NUMBER_OF_OBJECTS_TO_PROCESS = 10000;
 
@@ -106,7 +110,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         setExistingDomainMetaObjects(new BPlusTree<DomainMetaObject>());
         setFinalized(false);
 
-        System.out.println("[DomainMetaClass] Creating new a DomainMetaClass: " + domainClass);
+        logger.info("Creating new a DomainMetaClass: {}", domainClass);
     }
 
     public DomainMetaClass(Class<? extends AbstractDomainObject> domainClass, DomainMetaClass metaSuperclass) {
@@ -150,10 +154,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
             Class<?> domainClass = Class.forName(fullyQualifiedClassName);
             return (Class<? extends AbstractDomainObject>) domainClass;
         } catch (ClassNotFoundException e) {
-            System.out.println("The following domain class has been removed:");
-            System.out.println(e.getMessage());
-            System.out.println();
-            System.out.flush();
+            logger.info("The following domain class has been removed: {}", e.getMessage());
         }
         return null;
     }
@@ -253,8 +254,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
                 try {
                     existingDO = FenixFramework.getDomainObject(oid);
                 } catch (Exception ex) {
-                    System.out.println("WARNING - An exception was thrown while allocating the object: " + getDomainClass()
-                            + " - " + oid);
+                    logger.warn("An exception was thrown while allocating the object: {} - {}", getDomainClass(), oid);
                     ex.printStackTrace();
                     continue;
                 }
@@ -263,8 +263,8 @@ public class DomainMetaClass extends DomainMetaClass_Base {
                 addExistingDomainMetaObject(metaObject);
             }
 
-            System.out.println("[DomainMetaClass] Transaction finished. Number of initialized "
-                    + getDomainClass().getSimpleName() + " objects: " + getExistingDomainMetaObjectsCount());
+            logger.info("Transaction finished. Number of initialized " + getDomainClass().getSimpleName() + " objects: "
+                    + getExistingDomainMetaObjectsCount());
 
             // Starts a new transaction to process a limited number of existing objects.
             // This is necessary to split the load of the mass creation of DomainMetaObjects among several transactions.
@@ -371,8 +371,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     public void initDomainMetaSuperclass(DomainMetaClass metaSuperclass) {
         checkFrameworkNotInitialized();
         setDomainMetaSuperclass(metaSuperclass);
-        System.out.println("[DomainMetaClass] Initializing the meta-superclass of " + getDomainClass() + " to "
-                + metaSuperclass.getDomainClass());
+        logger.info("Initializing the meta-superclass of " + getDomainClass() + " to " + metaSuperclass.getDomainClass());
     }
 
     /**
@@ -485,7 +484,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
             metaSubclass.delete();
         }
 
-        System.out.println("[DomainMetaClass] Deleted DomainMetaClass " + getDomainClassName());
+        logger.info("Deleted DomainMetaClass " + getDomainClassName());
         for (DomainConsistencyPredicate domainConsistencyPredicate : getDeclaredConsistencyPredicates()) {
             domainConsistencyPredicate.classDelete();
         }
@@ -518,8 +517,8 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         try {
             getCurrentJdbcConnection().createStatement().executeUpdate(clearDomainObjectsQuery);
         } catch (SQLException e) {
-            System.out.println("[DomainMetaClass] WARNING: The deleted DomainMetaClass " + getDomainClassName()
-                    + " had a table named " + tableName + " that no longer exists.");
+            logger.warn("The deleted DomainMetaClass " + getDomainClassName() + " had a table named " + tableName
+                    + " that no longer exists.");
             e.printStackTrace();
         }
 

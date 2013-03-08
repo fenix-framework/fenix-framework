@@ -2,9 +2,14 @@ package pt.ist.fenixframework.consistencyPredicates;
 
 import java.lang.reflect.Method;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class Externalization {
+
+    private static final Logger logger = LoggerFactory.getLogger(Externalization.class);
 
     public static Method internalizePredicateMethod(String methodToString) {
         try {
@@ -23,6 +28,7 @@ public class Externalization {
                 className += strings[i] + ".";
             }
             className = className.substring(0, className.length() - 1);
+            @SuppressWarnings("unchecked")
             Class<? extends AbstractDomainObject> objectClass = (Class<? extends AbstractDomainObject>) Class.forName(className);
             Method declaredMethod = objectClass.getDeclaredMethod(methodName);
             // Recheck the method's modifiers in case they were changed by the programmer
@@ -32,16 +38,11 @@ public class Externalization {
             }
             return declaredMethod;
         } catch (ClassNotFoundException e) {
-            System.out
-                    .println("The following domain class has been removed, therefore any contained consistency predicates have also been removed:");
-            System.out.println(e.getMessage());
-            System.out.println();
-            System.out.flush();
+            logger.info(
+                    "The following domain class has been removed, therefore any contained consistency predicates have also been removed: {}",
+                    e.getMessage());
         } catch (NoSuchMethodException e) {
-            System.out.println("The following consistency predicate has been removed:");
-            System.out.println(e.getMessage());
-            System.out.println();
-            System.out.flush();
+            logger.info("The following consistency predicate has been removed: {}", e.getMessage());
         }
         return null;
     }

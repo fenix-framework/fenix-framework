@@ -2,6 +2,9 @@ package pt.ist.fenixframework.pstm.consistencyPredicates;
 
 import java.lang.reflect.Method;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.pstm.DomainMetaClass;
 
@@ -18,11 +21,13 @@ import pt.ist.fenixframework.pstm.DomainMetaClass;
 @NoDomainMetaObjects
 public class FinalConsistencyPredicate extends FinalConsistencyPredicate_Base {
 
+    private static final Logger logger = LoggerFactory.getLogger(FinalConsistencyPredicate.class);
+
     public FinalConsistencyPredicate(Method predicateMethod, DomainMetaClass metaClass) {
         super();
         setPredicate(predicateMethod);
         setDomainMetaClass(metaClass);
-        System.out.println("[DomainConsistencyPredicate] Created a " + getClass().getSimpleName() + " for " + getPredicate());
+        logger.info("Created a {} for {}".getClass().getSimpleName(), getPredicate());
     }
 
     @Override

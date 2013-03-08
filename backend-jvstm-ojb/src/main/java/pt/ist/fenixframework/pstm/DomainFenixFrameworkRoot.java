@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.FenixFramework;
@@ -42,7 +45,7 @@ import pt.ist.fenixframework.pstm.consistencyPredicates.DomainDependenceRecord;
 @NoDomainMetaObjects
 public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
 
-    public static final String ROOT_KEY = "pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot";
+    private static final Logger logger = LoggerFactory.getLogger(DomainFenixFrameworkRoot.class);
 
     private static Map<Class<? extends AbstractDomainObject>, DomainClass> existingDMLDomainClasses;
     private static final Map<Class<? extends AbstractDomainObject>, DomainMetaClass> existingDomainMetaClasses =
@@ -81,8 +84,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
                         break;
                     }
                     if ((iterations % 10) == 0) {
-                        System.out.println("[DomainFenixFrameworkRoot] Warning: Could not yet obtain the " + lockName
-                                + " lock. Number of retries: " + iterations);
+                        logger.warn("Could not yet obtain the " + lockName + " lock. Number of retries: " + iterations);
                     }
                 }
             } finally {
@@ -209,13 +211,13 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     public void initialize(DomainModel domainModel) {
         checkFrameworkNotInitialized();
         if (JvstmOJBConfig.canCreateDomainMetaObjects()) {
-            System.out.println("[DomainFenixFrameworkRoot] Starting initialization of the DomainMetaClasses");
+            logger.info("Starting initialization of the DomainMetaClasses");
             initializeDomainMetaClasses(domainModel);
-            System.out.println("[DomainFenixFrameworkRoot] Finished the initialization of the DomainMetaClasses");
+            logger.info("Finished the initialization of the DomainMetaClasses");
 
-            System.out.println("[DomainFenixFrameworkRoot] Starting initialization of the DomainConsistencyPredicates");
+            logger.info("Starting initialization of the DomainConsistencyPredicates");
             initializeDomainConsistencyPredicates();
-            System.out.println("[DomainFenixFrameworkRoot] Finished the initialization of the DomainConsistencyPredicates");
+            logger.info("Finished the initialization of the DomainConsistencyPredicates");
 
             checkAllMethodsOverridingPredicates();
         } else {
@@ -348,8 +350,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
                 continue;
             }
 
-            System.out.println("[DomainMetaClass] Resuming the initialization of the DomainMetaClass: "
-                    + metaClass.getDomainClass().getSimpleName());
+            logger.info("Resuming the initialization of the DomainMetaClass: " + metaClass.getDomainClass().getSimpleName());
             // Commits the current, and starts a new write transaction.
             Transaction.beginTransaction();
             metaClass.initExistingDomainObjects();
@@ -377,7 +378,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         for (DomainMetaClass metaClass : existingMetaClassesToUpdate) {
             if (!metaClass.hasDomainMetaSuperclass()) {
                 if (hasSuperclassInDML(metaClass)) {
-                    System.out.println("[DomainMetaClass] DomainMetaClass " + metaClass.getDomainClass().getSimpleName()
+                    logger.info("DomainMetaClass " + metaClass.getDomainClass().getSimpleName()
                             + " (and subclasses') hierarchy has changed...");
                     metaClass.delete();
                 }
@@ -387,7 +388,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
                     currentMetaSuperclass = getDomainMetaSuperclassFromDML(metaClass);
                 }
                 if (currentMetaSuperclass != metaClass.getDomainMetaSuperclass()) {
-                    System.out.println("[DomainMetaClass] DomainMetaClass " + metaClass.getDomainClass().getSimpleName()
+                    logger.info("DomainMetaClass " + metaClass.getDomainClass().getSimpleName()
                             + " (and subclasses') hierarchy has changed...");
                     metaClass.delete();
                 }
@@ -714,7 +715,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
                 continue;
             }
 
-            System.out.println("[DomainConsistencyPredicate] Resuming the initialization of the consistency predicate: "
+            logger.info("Resuming the initialization of the consistency predicate: "
                     + consistencyPredicate.getPredicate().getName());
             // Commits the current, and starts a new write transaction.
             Transaction.beginTransaction();
@@ -755,8 +756,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      */
     private void deleteAllMetaObjectsAndClasses() {
         if (hasAnyDomainMetaClasses()) {
-            System.out.println("[DomainFenixFrameworkRoot] Deleting all DomainMetaObjects, DomainMetaClasses, "
-                    + "DomainConsistencyPredicates and DomainDependenceRecords");
+            logger.info("Deleting all DomainMetaObjects, DomainMetaClasses, DomainConsistencyPredicates and DomainDependenceRecords");
             for (DomainMetaClass metaClass : getDomainMetaClasses()) {
                 // Commits the current, and starts a new write transaction.
                 // This is necessary to split the load of the mass deletion of objects among several transactions.

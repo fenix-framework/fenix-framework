@@ -3,6 +3,9 @@ package pt.ist.fenixframework.pstm.consistencyPredicates;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate;
@@ -26,6 +29,8 @@ import pt.ist.fenixframework.pstm.DomainMetaObject;
 @NoDomainMetaObjects
 public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base {
 
+    private static final Logger logger = LoggerFactory.getLogger(PublicConsistencyPredicate.class);
+
     public PublicConsistencyPredicate() {
         super();
     }
@@ -34,7 +39,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         super();
         setPredicate(predicateMethod);
         setDomainMetaClass(metaClass);
-        System.out.println("[DomainConsistencyPredicate] Created a " + getClass().getSimpleName() + " for " + getPredicate());
+        logger.info("Created a {} for {}", getClass().getSimpleName(), getPredicate());
     }
 
     @Override
@@ -93,8 +98,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         overriddenPredicate.removeDomainDependenceRecordsForMetaClassAndSubclasses(getDomainMetaClass());
         setPublicConsistencyPredicateOverridden(overriddenPredicate);
 
-        System.out.println("[DomainConsistencyPredicate] Initializing overridden predicate of " + getPredicate() + " to "
-                + overriddenPredicate.getPredicate());
+        logger.info("Initializing overridden predicate of {} to {}", getPredicate(), overriddenPredicate.getPredicate());
     }
 
     /**
@@ -137,8 +141,8 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         }
         setPublicConsistencyPredicateOverridden(overriddenPredicate);
 
-        System.out.println("[DomainConsistencyPredicate] Updating overridden predicate of " + getPredicate() + " to "
-                + ((overriddenPredicate == null) ? "null" : overriddenPredicate.getPredicate()));
+        logger.info("Updating overridden predicate of {} to {}", getPredicate(),
+                ((overriddenPredicate == null) ? "null" : overriddenPredicate.getPredicate()));
     }
 
     /**
@@ -259,7 +263,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
     public void delete() {
         PublicConsistencyPredicate overriddenPredicate = getPublicConsistencyPredicateOverridden();
         if (overriddenPredicate != null) {
-            System.out.println("[DomainConsistencyPredicate] The deleted predicate "
+            logger.info("The deleted predicate "
                     + getPredicate()
                     + ((getPredicate() == null) ? " of " + getDomainMetaClass().getDomainClass() : "")
                     + "was overriding the predicate: "
