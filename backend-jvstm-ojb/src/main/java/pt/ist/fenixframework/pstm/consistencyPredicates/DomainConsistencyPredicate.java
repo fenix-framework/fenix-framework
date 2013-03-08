@@ -12,10 +12,10 @@ import jvstm.cps.Depended;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.FenixConsistencyCheckTransaction;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction.Pair;
@@ -145,7 +145,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
      * that object.
      * 
      * @param metaClass
-     *            the {@link DomainMetaClass} of {@link AbstractDomainObject} for which to execute this predicate.
+     *            the {@link DomainMetaClass} of {@link DomainObject} for which to execute this predicate.
      */
     protected void executeConsistencyPredicateForExistingDomainObjects(DomainMetaClass metaClass) {
         BPlusTree<DomainMetaObject> metaObjects = metaClass.getExistingDomainMetaObjects();
@@ -201,7 +201,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
      *         consistency, and a boolean that indicates if the object is
      *         consistent or not
      */
-    private static Pair executePredicateForOneObject(AbstractDomainObject obj, Method predicate) {
+    private static Pair executePredicateForOneObject(DomainObject obj, Method predicate) {
         // starts a new transaction where the readSet used by the predicate will be collected.
         ConsistencyCheckTransaction tx = new FenixConsistencyCheckTransaction(TransactionSupport.currentFenixTransaction(), obj);
         tx.start();
@@ -215,7 +215,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
             // Do not register the own object as a depended
             Set<Depended> depended = tx.getDepended();
             if (!depended.isEmpty()) {
-                depended.remove(obj.getDomainMetaObject());
+                depended.remove(DomainMetaObject.getDomainMetaObjectFor(obj));
             }
             return new Pair(depended, predicateResult);
         } catch (InvocationTargetException ite) {
@@ -226,7 +226,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
             // Do not register the own object as a depended
             Set<Depended> depended = tx.getDepended();
             if (!depended.isEmpty()) {
-                depended.remove(obj.getDomainMetaObject());
+                depended.remove(DomainMetaObject.getDomainMetaObjectFor(obj));
             }
             return new Pair(depended, false);
         } catch (Throwable t) {
@@ -286,13 +286,13 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
     }
 
     public static <PredicateT extends DomainConsistencyPredicate> PredicateT readDomainConsistencyPredicate(
-            Class<? extends AbstractDomainObject> domainClass, String predicateName) {
+            Class<? extends DomainObject> domainClass, String predicateName) {
         return (PredicateT) DomainMetaClass.readDomainMetaClass(domainClass).getDeclaredConsistencyPredicate(predicateName);
     }
 
     public static <PredicateT extends DomainConsistencyPredicate> PredicateT readDomainConsistencyPredicate(Method predicateMethod) {
         return (PredicateT) DomainMetaClass.readDomainMetaClass(
-                (Class<? extends AbstractDomainObject>) predicateMethod.getDeclaringClass()).getDeclaredConsistencyPredicate(
+                (Class<? extends DomainObject>) predicateMethod.getDeclaringClass()).getDeclaredConsistencyPredicate(
                 predicateMethod);
     }
 

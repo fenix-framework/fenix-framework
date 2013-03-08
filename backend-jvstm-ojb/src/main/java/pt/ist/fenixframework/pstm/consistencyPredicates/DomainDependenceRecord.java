@@ -6,8 +6,8 @@ import java.util.Set;
 
 import jvstm.cps.Depended;
 import jvstm.cps.DependenceRecord;
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.NoDomainMetaObjects;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.DomainMetaObject;
 
 /**
@@ -33,7 +33,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
     public DomainDependenceRecord(Object dependent, DomainConsistencyPredicate predicate, Set<Depended> depended,
             boolean consistent) {
         super();
-        setDependentDomainMetaObject(((AbstractDomainObject) dependent).getDomainMetaObject());
+        setDependentDomainMetaObject(DomainMetaObject.getDomainMetaObjectFor((DomainObject) dependent));
         setDomainConsistencyPredicate(predicate);
         for (Depended<DomainDependenceRecord> dependedMetaObject : depended) {
             addDependedDomainMetaObjects((DomainMetaObject) dependedMetaObject);
@@ -43,7 +43,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
 
     public DomainDependenceRecord(Object dependent, Method predicate, Set<Depended> depended, boolean consistent) {
         super();
-        setDependentDomainMetaObject(((AbstractDomainObject) dependent).getDomainMetaObject());
+        setDependentDomainMetaObject(DomainMetaObject.getDomainMetaObjectFor((DomainObject) dependent));
         setPredicate(predicate);
         for (Depended<DomainDependenceRecord> dependedMetaObject : depended) {
             addDependedDomainMetaObjects((DomainMetaObject) dependedMetaObject);
@@ -110,7 +110,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
         return getDependentDomainMetaObject().getDomainObject();
     }
 
-    public <DomainClass extends AbstractDomainObject> DomainClass getDependentDomainObject() {
+    public <DomainClass extends DomainObject> DomainClass getDependentDomainObject() {
         return (DomainClass) getDependent();
     }
 

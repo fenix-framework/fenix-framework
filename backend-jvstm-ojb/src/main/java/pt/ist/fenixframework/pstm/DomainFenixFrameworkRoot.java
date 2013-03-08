@@ -19,11 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Config;
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate;
 import pt.ist.fenixframework.dml.DomainClass;
@@ -48,9 +48,9 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
 
     private static final Logger logger = LoggerFactory.getLogger(DomainFenixFrameworkRoot.class);
 
-    private static Map<Class<? extends AbstractDomainObject>, DomainClass> existingDMLDomainClasses;
-    private static final Map<Class<? extends AbstractDomainObject>, DomainMetaClass> existingDomainMetaClasses =
-            new HashMap<Class<? extends AbstractDomainObject>, DomainMetaClass>();
+    private static Map<Class<? extends DomainObject>, DomainClass> existingDMLDomainClasses;
+    private static final Map<Class<? extends DomainObject>, DomainMetaClass> existingDomainMetaClasses =
+            new HashMap<Class<? extends DomainObject>, DomainMetaClass>();
 
     public static DomainFenixFrameworkRoot getInstance() {
         return FenixFramework.getDomainRoot().getDomainFenixFrameworkRoot();
@@ -154,7 +154,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         }
     }
 
-    public DomainMetaClass getDomainMetaClass(Class<? extends AbstractDomainObject> domainClass) {
+    public DomainMetaClass getDomainMetaClass(Class<? extends DomainObject> domainClass) {
         return existingDomainMetaClasses.get(domainClass);
     }
 
@@ -165,7 +165,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     @Override
     public void removeDomainMetaClasses(DomainMetaClass metaClass) {
         checkFrameworkNotInitialized();
-        Class<? extends AbstractDomainObject> domainClass = metaClass.getDomainClass();
+        Class<? extends DomainObject> domainClass = metaClass.getDomainClass();
         if (domainClass != null) {
             existingDomainMetaClasses.remove(metaClass.getDomainClass());
             existingDomainMetaClasses.remove(metaClass.getDomainClass().getSuperclass());
@@ -197,7 +197,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         checkFrameworkNotInitialized();
         existingDomainMetaClasses.put(metaClass.getDomainClass(), metaClass);
         // The metaClass for the base class is the same as the regular domain class
-        existingDomainMetaClasses.put((Class<? extends AbstractDomainObject>) metaClass.getDomainClass().getSuperclass(),
+        existingDomainMetaClasses.put((Class<? extends DomainObject>) metaClass.getDomainClass().getSuperclass(),
                 metaClass);
         super.addDomainMetaClasses(metaClass);
     }
@@ -241,13 +241,13 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         Set<DomainMetaClass> oldMetaClassesToRemove = new HashSet<DomainMetaClass>();
 
         for (DomainMetaClass metaClass : getDomainMetaClasses()) {
-            Class<? extends AbstractDomainObject> domainClass = metaClass.getDomainClass();
+            Class<? extends DomainObject> domainClass = metaClass.getDomainClass();
             if ((domainClass == null) || (!existingDMLDomainClasses.keySet().contains(domainClass))) {
                 oldMetaClassesToRemove.add(metaClass);
             } else {
                 existingDomainMetaClasses.put(domainClass, metaClass);
                 //The base class has the same meta class as the regular domain class.
-                existingDomainMetaClasses.put((Class<? extends AbstractDomainObject>) domainClass.getSuperclass(), metaClass);
+                existingDomainMetaClasses.put((Class<? extends DomainObject>) domainClass.getSuperclass(), metaClass);
             }
         }
 
@@ -259,8 +259,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             processExistingMetaClasses(existingDomainMetaClasses.values());
         }
 
-        Set<Class<? extends AbstractDomainObject>> newClassesToAddTopDown =
-                new TreeSet<Class<? extends AbstractDomainObject>>(DomainMetaClass.COMPARATOR_BY_CLASS_HIERARCHY_TOP_DOWN);
+        Set<Class<? extends DomainObject>> newClassesToAddTopDown =
+                new TreeSet<Class<? extends DomainObject>>(DomainMetaClass.COMPARATOR_BY_CLASS_HIERARCHY_TOP_DOWN);
         newClassesToAddTopDown.addAll(existingDMLDomainClasses.keySet());
         newClassesToAddTopDown.removeAll(existingDomainMetaClasses.keySet());
         if (!newClassesToAddTopDown.isEmpty()) {
@@ -273,15 +273,15 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      *         domain model, except those
      *         annotated with {@link NoDomainMetaObjects}.
      */
-    private Map<Class<? extends AbstractDomainObject>, DomainClass> getExistingDomainClasses(DomainModel domainModel) {
-        Map<Class<? extends AbstractDomainObject>, DomainClass> existingDomainClasses =
-                new HashMap<Class<? extends AbstractDomainObject>, DomainClass>();
+    private Map<Class<? extends DomainObject>, DomainClass> getExistingDomainClasses(DomainModel domainModel) {
+        Map<Class<? extends DomainObject>, DomainClass> existingDomainClasses =
+                new HashMap<Class<? extends DomainObject>, DomainClass>();
         Iterator<DomainClass> domainClassesIterator = domainModel.getClasses();
         try {
             while (domainClassesIterator.hasNext()) {
                 DomainClass dmlDomainClass = domainClassesIterator.next();
-                Class<? extends AbstractDomainObject> domainClass =
-                        (Class<? extends AbstractDomainObject>) Class.forName(dmlDomainClass.getFullName());
+                Class<? extends DomainObject> domainClass =
+                        (Class<? extends DomainObject>) Class.forName(dmlDomainClass.getFullName());
 
                 if (!domainClass.getSuperclass().getName().equals(domainClass.getName() + "_Base")) {
                     throw new Error("The domain class: " + domainClass + " must extend its corresponding _Base class.");
@@ -414,8 +414,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         try {
             DomainClass dmlDomainSuperclass =
                     (DomainClass) existingDMLDomainClasses.get(metaClass.getDomainClass()).getSuperclass();
-            Class<? extends AbstractDomainObject> domainSuperclass =
-                    (Class<? extends AbstractDomainObject>) Class.forName(dmlDomainSuperclass.getFullName());
+            Class<? extends DomainObject> domainSuperclass =
+                    (Class<? extends DomainObject>) Class.forName(dmlDomainSuperclass.getFullName());
             return existingDomainMetaClasses.get(domainSuperclass);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -435,7 +435,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      *            the <code>Collection</code> of <code>Classes</code> to be
      *            processed, in top-down order of the class hiearchy
      */
-    private void processNewClasses(Collection<Class<? extends AbstractDomainObject>> newClassesToProcessTopDown) {
+    private void processNewClasses(Collection<Class<? extends DomainObject>> newClassesToProcessTopDown) {
         createNewMetaClasses(newClassesToProcessTopDown);
     }
 
@@ -447,8 +447,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      *            the <code>Collection</code> of Classes for which to create {@link DomainMetaClass}es, in top-down
      *            order
      */
-    private void createNewMetaClasses(Collection<Class<? extends AbstractDomainObject>> newClassesToAddTopDown) {
-        for (Class<? extends AbstractDomainObject> domainClass : newClassesToAddTopDown) {
+    private void createNewMetaClasses(Collection<Class<? extends DomainObject>> newClassesToAddTopDown) {
+        for (Class<? extends DomainObject> domainClass : newClassesToAddTopDown) {
 
             checkpointTransaction();
             DomainMetaClass newDomainMetaClass = new DomainMetaClass(domainClass);
@@ -529,8 +529,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      *             if any predicate found has an invalid signature.
      */
     private Set<Method> getDeclaredConsistencyPredicateMethods(DomainMetaClass metaClass) {
-        Class<? extends AbstractDomainObject> domainClass = metaClass.getDomainClass();
-        Class<? extends AbstractDomainObject> baseClass = (Class<? extends AbstractDomainObject>) domainClass.getSuperclass();
+        Class<? extends DomainObject> domainClass = metaClass.getDomainClass();
+        Class<? extends DomainObject> baseClass = (Class<? extends DomainObject>) domainClass.getSuperclass();
         Set<Method> declaredMethods = getDeclaredConsistencyPredicateMethods(domainClass);
         declaredMethods.addAll(getDeclaredConsistencyPredicateMethods(baseClass));
         return declaredMethods;
@@ -545,7 +545,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * @throws Error
      *             if any predicate found has an invalid signature.
      */
-    private Set<Method> getDeclaredConsistencyPredicateMethods(Class<? extends AbstractDomainObject> domainClass) {
+    private Set<Method> getDeclaredConsistencyPredicateMethods(Class<? extends DomainObject> domainClass) {
         Set<Method> declaredMethods = new HashSet<Method>();
         for (Method predicateMethod : domainClass.getDeclaredMethods()) {
             if (!predicateMethod.isAnnotationPresent(ConsistencyPredicate.class)

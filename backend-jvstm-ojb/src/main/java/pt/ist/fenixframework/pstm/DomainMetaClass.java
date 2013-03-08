@@ -17,10 +17,10 @@ import org.apache.ojb.broker.accesslayer.LookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.OneBoxDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
 import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil;
@@ -55,10 +55,10 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      * different hierarchies are sorted alphabetically according to the names of
      * their successive superclasses (from top to bottom).
      */
-    public static Comparator<Class<? extends AbstractDomainObject>> COMPARATOR_BY_CLASS_HIERARCHY_TOP_DOWN =
-            new Comparator<Class<? extends AbstractDomainObject>>() {
+    public static Comparator<Class<? extends DomainObject>> COMPARATOR_BY_CLASS_HIERARCHY_TOP_DOWN =
+            new Comparator<Class<? extends DomainObject>>() {
                 @Override
-                public int compare(Class<? extends AbstractDomainObject> class1, Class<? extends AbstractDomainObject> class2) {
+                public int compare(Class<? extends DomainObject> class1, Class<? extends DomainObject> class2) {
                     if (class1.equals(class2)) {
                         return 0;
                     }
@@ -102,7 +102,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         }
     };
 
-    public DomainMetaClass(Class<? extends AbstractDomainObject> domainClass) {
+    public DomainMetaClass(Class<? extends DomainObject> domainClass) {
         super();
         checkFrameworkNotInitialized();
         setDomainClass(domainClass);
@@ -113,7 +113,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         logger.info("Creating new a DomainMetaClass: {}", domainClass);
     }
 
-    public DomainMetaClass(Class<? extends AbstractDomainObject> domainClass, DomainMetaClass metaSuperclass) {
+    public DomainMetaClass(Class<? extends DomainObject> domainClass, DomainMetaClass metaSuperclass) {
         this(domainClass);
         setDomainMetaSuperclass(metaSuperclass);
     }
@@ -145,21 +145,21 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         super.removeDomainFenixFrameworkRoot();
     }
 
-    public Class<? extends AbstractDomainObject> getDomainClass() {
+    public Class<? extends DomainObject> getDomainClass() {
         String[] strings = getDomainClassName().split(" ");
         String fullyQualifiedClassName = strings[1];
         strings = fullyQualifiedClassName.split("[.]");
 
         try {
             Class<?> domainClass = Class.forName(fullyQualifiedClassName);
-            return (Class<? extends AbstractDomainObject>) domainClass;
+            return (Class<? extends DomainObject>) domainClass;
         } catch (ClassNotFoundException e) {
             logger.info("The following domain class has been removed: {}", e.getMessage());
         }
         return null;
     }
 
-    public void setDomainClass(Class<? extends AbstractDomainObject> domainClass) {
+    public void setDomainClass(Class<? extends DomainObject> domainClass) {
         checkFrameworkNotInitialized();
         setDomainClassName(domainClass.toString());
     }
@@ -237,7 +237,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      * This method should be called only during the initialization of the {@link FenixFramework}, for each new
      * <code>DomainMetaClass</code>.
      * 
-     * Creates a {@link DomainMetaObject} for each existing {@link AbstractDomainObject} of the specified class, and associates
+     * Creates a {@link DomainMetaObject} for each existing {@link DomainObject} of the specified class, and associates
      * the
      * new {@link DomainMetaObject} to its <code>DomainMetaClass</code>.
      */
@@ -250,7 +250,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
                 break;
             }
             for (String oid : oids) {
-                AbstractDomainObject existingDO = null;
+                DomainObject existingDO = null;
                 try {
                     existingDO = FenixFramework.getDomainObject(oid);
                 } catch (Exception ex) {
@@ -276,7 +276,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     /**
-     * Uses a JDBC query to obtain the OIDs of the existing {@link AbstractDomainObject}s of this class that do not yet have a
+     * Uses a JDBC query to obtain the OIDs of the existing {@link DomainObject}s of this class that do not yet have a
      * {@link DomainMetaObject}.<br>
      * <br>
      * This method only returns a <strong>maximum of
@@ -287,10 +287,10 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      *            objects OIDs
      * 
      * @return the <code>List</code> of <code>Strings</code> containing the OIDs
-     *         of all the {@link AbstractDomainObject}s of the given class,
+     *         of all the {@link DomainObject}s of the given class,
      *         without {@link DomainMetaObject}.
      */
-    private static List<String> getExistingOIDsWithoutMetaObject(Class<? extends AbstractDomainObject> domainClass) {
+    private static List<String> getExistingOIDsWithoutMetaObject(Class<? extends DomainObject> domainClass) {
         String tableName = getTableName(domainClass);
         String className = domainClass.getName();
 
@@ -316,7 +316,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         return oids;
     }
 
-    private static String getTableName(Class<? extends AbstractDomainObject> domainClass) {
+    private static String getTableName(Class<? extends DomainObject> domainClass) {
         Class<?> topSuperClass = domainClass;
         while (!topSuperClass.getSuperclass().getSuperclass().equals(OneBoxDomainObject.class)) {
             //skip to the next non-base superclass
@@ -501,7 +501,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     /**
      * Uses a JDBC query to obtain the delete all the {@link DomainMetaObject}s
      * of this class. It also sets to null any OIDs that used to point to the
-     * deleted {@link DomainMetaObject}s, both in the {@link AbstractDomainObject}'s and in the {@link DomainDependenceRecord} 's
+     * deleted {@link DomainMetaObject}s, both in the {@link DomainObject}'s and in the {@link DomainDependenceRecord} 's
      * tables.
      */
     protected void removeAllMetaObjects() {
@@ -557,7 +557,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         }
     }
 
-    public static DomainMetaClass readDomainMetaClass(Class<? extends AbstractDomainObject> domainClass) {
+    public static DomainMetaClass readDomainMetaClass(Class<? extends DomainObject> domainClass) {
         return DomainFenixFrameworkRoot.getInstance().getDomainMetaClass(domainClass);
     }
 

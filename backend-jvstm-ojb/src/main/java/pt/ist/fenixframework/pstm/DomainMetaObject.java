@@ -4,6 +4,7 @@ import java.util.Set;
 
 import jvstm.cps.Depended;
 import pt.ist.fenixframework.Config;
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.pstm.consistencyPredicates.DomainConsistencyPredicate;
@@ -67,7 +68,7 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
             ownDependenceRecord.delete();
         }
 
-        // Removes the relation to the AbstractDomainObject that this meta object used to represent.
+        // Removes the relation to the DomainObject that this meta object used to represent.
         removeDomainObject();
 
         // Deletes THIS metaObject, which is also a fenix-framework DomainObject.
@@ -75,11 +76,11 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
     }
 
     @Override
-    public void setDomainObject(AbstractDomainObject domainObject) {
+    public void setDomainObject(DomainObject domainObject) {
         // These two sets are needed because the relation between a domainObject
         // and it's metaObject is only partially implemented in DML.
         super.setDomainObject(domainObject);
-        domainObject.justSetMetaObject(this);
+        justSetMetaObjectForDomainObject(domainObject, this);
     }
 
     /**
@@ -117,11 +118,11 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
 
     @Override
     public void removeDomainObject() {
-        AbstractDomainObject domainObject = getDomainObject();
+        DomainObject domainObject = getDomainObject();
 
         // These two sets are needed because the relation between a domainObject
         // and it's metaObject is only partially implemented in DML.
-        domainObject.justSetMetaObject(null);
+        justSetMetaObjectForDomainObject(domainObject, null);
         super.setDomainObject(null);
     }
 
@@ -139,5 +140,15 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
     @Override
     public Set<DomainDependenceRecord> getDependenceRecords() {
         return getDependingDependenceRecordsSet();
+    }
+
+    public static DomainMetaObject getDomainMetaObjectFor(DomainObject obj) {
+        AbstractDomainObject domainObject = (AbstractDomainObject) obj;
+        return domainObject.getDomainMetaObject();
+    }
+
+    private static void justSetMetaObjectForDomainObject(DomainObject domainObject, DomainMetaObject metaObject) {
+        AbstractDomainObject abstractDO = (AbstractDomainObject) domainObject;
+        abstractDO.justSetMetaObject(metaObject);
     }
 }

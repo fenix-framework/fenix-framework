@@ -112,6 +112,6 @@ relation DependedDomainMetaObjectsDependingDependenceRecords {
 }
 
 relation DomainMetaObjectAbstractDomainObject {
-    .pt.ist.fenixframework.core.AbstractDomainObject playsRole domainObject;
+    .pt.ist.fenixframework.DomainObject playsRole domainObject;
 	DomainMetaObject playsRole;
 }
