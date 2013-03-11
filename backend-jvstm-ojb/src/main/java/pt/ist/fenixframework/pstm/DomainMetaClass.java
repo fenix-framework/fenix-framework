@@ -45,6 +45,8 @@ import pt.ist.fenixframework.pstm.consistencyPredicates.PublicConsistencyPredica
 @NoDomainMetaObjects
 public class DomainMetaClass extends DomainMetaClass_Base {
 
+    private static final Class<OneBoxDomainObject> BOTTOM_GENERATED_SUPERCLASS = OneBoxDomainObject.class;
+
     private static final Logger logger = LoggerFactory.getLogger(DomainMetaClass.class);
 
     private static final int MAX_NUMBER_OF_OBJECTS_TO_PROCESS = 10000;
@@ -77,16 +79,16 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      *         (from top to bottom).
      */
     private static String getHierarchyName(Class<?> class1) {
-        if (class1.equals(OneBoxDomainObject.class)) {
+        if (class1.equals(BOTTOM_GENERATED_SUPERCLASS)) {
             return "";
         }
         return getHierarchyName(class1.getSuperclass()) + "<-" + class1.getName();
     }
 
     /**
-     * Compares two <code>DomainMetaClasses</code> according to their
+     * Compares two {@link DomainMetaClass}es according to their
      * hierarchies, such that a superclass always appears before any of its
-     * subclasses. <code>DomainMetaClasses</code> of different hierarchies are
+     * subclasses. {@link DomainMetaClass}es of different hierarchies are
      * sorted alphabetically according to the names of their successive
      * superclasses (from top to bottom).
      * 
@@ -110,7 +112,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         setExistingDomainMetaObjects(new BPlusTree<DomainMetaObject>());
         setFinalized(false);
 
-        logger.info("Creating new a DomainMetaClass: {}", domainClass);
+        logger.info("Creating new a DomainMetaClass: " + domainClass);
     }
 
     public DomainMetaClass(Class<? extends DomainObject> domainClass, DomainMetaClass metaSuperclass) {
@@ -154,7 +156,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
             Class<?> domainClass = Class.forName(fullyQualifiedClassName);
             return (Class<? extends DomainObject>) domainClass;
         } catch (ClassNotFoundException e) {
-            logger.info("The following domain class has been removed: {}", e.getMessage());
+            logger.info("The following domain class has been removed: " + e.getMessage());
         }
         return null;
     }
@@ -171,8 +173,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     /**
-     * @return true if this <code>DomainMetaClass</code> was already fully
-     *         initialized
+     * @return true if this {@link DomainMetaClass} was already fully initialized
      */
     protected boolean isFinalized() {
         return getFinalized();
@@ -235,11 +236,11 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 
     /**
      * This method should be called only during the initialization of the {@link FenixFramework}, for each new
-     * <code>DomainMetaClass</code>.
+     * {@link DomainMetaClass}.
      * 
      * Creates a {@link DomainMetaObject} for each existing {@link DomainObject} of the specified class, and associates
      * the
-     * new {@link DomainMetaObject} to its <code>DomainMetaClass</code>.
+     * new {@link DomainMetaObject} to its {@link DomainMetaClass}.
      */
     protected void initExistingDomainObjects() {
         checkFrameworkNotInitialized();
@@ -265,7 +266,6 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 
             logger.info("Transaction finished. Number of initialized " + getDomainClass().getSimpleName() + " objects: "
                     + getExistingDomainMetaObjectsCount());
-
             // Starts a new transaction to process a limited number of existing objects.
             // This is necessary to split the load of the mass creation of DomainMetaObjects among several transactions.
             // Each transaction processes a maximum of MAX_NUMBER_OF_OBJECTS_TO_PROCESS objects in order to avoid OutOfMemoryExceptions.
@@ -318,7 +318,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 
     private static String getTableName(Class<? extends DomainObject> domainClass) {
         Class<?> topSuperClass = domainClass;
-        while (!topSuperClass.getSuperclass().getSuperclass().equals(OneBoxDomainObject.class)) {
+        while (!topSuperClass.getSuperclass().getSuperclass().equals(BOTTOM_GENERATED_SUPERCLASS)) {
             //skip to the next non-base superclass
             topSuperClass = topSuperClass.getSuperclass().getSuperclass();
         }
@@ -366,7 +366,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     /**
      * This method should be called only during the initialization of the {@link FenixFramework}.
      * 
-     * Sets the superclass of this DomainMetaClass to the metaSuperClass passed as argument.
+     * Sets the superclass of this {@link DomainMetaClass} to the metaSuperClass passed as argument.
      */
     public void initDomainMetaSuperclass(DomainMetaClass metaSuperclass) {
         checkFrameworkNotInitialized();
@@ -378,11 +378,10 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      * This method should be called only during the initialization of the {@link FenixFramework}.
      * 
      * Executes any inherited consistency predicates from the superclasses that are not being overridden,
-     * for each existing object of this DomainMetaClass.
+     * for each existing object of this {@link DomainMetaClass}.
      */
     public void executeInheritedPredicates() {
         checkFrameworkNotInitialized();
-
         if (!hasDomainMetaSuperclass()) {
             return;
         }
@@ -400,15 +399,15 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     /**
-     * Fills in the collections received as parameters with all the {@link DomainConsistencyPredicate}s that are either inherited,
-     * or
-     * declared by this DomainMetaClass.
+     * Fills in the collections received as parameters with all the {@link DomainConsistencyPredicate}s
+     * that are either inherited or declared by this {@link DomainMetaClass}.<br>
+     * This method executes recursively, in top-down order of the DomainMetaClass hierarchy.
      * 
      * @param privatePredicates
      *            the <code>List</code> of {@link PrivateConsistencyPredicate}s
      *            to fill in
      * @param publicPredicates
-     *            the <code>Map</code> of <code>Strings</code> to {@link PublicConsistencyPredicate}s to fill in
+     *            the <code>Map</code> of <code>Strings</code> with method names, to {@link PublicConsistencyPredicate}s
      */
     private void fillConsistencyPredicatesOfThisClassAndSuperclasses(List<PrivateConsistencyPredicate> privatePredicates,
             Map<String, PublicConsistencyPredicate> publicPredicates) {
@@ -416,8 +415,8 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         if (metaSuperclass != null) {
             metaSuperclass.fillConsistencyPredicatesOfThisClassAndSuperclasses(privatePredicates, publicPredicates);
         }
-        getPrivateConsistencyPredicates(privatePredicates);
-        getPublicConsistencyPredicates(publicPredicates);
+        fillDeclaredPrivatePredicates(privatePredicates);
+        fillDeclaredPublicPredicates(publicPredicates);
     }
 
     /**
@@ -425,7 +424,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      * passed as argument, all the {@link PrivateConsistencyPredicate}s declared
      * directly in this class.
      */
-    private void getPrivateConsistencyPredicates(List<PrivateConsistencyPredicate> privatePredicates) {
+    private void fillDeclaredPrivatePredicates(List<PrivateConsistencyPredicate> privatePredicates) {
         for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicates()) {
             if (declaredConsistencyPredicate.isPrivate()) {
                 privatePredicates.add((PrivateConsistencyPredicate) declaredConsistencyPredicate);
@@ -435,10 +434,9 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 
     /**
      * Adds to the <code>Map</code> of <code>Strings</code> to {@link PublicConsistencyPredicate}s passed as argument, all the
-     * {@link PublicConsistencyPredicate}s declared directly in this class,
-     * associated to their method names.
+     * {@link PublicConsistencyPredicate}s declared directly in this class, associated to their method names.
      */
-    private void getPublicConsistencyPredicates(Map<String, PublicConsistencyPredicate> publicPredicates) {
+    private void fillDeclaredPublicPredicates(Map<String, PublicConsistencyPredicate> publicPredicates) {
         for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicates()) {
             if (declaredConsistencyPredicate.isPublic()) {
                 publicPredicates.put(declaredConsistencyPredicate.getPredicate().getName(),
@@ -448,8 +446,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     /**
-     * Returns a <code>Set</code> with all the {@link DomainConsistencyPredicate}s that affect the objects of this
-     * class.
+     * Returns a <code>Set</code> with all the {@link DomainConsistencyPredicate}s that affect the objects of this class.
      * 
      * @return a <code>Set</code> of all the {@link DomainConsistencyPredicate}s
      *         declared directly by this class, or inherited and not overridden.
@@ -467,12 +464,11 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     /**
-     * This method should be called only during the initialization of the {@link FenixFramework}. <br>
+     * This method should be called only during the initialization of the {@link FenixFramework}.<br>
      * Deletes this <code>DomainMetaClass</code>, and all its metaSubclasses.
-     * Also deletes all the declared {@link DomainConsistencyPredicate}s. <br>
-     * A DomainMetaClass should be deleted only when the corresponding domain
-     * class is removed from the DML, or the framework is configured not to
-     * create meta objects.
+     * Also deletes all the declared {@link DomainConsistencyPredicate}s.<br>
+     * A DomainMetaClass should be deleted only when the corresponding domain class is removed from the DML,
+     * or the framework is configured not to create meta objects.
      **/
     protected void delete() {
         checkFrameworkNotInitialized();
@@ -499,10 +495,9 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     /**
-     * Uses a JDBC query to obtain the delete all the {@link DomainMetaObject}s
-     * of this class. It also sets to null any OIDs that used to point to the
-     * deleted {@link DomainMetaObject}s, both in the {@link DomainObject}'s and in the {@link DomainDependenceRecord} 's
-     * tables.
+     * Uses a JDBC query to obtain the delete all the {@link DomainMetaObject}s of this class.
+     * It also sets to null any OIDs that used to point to the deleted {@link DomainMetaObject}s,
+     * both in the {@link DomainObject}'s and in the {@link DomainDependenceRecord}'s tables.
      */
     protected void removeAllMetaObjects() {
         String tableName = getTableName();

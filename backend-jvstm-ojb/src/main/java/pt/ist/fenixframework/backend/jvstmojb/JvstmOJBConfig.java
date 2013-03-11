@@ -149,7 +149,7 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
         DomainClassInfo.initializeClassInfos(0);
         DomainClassInfo.ensureDomainRoot();
         TransactionSupport.setupJVSTM();
-        DomainFenixFrameworkRoot.getLockAndInitDomainFenixFrameworkRoot(this);
+        DomainFenixFrameworkRoot.getLockAndBootstrap(this);
     }
 
     @Override

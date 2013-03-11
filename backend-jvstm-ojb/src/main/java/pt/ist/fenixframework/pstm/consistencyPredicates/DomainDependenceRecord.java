@@ -12,14 +12,13 @@ import pt.ist.fenixframework.pstm.DomainMetaObject;
 
 /**
  * A <code>DomainDependenceRecord</code> represents the result of the execution
- * of a consistency predicate method for a dependent domain object. The <code>DomainDependenceRecord</code> has a set of depended
- * {@link DomainMetaObject}s, that represent the other domain objects that were
- * read to execute the consistency predicate. If any of these objects is
- * modified, the consistency predicate must be reexecuted.<br>
+ * of a consistency predicate method for a dependent domain object.
+ * The <code>DomainDependenceRecord</code> has a set of depended {@link DomainMetaObject}s,
+ * that represent the other domain objects that were read to execute the consistency predicate.
+ * If any of these objects is modified, the consistency predicate must be reexecuted.<br>
  * <br>
- * A <code>DomainDependenceRecord</code> will never register the dependent
- * object as a depended object. After executing a consistency predicate, a <code>DomainDependenceRecord</code> will not even be
- * created if:
+ * A <code>DomainDependenceRecord</code> will never register the dependent object as a depended object.
+ * After executing a consistency predicate, a <code>DomainDependenceRecord</code> will not even be created if:
  * <ul>
  * <li>the object does not depend on other objects, and</li>
  * <li>the object is consistent</li>
@@ -52,10 +51,9 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
     }
 
     /**
-     * Sets this <code>DomainDependenceRecord</code> as being consistent, or
-     * inconsistent by updating the <code>inconsistentDependenceRecords</code> relation to the {@link DomainConsistencyPredicate}.<br>
-     * This method should only be invoked after the execution of a consistency
-     * predicate.
+     * Sets this <code>DomainDependenceRecord</code> as being consistent, or inconsistent by updating
+     * the <code>inconsistentDependenceRecords</code> relation to the {@link DomainConsistencyPredicate}.<br>
+     * This method should only be invoked after the execution of a consistency predicate.
      */
     public void setConsistent(Boolean consistent) {
         if (consistent) {
@@ -70,8 +68,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
     }
 
     /**
-     * Deletes this <code>DomainDependenceRecord</code> after disconnecting it
-     * from all relations.<br>
+     * Deletes this <code>DomainDependenceRecord</code> after disconnecting it from all relations.<br>
      * A <code>DomainDependenceRecord</code> can be deleted in two cases:
      * <ul>
      * <li>When the dependent object is being deleted. In this case, its {@link DomainMetaObject} will also be deleted, and will

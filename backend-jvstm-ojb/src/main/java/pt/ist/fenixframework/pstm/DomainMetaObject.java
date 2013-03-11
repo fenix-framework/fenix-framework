@@ -3,7 +3,6 @@ package pt.ist.fenixframework.pstm;
 import java.util.Set;
 
 import jvstm.cps.Depended;
-import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
@@ -33,24 +32,18 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
     }
 
     /**
-     * Deletes this <code>DomainMetaObject</code>, and all the object's own {@link DomainDependenceRecord}s. It also removes the
-     * dependencies of
-     * other objects to this object.<br>
+     * Deletes this <code>DomainMetaObject</code>, and all the object's own {@link DomainDependenceRecord}s.
+     * It also removes the dependencies of other objects to this object.<br>
      * 
-     * A DomainMetaObject should be deleted only when the associated DO is being
-     * deleted. Therefore, we can remove it from its metaClass' existing objects
-     * list.<br>
+     * A DomainMetaObject should be deleted only when the associated DO is being deleted.
+     * Therefore, we can remove it from its metaClass' existing objects list.<br>
      * 
-     * <strong>This method assumes that a deleted object is no longer connected
-     * to other objects. Therefore, the parameter {@link Config#errorfIfDeletingObjectNotDisconnected} MUST be set to
-     * true.</strong><br>
-     * 
-     * Because all relations are bidireccional, the transaction that disconnects
-     * this object from all its relations will have all of the objects at the
-     * end of those relations in its write set. Thus, if any other object's
-     * consistency depends on the existence of this object, its consistency
-     * predicate will still be checked, even after removing the
-     * <strong>depending</strong> dependence records of this object.
+     * This method assumes that an object must be disconnected from all other objects before being deleted.
+     * Because all relations are bidireccional, the transaction that disconnects this object from all its
+     * relations will have all of the objects at the end of those relations in its write set.
+     * Thus, if any other object's consistency depends on the existence of this object,
+     * its consistency predicate will still be checked, even after removing
+     * the <strong>depending</strong> dependence records of this object.
      **/
     public void delete() {
         getDomainMetaClass().removeExistingDomainMetaObject(this);
@@ -126,6 +119,16 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
         super.setDomainObject(null);
     }
 
+    public static DomainMetaObject getDomainMetaObjectFor(DomainObject obj) {
+        AbstractDomainObject domainObject = (AbstractDomainObject) obj;
+        return domainObject.getDomainMetaObject();
+    }
+
+    private static void justSetMetaObjectForDomainObject(DomainObject domainObject, DomainMetaObject metaObject) {
+        AbstractDomainObject abstractDO = (AbstractDomainObject) domainObject;
+        abstractDO.justSetMetaObject(metaObject);
+    }
+
     // Depended interface implemented below:
     @Override
     public void addDependence(DomainDependenceRecord record) {
@@ -140,15 +143,5 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
     @Override
     public Set<DomainDependenceRecord> getDependenceRecords() {
         return getDependingDependenceRecordsSet();
-    }
-
-    public static DomainMetaObject getDomainMetaObjectFor(DomainObject obj) {
-        AbstractDomainObject domainObject = (AbstractDomainObject) obj;
-        return domainObject.getDomainMetaObject();
-    }
-
-    private static void justSetMetaObjectForDomainObject(DomainObject domainObject, DomainMetaObject metaObject) {
-        AbstractDomainObject abstractDO = (AbstractDomainObject) domainObject;
-        abstractDO.justSetMetaObject(metaObject);
     }
 }

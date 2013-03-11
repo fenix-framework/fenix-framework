@@ -10,8 +10,7 @@ import pt.ist.fenixframework.pstm.DomainMetaClass;
 
 /**
  * A <code>PrivateConsistencyPredicate</code> is a {@link DomainConsistencyPredicate} that represents a predicate method that is
- * private. It can neither override, nor be overridden by other consistency
- * predicates.
+ * private. It can neither override, nor be overridden by other consistency predicates.
  * 
  * Therefore, during the initialization, the new <code>PrivateConsistencyPredicate</code> is executed for all objects of the
  * declaring domain class and subclasses. Likewise, on deletion, all its {@link DomainDependenceRecord}s are removed.
@@ -27,7 +26,7 @@ public class PrivateConsistencyPredicate extends PrivateConsistencyPredicate_Bas
         super();
         setPredicate(predicateMethod);
         setDomainMetaClass(metaClass);
-        logger.info("Created a {} for {}", getClass().getSimpleName(), getPredicate());
+        logger.info("Created a " + getClass().getSimpleName() + " for " + getPredicate());
     }
 
     @Override
@@ -70,8 +69,7 @@ public class PrivateConsistencyPredicate extends PrivateConsistencyPredicate_Bas
 
     /**
      * Executes this consistency predicate for all objects of the given {@link DomainMetaClass}, and all objects of subclasses.
-     * Because the
-     * predicate is private, it cannot be overridden at any subclass.
+     * Because the predicate is private, it cannot be overridden at any subclass.
      * 
      * @param metaClass
      *            the {@link DomainMetaClass} for which to execute this

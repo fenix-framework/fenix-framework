@@ -18,8 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.TransactionManager;
@@ -65,7 +65,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * Initializes the {@link DomainFenixFrameworkRoot} after obtaining a db-lock, to guarantee that only one application server
      * at a time executes this code.
      */
-    public static void getLockAndInitDomainFenixFrameworkRoot(JvstmOJBConfig config) {
+    public static void getLockAndBootstrap(JvstmOJBConfig config) {
         //Most of this lock-related code was copied from RepositoryBootstrap.updateDataRepositoryStructureIfNeeded()
         Connection connection = null;
         try {
@@ -98,7 +98,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             }
 
             try {
-                initDomainFenixFrameworkRoot();
+                bootstrap();
             } finally {
                 Statement statementUnlock = null;
                 try {
@@ -127,11 +127,11 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     }
 
     /**
-     * Creates a {@link PersistentRoot} for the {@link DomainFenixFrameworkRoot} and then initializes the
+     * Creates a {@link DomainRoot} for the {@link DomainFenixFrameworkRoot} and then initializes the
      * {@link DomainFenixFrameworkRoot}.
      */
     @Atomic
-    private static void initDomainFenixFrameworkRoot() {
+    private static void bootstrap() {
         if (getInstance() == null) {
             DomainFenixFrameworkRoot fenixFrameworkRoot = new DomainFenixFrameworkRoot();
             FenixFramework.getDomainRoot().setDomainFenixFrameworkRoot(fenixFrameworkRoot);
@@ -140,11 +140,11 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     }
 
     /**
-     * Verifies that there is no existing DomainFenixFrameworkRoot object.
-     * Throws an {@link Error} otherwise. Used during the constructor of a new <code>DomainFenixFrameworkRoot</code> object.
+     * Verifies that there is no existing {@link DomainFenixFrameworkRoot} object.
+     * Throws an <code>Error</code> otherwise. Used in the constructor of a new {@link DomainFenixFrameworkRoot} object.
      * 
      * @throws Error
-     *             if a <code>DomainFenixFrameworkRoot</code> object already
+     *             if a {@link DomainFenixFrameworkRoot} object already
      *             exists.
      */
     private void checkIfIsSingleton() {
@@ -197,14 +197,13 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         checkFrameworkNotInitialized();
         existingDomainMetaClasses.put(metaClass.getDomainClass(), metaClass);
         // The metaClass for the base class is the same as the regular domain class
-        existingDomainMetaClasses.put((Class<? extends DomainObject>) metaClass.getDomainClass().getSuperclass(),
-                metaClass);
+        existingDomainMetaClasses.put((Class<? extends DomainObject>) metaClass.getDomainClass().getSuperclass(), metaClass);
         super.addDomainMetaClasses(metaClass);
     }
 
     /**
-     * Entry point of the initialization of the <code>DomainFenixFrameworkRoot</code>, which initializes the
-     * {@link DomainMetaClass}es and the {@link DomainConsistencyPredicate}s. If
+     * Entry point of the initialization of the {@link DomainFenixFrameworkRoot}, which initializes the {@link DomainMetaClass}es
+     * and the {@link DomainConsistencyPredicate}s. If
      * the framework was configured not to create meta objects, it deletes all {@link DomainMetaClass}es and
      * {@link DomainConsistencyPredicate}s
      * instead.
@@ -212,13 +211,13 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     public void initialize(DomainModel domainModel) {
         checkFrameworkNotInitialized();
         if (JvstmOJBConfig.canCreateDomainMetaObjects()) {
-            logger.info("Starting initialization of the DomainMetaClasses");
+            logger.trace("Starting initialization of the DomainMetaClasses");
             initializeDomainMetaClasses(domainModel);
-            logger.info("Finished the initialization of the DomainMetaClasses");
+            logger.trace("Finished the initialization of the DomainMetaClasses");
 
-            logger.info("Starting initialization of the DomainConsistencyPredicates");
+            logger.trace("Starting initialization of the DomainConsistencyPredicates");
             initializeDomainConsistencyPredicates();
-            logger.info("Finished the initialization of the DomainConsistencyPredicates");
+            logger.trace("Finished the initialization of the DomainConsistencyPredicates");
 
             checkAllMethodsOverridingPredicates();
         } else {
@@ -270,8 +269,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
 
     /**
      * @return a <code>Map</code> of <code>Classes</code> to {@link DomainClass} with all the existing classes of the
-     *         domain model, except those
-     *         annotated with {@link NoDomainMetaObjects}.
+     *         domain model, except those annotated with {@link NoDomainMetaObjects}.
      */
     private Map<Class<? extends DomainObject>, DomainClass> getExistingDomainClasses(DomainModel domainModel) {
         Map<Class<? extends DomainObject>, DomainClass> existingDomainClasses =
@@ -380,7 +378,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             if (!metaClass.hasDomainMetaSuperclass()) {
                 if (hasSuperclassInDML(metaClass)) {
                     logger.info("DomainMetaClass " + metaClass.getDomainClass().getSimpleName()
-                            + " (and subclasses') hierarchy has changed...");
+                            + " (and subclasses) hierarchy has changed");
                     metaClass.delete();
                 }
             } else {
@@ -390,7 +388,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
                 }
                 if (currentMetaSuperclass != metaClass.getDomainMetaSuperclass()) {
                     logger.info("DomainMetaClass " + metaClass.getDomainClass().getSimpleName()
-                            + " (and subclasses') hierarchy has changed...");
+                            + " (and subclasses) hierarchy has changed");
                     metaClass.delete();
                 }
             }
@@ -488,29 +486,31 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
                 new TreeSet<DomainMetaClass>(DomainMetaClass.COMPARATOR_BY_META_CLASS_HIERARCHY_TOP_DOWN);
         existingMetaClassesTopDown.addAll(existingDomainMetaClasses.values());
         for (DomainMetaClass metaClass : existingMetaClassesTopDown) {
-            Set<Method> existingPredicates = getDeclaredConsistencyPredicateMethods(metaClass);
-            for (DomainConsistencyPredicate declaredConsistencyPredicate : metaClass.getDeclaredConsistencyPredicates()) {
-                Method predicateMethod = declaredConsistencyPredicate.getPredicate();
+
+            Set<Method> existingPredicateMethods = getDeclaredConsistencyPredicateMethods(metaClass);
+            for (DomainConsistencyPredicate declaredPredicate : metaClass.getDeclaredConsistencyPredicates()) {
+                Method predicateMethod = declaredPredicate.getPredicate();
                 if ((predicateMethod == null)
                         || (!predicateMethod.isAnnotationPresent(ConsistencyPredicate.class) && !predicateMethod
                                 .isAnnotationPresent(jvstm.cps.ConsistencyPredicate.class))) {
-                    oldPredicatesToRemove.add(declaredConsistencyPredicate);
+                    oldPredicatesToRemove.add(declaredPredicate);
                 } else {
-                    existingDomainPredicates.put(declaredConsistencyPredicate.getPredicate(), declaredConsistencyPredicate);
+                    existingDomainPredicates.put(declaredPredicate.getPredicate(), declaredPredicate);
                 }
             }
 
-            newPredicatesToAdd.addAll(existingPredicates);
+            newPredicatesToAdd.addAll(existingPredicateMethods);
             newPredicatesToAdd.removeAll(existingDomainPredicates.keySet());
-
             if (!newPredicatesToAdd.isEmpty()) {
                 processNewPredicates(newPredicatesToAdd, metaClass);
                 newPredicatesToAdd.clear();
             }
+
             if (!oldPredicatesToRemove.isEmpty()) {
                 processOldPredicates(oldPredicatesToRemove, metaClass);
                 oldPredicatesToRemove.clear();
             }
+
             if (!existingDomainPredicates.isEmpty()) {
                 processExistingPredicates(existingDomainPredicates.values(), metaClass);
                 existingDomainPredicates.clear();
@@ -540,8 +540,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * @param domainClass
      *            the class in which to look for consistency predicates
      * @return A <code>Set</code> of <code>Methods</code> annotated with {@link ConsistencyPredicate}, declared inside
-     *         the given
-     *         domainClass. Excludes abstract <code>Methods</code>.
+     *         the given domainClass. Excludes abstract <code>Methods</code>.
      * @throws Error
      *             if any predicate found has an invalid signature.
      */
@@ -612,6 +611,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             DomainConsistencyPredicate newConsistencyPredicate =
                     DomainConsistencyPredicate.createNewDomainConsistencyPredicate(predicateMethod, metaClass);
             newConsistencyPredicate.initConsistencyPredicateOverridden();
+            checkpointTransaction();
+
             newConsistencyPredicate.executeConsistencyPredicateForMetaClassAndSubclasses(metaClass);
 
             // Because the executeConsistencyPredicateForMetaClassAndSubclasses method is split among several transactions,
@@ -654,12 +655,12 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      *            the given metaClass.
      */
     private void deleteOldPredicates(Set<DomainConsistencyPredicate> oldPredicatesToRemove, DomainMetaClass metaClass) {
-        for (DomainConsistencyPredicate knownConsistencyPredicate : oldPredicatesToRemove) {
+        for (DomainConsistencyPredicate domainConsistencyPredicate : oldPredicatesToRemove) {
             // Commits the current, and starts a new write transaction.
             // This is necessary to split the load of the mass deletion of DomainDependenceRecords among several transactions.
             // Each transaction fully processes one DomainConsistencyPredicate.
             checkpointTransaction();
-            knownConsistencyPredicate.delete();
+            domainConsistencyPredicate.delete();
         }
     }
 
@@ -752,7 +753,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * and any associated {@link DomainConsistencyPredicate}s and {@link DomainDependenceRecord}s. This method should be
      * invoked when the {@link FenixFramework} is configured not to create meta objects.
      * 
-     * @see Config#canCreateMetaObjects
+     * @see JvstmOJBConfig#canCreateMetaObjects
      */
     private void deleteAllMetaObjectsAndClasses() {
         if (hasAnyDomainMetaClasses()) {
@@ -772,7 +773,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      */
     public static void checkpointTransaction() {
         if (FenixFramework.isInitialized()) {
-            throw new Error("Cannot checkpoint transactions after Framework Initialization.");
+            throw new Error("Cannot checkpoint transactions after the framework is initialized.");
         }
         try {
             TransactionManager txManager = FenixFramework.getTransactionManager();
@@ -783,7 +784,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
 
             txManager.begin(false);
         } catch (Exception e) {
-            logger.error("An error has ocurred while checkpointing the transaction!", e);
+            logger.error("An error has ocurred while checkpointing the transaction", e);
             throw new Error(e);
         }
 
