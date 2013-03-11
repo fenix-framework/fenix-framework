@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.atomic.AtomicContextFactory;
+import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.dml.CodeGenerator;
 
 /**
@@ -67,6 +69,12 @@ public abstract class BackEndId {
      * {@link java.util.concurrent.Callable} within a transactional context.
      */
     public abstract Class<? extends AtomicContextFactory> getAtomicContextFactoryClass();
+
+    /**
+     * Get the subclass of {@link AbstractDomainObject} that is the backend-specific root class of all {@link DomainObject}s.
+     * 
+     */
+    public abstract Class<? extends AbstractDomainObject> getDomainClassRoot();
 
     /**
      * Lookup via reflection the {@link pt.ist.fenixframework.backend.CurrentBackEndId} class and
