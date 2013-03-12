@@ -20,7 +20,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- PLEASE KEEP THIS LIST SORTED ALPHABETICALLY!!!  THANKS -->
-        <version.advice>1.2</version.advice>
+        <version.advice>1.5</version.advice>
         <version.antlr>2.7.7</version.antlr>
         <version.apache.ant>1.8.2</version.apache.ant>
         <version.asm>4.0</version.asm>
@@ -337,8 +337,8 @@
         </repository>
 
         <repository>
-            <id>inesc-id-esw-repository</id>
-            <url>http://inesc-id-esw.github.com/maven-repo/</url>
+            <id>advice-repository</id>
+            <url>http://inesc-id-esw.github.com/advice/maven-repo/</url>
         </repository>
 
         <repository>

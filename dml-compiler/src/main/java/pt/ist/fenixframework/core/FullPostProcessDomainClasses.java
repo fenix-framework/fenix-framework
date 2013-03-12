@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.esw.advice.ProcessAnnotations;
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.atomic.AtomicContextFactoryViaReflection;
 
 /**
  * This class aggregates the whole post-processing required on the domain classes.
@@ -92,7 +93,7 @@ public class FullPostProcessDomainClasses {
      */
     public static void apply(String projectName, File classesDirectory, ClassLoader parentClassLoader) throws Exception {
         injectCode(projectName, parentClassLoader);
-        new ProcessAnnotations(Atomic.class).processFile(classesDirectory);
+        processAtomicAnnotations(classesDirectory);
     }
 
     /**
@@ -111,6 +112,14 @@ public class FullPostProcessDomainClasses {
 
         PostProcessDomainClasses postProcessor = new PostProcessDomainClasses(dmlFiles, parentClassLoader);
         postProcessor.start();
+    }
+
+    /**
+     * Invoke the Atomic annotation processor
+     */
+    private static void processAtomicAnnotations(File classesDirectory) {
+        new ProcessAnnotations(new ProcessAnnotations.ProgramArgs(Atomic.class, AtomicContextFactoryViaReflection.class,
+                classesDirectory)).process();
     }
 
 }
