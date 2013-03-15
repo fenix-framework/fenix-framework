@@ -522,7 +522,7 @@ public abstract class CodeGenerator {
             print(out, "private final static class ");
             print(out, relationSlotName);
             newBlock(out);
-            print(out, "public static final ");
+            print(out, "private static final ");
             print(out, directRelationType);
             print(out, genericType);
             print(out, " relation");
