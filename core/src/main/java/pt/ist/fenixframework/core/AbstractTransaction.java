@@ -64,7 +64,7 @@ public abstract class AbstractTransaction extends FenixAbstractTransaction {
         } catch (Exception e) {
             rollback();
             return;
-        } catch (CommitError e) {
+        } catch (TransactionError e) {
             rollback();
             return;
         }

@@ -9,7 +9,7 @@ import jvstm.CommitException;
 import jvstm.Transaction;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction;
 import pt.ist.fenixframework.core.AbstractTransaction;
-import pt.ist.fenixframework.core.CommitError;
+import pt.ist.fenixframework.core.TransactionError;
 import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
 public class JvstmOJBTransaction extends AbstractTransaction {
@@ -41,7 +41,7 @@ public class JvstmOJBTransaction extends AbstractTransaction {
         try {
             Transaction.commit();
         } catch (CommitException e) {
-            throw new JvstmCommitError();
+            throw new JvstmTransactionError();
         }
     }
 
@@ -54,7 +54,7 @@ public class JvstmOJBTransaction extends AbstractTransaction {
         Transaction.abort();
     }
 
-    private static final class JvstmCommitError extends CommitError {
+    private static final class JvstmTransactionError extends TransactionError {
         private static final long serialVersionUID = 2031232654005283536L;
     }
 
