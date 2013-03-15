@@ -2,8 +2,6 @@ package pt.ist.fenixframework.backend.jvstmmem;
 
 import java.io.PrintWriter;
 
-import pt.ist.fenixframework.atomic.AtomicContextFactory;
-import pt.ist.fenixframework.atomic.DefaultAtomicContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
@@ -33,11 +31,6 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected String getDefaultConfigClassName() {
         return JVSTMMemConfig.class.getName();
-    }
-
-    @Override
-    protected Class<? extends AtomicContextFactory> getAtomicContextFactoryClass() {
-        return DefaultAtomicContextFactory.class;
     }
 
     @Override

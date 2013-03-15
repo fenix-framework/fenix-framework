@@ -30,6 +30,10 @@
             <artifactId>fenix-framework-project</artifactId>
         </dependency>
         <dependency>
+            <groupId>pt.ist.esw</groupId>
+            <artifactId>advice</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>

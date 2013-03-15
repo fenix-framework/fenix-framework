@@ -8,7 +8,7 @@ import org.apache.maven.project.MavenProject;
 
 import pt.ist.esw.advice.ProcessAnnotations;
 import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.atomic.AtomicContextFactoryViaReflection;
+import pt.ist.fenixframework.atomic.AtomicContextFactory;
 
 public abstract class AbstractAtomicProcessorMojo extends AbstractMojo {
 
@@ -24,7 +24,7 @@ public abstract class AbstractAtomicProcessorMojo extends AbstractMojo {
         }
 
         try {
-            new ProcessAnnotations(new ProcessAnnotations.ProgramArgs(Atomic.class, AtomicContextFactoryViaReflection.class,
+            new ProcessAnnotations(new ProcessAnnotations.ProgramArgs(Atomic.class, AtomicContextFactory.class,
                     getClassesDirectory())).process();
 
         } catch (Exception e) {
