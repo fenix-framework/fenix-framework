@@ -519,11 +519,13 @@ public abstract class CodeGenerator {
         String methodName = "getRelation" + role.getRelation().getName();
 
         if (isDirectRelation) {
-            print(out, "private final static ");
+            print(out, "private final static class ");
+            print(out, relationSlotName);
+            newBlock(out);
+            print(out, "private static final ");
             print(out, directRelationType);
             print(out, genericType);
-            print(out, " ");
-            print(out, relationSlotName);
+            print(out, " relation");
             print(out, " = ");
             print(out, "new ");
             print(out, directRelationType);
@@ -534,7 +536,8 @@ public abstract class CodeGenerator {
             print(out, role.getRelation().getName());
             print(out, "\"");
             generateDefaultRelationListeners(role, out);
-            println(out, ");");
+            print(out, ");");
+            closeBlock(out);
         }
 
         // Also Generate relation getter, if the classes are distinct!
@@ -543,7 +546,7 @@ public abstract class CodeGenerator {
             startMethodBody(out);
             print(out, "return ");
             if (isDirectRelation) {
-                print(out, relationSlotName);
+                print(out, relationSlotName + ".relation");
             } else {
                 print(out, role.getType().getFullName() + "." + methodName + "()");
             }
