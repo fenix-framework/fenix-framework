@@ -28,8 +28,9 @@
         <module>dml-compiler</module>
         <module>dml-maven-plugin</module>
         <module>core</module>
+        <module>atomic-maven-plugin</module>
         <module>adt-bplustree</module>
-		<module>adt-linkedlist</module>
+        <module>adt-linkedlist</module>
         <module>adt-skiplist</module>
         <module>data-access-patterns</module>
         <module>txintrospector</module>

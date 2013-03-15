@@ -38,6 +38,18 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>atomic-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-process-atomic-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- needed by the ogm backend -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
