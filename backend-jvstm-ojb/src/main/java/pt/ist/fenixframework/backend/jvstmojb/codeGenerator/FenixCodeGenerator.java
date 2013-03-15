@@ -108,7 +108,7 @@ public class FenixCodeGenerator extends CodeGenerator {
             newline(out);
             printWords(out, "static");
             newBlock(out);
-            printWords(out, relationName);
+            printWords(out, relationName + ".relation");
             print(out, ".setRelationName(\"");
             print(out, getTypeFullName(role.getOtherRole().getType()));
             print(out, ".");
@@ -123,7 +123,7 @@ public class FenixCodeGenerator extends CodeGenerator {
                 String secondType = getTypeFullName(role.getType());
 
                 newline(out);
-                printWords(out, relationName);
+                printWords(out, relationName + ".relation");
                 print(out, ".addListener(new ");
                 print(out, makeGenericType("pt.ist.fenixframework.dml.runtime.RelationAdapter", firstType, secondType));
                 print(out, "()");
