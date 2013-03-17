@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 
-import pt.ist.fenixframework.atomic.AtomicContextFactory;
 import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
 
 /**
@@ -269,19 +268,6 @@ public abstract class CodeGenerator {
         newBlock(out);
         print(out, "throw new RuntimeException(e);");
         closeBlock(out);
-        endMethodBody(out);
-
-        // getAtomicContextFactoryClass
-        newline(out);
-        printMethod(out, "public", "Class<? extends pt.ist.fenixframework.atomic.AtomicContextFactory>",
-                "getAtomicContextFactoryClass");
-        startMethodBody(out);
-        Class factory = getAtomicContextFactoryClass();
-        if (factory != null) {
-            printWords(out, "return", factory.getName() + ".class;");
-        } else {
-            printWords(out, "return", "null;");
-        }
         endMethodBody(out);
     }
 
@@ -1301,8 +1287,4 @@ public abstract class CodeGenerator {
      */
     protected abstract String getDefaultConfigClassName();
 
-    /**
-     * Get the class that implements the AtomicContextFactory for AtomicContexts
-     */
-    protected abstract Class<? extends AtomicContextFactory> getAtomicContextFactoryClass();
 }

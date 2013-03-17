@@ -20,7 +20,7 @@
         <plugins>
             <plugin>
                 <groupId>pt.ist</groupId>
-                <artifactId>dml-maven-plugin</artifactId>
+                <artifactId>ff-maven-plugin</artifactId>
                 <version>${version.fenixframework}</version>
                 <configuration>
                     <codeGeneratorClassName>${fenixframework.code.generator}</codeGeneratorClassName>
@@ -28,8 +28,9 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>generate-domain</goal>
-                            <goal>post-compile</goal>
+                            <goal>ff-generate-domain</goal>
+                            <goal>ff-post-compile</goal>
+                            <goal>ff-process-atomic-annotations</goal>
                         </goals>
                     </execution>
                 </executions>

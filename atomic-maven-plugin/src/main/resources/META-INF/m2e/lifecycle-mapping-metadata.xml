@@ -1,0 +1,19 @@
+<!--
+	This file tells eclipse to ignore Atomic Mojo once a project is imported.
+	
+	For more details see http://wiki.eclipse.org/M2E_compatible_maven_plugins -->
+<lifecycleMappingMetadata>
+	<pluginExecutions>
+		<pluginExecution>
+			<pluginExecutionFilter>
+				<goals>
+					<goal>process-atomic-annotations</goal>
+					<goal>test-process-atomic-annotations</goal>
+				</goals>
+			</pluginExecutionFilter>
+			<action>
+				<ignore />
+			</action>
+		</pluginExecution>
+	</pluginExecutions>
+</lifecycleMappingMetadata>
