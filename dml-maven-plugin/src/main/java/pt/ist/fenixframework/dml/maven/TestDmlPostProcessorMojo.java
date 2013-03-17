@@ -23,14 +23,14 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * 
      * @parameter default-value="${project}"
      */
-    private MavenProject mavenProject;
+    protected MavenProject mavenProject;
 
     /**
      * Setting this to 'true' skips post-processing of dml compiled test classes.
      * 
      * @parameter expression="${maven.test.skip}"
      */
-    private boolean skip;
+    protected boolean skip;
 
     /**
      * File Source Directory
@@ -39,7 +39,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * @readonly
      * @required
      */
-    private File dmlSourceDirectory;
+    protected File dmlSourceDirectory;
 
     /**
      * Classes Directory
@@ -48,7 +48,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * @readonly
      * @required
      */
-    private File classesDirectory;
+    protected File classesDirectory;
 
     /**
      * Code Generator Class Name
@@ -56,7 +56,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * @parameter expression="${generate-domain.codeGeneratorClassName}"
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
-    private String codeGeneratorClassName;
+    protected String codeGeneratorClassName;
 
     /**
      * Verbose Mode Flag
@@ -64,7 +64,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * @parameter expression="${generate-domain.verbose}"
      *            default-value="false"
      */
-    private boolean verbose;
+    protected boolean verbose;
 
     @Override
     public void execute() throws MojoExecutionException {

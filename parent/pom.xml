@@ -20,18 +20,18 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- PLEASE KEEP THIS LIST SORTED ALPHABETICALLY!!!  THANKS -->
-        <version.advice>1.2</version.advice>
+        <version.advice>1.5</version.advice>
         <version.antlr>2.7.7</version.antlr>
         <version.apache.ant>1.8.2</version.apache.ant>
         <version.asm>4.0</version.asm>
         <version.commons.io>2.4</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
         <version.dap-framework>2.0</version.dap-framework>
-        <version.hibernate>4.0.1.Final</version.hibernate>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
         <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
+        <version.hibernate>4.0.1.Final</version.hibernate>
         <version.infinispan>5.1.6.FINAL</version.infinispan>
         <version.jboss.logging>3.1.0.GA</version.jboss.logging>
         <version.jbossjta>4.16.3.Final</version.jbossjta>
@@ -121,6 +121,16 @@
             <dependency>
                 <groupId>pt.ist</groupId>
                 <artifactId>dml-maven-plugin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>atomic-maven-plugin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>ff-maven-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -337,8 +347,8 @@
         </repository>
 
         <repository>
-            <id>inesc-id-esw-repository</id>
-            <url>http://inesc-id-esw.github.com/maven-repo/</url>
+            <id>advice-repository</id>
+            <url>http://inesc-id-esw.github.com/advice/maven-repo/</url>
         </repository>
 
         <repository>

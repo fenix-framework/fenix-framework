@@ -1,0 +1,35 @@
+<!--
+    This file tells eclipse to run the CodeGeneratorMojo once a project is imported.
+    
+    For more details see http://wiki.eclipse.org/M2E_compatible_maven_plugins -->
+<lifecycleMappingMetadata>
+    <pluginExecutions>
+        <pluginExecution>
+            <pluginExecutionFilter>
+                <goals>
+                    <goal>ff-post-compile</goal>
+                    <goal>ff-process-atomic-annotations</goal>
+                    <goal>ff-test-post-compile</goal>
+                    <goal>ff-test-process-atomic-annotations</goal>
+                </goals>
+            </pluginExecutionFilter>
+            <action>
+                <ignore />
+            </action>
+        </pluginExecution>
+        <pluginExecution>
+            <pluginExecutionFilter>
+                <goals>
+                    <goal>ff-generate-domain</goal>
+                    <goal>ff-test-generate-domain</goal>
+                </goals>
+            </pluginExecutionFilter>
+            <action>
+                <execute>
+                    <runOnIncremental>false</runOnIncremental>
+                    <runOnConfiguration>true</runOnConfiguration>
+                </execute>
+            </action>
+        </pluginExecution>
+    </pluginExecutions>
+</lifecycleMappingMetadata>

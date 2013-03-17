@@ -13,8 +13,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-// import jvstm.ProcessAtomicAnnotations;
-
 public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
     private static final String OID_INNER_CLASS_INTERNAL_NAME = Type.getInternalName(DomainObjectAllocator.OID.class);
 
@@ -38,10 +36,6 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
         PostProcessDomainClasses loader = new PostProcessDomainClasses();
         loader.processArgs(args);
         loader.start();
-
-        // // process, also, the @Atomic annotations
-        // ProcessAtomicAnnotations processor = new ProcessAtomicAnnotations(Transaction.class, new String[] { "." });
-        // processor.start();
     }
 
     @Override

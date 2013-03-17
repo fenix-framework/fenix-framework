@@ -7,8 +7,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import pt.ist.fenixframework.atomic.AtomicContextFactory;
-import pt.ist.fenixframework.atomic.DefaultAtomicContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
@@ -57,11 +55,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected String getDefaultConfigClassName() {
         return OgmConfig.class.getName();
-    }
-
-    @Override
-    protected Class<? extends AtomicContextFactory> getAtomicContextFactoryClass() {
-        return DefaultAtomicContextFactory.class;
     }
 
     @Override
