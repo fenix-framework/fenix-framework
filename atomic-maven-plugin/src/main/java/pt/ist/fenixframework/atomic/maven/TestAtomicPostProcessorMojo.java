@@ -20,14 +20,14 @@ public class TestAtomicPostProcessorMojo extends AbstractAtomicProcessorMojo {
      * 
      * @parameter default-value="${project}"
      */
-    private MavenProject mavenProject;
+    protected MavenProject mavenProject;
 
     /**
      * Setting this to 'true' skips this post-processing
      * 
      * @parameter expression="${maven.test.skip}"
      */
-    private boolean skip;
+    protected boolean skip;
 
     /**
      * Classes Directory
@@ -36,7 +36,7 @@ public class TestAtomicPostProcessorMojo extends AbstractAtomicProcessorMojo {
      * @readonly
      * @required
      */
-    private File classesDirectory;
+    protected File classesDirectory;
 
     @Override
     public void execute() throws MojoExecutionException {

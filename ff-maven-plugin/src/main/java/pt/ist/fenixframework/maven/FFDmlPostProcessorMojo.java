@@ -1,22 +1,21 @@
-package pt.ist.fenixframework.dml.maven;
+package pt.ist.fenixframework.maven;
 
 import java.io.File;
-import java.util.List;
 
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
+import pt.ist.fenixframework.dml.maven.DmlPostProcessorMojo;
+
 /**
- * Goal which injects the constructors into the bytecode of the DML compiled
- * classes
+ * This goal is an adapter for dml-maven-plugin:post-compile
  * 
- * @goal post-compile
+ * @goal ff-post-compile
  * @phase process-classes
  * @requiresDependencyResolution runtime
  * @threadSafe
  */
-public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
+public class FFDmlPostProcessorMojo extends DmlPostProcessorMojo {
 
     /**
      * Maven Project
@@ -61,6 +60,11 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
+        super.mavenProject = this.mavenProject;
+        super.dmlSourceDirectory = this.dmlSourceDirectory;
+        super.classesDirectory = this.classesDirectory;
+        super.codeGeneratorClassName = this.codeGeneratorClassName;
+        super.verbose = this.verbose;
         super.execute();
     }
 
@@ -89,13 +93,4 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
         return mavenProject;
     }
 
-    @Override
-    protected List<String> getClasspathElements() {
-        try {
-            return getMavenProject().getCompileClasspathElements();
-        } catch (DependencyResolutionRequiredException e) {
-            getLog().error(e);
-        }
-        return null;
-    }
 }

@@ -5,15 +5,17 @@ import java.io.File;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
+import pt.ist.fenixframework.atomic.maven.AtomicPostProcessorMojo;
+
 /**
- * Goal which calls the Atomic annotation processor on the compiled classes.
+ * This goal is an adapter for atomic-maven-plugin:process-atomic-annotations
  * 
- * @goal process-atomic-annotations
+ * @goal ff-process-atomic-annotations
  * @phase process-classes
  * @requiresDependencyResolution runtime
  * @threadSafe
  */
-public class AtomicPostProcessorMojo extends AbstractAtomicProcessorMojo {
+public class FFAtomicPostProcessorMojo extends AtomicPostProcessorMojo {
 
     /**
      * Maven Project
@@ -33,6 +35,8 @@ public class AtomicPostProcessorMojo extends AbstractAtomicProcessorMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
+        super.mavenProject = this.mavenProject;
+        super.classesDirectory = this.classesDirectory;
         super.execute();
     }
 

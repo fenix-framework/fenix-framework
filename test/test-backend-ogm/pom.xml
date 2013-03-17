@@ -19,7 +19,7 @@
         <plugins>
             <plugin>
                 <groupId>pt.ist</groupId>
-                <artifactId>dml-maven-plugin</artifactId>
+                <artifactId>ff-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
                     <codeGeneratorClassName>pt.ist.fenixframework.backend.ogm.OgmCodeGenerator</codeGeneratorClassName>
@@ -27,20 +27,9 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>test-generate-domain</goal>
-                            <goal>test-post-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>pt.ist</groupId>
-                <artifactId>atomic-maven-plugin</artifactId>
-                <version>${project.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-process-atomic-annotations</goal>
+                            <goal>ff-test-generate-domain</goal>
+                            <goal>ff-test-post-compile</goal>
+                            <goal>ff-test-process-atomic-annotations</goal>
                         </goals>
                     </execution>
                 </executions>

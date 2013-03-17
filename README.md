@@ -84,15 +84,16 @@ pom.xml:
         </dependency>
     </dependencies>
     
-Additionally, you will probably want to hook the `dml-maven-plugin` to your
+Additionally, you will probably want to hook the `ff-maven-plugin` to your
 build process, so that your domain classes get properly generated and
-post-processed.  This can be achieved by adding the plugin to the build phase.
+post-processed, and any uses of the `Atomic` annotation get processed.  This
+can be achieved with the following.
 
     <build>
         <plugins>
             <plugin>
                 <groupId>pt.ist</groupId>
-                <artifactId>dml-maven-plugin</artifactId>
+                <artifactId>ff-maven-plugin</artifactId>
                 <version>${fenixframework.version}</version>
                 <configuration>
                     <codeGeneratorClassName>${fenixframework.code.generator}</codeGeneratorClassName>
@@ -100,8 +101,9 @@ post-processed.  This can be achieved by adding the plugin to the build phase.
                 <executions>
                     <execution>
                         <goals>
-                            <goal>generate-domain</goal>
-                            <goal>post-compile</goal>
+                            <goal>ff-generate-domain</goal>
+                            <goal>ff-post-compile</goal>
+                            <goal>ff-process-atomic-annotations</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -138,6 +140,8 @@ Then, you need to invoke the DML Compiler (class
 before compiling your own code.  After compilation you need to run the
 post-processor (class
 `pt.ist.fenixframework.core.FullPostProcessDomainClasses`) on your compiled
+classes.  Finally, if you've used the Atomic annotation, then you should run
+`pt.ist.fenixframework.atomic.ProcessAtomicAnnotations` on the compiled
 classes.
 
 <a name="UsingFF"></a> 
@@ -184,7 +188,7 @@ following example:
         <plugins>
             <plugin>
                 <groupId>pt.ist</groupId>
-                <artifactId>dml-maven-plugin</artifactId>
+                <artifactId>ff-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
                     <codeGeneratorClassName>${fenixframework.code.generator}</codeGeneratorClassName>
@@ -195,8 +199,9 @@ following example:
                 <executions>
                     <execution>
                         <goals>
-                            <goal>generate-domain</goal>
-                            <goal>post-compile</goal>
+                            <goal>ff-generate-domain</goal>
+                            <goal>ff-post-compile</goal>
+                            <goal>ff-process-atomic-annotations</goal>
                         </goals>
                     </execution>
                 </executions>

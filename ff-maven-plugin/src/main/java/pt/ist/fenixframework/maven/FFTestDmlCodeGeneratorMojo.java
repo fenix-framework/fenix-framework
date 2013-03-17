@@ -1,27 +1,23 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package pt.ist.fenixframework.dml.maven;
+package pt.ist.fenixframework.maven;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
+import pt.ist.fenixframework.dml.maven.TestDmlCodeGeneratorMojo;
+
 /**
- * Generate base main classes from the main DML files
+ * This goal is an adapter for dml-maven-plugin:test-generate-domain
  * 
- * @goal test-generate-domain
+ * @goal ff-test-generate-domain
  * @phase generate-test-sources
  * @configurator include-project-dependencies
  * @requiresDependencyResolution test
  * @threadSafe
  */
-public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
+public class FFTestDmlCodeGeneratorMojo extends TestDmlCodeGeneratorMojo {
 
     /**
      * Maven Project
@@ -77,7 +73,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
      * 
      * @parameter expression="${test-generate-domain.packageName}"
      */
-    protected String packageName = "";
+    protected final String packageName = "";
 
     /**
      * Generate Finals Flag
@@ -112,12 +108,18 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        if (skip) {
-            getLog().info("Not compiling test sources");
-        } else {
-            super.execute();
-            getMavenProject().addTestCompileSourceRoot(getGeneratedSourcesDirectory().getAbsolutePath());
-        }
+        super.mavenProject = this.mavenProject;
+        super.skip = this.skip;
+        super.dmlSourceDirectory = this.dmlSourceDirectory;
+        super.sourcesDirectory = this.sourcesDirectory;
+        super.generatedSourcesDirectory = this.generatedSourcesDirectory;
+        super.codeGeneratorClassName = this.codeGeneratorClassName;
+        super.packageName = this.packageName;
+        super.generateFinals = this.generateFinals;
+        super.verbose = this.verbose;
+        super.generateProjectProperties = this.generateProjectProperties;
+        super.params = this.params;
+        super.execute();
     }
 
     @Override
@@ -175,13 +177,4 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
         return params;
     }
 
-    @Override
-    protected List<String> getClasspathElements() {
-        try {
-            return getMavenProject().getTestClasspathElements();
-        } catch (DependencyResolutionRequiredException e) {
-            getLog().error(e);
-        }
-        return null;
-    }
 }
