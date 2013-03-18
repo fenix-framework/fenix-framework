@@ -386,14 +386,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
             return;
         }
 
-        List<PrivateConsistencyPredicate> privatePredicates = new ArrayList<PrivateConsistencyPredicate>();
-        Map<String, PublicConsistencyPredicate> publicPredicates = new HashMap<String, PublicConsistencyPredicate>();
-        getDomainMetaSuperclass().fillConsistencyPredicatesOfThisClassAndSuperclasses(privatePredicates, publicPredicates);
-
-        for (DomainConsistencyPredicate newPredicate : privatePredicates) {
-            newPredicate.executeConsistencyPredicateForMetaClassAndSubclasses(this);
-        }
-        for (DomainConsistencyPredicate newPredicate : publicPredicates.values()) {
+        for (DomainConsistencyPredicate newPredicate : getDomainMetaSuperclass().getAllConsistencyPredicates()) {
             newPredicate.executeConsistencyPredicateForMetaClassAndSubclasses(this);
         }
     }
@@ -439,6 +432,8 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     private void fillDeclaredPublicPredicates(Map<String, PublicConsistencyPredicate> publicPredicates) {
         for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicates()) {
             if (declaredConsistencyPredicate.isPublic()) {
+                // Overwrites previous values under the same key.
+                // So, any overridden predicate with the same name will be replaced.  
                 publicPredicates.put(declaredConsistencyPredicate.getPredicate().getName(),
                         (PublicConsistencyPredicate) declaredConsistencyPredicate);
             }
