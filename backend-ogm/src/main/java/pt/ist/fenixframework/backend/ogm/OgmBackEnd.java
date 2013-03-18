@@ -2,25 +2,11 @@ package pt.ist.fenixframework.backend.ogm;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
-
-import org.hibernate.ogm.jpa.impl.OgmEntityManager;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
-import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.core.AbstractDomainObject;
-import pt.ist.fenixframework.core.DomainObjectAllocator;
-import pt.ist.fenixframework.core.Externalization;
-import pt.ist.fenixframework.core.IdentityMap;
-import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class OgmBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(OgmBackEnd.class);
@@ -66,12 +52,11 @@ public class OgmBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        OgmOID internalId = (OgmOID)oid;
+        OgmOID internalId = (OgmOID) oid;
         if (logger.isTraceEnabled()) {
             logger.trace("fromOid(" + internalId + ")");
         }
-        return (T)transactionManager.getEntityManager().find(internalId.getObjClass(),
-                                                             internalId.getPrimaryKey());
+        return (T) transactionManager.getEntityManager().find(internalId.getObjClass(), internalId.getPrimaryKey());
     }
 
     @Override
@@ -89,6 +74,10 @@ public class OgmBackEnd implements BackEnd {
         transactionManager.getEntityManager().persist(obj);
     }
 
+    @Override
+    public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
+        throw new UnsupportedOperationException("not yet implemented. Depends on support from the Hibernate OGM.");
+    }
 
     // protected IdentityMap getIdentityMap() {
     //     return SharedIdentityMap.getCache();

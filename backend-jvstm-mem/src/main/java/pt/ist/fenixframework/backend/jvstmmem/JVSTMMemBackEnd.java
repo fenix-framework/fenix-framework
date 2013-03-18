@@ -12,7 +12,7 @@ public class JVSTMMemBackEnd implements BackEnd {
     private final TransactionManager transactionManager;
 
     public JVSTMMemBackEnd() {
-	transactionManager = new JVSTMMemTransactionManager();
+        transactionManager = new JVSTMMemTransactionManager();
     }
 
     @Override
@@ -20,38 +20,44 @@ public class JVSTMMemBackEnd implements BackEnd {
         return (T) SharedIdentityMap.getCache().lookup(oid);
 
     }
-    
+
     @Override
     public <T extends DomainObject> T getDomainObject(String externalId) {
         return fromOid(Long.parseLong(externalId));
     }
-    
+
     @Override
     public DomainRoot getDomainRoot() {
-	DomainRoot root = fromOid(1L);
-	if (root == null) {
-	    root = new DomainRoot(); // which automatically caches this instance, but does not
-	    // ensure that it is the first, as a concurrent request
-	    // might create another
-	    
-	    // so we get it again from the cache before returning it
-	    root = fromOid(1L);
-	    assert root != null;
-	}
-	return root;
+        DomainRoot root = fromOid(1L);
+        if (root == null) {
+            root = new DomainRoot(); // which automatically caches this instance, but does not
+            // ensure that it is the first, as a concurrent request
+            // might create another
+
+            // so we get it again from the cache before returning it
+            root = fromOid(1L);
+            assert root != null;
+        }
+        return root;
     }
 
     @Override
     public String getName() {
-	return BACKEND_NAME;
+        return BACKEND_NAME;
     }
 
     @Override
     public TransactionManager getTransactionManager() {
-	return transactionManager;
+        return transactionManager;
     }
 
     @Override
     public void shutdown() {
     }
+
+    @Override
+    public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
+        throw new UnsupportedOperationException("It does not make sense to invoke this method in a storage-less BackEnd");
+    }
+
 }

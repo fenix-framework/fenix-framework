@@ -112,6 +112,10 @@
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
         </dependency>
+        <dependency>
+            <groupId>eu.cloudtm</groupId>
+            <artifactId>cloudtm-utility</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

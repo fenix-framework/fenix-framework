@@ -16,6 +16,7 @@ import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
+import pt.ist.fenixframework.backend.OID;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.Externalization;
@@ -53,7 +54,7 @@ public class InfinispanBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T getDomainObject(String externalId) {
-        return fromOid(new OID(externalId));
+        return fromOid(OID.fromExternalId(externalId));
     }
 
     @Override
@@ -63,25 +64,25 @@ public class InfinispanBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        OID internalId = (OID)oid;
+        OID internalId = (OID) oid;
         if (logger.isTraceEnabled()) {
             logger.trace("fromOid(" + internalId.getFullId() + ")");
         }
-        
+
         IdentityMap cache = getIdentityMap();
         AbstractDomainObject obj = cache.lookup(internalId);
-        
-	if (obj == null) {
+
+        if (obj == null) {
             if (logger.isTraceEnabled()) {
                 logger.trace("Object not found in IdentityMap: " + internalId.getFullId());
             }
-	    obj = DomainObjectAllocator.allocateObject(internalId.getObjClass(), internalId);
+            obj = DomainObjectAllocator.allocateObject(internalId.getObjClass(), internalId);
 
-	    // cache object and return the canonical object
-	    obj = cache.cache(obj);
-	}
+            // cache object and return the canonical object
+            obj = cache.cache(obj);
+        }
 
-	return (T) obj;
+        return (T) obj;
     }
 
     /**
@@ -101,15 +102,13 @@ public class InfinispanBackEnd implements BackEnd {
         config.waitForExpectedInitialNodes("backend-infinispan-init-barrier");
     }
 
-    
     private void setupCache(InfinispanConfig config) {
         long start = System.currentTimeMillis();
         CacheContainer cc = null;
         try {
             cc = new DefaultCacheManager(config.getIspnConfigFile());
         } catch (java.io.IOException ioe) {
-            String message = "Error creating Infinispan cache manager with configuration file: "
-                + config.getIspnConfigFile();
+            String message = "Error creating Infinispan cache manager with configuration file: " + config.getIspnConfigFile();
             logger.error(message, ioe);
             throw new Error(message, ioe);
         }
@@ -117,8 +116,7 @@ public class InfinispanBackEnd implements BackEnd {
         if (logger.isDebugEnabled()) {
             DateFormat df = new SimpleDateFormat("HH:mm.ss");
             df.setTimeZone(TimeZone.getTimeZone("GMT"));
-            logger.debug("Infinispan initialization took " +
-                         df.format(new Date(System.currentTimeMillis() - start)));
+            logger.debug("Infinispan initialization took " + df.format(new Date(System.currentTimeMillis() - start)));
         }
     }
 
@@ -131,7 +129,7 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     /**
-     * Store in Infinispan.  This method supports null values.  This method is used by the code
+     * Store in Infinispan. This method supports null values. This method is used by the code
      * generated in the Domain Objects.
      */
     public final void cachePut(String key, Object value) {
@@ -139,22 +137,28 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     /**
-     * Reads from Infinispan a value with a given key.  This method is used by the code generated in
+     * Reads from Infinispan a value with a given key. This method is used by the code generated in
      * the Domain Objects.
      */
     public final <T> T cacheGet(String key) {
         Object obj = domainCache.get(key);
-        return (T)(obj instanceof Externalization.NullClass ? null : obj);
+        return (T) (obj instanceof Externalization.NullClass ? null : obj);
     }
 
     /**
-     * WARNING: This is a backend-specific method.  It was added as an hack to enable some tests by
-     * Algorithmica and will be removed later.  The programmer should not use this method directly,
+     * WARNING: This is a backend-specific method. It was added as an hack to enable some tests by
+     * Algorithmica and will be removed later. The programmer should not use this method directly,
      * because by doing so the code becomes backend-dependent.
      */
     @Deprecated
     public final Cache getInfinispanCache() {
         return this.domainCache;
+    }
+
+    @Override
+    public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
 }
