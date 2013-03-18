@@ -1,7 +1,7 @@
 package pt.ist.fenixframework.core;
 
 /**
- * An instance of <code>CommitError</code> is thrown whenever it occurs a situation that prevents a
+ * An instance of <code>TransactionError</code> is thrown whenever it occurs a situation that prevents a
  * transaction from committing.
  * 
  * Note that this <code>Error</code> may be thrown even before the commit operation is invoked.
@@ -11,15 +11,15 @@ package pt.ist.fenixframework.core;
  * with the situation at an infrastrutural level. This is done by the Fenix Framework runtime and
  * should not be masked by the application code in anyway.
  * 
- * The class <code>CommitError</code> is specifically a subclass of <code>Error</code> rather than <code>Exception</code>, even
+ * The class <code>TransactionError</code> is specifically a subclass of <code>Error</code> rather than <code>Exception</code>, even
  * though it is a "normal occurrence", because many applications catch
  * all occurrences of <code>Exception</code> and then discard the exception.
  * 
  */
-public class CommitError extends Error {
+public class TransactionError extends Error {
     private static final long serialVersionUID = 1L;
 
-    public CommitError() {
+    public TransactionError() {
         super();
     }
 }
