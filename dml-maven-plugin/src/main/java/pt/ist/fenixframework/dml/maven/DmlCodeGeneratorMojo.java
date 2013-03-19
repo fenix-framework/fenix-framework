@@ -24,7 +24,7 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
      * 
      * @parameter default-value="${project}"
      */
-    private MavenProject mavenProject;
+    protected MavenProject mavenProject;
 
     /**
      * File Source Directory
@@ -33,7 +33,7 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
      * @readonly
      * @required
      */
-    private File dmlSourceDirectory;
+    protected File dmlSourceDirectory;
 
     /**
      * File Destination Directory
@@ -42,7 +42,7 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
      * @readonly
      * @required
      */
-    private File sourcesDirectory;
+    protected File sourcesDirectory;
 
     /**
      * Base File Destination Directory
@@ -51,7 +51,7 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
      * @readonly
      * @required
      */
-    private File generatedSourcesDirectory;
+    protected File generatedSourcesDirectory;
 
     /**
      * Code Generator Class Name
@@ -59,42 +59,42 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
      * @parameter expression="${generate-domain.codeGeneratorClassName}"
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
-    private String codeGeneratorClassName;
+    protected String codeGeneratorClassName;
 
     /**
      * Package name
      * 
      * @parameter expression="${generate-domain.packageName}"
      */
-    private String packageName = "";
+    protected String packageName = "";
 
     /**
      * Generate Finals Flag
      * 
      * @parameter expression="${generate-domain.generateFinals}" default-value="false"
      */
-    private boolean generateFinals;
+    protected boolean generateFinals;
 
     /**
      * Verbose Mode Flag
      * 
      * @parameter expression="${verbose}" default-value="false"
      */
-    private boolean verbose;
+    protected boolean verbose;
 
     /**
      * Generate Project Properties Flag
      * 
      * @parameter expression="${generate-domain.generateProjectProperties}" default-value="false"
      */
-    private boolean generateProjectProperties;
+    protected boolean generateProjectProperties;
 
     /**
      * Generic Code Generator Class Parameters
      * 
      * @parameter
      */
-    private Map<String, String> params;
+    protected Map<String, String> params;
 
     @Override
     public void execute() throws MojoExecutionException {

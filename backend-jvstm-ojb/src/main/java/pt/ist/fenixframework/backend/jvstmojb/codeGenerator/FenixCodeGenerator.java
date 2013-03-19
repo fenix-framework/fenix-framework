@@ -5,8 +5,6 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 
-import pt.ist.fenixframework.atomic.AtomicContextFactory;
-import pt.ist.fenixframework.atomic.DefaultAtomicContextFactory;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBBackEnd;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.backend.jvstmojb.dml.runtime.ConsistencyChecks;
@@ -108,7 +106,7 @@ public class FenixCodeGenerator extends CodeGenerator {
             newline(out);
             printWords(out, "static");
             newBlock(out);
-            printWords(out, relationName);
+            printWords(out, relationName + ".relation");
             print(out, ".setRelationName(\"");
             print(out, getTypeFullName(role.getOtherRole().getType()));
             print(out, ".");
@@ -123,7 +121,7 @@ public class FenixCodeGenerator extends CodeGenerator {
                 String secondType = getTypeFullName(role.getType());
 
                 newline(out);
-                printWords(out, relationName);
+                printWords(out, relationName + ".relation");
                 print(out, ".addListener(new ");
                 print(out, makeGenericType("pt.ist.fenixframework.dml.runtime.RelationAdapter", firstType, secondType));
                 print(out, "()");
@@ -752,11 +750,6 @@ public class FenixCodeGenerator extends CodeGenerator {
     @Override
     protected String getDefaultConfigClassName() {
         return JvstmOJBConfig.class.getName();
-    }
-
-    @Override
-    protected Class<? extends AtomicContextFactory> getAtomicContextFactoryClass() {
-        return DefaultAtomicContextFactory.class;
     }
 
 }

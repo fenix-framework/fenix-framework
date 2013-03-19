@@ -8,9 +8,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.esw.advice.ProcessAnnotations;
-import pt.ist.fenixframework.Atomic;
-
 /**
  * This class aggregates the whole post-processing required on the domain classes.
  */
@@ -92,7 +89,6 @@ public class FullPostProcessDomainClasses {
      */
     public static void apply(String projectName, File classesDirectory, ClassLoader parentClassLoader) throws Exception {
         injectCode(projectName, parentClassLoader);
-        new ProcessAnnotations(Atomic.class).processFile(classesDirectory);
     }
 
     /**

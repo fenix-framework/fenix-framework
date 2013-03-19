@@ -23,7 +23,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * 
      * @parameter default-value="${project}"
      */
-    private MavenProject mavenProject;
+    protected MavenProject mavenProject;
 
     /**
      * File Source Directory
@@ -32,7 +32,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * @readonly
      * @required
      */
-    private File dmlSourceDirectory;
+    protected File dmlSourceDirectory;
 
     /**
      * Classes Directory
@@ -41,7 +41,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * @readonly
      * @required
      */
-    private File classesDirectory;
+    protected File classesDirectory;
 
     /**
      * Code Generator Class Name
@@ -49,7 +49,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * @parameter expression="${generate-domain.codeGeneratorClassName}"
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
-    private String codeGeneratorClassName;
+    protected String codeGeneratorClassName;
 
     /**
      * Verbose Mode Flag
@@ -57,7 +57,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
      * @parameter expression="${generate-domain.verbose}"
      *            default-value="false"
      */
-    private boolean verbose;
+    protected boolean verbose;
 
     @Override
     public void execute() throws MojoExecutionException {

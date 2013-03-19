@@ -8,9 +8,12 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
+<<<<<<< HEAD
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.atomic.AtomicContextFactory;
 import pt.ist.fenixframework.core.AbstractDomainObject;
+=======
+>>>>>>> big-refactoring-2012
 import pt.ist.fenixframework.dml.CodeGenerator;
 
 /**
@@ -62,13 +65,6 @@ public abstract class BackEndId {
      * instantiate a {@link Config} instance is none is explicitly indicated.
      */
     public abstract Class<? extends Config> getDefaultConfigClass();
-
-    /**
-     * Get the Class instance for the factory that creates {@link pt.ist.fenixframework.atomic.AtomicContext}s. These contexts are
-     * backend-specific (thus the backend provides the factory), because they control the logic required to execute a
-     * {@link java.util.concurrent.Callable} within a transactional context.
-     */
-    public abstract Class<? extends AtomicContextFactory> getAtomicContextFactoryClass();
 
     /**
      * Get the subclass of {@link AbstractDomainObject} that is the backend-specific root class of all {@link DomainObject}s.

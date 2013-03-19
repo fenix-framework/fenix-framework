@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 
-import pt.ist.fenixframework.atomic.AtomicContextFactory;
 import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
 
 /**
@@ -271,19 +270,6 @@ public abstract class CodeGenerator {
         closeBlock(out);
         endMethodBody(out);
 
-        // getAtomicContextFactoryClass
-        newline(out);
-        printMethod(out, "public", "Class<? extends pt.ist.fenixframework.atomic.AtomicContextFactory>",
-                "getAtomicContextFactoryClass");
-        startMethodBody(out);
-        Class factory = getAtomicContextFactoryClass();
-        if (factory != null) {
-            printWords(out, "return", factory.getName() + ".class;");
-        } else {
-            printWords(out, "return", "null;");
-        }
-        endMethodBody(out);
-
         // getDomainClassRoot
         newline(out);
         printMethod(out, "public", "Class<? extends pt.ist.fenixframework.core.AbstractDomainObject>", "getDomainClassRoot");
@@ -526,11 +512,13 @@ public abstract class CodeGenerator {
         String methodName = "getRelation" + role.getRelation().getName();
 
         if (isDirectRelation) {
-            print(out, "private final static ");
+            print(out, "private final static class ");
+            print(out, relationSlotName);
+            newBlock(out);
+            print(out, "private static final ");
             print(out, directRelationType);
             print(out, genericType);
-            print(out, " ");
-            print(out, relationSlotName);
+            print(out, " relation");
             print(out, " = ");
             print(out, "new ");
             print(out, directRelationType);
@@ -541,7 +529,8 @@ public abstract class CodeGenerator {
             print(out, role.getRelation().getName());
             print(out, "\"");
             generateDefaultRelationListeners(role, out);
-            println(out, ");");
+            print(out, ");");
+            closeBlock(out);
         }
 
         // Also Generate relation getter, if the classes are distinct!
@@ -550,7 +539,7 @@ public abstract class CodeGenerator {
             startMethodBody(out);
             print(out, "return ");
             if (isDirectRelation) {
-                print(out, relationSlotName);
+                print(out, relationSlotName + ".relation");
             } else {
                 print(out, role.getType().getFullName() + "." + methodName + "()");
             }
@@ -1305,8 +1294,4 @@ public abstract class CodeGenerator {
      */
     protected abstract String getDefaultConfigClassName();
 
-    /**
-     * Get the class that implements the AtomicContextFactory for AtomicContexts
-     */
-    protected abstract Class<? extends AtomicContextFactory> getAtomicContextFactoryClass();
 }

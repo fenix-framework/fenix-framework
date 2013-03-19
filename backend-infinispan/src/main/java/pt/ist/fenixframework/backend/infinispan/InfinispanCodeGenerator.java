@@ -2,8 +2,6 @@ package pt.ist.fenixframework.backend.infinispan;
 
 import java.io.PrintWriter;
 
-import pt.ist.fenixframework.atomic.AtomicContextFactory;
-import pt.ist.fenixframework.atomic.DefaultAtomicContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
@@ -42,11 +40,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected String getDefaultConfigClassName() {
         return InfinispanConfig.class.getName();
-    }
-
-    @Override
-    protected Class<? extends AtomicContextFactory> getAtomicContextFactoryClass() {
-        return DefaultAtomicContextFactory.class;
     }
 
     @Override
