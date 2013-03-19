@@ -1,11 +1,8 @@
 package pt.ist.fenixframework;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,8 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
 import pt.ist.fenixframework.backend.BackEndId;
+import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicateSupport;
 import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
-import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
 import pt.ist.fenixframework.consistencyPredicates.PrivateConsistencyPredicate;
 import pt.ist.fenixframework.consistencyPredicates.PublicConsistencyPredicate;
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -44,8 +41,6 @@ public class DomainMetaClass extends DomainMetaClass_Base {
             .getDomainClassRoot();
 
     private static final Logger logger = LoggerFactory.getLogger(DomainMetaClass.class);
-
-    private static final int MAX_NUMBER_OF_OBJECTS_TO_PROCESS = 10000;
 
     /**
      * Compares two classes according to their hierarchies, such that a
@@ -242,7 +237,8 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         checkFrameworkNotInitialized();
 
         while (true) {
-            List<String> oids = getExistingOIDsWithoutMetaObject(getDomainClass());
+            Collection<String> oids =
+                    ConsistencyPredicateSupport.getInstance().getExistingOIDsWithoutMetaObject(getDomainClass());
             if (oids.isEmpty()) {
                 break;
             }
@@ -269,70 +265,6 @@ public class DomainMetaClass extends DomainMetaClass_Base {
             // processing only an incomplete part of the objects of this class.
             DomainFenixFrameworkRoot.checkpointTransaction();
         }
-    }
-
-    /**
-     * Uses a JDBC query to obtain the OIDs of the existing {@link DomainObject}s of this class that do not yet have a
-     * {@link DomainMetaObject}.<br>
-     * <br>
-     * This method only returns a <strong>maximum of
-     * MAX_NUMBER_OF_OBJECTS_TO_PROCESS</strong> OIDs.
-     * 
-     * @param domainClass
-     *            the <code>Class</code> for which to obtain the existing
-     *            objects OIDs
-     * 
-     * @return the <code>List</code> of <code>Strings</code> containing the OIDs
-     *         of all the {@link DomainObject}s of the given class,
-     *         without {@link DomainMetaObject}.
-     */
-    private static List<String> getExistingOIDsWithoutMetaObject(Class<? extends DomainObject> domainClass) {
-        String tableName = getTableName(domainClass);
-        String className = domainClass.getName();
-
-        String metaObjectOidsQuery = "select OID from DOMAIN_META_OBJECT";
-
-        String query =
-                "select OID from " + tableName
-                        + ", FF$DOMAIN_CLASS_INFO where OID >> 32 = DOMAIN_CLASS_ID and DOMAIN_CLASS_NAME = '" + className
-                        + "' and (OID_DOMAIN_META_OBJECT is null or OID_DOMAIN_META_OBJECT not in (" + metaObjectOidsQuery
-                        + ")) order by OID limit " + MAX_NUMBER_OF_OBJECTS_TO_PROCESS;
-
-        ArrayList<String> oids = new ArrayList<String>();
-        try {
-            Statement statement = getCurrentJdbcConnection().createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-            while (resultSet.next()) {
-                oids.add(resultSet.getString("OID"));
-            }
-        } catch (SQLException e) {
-            throw new Error(e);
-        }
-
-        return oids;
-    }
-
-    private static String getTableName(Class<? extends DomainObject> domainClass) {
-        Class<?> topSuperClass = domainClass;
-        while (!topSuperClass.getSuperclass().getSuperclass().equals(BOTTOM_GENERATED_SUPERCLASS)) {
-            //skip to the next non-base superclass
-            topSuperClass = topSuperClass.getSuperclass().getSuperclass();
-        }
-        return DbUtil.convertToDBStyle(topSuperClass.getSimpleName());
-    }
-
-    private String getTableName() {
-        DomainMetaClass topMetaClass = this;
-        while (topMetaClass.hasDomainMetaSuperclass()) {
-            //skip to the next non-base superclass
-            topMetaClass = topMetaClass.getDomainMetaSuperclass();
-        }
-        return DbUtil.convertToDBStyle(getSimpleClassName(topMetaClass.getDomainClassName()));
-    }
-
-    private String getSimpleClassName(String fullClassName) {
-        String[] strings = fullClassName.split("\\.");
-        return strings[strings.length - 1];
     }
 
     @Override
@@ -463,7 +395,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      **/
     protected void delete() {
         checkFrameworkNotInitialized();
-        removeAllMetaObjects();
+        ConsistencyPredicateSupport.getInstance().removeAllMetaObjectsForMetaClass(this);
 
         // If we are deleting this class, then the previous subclass will have changed its superclass
         // and should also be deleted.
@@ -485,72 +417,8 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         deleteDomainObject();
     }
 
-    /**
-     * Uses a JDBC query to obtain the delete all the {@link DomainMetaObject}s of this class.
-     * It also sets to null any OIDs that used to point to the deleted {@link DomainMetaObject}s,
-     * both in the {@link DomainObject}'s and in the {@link DomainDependenceRecord}'s tables.
-     */
-    protected void removeAllMetaObjects() {
-        String tableName = getTableName();
-
-        String metaObjectsToDeleteQuery =
-                "select OID from DOMAIN_META_OBJECT where OID_DOMAIN_META_CLASS = '" + getExternalId() + "'";
-
-        String clearDomainObjectsQuery =
-                "update " + tableName + " set OID_DOMAIN_META_OBJECT = null " + "where OID_DOMAIN_META_OBJECT in ("
-                        + metaObjectsToDeleteQuery + ")";
-
-        try {
-            getCurrentJdbcConnection().createStatement().executeUpdate(clearDomainObjectsQuery);
-        } catch (SQLException e) {
-            logger.warn("The deleted DomainMetaClass " + getDomainClassName() + " had a table named " + tableName
-                    + " that no longer exists.");
-            e.printStackTrace();
-        }
-
-        String clearDependenceRecordsQuery =
-                "delete from DOMAIN_DEPENDENCE_RECORD where OID_DEPENDENT_DOMAIN_META_OBJECT " + "in ("
-                        + metaObjectsToDeleteQuery + ")";
-
-        try {
-            getCurrentJdbcConnection().createStatement().executeUpdate(clearDependenceRecordsQuery);
-        } catch (SQLException e) {
-            throw new Error(e);
-        }
-
-        String clearIndirectionTable =
-                "delete from DEPENDED_DOMAIN_META_OBJECTS_DEPENDING_DEPENDENCE_RECORDS" + " where OID_DOMAIN_META_OBJECT in ("
-                        + metaObjectsToDeleteQuery + ")";
-
-        try {
-            getCurrentJdbcConnection().createStatement().executeUpdate(clearIndirectionTable);
-        } catch (SQLException e) {
-            throw new Error(e);
-        }
-
-        // Delete the BPlusTree that linked to the existing DomainMetaObjects
-        BPlusTree<DomainMetaObject> bPlusTree = getExistingDomainMetaObjects();
-        bPlusTree.delete();
-        removeExistingDomainMetaObjects();
-
-        String deleteMetaObjectsQuery = "delete from DOMAIN_META_OBJECT where OID_DOMAIN_META_CLASS = '" + getExternalId() + "'";
-
-        try {
-            getCurrentJdbcConnection().createStatement().executeUpdate(deleteMetaObjectsQuery);
-        } catch (SQLException e) {
-            throw new Error(e);
-        }
-    }
-
     public static DomainMetaClass readDomainMetaClass(Class<? extends DomainObject> domainClass) {
         return DomainFenixFrameworkRoot.getInstance().getDomainMetaClass(domainClass);
     }
 
-    private static Connection getCurrentJdbcConnection() {
-        try {
-            return TransactionSupport.getOJBBroker().serviceConnectionManager().getConnection();
-        } catch (LookupException e) {
-            throw new Error(e);
-        }
-    }
 }
