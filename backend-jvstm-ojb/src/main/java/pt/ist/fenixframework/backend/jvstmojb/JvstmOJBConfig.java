@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.DomainFenixFrameworkRoot;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.jvstmojb.ojb.MetadataManager;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.DomainClassInfo;
@@ -15,7 +15,6 @@ import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil;
 import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil.DBLockedCommand;
 import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicatesConfig;
-import pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot;
 
 /**
  * An instance of the <code>Config</code> class bundles together the
@@ -260,10 +259,6 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
         logger.trace("updateRepositoryStructureIfNeeded: " + updateRepositoryStructureIfNeeded);
 
         logger.trace("canCreateDomainMetaObjects: " + canCreateDomainMetaObjects);
-    }
-
-    public static boolean canCreateDomainMetaObjects() {
-        return FenixFramework.<JvstmOJBConfig> getConfig().getCanCreateDomainMetaObjects();
     }
 
 }

@@ -6,9 +6,9 @@ import java.util.Set;
 
 import jvstm.cps.Depended;
 import jvstm.cps.DependenceRecord;
+import pt.ist.fenixframework.DomainMetaObject;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.NoDomainMetaObjects;
-import pt.ist.fenixframework.pstm.DomainMetaObject;
 
 /**
  * A <code>DomainDependenceRecord</code> represents the result of the execution

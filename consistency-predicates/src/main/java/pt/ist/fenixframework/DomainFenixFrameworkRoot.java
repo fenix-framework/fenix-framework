@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicatesConfig;
 import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
 import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
 import pt.ist.fenixframework.dml.DomainClass;
@@ -131,7 +132,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      */
     public void initialize(DomainModel domainModel) {
         checkFrameworkNotInitialized();
-        if (JvstmOJBConfig.canCreateDomainMetaObjects()) {
+        if (ConsistencyPredicatesConfig.canCreateDomainMetaObjects()) {
             logger.trace("Starting initialization of the DomainMetaClasses");
             initializeDomainMetaClasses(domainModel);
             logger.trace("Finished the initialization of the DomainMetaClasses");

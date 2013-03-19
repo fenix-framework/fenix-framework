@@ -6,11 +6,10 @@ import java.lang.reflect.Modifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainMetaClass;
+import pt.ist.fenixframework.DomainMetaObject;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
-import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate;
-import pt.ist.fenixframework.pstm.DomainMetaClass;
-import pt.ist.fenixframework.pstm.DomainMetaObject;
 
 /**
  * A <code>PublicConsistencyPredicate</code> is a {@link DomainConsistencyPredicate} that represents a predicate method that is

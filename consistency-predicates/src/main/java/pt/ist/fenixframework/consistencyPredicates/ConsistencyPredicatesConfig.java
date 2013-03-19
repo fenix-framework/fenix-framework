@@ -1,6 +1,9 @@
 package pt.ist.fenixframework.consistencyPredicates;
 
 import pt.ist.fenixframework.Config;
+import pt.ist.fenixframework.DomainMetaClass;
+import pt.ist.fenixframework.DomainMetaObject;
+import pt.ist.fenixframework.FenixFramework;
 
 public abstract class ConsistencyPredicatesConfig extends Config {
 
@@ -38,6 +41,10 @@ public abstract class ConsistencyPredicatesConfig extends Config {
 
     public boolean getCanCreateDomainMetaObjects() {
         return canCreateDomainMetaObjects;
+    }
+
+    public static boolean canCreateDomainMetaObjects() {
+        return FenixFramework.<ConsistencyPredicatesConfig> getConfig().getCanCreateDomainMetaObjects();
     }
 
 }

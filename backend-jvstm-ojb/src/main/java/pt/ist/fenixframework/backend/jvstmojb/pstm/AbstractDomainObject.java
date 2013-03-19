@@ -13,6 +13,9 @@ import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainFenixFrameworkRoot;
+import pt.ist.fenixframework.DomainMetaClass;
+import pt.ist.fenixframework.DomainMetaObject;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
@@ -21,9 +24,6 @@ import pt.ist.fenixframework.backend.jvstmojb.repository.ResultSetReader;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
-import pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot;
-import pt.ist.fenixframework.pstm.DomainMetaClass;
-import pt.ist.fenixframework.pstm.DomainMetaObject;
 
 public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 

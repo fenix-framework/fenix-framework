@@ -31,17 +31,17 @@ import org.apache.ojb.broker.accesslayer.LookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainMetaClass;
+import pt.ist.fenixframework.DomainMetaObject;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.DBChanges.AttrChangeLog;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicateSystem;
+import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
 import pt.ist.fenixframework.core.WriteOnReadError;
-import pt.ist.fenixframework.pstm.DomainMetaClass;
-import pt.ist.fenixframework.pstm.DomainMetaObject;
-import pt.ist.fenixframework.pstm.consistencyPredicates.DomainConsistencyPredicate;
-import pt.ist.fenixframework.pstm.consistencyPredicates.DomainDependenceRecord;
 import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
 public class TopLevelTransaction extends ConsistentTopLevelTransaction implements FenixTransaction, TxIntrospector {

@@ -5,24 +5,22 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Set;
 
+import jvstm.TopLevelTransaction;
 import jvstm.Transaction;
 import jvstm.cps.ConsistencyCheckTransaction;
 import jvstm.cps.Depended;
+import jvstm.util.Pair;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainFenixFrameworkRoot;
+import pt.ist.fenixframework.DomainMetaClass;
+import pt.ist.fenixframework.DomainMetaObject;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.FenixConsistencyCheckTransaction;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction.Pair;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
-import pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot;
-import pt.ist.fenixframework.pstm.DomainMetaClass;
-import pt.ist.fenixframework.pstm.DomainMetaObject;
 
 /**
  * A <code>DomainConsistencyPredicate</code> is the persistent domain entity

@@ -5,8 +5,8 @@ import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainMetaClass;
 import pt.ist.fenixframework.NoDomainMetaObjects;
-import pt.ist.fenixframework.pstm.DomainMetaClass;
 
 /**
  * A <code>PrivateConsistencyPredicate</code> is a {@link DomainConsistencyPredicate} that represents a predicate method that is

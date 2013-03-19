@@ -12,9 +12,9 @@ import jvstm.cps.Depended;
 
 import org.apache.ojb.broker.PersistenceBroker;
 
+import pt.ist.fenixframework.DomainMetaObject;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
-import pt.ist.fenixframework.pstm.DomainMetaObject;
 
 public class FenixConsistencyCheckTransaction extends ReadTransaction implements ConsistencyCheckTransaction, FenixTransaction {
 

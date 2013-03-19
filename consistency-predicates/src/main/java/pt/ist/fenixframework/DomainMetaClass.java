@@ -17,10 +17,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
+import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
 import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
 import pt.ist.fenixframework.consistencyPredicates.PrivateConsistencyPredicate;
 import pt.ist.fenixframework.consistencyPredicates.PublicConsistencyPredicate;
+import pt.ist.fenixframework.core.AbstractDomainObject;
 
 /**
  * A <code>DomainMetaClass</code> is the domain entity that represents a class
@@ -38,7 +40,8 @@ import pt.ist.fenixframework.consistencyPredicates.PublicConsistencyPredicate;
 @NoDomainMetaObjects
 public class DomainMetaClass extends DomainMetaClass_Base {
 
-    private static final Class<OneBoxDomainObject> BOTTOM_GENERATED_SUPERCLASS = OneBoxDomainObject.class;
+    private static final Class<? extends AbstractDomainObject> BOTTOM_GENERATED_SUPERCLASS = BackEndId.getBackEndId()
+            .getDomainClassRoot();
 
     private static final Logger logger = LoggerFactory.getLogger(DomainMetaClass.class);
 
