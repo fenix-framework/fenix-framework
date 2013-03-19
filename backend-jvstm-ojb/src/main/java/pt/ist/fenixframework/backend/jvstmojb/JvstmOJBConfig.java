@@ -11,6 +11,8 @@ import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.jvstmojb.ojb.MetadataManager;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
+import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil;
+import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil.DBLockedCommand;
 import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicatesConfig;
 import pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot;
@@ -145,11 +147,17 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
     protected void init() {
         print();
         MetadataManager.init(this);
-        new RepositoryBootstrap(this).updateDataRepositoryStructureIfNeeded();
-        DomainClassInfo.initializeClassInfos(0);
-        DomainClassInfo.ensureDomainRoot();
-        TransactionSupport.setupJVSTM();
-        DomainFenixFrameworkRoot.getLockAndBootstrap(this);
+
+        DbUtil.runWithinDBLock(new DBLockedCommand() {
+            @Override
+            public void run() {
+                RepositoryBootstrap.updateDataRepositoryStructureIfNeeded(getConnection());
+                DomainClassInfo.initializeClassInfos(0);
+                DomainClassInfo.ensureDomainRoot();
+                TransactionSupport.setupJVSTM();
+                DomainFenixFrameworkRoot.bootstrap();
+            }
+        });
     }
 
     @Override
@@ -209,7 +217,7 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
         return dbAlias;
     }
 
-    public String getDbName() {
+    public String getDBName() {
         Pattern pattern = Pattern.compile("//.*/(.*)\\?");
         Matcher matcher = pattern.matcher(getDbAlias());
         if (!matcher.find()) {
@@ -240,7 +248,7 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
 
     public void print() {
         logger.trace("dbAlias: " + dbAlias);
-        logger.trace("dbName: " + getDbName());
+        logger.trace("dbName: " + getDBName());
         logger.trace("dbUsername: " + dbUsername);
         // The password should never be shown, or even mentioned
         //logger.trace("dbPassword: *hidden*");

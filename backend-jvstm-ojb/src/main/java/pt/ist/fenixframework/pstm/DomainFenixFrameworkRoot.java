@@ -2,10 +2,6 @@ package pt.ist.fenixframework.pstm;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +20,6 @@ import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
-import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
@@ -62,76 +57,11 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     }
 
     /**
-     * Initializes the {@link DomainFenixFrameworkRoot} after obtaining a db-lock, to guarantee that only one application server
-     * at a time executes this code.
-     */
-    public static void getLockAndBootstrap(JvstmOJBConfig config) {
-        //Most of this lock-related code was copied from RepositoryBootstrap.updateDataRepositoryStructureIfNeeded()
-        Connection connection = null;
-        try {
-            connection = RepositoryBootstrap.getConnection(config);
-
-            Statement statement = null;
-            ResultSet resultSet = null;
-
-            String lockName = RepositoryBootstrap.getDbLockName();
-            try {
-                int iterations = 0;
-                while (true) {
-                    iterations++;
-                    statement = connection.createStatement();
-                    resultSet = statement.executeQuery("SELECT GET_LOCK('" + lockName + "', 60)");
-                    if (resultSet.next() && (resultSet.getInt(1) == 1)) {
-                        break;
-                    }
-                    if ((iterations % 10) == 0) {
-                        logger.warn("Could not yet obtain the " + lockName + " lock. Number of retries: " + iterations);
-                    }
-                }
-            } finally {
-                if (resultSet != null) {
-                    resultSet.close();
-                }
-                if (statement != null) {
-                    statement.close();
-                }
-            }
-
-            try {
-                bootstrap();
-            } finally {
-                Statement statementUnlock = null;
-                try {
-                    statementUnlock = connection.createStatement();
-                    statementUnlock.executeUpdate("DO RELEASE_LOCK('" + lockName + "')");
-                } finally {
-                    if (statementUnlock != null) {
-                        statementUnlock.close();
-                    }
-                }
-            }
-
-            connection.commit();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new Error(ex);
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    // nothing can be done.
-                }
-            }
-        }
-    }
-
-    /**
      * Creates a {@link DomainRoot} for the {@link DomainFenixFrameworkRoot} and then initializes the
      * {@link DomainFenixFrameworkRoot}.
      */
     @Atomic
-    private static void bootstrap() {
+    public static void bootstrap() {
         if (getInstance() == null) {
             DomainFenixFrameworkRoot fenixFrameworkRoot = new DomainFenixFrameworkRoot();
             FenixFramework.getDomainRoot().setDomainFenixFrameworkRoot(fenixFrameworkRoot);
@@ -174,9 +104,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     }
 
     /**
-     * Checks that the {@link FenixFramework} is not initialized, throws an
-     * exception otherwise. Should be called before any changes are made to {@link DomainMetaClass}es or to
-     * {@link DomainConsistencyPredicate}s.
+     * Checks that the {@link FenixFramework} is not initialized, throws an exception otherwise.
+     * Should be called before any changes are made to {@link DomainMetaClass}es or to {@link DomainConsistencyPredicate}s.
      * 
      * @throws RuntimeException
      *             if the framework was already initialized
@@ -189,8 +118,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     }
 
     /**
-     * Adds a {@link DomainMetaClass} to the domain relation of existing meta
-     * classes.
+     * Adds a {@link DomainMetaClass} to the domain relation of existing meta classes.
      */
     @Override
     public void addDomainMetaClasses(DomainMetaClass metaClass) {
