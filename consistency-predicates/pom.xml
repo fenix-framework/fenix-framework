@@ -61,6 +61,10 @@
 			<artifactId>jvstm-fenix</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>pt.ist</groupId>
+			<artifactId>fenix-framework-adt-bplustree</artifactId>
+		</dependency>
 	</dependencies>
 
 </project>

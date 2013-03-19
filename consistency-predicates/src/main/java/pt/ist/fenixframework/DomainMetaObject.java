@@ -1,13 +1,11 @@
-package pt.ist.fenixframework.pstm;
+package pt.ist.fenixframework;
 
 import java.util.Set;
 
 import jvstm.cps.Depended;
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.NoDomainMetaObjects;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
-import pt.ist.fenixframework.pstm.consistencyPredicates.DomainConsistencyPredicate;
-import pt.ist.fenixframework.pstm.consistencyPredicates.DomainDependenceRecord;
+import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
+import pt.ist.fenixframework.core.AbstractDomainObject;
 
 /**
  * Each domain object is associated with one <code>DomainMetaObject</code>,

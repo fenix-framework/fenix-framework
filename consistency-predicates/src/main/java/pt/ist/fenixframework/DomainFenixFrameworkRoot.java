@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.pstm;
+package pt.ist.fenixframework;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -13,18 +13,11 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.DomainRoot;
-import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.NoDomainMetaObjects;
-import pt.ist.fenixframework.TransactionManager;
-import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
-import pt.ist.fenixframework.pstm.consistencyPredicates.DomainConsistencyPredicate;
-import pt.ist.fenixframework.pstm.consistencyPredicates.DomainDependenceRecord;
 
 /**
  * The <code>DomainFenixFrameworkRoot</code> is a singleton root object that is

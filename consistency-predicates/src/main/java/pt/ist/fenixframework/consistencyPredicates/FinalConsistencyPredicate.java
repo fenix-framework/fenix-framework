@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.pstm.consistencyPredicates;
+package pt.ist.fenixframework.consistencyPredicates;
 
 import java.lang.reflect.Method;
 

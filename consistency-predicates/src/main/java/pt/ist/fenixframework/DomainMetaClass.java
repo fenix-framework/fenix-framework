@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.pstm;
+package pt.ist.fenixframework;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -13,21 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ojb.broker.accesslayer.LookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.OneBoxDomainObject;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
-import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil;
-import pt.ist.fenixframework.pstm.consistencyPredicates.DomainConsistencyPredicate;
-import pt.ist.fenixframework.pstm.consistencyPredicates.DomainDependenceRecord;
-import pt.ist.fenixframework.pstm.consistencyPredicates.PrivateConsistencyPredicate;
-import pt.ist.fenixframework.pstm.consistencyPredicates.PublicConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
+import pt.ist.fenixframework.consistencyPredicates.PrivateConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.PublicConsistencyPredicate;
 
 /**
  * A <code>DomainMetaClass</code> is the domain entity that represents a class

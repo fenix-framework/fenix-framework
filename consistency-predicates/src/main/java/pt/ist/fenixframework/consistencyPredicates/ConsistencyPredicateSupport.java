@@ -18,7 +18,7 @@ public abstract class ConsistencyPredicateSupport {
             Iterator<ConsistencyPredicateSupport> iterator = ServiceLoader.load(ConsistencyPredicateSupport.class).iterator();
             if (!iterator.hasNext()) {
                 throw new Error("No implementations of " + ConsistencyPredicateSupport.class.getName()
-                        + " were found in the classpath");
+                        + " was found in the classpath");
             }
             ConsistencyPredicateSupport support = iterator.next();
             if (iterator.hasNext()) {
