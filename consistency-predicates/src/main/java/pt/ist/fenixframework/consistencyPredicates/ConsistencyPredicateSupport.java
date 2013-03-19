@@ -3,8 +3,13 @@ package pt.ist.fenixframework.consistencyPredicates;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
+import jvstm.cps.ConsistencyCheckTransaction;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import pt.ist.fenixframework.DomainMetaObject;
+import pt.ist.fenixframework.DomainObject;
 
 public abstract class ConsistencyPredicateSupport {
 
@@ -31,8 +36,14 @@ public abstract class ConsistencyPredicateSupport {
 
     }
 
-    static ConsistencyPredicateSupport getInstance() {
+    public static ConsistencyPredicateSupport getInstance() {
         return Holder.instance;
     }
+
+    public abstract DomainMetaObject getDomainMetaObjectFor(DomainObject obj);
+
+    public abstract void justSetMetaObjectForDomainObject(DomainObject domainObject, DomainMetaObject metaObject);
+
+    public abstract ConsistencyCheckTransaction<?> createNewConsistencyCheckTransactionForObject(DomainObject obj);
 
 }

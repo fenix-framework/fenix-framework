@@ -3,9 +3,9 @@ package pt.ist.fenixframework;
 import java.util.Set;
 
 import jvstm.cps.Depended;
+import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicateSupport;
 import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
 import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
-import pt.ist.fenixframework.core.AbstractDomainObject;
 
 /**
  * Each domain object is associated with one <code>DomainMetaObject</code>,
@@ -118,13 +118,11 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
     }
 
     public static DomainMetaObject getDomainMetaObjectFor(DomainObject obj) {
-        AbstractDomainObject domainObject = (AbstractDomainObject) obj;
-        return domainObject.getDomainMetaObject();
+        return ConsistencyPredicateSupport.getInstance().getDomainMetaObjectFor(obj);
     }
 
     private static void justSetMetaObjectForDomainObject(DomainObject domainObject, DomainMetaObject metaObject) {
-        AbstractDomainObject abstractDO = (AbstractDomainObject) domainObject;
-        abstractDO.justSetMetaObject(metaObject);
+        ConsistencyPredicateSupport.getInstance().justSetMetaObjectForDomainObject(domainObject, metaObject);
     }
 
     // Depended interface implemented below:

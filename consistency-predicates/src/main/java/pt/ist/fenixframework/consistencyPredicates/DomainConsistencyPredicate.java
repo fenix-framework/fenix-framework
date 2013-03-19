@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Set;
 
-import jvstm.TopLevelTransaction;
 import jvstm.Transaction;
 import jvstm.cps.ConsistencyCheckTransaction;
 import jvstm.cps.Depended;
@@ -170,7 +169,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
             }
             Pair pair = executePredicateForOneObject(existingMetaObject.getDomainObject(), getPredicate());
             // If an object is consistent and only depends on itself, the DomainDependenceRecord is not necessary.
-            if (!TopLevelTransaction.isConsistent(pair) || !TopLevelTransaction.dependsOnlyOnItself(pair)) {
+            if (!isConsistent(pair) || !dependsOnlyOnItself(pair)) {
                 new DomainDependenceRecord(existingMetaObject.getDomainObject(), this, (Set<Depended>) pair.first,
                         (Boolean) pair.second);
             }
@@ -179,6 +178,14 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         logger.info("Transaction finished. Number of processed " + metaClass.getDomainClass().getSimpleName() + " objects: "
                 + count);
         DomainFenixFrameworkRoot.checkpointTransaction();
+    }
+
+    public static boolean isConsistent(Pair pair) {
+        return (Boolean) pair.second;
+    }
+
+    public static boolean dependsOnlyOnItself(Pair pair) {
+        return ((Set<Depended>) pair.first).isEmpty();
     }
 
     /**
@@ -199,7 +206,8 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
     private Pair executePredicateForOneObject(DomainObject obj, Method predicate) {
         checkFrameworkNotInitialized();
         // starts a new transaction where the readSet used by the predicate will be collected.
-        ConsistencyCheckTransaction tx = new FenixConsistencyCheckTransaction(TransactionSupport.currentFenixTransaction(), obj);
+        ConsistencyCheckTransaction tx =
+                ConsistencyPredicateSupport.getInstance().createNewConsistencyCheckTransactionForObject(obj);
         tx.start();
 
         try {
