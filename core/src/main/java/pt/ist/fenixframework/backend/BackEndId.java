@@ -8,12 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
-<<<<<<< HEAD
 import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.atomic.AtomicContextFactory;
 import pt.ist.fenixframework.core.AbstractDomainObject;
-=======
->>>>>>> big-refactoring-2012
 import pt.ist.fenixframework.dml.CodeGenerator;
 
 /**
