@@ -7,7 +7,6 @@ import java.util.List;
 
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBBackEnd;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
-import pt.ist.fenixframework.backend.jvstmojb.dml.runtime.ConsistencyChecks;
 import pt.ist.fenixframework.backend.jvstmojb.ojb.OJBFunctionalSetWrapper;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.LoggingRelation;
@@ -16,7 +15,7 @@ import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
 import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil;
 import pt.ist.fenixframework.backend.jvstmojb.repository.ResultSetReader;
 import pt.ist.fenixframework.backend.jvstmojb.repository.ToSqlConverter;
-import pt.ist.fenixframework.dml.CodeGenerator;
+import pt.ist.fenixframework.consistencyPredicates.codeGenerator.ConsistencyPredicatesCodeGenerator;
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainEntity;
@@ -26,7 +25,7 @@ import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.dml.ValueType;
 
-public class FenixCodeGenerator extends CodeGenerator {
+public class FenixCodeGenerator extends ConsistencyPredicatesCodeGenerator {
 
     protected static final String TO_SQL_CONVERTER_CLASS = ToSqlConverter.class.getName();
 
@@ -68,7 +67,6 @@ public class FenixCodeGenerator extends CodeGenerator {
         super.generateBaseClassBody(domClass, out);
         generateCheckDisconnected(domClass, out);
         generateDatabaseReader(domClass, out);
-        generateSlotConsistencyPredicates(domClass, out);
     }
 
     @Override
@@ -667,79 +665,6 @@ public class FenixCodeGenerator extends CodeGenerator {
     protected void generateSlotDeclaration(PrintWriter out, String type, String name) {
         printWords(out, "private", type, name);
         println(out, ";");
-    }
-
-    @Override
-    protected void generateRoleSlotMethods(Role role, PrintWriter out) {
-        super.generateRoleSlotMethods(role, out);
-
-        if (role.needsMultiplicityChecks()) {
-            generateMultiplicityConsistencyPredicate(role, out);
-        }
-    }
-
-    protected void generateSlotConsistencyPredicates(DomainClass domClass, PrintWriter out) {
-        if (domClass.hasSlotWithOption(Slot.Option.REQUIRED)) {
-            generateRequiredConsistencyPredicate(domClass, out);
-        }
-    }
-
-    protected void generateRequiredConsistencyPredicate(DomainClass domClass, PrintWriter out) {
-        newline(out);
-        println(out, "@pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate");
-        printMethod(out, "private", "boolean", "checkRequiredSlots");
-        startMethodBody(out);
-
-        for (Slot slot : domClass.getSlotsList()) {
-            if (slot.hasOption(Slot.Option.REQUIRED)) {
-                String slotName = slot.getName();
-
-                print(out, ConsistencyChecks.class.getName() + ".checkRequired(this, \"");
-                print(out, slotName);
-                print(out, "\", get");
-                print(out, capitalize(slotName));
-                println(out, "());");
-            }
-        }
-        print(out, "return true;");
-        endMethodBody(out);
-    }
-
-    protected void generateMultiplicityConsistencyPredicate(Role role, PrintWriter out) {
-        String slotName = role.getName();
-        String slotAccessExpression = getSlotExpression(slotName);
-        String capitalizedSlotName = capitalize(slotName);
-
-        newline(out);
-        println(out, "@pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate");
-        printMethod(out, "public final", "boolean", "checkMultiplicityOf" + capitalizedSlotName);
-        startMethodBody(out);
-
-        int lower = role.getMultiplicityLower();
-        int upper = role.getMultiplicityUpper();
-
-        if (lower > 0) {
-            print(out, "if (");
-            if (upper == 1) {
-                print(out, "! has");
-                print(out, capitalizedSlotName);
-                print(out, "()");
-            } else {
-                print(out, slotAccessExpression);
-                print(out, ".size() < " + lower);
-            }
-            println(out, ") return false;");
-        }
-
-        if ((upper > 1) && (upper != Role.MULTIPLICITY_MANY)) {
-            print(out, "if (");
-            print(out, slotAccessExpression);
-            print(out, ".size() > " + upper);
-            println(out, ") return false;");
-        }
-
-        print(out, "return true;");
-        endMethodBody(out);
     }
 
     @Override
