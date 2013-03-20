@@ -6,7 +6,7 @@ public class VersionNotAvailableException extends RuntimeException {
     }
 
     public VersionNotAvailableException(final String message) {
-	super(message);
+        super(message);
     }
 
 }

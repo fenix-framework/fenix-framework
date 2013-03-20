@@ -15,26 +15,32 @@ public class RelationAwareSet<E1,E2> extends AbstractSet<E2> implements Set<E2>,
         this.relation = relation;
     }
 
+    @Override
     public void justAdd(E2 elem) {
         set.add(elem);
     }
 
+    @Override
     public void justRemove(E2 elem) {
         set.remove(elem);
     }
 
+    @Override
     public int size() {
         return set.size();
     }
 
+    @Override
     public boolean contains(Object o) {
         return set.contains(o);
     }
 
+    @Override
     public Iterator<E2> iterator() {
         return new RelationAwareIterator<E2>(set);
     }
 
+    @Override
     public boolean add(E2 o) {
         if (set.contains(o)) {
             return false;
@@ -44,6 +50,7 @@ public class RelationAwareSet<E1,E2> extends AbstractSet<E2> implements Set<E2>,
         }
     }
 
+    @Override
     public boolean remove(Object o) {
         if (set.contains(o)) {
             relation.remove(owner, (E2)o);
@@ -63,10 +70,12 @@ public class RelationAwareSet<E1,E2> extends AbstractSet<E2> implements Set<E2>,
             this.iterator = set.iterator();
         }
 
+        @Override
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
+        @Override
         public E2 next() {
             E2 result = iterator.next();
             canRemove = true;
@@ -74,6 +83,7 @@ public class RelationAwareSet<E1,E2> extends AbstractSet<E2> implements Set<E2>,
             return current;
         }
             
+        @Override
         public void remove() {
             if (! canRemove) {
                 throw new IllegalStateException();

@@ -29,50 +29,50 @@ import dml.Role;
 public class CheckOids {
 
     public static void main(String[] args) {
-	Connection connection = null;
-	try {
+        Connection connection = null;
+        try {
             final String dbAliasArg = getArg(args, 0);
             final String dbUserArg = getArg(args, 1);
             final String dbPassArg = getArg(args, 2);
 
             // all the remaining args are DML files
-	    final String[] domainModelFiles = Arrays.copyOfRange(args, 3, args.length);
+            final String[] domainModelFiles = Arrays.copyOfRange(args, 3, args.length);
 
-	    FenixFramework.bootStrap(new Config() {{
-                domainModelClass = FenixDomainModelWithOCC.class;
-		domainModelPaths = domainModelFiles;
-		dbAlias = dbAliasArg;
-		dbUsername = dbUserArg;
-		dbPassword = dbPassArg;
-	    }});
-	    FenixFramework.initialize();
+            FenixFramework.bootStrap(new Config() {
+                {
+                    domainModelClass = FenixDomainModelWithOCC.class;
+                    domainModelPaths = domainModelFiles;
+                    dbAlias = dbAliasArg;
+                    dbUsername = dbUserArg;
+                    dbPassword = dbPassArg;
+                }
+            });
+            FenixFramework.initialize();
 
             connection = PersistenceBrokerFactory.defaultPersistenceBroker().serviceConnectionManager().getConnection();
-	    checkOids(connection);
-	} catch (Exception ex) {
-	    ex.printStackTrace();
-	} finally {
-	    if (connection != null) {
-		try {
-		    connection.close();
-		} catch (SQLException e) {
-		    // nothing can be done.
-		}
-	    }
-	}
+            checkOids(connection);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    // nothing can be done.
+                }
+            }
+        }
     }
-
 
     private static List<String> getAllClassnames(DomainModel domainModel) {
         List<String> classnames = new ArrayList<String>();
         for (DomainClass domClass : domainModel.getDomainClasses()) {
             classnames.add(domClass.getFullName());
         }
-        
+
         Collections.sort(classnames);
         return classnames;
     }
-
 
     public static void checkOids(Connection connection) throws Exception {
         checkOidsOfObjects(connection);
@@ -85,7 +85,7 @@ public class CheckOids {
 
         System.out.println("Total classes = " + classnames.size());
 
-        Map<String,ClassDescriptor> ojbMetadata = DatabaseDescriptorFactory.getDescriptorTable();
+        Map<String, ClassDescriptor> ojbMetadata = DatabaseDescriptorFactory.getDescriptorTable();
 
         int num = 0;
         for (String classname : classnames) {
@@ -96,13 +96,12 @@ public class CheckOids {
                 System.out.printf("%5d - ", num++);
                 System.out.print("Checking oids for " + classname);
                 checkOidsForClass(connection, domainModel.findClass(classname), cd);
-	    }
-	}
+            }
+        }
     }
 
-    private static void checkOidsForClass(Connection connection,
-                                          DomainClass domClass,
-                                          ClassDescriptor classDesc) throws Exception {
+    private static void checkOidsForClass(Connection connection, DomainClass domClass, ClassDescriptor classDesc)
+            throws Exception {
 
         String where = "";
 
@@ -142,7 +141,7 @@ public class CheckOids {
             int idInternal = rs.getInt(1);
             long oid = rs.getLong(2);
 
-            if (! same(idInternal, oid)) {
+            if (!same(idInternal, oid)) {
                 System.err.println("        !!! mismatch between ID_INTERNAL and OID: " + idInternal + " != " + oid);
             }
 
@@ -152,7 +151,7 @@ public class CheckOids {
                 int key = rs.getInt(pos++);
                 long oidKey = rs.getLong(pos++);
 
-                if (! same(key, oidKey)) {
+                if (!same(key, oidKey)) {
                     System.err.print("        ### mismatch between KEY and OID: " + key + " != " + oidKey);
                     System.err.println(" (for colName = " + fk + " in object with OID = " + oid + ")");
                 }
@@ -163,7 +162,6 @@ public class CheckOids {
         stmt.close();
     }
 
-
     private static final class IndirectionTable implements Comparable<IndirectionTable> {
         private final String table;
         private final CollectionDescriptor colDesc;
@@ -173,25 +171,28 @@ public class CheckOids {
             this.colDesc = colDesc;
         }
 
+        @Override
         public int compareTo(IndirectionTable other) {
             return this.table.compareTo(other.table);
         }
 
+        @Override
         public boolean equals(Object other) {
-            return (other != null) && (other.getClass() == this.getClass()) && ((IndirectionTable)other).table.equals(this.table);
+            return (other != null) && (other.getClass() == this.getClass())
+                    && ((IndirectionTable) other).table.equals(this.table);
         }
 
+        @Override
         public int hashCode() {
             return table.hashCode();
         }
     }
-        
 
     public static void checkOidsOfIndirectionTables(Connection connection) throws Exception {
         Set<IndirectionTable> tablesToCheck = new TreeSet<IndirectionTable>();
-	for (ClassDescriptor classDesc : DatabaseDescriptorFactory.getDescriptorTable().values()) {
-	    for (CollectionDescriptor colDesc : (Iterable<CollectionDescriptor>)classDesc.getCollectionDescriptors()) {
-		String tableName = colDesc.getIndirectionTable();
+        for (ClassDescriptor classDesc : DatabaseDescriptorFactory.getDescriptorTable().values()) {
+            for (CollectionDescriptor colDesc : (Iterable<CollectionDescriptor>) classDesc.getCollectionDescriptors()) {
+                String tableName = colDesc.getIndirectionTable();
                 if (tableName != null) {
                     tablesToCheck.add(new IndirectionTable(tableName, colDesc));
                 }
@@ -205,7 +206,7 @@ public class CheckOids {
             System.out.printf("%5d - ", num++);
             System.out.print("Checking oids for " + indTable.table);
             checkOidsForIndTable(connection, indTable.colDesc);
-	}
+        }
     }
 
     public static void checkOidsForIndTable(Connection connection, CollectionDescriptor colDesc) throws Exception {
@@ -218,15 +219,15 @@ public class CheckOids {
         selectStmt.append("select ");
 
         String firstKey = colDesc.getFksToThisClass()[0];
-	selectStmt.append(firstKey);
-	selectStmt.append(",");
-	selectStmt.append(firstKey.replace("KEY_", "OID_"));
-	selectStmt.append(",");
+        selectStmt.append(firstKey);
+        selectStmt.append(",");
+        selectStmt.append(firstKey.replace("KEY_", "OID_"));
+        selectStmt.append(",");
 
         String secondKey = colDesc.getFksToItemClass()[0];
-	selectStmt.append(secondKey);
-	selectStmt.append(",");
-	selectStmt.append(secondKey.replace("KEY_", "OID_"));
+        selectStmt.append(secondKey);
+        selectStmt.append(",");
+        selectStmt.append(secondKey.replace("KEY_", "OID_"));
 
         selectStmt.append(" from ");
         selectStmt.append(tableName);
@@ -243,7 +244,7 @@ public class CheckOids {
                 int key = rs.getInt(pos++);
                 long oidKey = rs.getLong(pos++);
 
-                if (! same(key, oidKey)) {
+                if (!same(key, oidKey)) {
                     System.err.print("        ### mismatch between KEY and OID: " + key + " != " + oidKey);
                     System.err.println(" (for colName = " + fk + ")");
                 }
@@ -255,7 +256,7 @@ public class CheckOids {
     }
 
     private static boolean same(int id, long oid) {
-        return ((int)(oid & 0x7FFFFFFF)) == id;
+        return ((int) (oid & 0x7FFFFFFF)) == id;
     }
 
     private static int countRows(Connection connection, String tableName, String where) throws Exception {
@@ -281,12 +282,12 @@ public class CheckOids {
                 }
             }
 
-            domClass = (DomainClass)domClass.getSuperclass();
+            domClass = (DomainClass) domClass.getSuperclass();
         }
-        
+
         return fks;
     }
- 
+
     private static String getArg(String[] args, int index) {
         if (args.length < index) {
             System.out.println("Usage: CheckOids <dbAlias> <dbUser> <dbPasswd> <dmlFile>+");

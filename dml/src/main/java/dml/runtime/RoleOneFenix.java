@@ -14,6 +14,7 @@ public abstract class RoleOneFenix<C1,C2 extends FenixDomainObject> implements R
         this.attrName = attrName;
     }
 
+    @Override
     public void add(C1 o1, C2 o2, Relation<C1,C2> relation) {
         if (o1 != null) {
             FenixVBox<C2> o1Box = getBox(o1);
@@ -25,6 +26,7 @@ public abstract class RoleOneFenix<C1,C2 extends FenixDomainObject> implements R
         }
     }
 
+    @Override
     public void remove(C1 o1, C2 o2) {
         if (o1 != null) {
             getBox(o1).put(o1, attrName, null);

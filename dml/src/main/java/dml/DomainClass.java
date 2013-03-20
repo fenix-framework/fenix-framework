@@ -57,6 +57,7 @@ public class DomainClass extends DomainEntity {
         return ((! slots.isEmpty()) || (! roleSlots.isEmpty()));
     }
 
+    @Override
     public Slot findSlot(String slotName) {
         if (slotName == null) {
             return null;
@@ -71,6 +72,7 @@ public class DomainClass extends DomainEntity {
         return (superclass != null) ? superclass.findSlot(slotName) : null;
     }
 
+    @Override
     public void addRoleSlot(Role role) {
         roleSlots.add(role);
     }
@@ -83,6 +85,7 @@ public class DomainClass extends DomainEntity {
         return Collections.unmodifiableList(roleSlots);
     }
 
+    @Override
     public Role findRoleSlot(String roleName) {
         if (roleName == null) {
             return null;

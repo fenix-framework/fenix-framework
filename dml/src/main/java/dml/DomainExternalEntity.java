@@ -1,6 +1,5 @@
 package dml;
 
-import java.util.*;
 import java.net.URL;
 
 public class DomainExternalEntity extends DomainEntity {
@@ -9,10 +8,12 @@ public class DomainExternalEntity extends DomainEntity {
         super(sourceFile, fullName);
     }
 
+    @Override
     public void addRoleSlot(Role role) {
         // do nothing
     }
 
+    @Override
     public String getFullName(String packagePrefix) {
         return super.getFullName(null);
     }

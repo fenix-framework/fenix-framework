@@ -7,7 +7,7 @@ import org.apache.maven.project.MavenProject;
 /**
  * Goal which injects the constructors into the bytecode of the DML compiled
  * classes
- *
+ * 
  * @goal post-compile
  * @phase process-classes
  * @requiresDependencyResolution runtime
@@ -17,14 +17,14 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Maven Project
+     * 
      * @parameter default-value="${project}"
      */
     private MavenProject mavenProject;
 
-
     /**
      * File Source Directory
-     *
+     * 
      * @parameter default-value="${basedir}/src/main/dml"
      * @readonly
      * @required
@@ -33,7 +33,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Classes Directory
-     *
+     * 
      * @parameter default-value="${project.build.outputDirectory}"
      * @readonly
      * @required
@@ -42,6 +42,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Domain Model Class Name
+     * 
      * @parameter expression="${generate-domain.domainModelClassName}"
      *            default-value="pt.ist.fenixframework.pstm.dml.FenixDomainModel"
      */
@@ -49,6 +50,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Code Generator Class Name
+     * 
      * @parameter expression="${generate-domain.codeGeneratorClassName}"
      *            default-value="pt.ist.fenixframework.pstm.dml.FenixCodeGeneratorOneBoxPerObject"
      */
@@ -56,6 +58,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Verbose Mode Flag
+     * 
      * @parameter expression="${generate-domain.verbose}"
      *            default-value="false"
      */

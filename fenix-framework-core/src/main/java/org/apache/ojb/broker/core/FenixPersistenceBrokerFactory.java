@@ -11,7 +11,7 @@ public class FenixPersistenceBrokerFactory extends PersistenceBrokerFactoryDefau
      */
     @Override
     protected PersistenceBroker wrapRequestedBrokerInstance(PersistenceBroker broker) {
-	return broker;
+        return broker;
     }
 
 }

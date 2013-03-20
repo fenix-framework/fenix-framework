@@ -12,14 +12,17 @@ public class RoleEmpty<C1,C2> implements Role<C1,C2> {
         this.inverseRole = inverseRole;
     }
 
+    @Override
     public void add(C1 o1, C2 o2, Relation<C1,C2> relation) {
         // do nothing
     }
     
+    @Override
     public void remove(C1 o1, C2 o2) {
         // do nothing
     }
 
+    @Override
     public Role<C2,C1> getInverseRole() {
         return inverseRole;
     }

@@ -1,7 +1,15 @@
 package pt.ist.fenixframework;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import jvstm.TransactionalCommand;
 import pt.ist.fenixframework.pstm.DataAccessPatterns;
+import pt.ist.fenixframework.pstm.DomainFenixFrameworkRoot;
+import pt.ist.fenixframework.pstm.DomainMetaClass;
+import pt.ist.fenixframework.pstm.DomainMetaObject;
 import pt.ist.fenixframework.pstm.MetadataManager;
 import pt.ist.fenixframework.pstm.PersistentRoot;
 import pt.ist.fenixframework.pstm.Transaction;
@@ -13,8 +21,8 @@ import dml.DomainModel;
  * it, programmers should call the static <code>initialize(Config)</code> method
  * with a proper instance of the <code>Config</code> class.
  * 
- * After initialization, it is possible to get an instance of the
- * <code>DomainModel</code> class representing the structure of the
+ * After initialization, it is possible to get an instance of the <code>DomainModel</code> class representing the
+ * structure of the
  * application's domain.
  * 
  * @see Config
@@ -34,53 +42,178 @@ public class FenixFramework {
     }
 
     public static void bootStrap(Config config) {
-	synchronized (INIT_LOCK) {
-	    if (bootstrapped) {
-		throw new Error("Fenix framework already initialized");
-	    }
+        synchronized (INIT_LOCK) {
+            if (bootstrapped) {
+                throw new Error("Fenix framework already bootstrapped");
+            }
 
-	    FenixFramework.config = ((config != null) ? config : new Config());
-	    config.checkConfig();
-	    MetadataManager.init(config);
-	    new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
-	    DataAccessPatterns.init(config);
-	    bootstrapped = true;
-	}
+            System.out.println("[FenixFramework] Bootstrap started.");
+            FenixFramework.config = ((config != null) ? config : new Config());
+            config.checkIsValid();
+            System.out.println("[FenixFramework] Starting the Fenix Framework with a valid config: ");
+            config.print();
+            MetadataManager.init(config);
+            new RepositoryBootstrap(config).updateDataRepositoryStructureIfNeeded();
+            DataAccessPatterns.init(config);
+            bootstrapped = true;
+            System.out.println("[FenixFramework] Bootstrap finished.");
+        }
     }
 
     public static void initialize() {
-	synchronized (INIT_LOCK) {
-	    if (initialized) {
-		throw new Error("Fenix framework already initialized");
-	    }
+        synchronized (INIT_LOCK) {
+            if (isInitialized()) {
+                throw new Error("Fenix framework already initialized");
+            }
 
-	    PersistentRoot.initRootIfNeeded(config);
-	    FenixFrameworkPlugin[] plugins = config.getPlugins();
-	    if (plugins != null) {
-		for (final FenixFrameworkPlugin plugin : plugins) {
-		    Transaction.withTransaction(new TransactionalCommand() {
-			
-			@Override
-			public void doIt() {
-			    plugin.initialize();
-			}
+            System.out.println("[FenixFramework] Initialization started.");
+            getLockAndInitDomainFenixFrameworkRoot();
+            PersistentRoot.initRootIfNeeded(config);
 
-		    });
-		}
-	    }
-	    initialized = true;
-	}
+            FenixFrameworkPlugin[] plugins = config.getPlugins();
+            if (plugins != null) {
+                for (final FenixFrameworkPlugin plugin : plugins) {
+                    Transaction.withTransaction(new TransactionalCommand() {
+
+                        @Override
+                        public void doIt() {
+                            plugin.initialize();
+                        }
+
+                    });
+                }
+            }
+            initialized = true;
+            System.out.println("[FenixFramework] Initialization finished.");
+        }
+    }
+
+    /**
+     * @return <code>true</code> if the framework was already initialized. <br>
+     *         <code>false</code> if the framework was not yet initialized, or
+     *         the initialization is still in progress.
+     */
+    public static boolean isInitialized() {
+        return initialized;
+    }
+
+    /**
+     * Creates a {@link PersistentRoot} for the {@link DomainFenixFrameworkRoot} and then initializes the
+     * {@link DomainFenixFrameworkRoot}.
+     */
+    private static void initDomainFenixFrameworkRoot() {
+        try {
+            Transaction.withTransaction(new TransactionalCommand() {
+                @Override
+                public void doIt() {
+                    if (getDomainFenixFrameworkRoot() == null) {
+                        DomainFenixFrameworkRoot fenixFrameworkRoot = new DomainFenixFrameworkRoot();
+                        PersistentRoot.addRoot(DomainFenixFrameworkRoot.ROOT_KEY, fenixFrameworkRoot);
+                    }
+                    getDomainFenixFrameworkRoot().initialize(getDomainModel());
+                }
+            });
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.out.println("ERROR: An exception was thrown during the initialization of the DomainFenixFrameworkRoot.");
+        } finally {
+            if (jvstm.Transaction.isInTransaction()) {
+                Transaction.abort();
+            }
+        }
+    }
+
+    /**
+     * Initializes the {@link DomainFenixFrameworkRoot} after obtaining a db-lock, to guarantee that only one application server
+     * at a time executes this code.
+     */
+    private static void getLockAndInitDomainFenixFrameworkRoot() {
+        //Most of this lock-related code was copied from RepositoryBootstrap.updateDataRepositoryStructureIfNeeded()
+        Connection connection = null;
+        try {
+            connection = RepositoryBootstrap.getConnection(config);
+
+            Statement statement = null;
+            ResultSet resultSet = null;
+
+            String lockName = RepositoryBootstrap.getDbLockName();
+            try {
+                int iterations = 0;
+                while (true) {
+                    iterations++;
+                    statement = connection.createStatement();
+                    resultSet = statement.executeQuery("SELECT GET_LOCK('" + lockName + "', 60)");
+                    if (resultSet.next() && (resultSet.getInt(1) == 1)) {
+                        break;
+                    }
+                    if ((iterations % 10) == 0) {
+                        System.out.println("[DomainFenixFrameworkRoot] Warning: Could not yet obtain the " + lockName
+                                + " lock. Number of retries: " + iterations);
+                    }
+                }
+            } finally {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            }
+
+            try {
+                initDomainFenixFrameworkRoot();
+            } finally {
+                Statement statementUnlock = null;
+                try {
+                    statementUnlock = connection.createStatement();
+                    statementUnlock.executeUpdate("DO RELEASE_LOCK('" + lockName + "')");
+                } finally {
+                    if (statementUnlock != null) {
+                        statementUnlock.close();
+                    }
+                }
+            }
+
+            connection.commit();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new Error(ex);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    // nothing can be done.
+                }
+            }
+        }
+    }
+
+    public static DomainFenixFrameworkRoot getDomainFenixFrameworkRoot() {
+        return PersistentRoot.getRoot(DomainFenixFrameworkRoot.ROOT_KEY);
     }
 
     public static Config getConfig() {
-	return config;
+        return config;
     }
 
     public static DomainModel getDomainModel() {
-	return MetadataManager.getDomainModel();
+        return MetadataManager.getDomainModel();
     }
 
     public static <T extends DomainObject> T getRoot() {
-	return (T) PersistentRoot.getRoot();
+        return (T) PersistentRoot.getRoot();
+    }
+
+    /**
+     * Indicates whether the framework was configured to allow the automatic
+     * creation of {@link DomainMetaObject}s and {@link DomainMetaClass}es. Only
+     * if this method returns <code>true</code> will a consistency predicate of
+     * a domain object be allowed to read values from other objects.
+     * 
+     * @return the value of {@link Config}.canCreateDomainMetaObjects
+     */
+    public static boolean canCreateDomainMetaObjects() {
+        return getConfig().canCreateDomainMetaObjects;
     }
 }

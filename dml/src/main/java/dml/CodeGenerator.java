@@ -32,10 +32,10 @@ public class CodeGenerator {
 	new PrimitiveToWrapperEntry("double", "Double", "0.0d")
     };
 
-    private CompilerArgs compArgs;
-    private DomainModel domainModel;
-    private File destDirectory;
-    private File destDirectoryBase;
+    private final CompilerArgs compArgs;
+    private final DomainModel domainModel;
+    private final File destDirectory;
+    private final File destDirectoryBase;
 
     public CodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         this.compArgs = compArgs;
@@ -121,7 +121,8 @@ public class CodeGenerator {
         
         writeToFile(new File(getBaseDirectoryFor(packageName), domClass.getBaseName() + ".java"),
                     new WriteProcedure() {
-                        public void doIt(PrintWriter out) {
+                        @Override
+			public void doIt(PrintWriter out) {
                             generateFilePreamble(packageName, out);
                             generateBaseClass(domClass, out);
                         }
@@ -135,7 +136,8 @@ public class CodeGenerator {
         if (! leafClassFile.exists()) {
             writeToFile(leafClassFile,
                         new WriteProcedure() {
-                            public void doIt(PrintWriter out) {
+                            @Override
+			    public void doIt(PrintWriter out) {
                                 generatePublicFilePreamble(packageName, out);
                                 generatePublicClass(domClass, out);
                             }
@@ -953,7 +955,7 @@ public class CodeGenerator {
         String capitalizedSlotName = capitalize(slotName);
 
         newline(out);
-        println(out, "@jvstm.cps.ConsistencyPredicate");
+	println(out, "@pt.ist.fenixframework.pstm.consistencyPredicates.ConsistencyPredicate");
         printMethod(out, "public final", "boolean", "checkMultiplicityOf" + capitalizedSlotName);
         startMethodBody(out);
 
@@ -992,7 +994,7 @@ public class CodeGenerator {
 
     protected void generateRequiredConsistencyPredicate(DomainClass domClass, PrintWriter out) {
         newline(out);
-        println(out, "@jvstm.cps.ConsistencyPredicate");
+	println(out, "@pt.ist.fenixframework.pstm.consistencyPredicates.ConsistencyPredicate");
         printMethod(out, "private", "boolean", "checkRequiredSlots");
         startMethodBody(out);
 

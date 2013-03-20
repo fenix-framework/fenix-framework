@@ -1,22 +1,22 @@
 package pt.ist.fenixframework.pstm;
 
-
-public class RequestInfo {    
+public class RequestInfo {
     private static final ThreadLocal<String> REQUEST_URI = new ThreadLocal<String>() {
-         protected String initialValue() {
-             return "";
-         }
+        @Override
+        protected String initialValue() {
+            return "";
+        }
     };
 
     public static String getRequestURI() {
-	return REQUEST_URI.get();
+        return REQUEST_URI.get();
     }
 
     public static void setRequestURI(String uri) {
-	REQUEST_URI.set(uri);
+        REQUEST_URI.set(uri);
     }
 
     public static void clear() {
-	REQUEST_URI.remove();
+        REQUEST_URI.remove();
     }
 }

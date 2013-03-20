@@ -7,7 +7,7 @@ import org.apache.maven.project.MavenProject;
 /**
  * Goal which injects the constructors into the bytecode of the DML compiled
  * classes
- *
+ * 
  * @goal test-post-compile
  * @phase process-test-classes
  * @requiresDependencyResolution test
@@ -17,13 +17,14 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Maven Project
+     * 
      * @parameter default-value="${project}"
      */
     private MavenProject mavenProject;
 
     /**
      * File Source Directory
-     *
+     * 
      * @parameter default-value="${basedir}/src/test/dml"
      * @readonly
      * @required
@@ -32,7 +33,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Classes Directory
-     *
+     * 
      * @parameter default-value="${project.build.testOutputDirectory}"
      * @readonly
      * @required
@@ -41,6 +42,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Domain Model Class Name
+     * 
      * @parameter expression="${generate-domain.domainModelClassName}"
      *            default-value="pt.ist.fenixframework.pstm.dml.FenixDomainModel"
      */
@@ -48,6 +50,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Code Generator Class Name
+     * 
      * @parameter expression="${generate-domain.codeGeneratorClassName}"
      *            default-value="pt.ist.fenixframework.pstm.dml.FenixCodeGeneratorOneBoxPerObject"
      */
@@ -55,6 +58,7 @@ public class TestDmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**
      * Verbose Mode Flag
+     * 
      * @parameter expression="${generate-domain.verbose}"
      *            default-value="false"
      */

@@ -1,8 +1,24 @@
+/* PersistentRoot */
+
 package pt.ist.fenixframework.pstm;
+
+
+valueType java.lang.reflect.Method as PredicateMethod {
+    externalizeWith {
+        String toString();
+    }
+    internalizeWith pt.ist.fenixframework.Externalization.internalizePredicateMethod();
+}
+
+
 
 class PersistentRoot {
 	String rootKey;
 }
+
+
+
+
 
 relation MultipleRoots {
 	PersistentRoot playsRole previous;
@@ -15,3 +31,162 @@ relation PersistentRootAbstractDomainObject {
  PersistentRoot playsRole;
 }
 
+
+
+/* Abstract Data Type: B+Trees */
+
+package pt.ist.fenixframework.pstm.adt.bplustree;
+
+valueType java.util.TreeMap as GenericTreeMap {
+    externalizeWith {
+        bytearray pt.ist.fenixframework.pstm.adt.bplustree.AbstractNode.externalizeTreeMap();
+    }
+    internalizeWith pt.ist.fenixframework.pstm.adt.bplustree.AbstractNode.internalizeTreeMap();
+}
+
+class BPlusTree {}
+
+class AbstractNode {}
+
+class LeafNode extends AbstractNode {
+    // key: any Serializable and Comparable
+    // value: any Serializable
+    GenericTreeMap<Comparable,java.io.Serializable> entries;
+}
+
+class InnerNode extends AbstractNode {
+    // A B-Tree node contains M keys and M+1 children.  We represent the first
+    // M children aggregated with a key and add a special LAST_KEY for the
+    // M+1-th children.  This way the i-th child always contains elements
+    // whose keys are less than the i-th key.
+    // key: any Serializable and Comparable
+    // value: an AbstractNode
+    GenericTreeMap<Comparable,AbstractNode> subNodes;
+}
+
+relation AdtBPlusTreeHasRootNode {
+    BPlusTree playsRole;
+    AbstractNode playsRole root;
+}
+
+relation AdtNodeHasParent {
+    AbstractNode playsRole {
+	multiplicity *;
+    }
+    InnerNode playsRole parent;
+}
+
+relation AdtLeafNodeHasSibling {
+    LeafNode playsRole previous;
+    LeafNode playsRole next;
+}
+
+
+
+/* MetaObjects, MetaClasses and ConsistencyPredicates */
+
+package pt.ist.fenixframework.pstm;
+
+class DomainFenixFrameworkRoot {
+}
+
+class DomainMetaClass {
+	String domainClassName;
+	Boolean finalized;
+}
+
+class consistencyPredicates.DomainConsistencyPredicate {
+	PredicateMethod predicate;
+	String ojbConcreteClass;
+	Boolean finalized;
+}
+
+	class consistencyPredicates.PublicConsistencyPredicate extends consistencyPredicates.DomainConsistencyPredicate {
+	}
+	
+	class consistencyPredicates.FinalConsistencyPredicate extends consistencyPredicates.PublicConsistencyPredicate {
+	}
+	
+	class consistencyPredicates.PrivateConsistencyPredicate extends consistencyPredicates.DomainConsistencyPredicate {
+	}
+	
+class consistencyPredicates.DomainDependenceRecord {
+}
+
+class DomainMetaObject {
+}
+
+
+
+relation DomainFenixFrameworkRootDomainMetaClasses {
+	DomainFenixFrameworkRoot playsRole domainFenixFrameworkRoot;
+	DomainMetaClass playsRole domainMetaClasses {
+		multiplicity*;
+	}
+}
+
+relation DomainMetaSuperclassDomainMetaSubclasses {
+	DomainMetaClass playsRole domainMetaSuperclass;
+	DomainMetaClass playsRole domainMetaSubclasses {
+		multiplicity*;
+	}
+}
+
+relation DomainMetaObjectsDomainMetaClass {
+	DomainMetaObject playsRole;
+	DomainMetaClass playsRole domainMetaClass;
+}
+
+relation DomainMetaClassExistingDomainMetaObjects {
+	adt.bplustree.BPlusTree playsRole existingDomainMetaObjects;
+	DomainMetaClass playsRole;
+}
+
+relation DomainMetaClassDeclaredConsistencyPredicates {
+	DomainMetaClass playsRole domainMetaClass;
+	consistencyPredicates.DomainConsistencyPredicate playsRole declaredConsistencyPredicates {
+		multiplicity*;
+	}
+}
+
+relation PublicConsistencyPredicateOverriddenPublicConsistencyPredicatesOverriding {
+	consistencyPredicates.PublicConsistencyPredicate playsRole publicConsistencyPredicateOverridden;
+	consistencyPredicates.PublicConsistencyPredicate playsRole publicConsistencyPredicatesOverriding {
+		multiplicity*;
+	}
+}
+
+relation DomainConsistencyPredicateDomainDependenceRecords {
+	consistencyPredicates.DomainConsistencyPredicate playsRole domainConsistencyPredicate;
+	consistencyPredicates.DomainDependenceRecord playsRole domainDependenceRecords {
+		multiplicity*;
+	}
+}
+
+relation DomainConsistencyPredicateInconsistentDependenceRecords {
+	consistencyPredicates.DomainConsistencyPredicate playsRole inconsistentPredicate;
+	consistencyPredicates.DomainDependenceRecord playsRole inconsistentDependenceRecords {
+		multiplicity*;
+	}
+}
+
+relation DependentDomainMetaObjectOwnDependenceRecords {
+	DomainMetaObject playsRole dependentDomainMetaObject;
+	consistencyPredicates.DomainDependenceRecord playsRole ownDependenceRecords {
+		multiplicity*;
+	}
+}
+
+relation DependedDomainMetaObjectsDependingDependenceRecords {
+	DomainMetaObject playsRole dependedDomainMetaObjects {
+		multiplicity*;
+	}
+	consistencyPredicates.DomainDependenceRecord playsRole dependingDependenceRecords {
+		multiplicity*;
+	}
+}
+
+relation DomainMetaObjectAbstractDomainObject {
+	AbstractDomainObject playsRole domainObject;
+	DomainMetaObject playsRole;
+}

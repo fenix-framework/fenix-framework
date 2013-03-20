@@ -4,12 +4,13 @@ import pt.ist.fenixframework.project.persistence.exception.PersistenceInfoExcept
 
 public class BerkeleyDBPersistenceInfo extends PersistenceInfo {
 
+    @Override
     public boolean isEngine(PersistenceEngine persistenceEngine) {
-	return persistenceEngine != null && persistenceEngine.equals(PersistenceEngine.BerkleyDB);
+        return persistenceEngine != null && persistenceEngine.equals(PersistenceEngine.BerkleyDB);
     }
 
     @Override
     public void validate() throws PersistenceInfoException {
-	throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
