@@ -1,19 +1,15 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// import pt.ist.fenixframework.DomainObject;
-// import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.backend.OID;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.IdentityMap;
+import eu.cloudtm.LocalityHints;
+// import pt.ist.fenixframework.DomainObject;
+// import pt.ist.fenixframework.FenixFramework;
 
 public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
@@ -23,23 +19,26 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
 
     // We need to have the default constructor, because we've added the allocate-instance constructor
     protected InfinispanDomainObject() {
-        super();
+        this((LocalityHints) null);
     }
 
     protected InfinispanDomainObject(DomainObjectAllocator.OID oid) {
         super(oid);
-        this.oid = (OID)oid.oid;
+        this.oid = (OID) oid.oid;
+    }
+
+    public InfinispanDomainObject(LocalityHints hints) {
+        super(hints);
     }
 
     @Override
-    protected void ensureOid() {
+    protected void ensureOid(LocalityHints hints) {
         Class objClass = this.getClass();
         IdentityMap idMap = InfinispanBackEnd.getInstance().getIdentityMap();
 
         while (true) {
             // assign new OID
-            String uuid = UUID.randomUUID().toString();
-            this.oid = new OID(objClass, uuid);
+            this.oid = OID.makeNew(objClass, hints);
             // cache this instance
             Object shouldBeSame = idMap.cache(this);
             if (shouldBeSame == this) {
@@ -50,17 +49,14 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
         }
     }
 
-    // dealing with domain object identifiers
-
     @Override
     public OID getOid() {
-	return this.oid;
+        return this.oid;
     }
 
     @Override
     public final String getExternalId() {
-	return oid.toExternalId();
+        return oid.toExternalId();
     }
 
 }
-

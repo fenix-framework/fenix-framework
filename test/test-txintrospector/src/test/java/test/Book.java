@@ -2,8 +2,12 @@ package test;
 
 public abstract class Book extends Book_Base {
 
-    public  Book() {
-        super();
+    public Book() {
+        this(null);
+    }
+
+    public Book(eu.cloudtm.LocalityHints hints) {
+        super(hints);
 
         toString();
     }

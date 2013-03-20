@@ -1,18 +1,12 @@
 package pt.ist.fenixframework.backend.mem;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
+import eu.cloudtm.LocalityHints;
 
 public class MemDomainObject extends AbstractDomainObjectAdapter {
     private static final Logger logger = LoggerFactory.getLogger(MemDomainObject.class);
@@ -22,15 +16,19 @@ public class MemDomainObject extends AbstractDomainObjectAdapter {
 
     // We need to have the default constructor, because we've added the allocate-instance constructor
     protected MemDomainObject() {
-        super();
+        this((LocalityHints) null);
     }
 
     protected MemDomainObject(DomainObjectAllocator.OID oid) {
-        this.oid = (Long)oid.oid;
+        this.oid = (Long) oid.oid;
+    }
+
+    public MemDomainObject(LocalityHints hints) {
+        super(hints);
     }
 
     @Override
-    protected void ensureOid() {
+    protected void ensureOid(LocalityHints hints) {
         // find successive ids until one is available
         while (true) {
             this.oid = DomainClassInfo.getNextOidFor(this.getClass());
@@ -46,12 +44,11 @@ public class MemDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     public Long getOid() {
-	return oid;
+        return oid;
     }
 
     @Override
     public final String getExternalId() {
-	return String.valueOf(getOid());
+        return String.valueOf(getOid());
     }
 }
-

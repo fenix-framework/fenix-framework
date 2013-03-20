@@ -7,19 +7,19 @@
  */
 package pt.ist.fenixframework.backend;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.core.exception.MissingObjectException;
+import eu.cloudtm.LocalityHints;
 
 /**
- *  This class provides an internal representation of a DomainObject's identifier using a UUID.
+ * This class provides an internal representation of a DomainObject's identifier using a UUID.
  */
 public class OID implements Comparable<OID>, Serializable {
     private static final long serialVersionUID = 1L;
@@ -29,44 +29,80 @@ public class OID implements Comparable<OID>, Serializable {
     private static final String EXTERNAL_ID_ERROR = "Could not process externalId: ";
 
     public static final String ROOT_PK = "ROOT_OBJECT";
-    public static final OID ROOT_OBJECT_ID = new OID(DomainRoot.class, ROOT_PK);
+    public static final OID ROOT_OBJECT_ID = new OID(DomainRoot.class, DomainRoot.class.getName() + OID_SEPARATOR + ROOT_PK);
 
     private final Class objClass;
+    /* 
+     * fullId format: <classname>@<UUID>@[hints] 
+     * This works ok, because there are no @ in the first two fields. 
+     */
     private final String fullId; // includes class name to avoid repetitive computation
 
     /**
-     * Create a new Object IDentifier for the given class.  For the special class {@link DomainRoot}, it will always return the
-     * same ROOT_OBJECT_ID
+     * Create a new Object IDentifier for the given class. For the special class {@link DomainRoot}, it will always return the
+     * same ROOT_OBJECT_ID. Any {@link LocalityHints} for the {@link DomainRoot} object are ignored, as this object always
+     * exists.
+     * 
+     * @param objClass The Class of the {@link DomainObject} for which to create a new OID.
+     * @param hints The {@link LocalityHints} if any.
+     * @return A unique identifier for an object of the given type.
      */
-    public static OID makeNew(Class objClass) {
+    public static OID makeNew(Class objClass, LocalityHints hints) {
         if (objClass.equals(DomainRoot.class)) {
             logger.debug("Returning well-known fixed OID for singleton DomainRoot instance: " + ROOT_OBJECT_ID);
             return ROOT_OBJECT_ID;
         } else {
-            return new OID(objClass);
+            OID oid = new OID(objClass, UUID.randomUUID().toString(), hints);
+            logger.debug("Making new oid: " + oid.toString());
+            return oid;
         }
     }
-    
-    private OID(Class objClass) {
-        this.objClass = objClass;
-        this.fullId = objClass.getName() + OID_SEPARATOR + UUID.randomUUID().toString();
+
+    /**
+     * Calls {@link #makeNew(Class, LocalityHints)} with <code>null</code> {@link LocalityHints}.
+     * 
+     * @see #makeNew(Class, LocalityHints)
+     */
+    public static OID makeNew(Class objClass) {
+        return makeNew(objClass, null);
     }
 
-    public OID(Class objClass, String objId) {
-        this.objClass = objClass;
-        this.fullId = objClass.getName() + OID_SEPARATOR + objId;
+    private OID(Class objClass, String objId, LocalityHints hints) {
+        this(objClass, objClass.getName() + OID_SEPARATOR + objId + OID_SEPARATOR + (hints == null ? "" : hints.hints2String()));
     }
 
-    public OID(String externalId) {
-        String[] tokens = externalId.split(OID_SEPARATOR);
+    private OID(Class objClass, String fullId) {
+        this.objClass = objClass;
+        this.fullId = fullId;
+    }
+
+    /**
+     * Creates an OID from the given external representation. If the external representation as been tampered with, the results of
+     * this method are undefined.
+     * 
+     * @param externalId The external representation of the object's identifier.
+     * @return the OID that corresponds to the given external representation
+     */
+    public static OID fromExternalId(String externalId) {
+        logger.debug("Building OID from externalId: " + externalId);
+
+        String className = extractClassNameFromExtenalId(externalId);
         try {
-            this.objClass = Class.forName(tokens[0]);
-            this.fullId = externalId; // tokens[0] + OID_SEPARATOR + tokens[1];
+            return new OID(Class.forName(className), externalId);
         } catch (Exception e) {
-            // e.g. index out of bounds, class not found, etc.
             logger.error(EXTERNAL_ID_ERROR + externalId);
             throw new MissingObjectException(EXTERNAL_ID_ERROR + externalId, e);
         }
+    }
+
+    public static OID recoverFromFullId(String fullId) {
+        logger.debug("Building OID from fullId: " + fullId);
+        // currently the same as an externalId
+        return fromExternalId(fullId);
+    }
+
+    private static String extractClassNameFromExtenalId(String externalId) {
+        return externalId.substring(0, externalId.indexOf(OID_SEPARATOR));
     }
 
     public Class getObjClass() {
@@ -76,7 +112,7 @@ public class OID implements Comparable<OID>, Serializable {
     public String getFullId() {
         return this.fullId;
     }
-    
+
     public String toExternalId() {
         return fullId;
     }
@@ -87,7 +123,7 @@ public class OID implements Comparable<OID>, Serializable {
             return true;
         }
         if (o instanceof OID) {
-            OID other = (OID)o;
+            OID other = (OID) o;
             // return (this.objClass.equals(other.objClass)
             //         && this.fullId.equals(other.fullId));
             return (this.fullId.equals(other.fullId));
