@@ -66,4 +66,9 @@ public class MemBackEnd implements BackEnd {
     public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
         throw new UnsupportedOperationException("It does not make sense to invoke this method in a storage-less BackEnd");
     }
+
+    @Override
+    public String[] getStorageKeys(DomainObject domainObject) {
+        throw new UnsupportedOperationException("It does not make sense to invoke this method in a storage-less BackEnd");
+    }
 }

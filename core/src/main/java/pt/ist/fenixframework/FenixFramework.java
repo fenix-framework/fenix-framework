@@ -398,6 +398,19 @@ public class FenixFramework {
         return getConfig().getBackEnd().getOwnerDomainObject(storageKey);
     }
 
+    /**
+     * Returns the list of keys used to store the slots (attributes) of given {@link DomainObject}. This method delegates to the
+     * concrete {@link BackEnd} the implementation of its behavior.
+     * 
+     * This method is Cloud-TM platform-specific.
+     * 
+     * @param domainObject The {@link DomainObject} from which to get the storage keys
+     * @return A String[] with the keys
+     */
+    public static String[] getStorageKeys(DomainObject domainObject) {
+        return getConfig().getBackEnd().getStorageKeys(domainObject);
+    }
+
     public static TransactionManager getTransactionManager() {
         return getConfig().getBackEnd().getTransactionManager();
     }

@@ -2,6 +2,7 @@ package pt.ist.fenixframework.backend.infinispan;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.OID;
@@ -22,6 +24,9 @@ import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.Externalization;
 import pt.ist.fenixframework.core.IdentityMap;
 import pt.ist.fenixframework.core.SharedIdentityMap;
+import pt.ist.fenixframework.dml.DomainClass;
+import pt.ist.fenixframework.dml.DomainModel;
+import pt.ist.fenixframework.dml.Slot;
 
 public class InfinispanBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanBackEnd.class);
@@ -159,6 +164,27 @@ public class InfinispanBackEnd implements BackEnd {
     public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("not yet implemented");
+    }
+
+    @Override
+    public String[] getStorageKeys(DomainObject domainObject) {
+        if (domainObject == null) {
+            return new String[0];
+        }
+
+        DomainModel domainModel = FenixFramework.getDomainModel();
+        DomainClass domClass = domainModel.findClass(domainObject.getClass().getName());
+        if (domClass == null) {
+            return new String[0];
+        }
+
+        String oid = ((InfinispanDomainObject) domainObject).getOid().getFullId();
+
+        ArrayList<String> keys = new ArrayList<String>();
+        for (Slot slot : domClass.getSlotsList()) {
+            keys.add(oid + ":" + slot.getName());
+        }
+        return keys.toArray(new String[keys.size()]);
     }
 
 }

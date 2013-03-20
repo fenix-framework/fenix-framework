@@ -53,4 +53,9 @@ public interface BackEnd {
      */
     public <T extends DomainObject> T getOwnerDomainObject(String storageKey);
 
+    /**
+     * @see pt.ist.fenixframework.FenixFramework#getStorageKeys(DomainObject)
+     */
+    public String[] getStorageKeys(DomainObject domainObject);
+
 }

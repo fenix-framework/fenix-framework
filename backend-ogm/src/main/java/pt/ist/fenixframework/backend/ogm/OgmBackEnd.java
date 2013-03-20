@@ -79,6 +79,11 @@ public class OgmBackEnd implements BackEnd {
         throw new UnsupportedOperationException("not yet implemented. Depends on support from the Hibernate OGM.");
     }
 
+    @Override
+    public String[] getStorageKeys(DomainObject domainObject) {
+        throw new UnsupportedOperationException("not yet implemented. Depends on support from the Hibernate OGM.");
+    }
+
     // protected IdentityMap getIdentityMap() {
     //     return SharedIdentityMap.getCache();
     // }
