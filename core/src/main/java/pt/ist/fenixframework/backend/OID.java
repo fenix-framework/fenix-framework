@@ -153,4 +153,17 @@ public class OID implements Comparable<OID>, Serializable {
     public String toString() {
         return toExternalId();
     }
+
+    /**
+     * Get the LocalityHints of this OID.
+     * 
+     * @return The {@link LocalityHints} instance or <code>null</code> is this OID does not have {@link LocalityHints}
+     */
+    public LocalityHints getLocalityHints() {
+        int firstSep = fullId.indexOf(OID_SEPARATOR);
+        int secondSep = fullId.indexOf(OID_SEPARATOR, firstSep + 1);
+        String localityHintsStr = fullId.substring(secondSep + 1);
+
+        return (localityHintsStr.isEmpty() ? null : LocalityHints.string2Hints(localityHintsStr));
+    }
 }

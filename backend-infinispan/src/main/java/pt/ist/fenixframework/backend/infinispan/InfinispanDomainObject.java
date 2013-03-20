@@ -59,4 +59,9 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
         return oid.toExternalId();
     }
 
+    @Override
+    public LocalityHints getLocalityHints() {
+        return getOid().getLocalityHints();
+    }
+
 }

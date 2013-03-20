@@ -162,7 +162,7 @@ public class InfinispanBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
-        String fullId = storageKey.substring(0, storageKey.lastIndexOf(':'));
+        String fullId = storageKey.substring(0, storageKey.lastIndexOf(':')); // ok, because it ends with the slot name
         return fromOid(OID.recoverFromFullId(fullId));
     }
 

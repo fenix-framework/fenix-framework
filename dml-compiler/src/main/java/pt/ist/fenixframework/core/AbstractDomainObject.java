@@ -41,6 +41,16 @@ public abstract class AbstractDomainObject implements DomainObject {
     }
 
     /**
+     * Each BackEnd should provide an implementation for this method. No LocalityHints at this level.
+     * 
+     * @see DomainObject#getLocalityHints()
+     */
+    @Override
+    public LocalityHints getLocalityHints() {
+        return null;
+    }
+
+    /**
      * Default, no-arg constructor. Calls {@link #ensureOid()} to set the object's identifier.
      * Every {@link DomainObject} constructor (except for the special allocate-instance constructor)
      * should ensure that {@link #ensureOid()} is called once during object creation.
