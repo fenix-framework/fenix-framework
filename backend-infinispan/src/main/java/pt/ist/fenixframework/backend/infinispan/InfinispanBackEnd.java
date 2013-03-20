@@ -162,8 +162,8 @@ public class InfinispanBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
+        String fullId = storageKey.substring(0, storageKey.lastIndexOf(':'));
+        return fromOid(OID.recoverFromFullId(fullId));
     }
 
     @Override
@@ -182,9 +182,8 @@ public class InfinispanBackEnd implements BackEnd {
 
         ArrayList<String> keys = new ArrayList<String>();
         for (Slot slot : domClass.getSlotsList()) {
-            keys.add(oid + ":" + slot.getName());
+            keys.add(oid + ':' + slot.getName());
         }
         return keys.toArray(new String[keys.size()]);
     }
-
 }

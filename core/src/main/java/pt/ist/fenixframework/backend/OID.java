@@ -95,6 +95,12 @@ public class OID implements Comparable<OID>, Serializable {
         }
     }
 
+    public static OID recoverFromFullId(String fullId) {
+        logger.debug("Building OID from fullId: " + fullId);
+        // currently the same as an externalId
+        return fromExternalId(fullId);
+    }
+
     private static String extractClassNameFromExtenalId(String externalId) {
         return externalId.substring(0, externalId.indexOf(OID_SEPARATOR));
     }
