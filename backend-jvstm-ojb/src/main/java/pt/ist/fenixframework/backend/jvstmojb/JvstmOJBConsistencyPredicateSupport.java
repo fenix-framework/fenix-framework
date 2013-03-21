@@ -23,6 +23,7 @@ import pt.ist.fenixframework.backend.jvstmojb.pstm.OneBoxDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
 import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicateSupport;
+import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
 
 public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSupport {
 
@@ -45,6 +46,11 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
         return new FenixConsistencyCheckTransaction(TransactionSupport.currentFenixTransaction(), obj);
     }
 
+    /**
+     * Uses a JDBC query to obtain the delete all the {@link DomainMetaObject}s of this class.
+     * It also sets to null any OIDs that used to point to the deleted {@link DomainMetaObject}s,
+     * both in the {@link DomainObject}'s and in the {@link DomainDependenceRecord}'s tables.
+     */
     @Override
     public void removeAllMetaObjectsForMetaClass(DomainMetaClass domainMetaClass) {
         String tableName = getTableName(domainMetaClass);
@@ -133,7 +139,26 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
     private static final int MAX_NUMBER_OF_OBJECTS_TO_PROCESS = 10000;
 
     @Override
-    public Collection<String> getExistingOIDsWithoutMetaObject(Class<? extends DomainObject> domainClass) {
+    public int getBatchSize() {
+        return MAX_NUMBER_OF_OBJECTS_TO_PROCESS;
+    }
+
+    /**
+     * Uses a JDBC query to obtain the OIDs of the existing {@link DomainObject}s of this class that do not yet have a
+     * {@link DomainMetaObject}.<br>
+     * <br>
+     * This method only returns a maximum amount of OIDs, defined by the method getBatchSize().
+     * 
+     * @param domainClass
+     *            the <code>Class</code> for which to obtain the existing
+     *            objects OIDs
+     * 
+     * @return the <code>List</code> of <code>Strings</code> containing the OIDs
+     *         of all the {@link DomainObject}s of the given class,
+     *         without {@link DomainMetaObject}.
+     */
+    @Override
+    public Collection<String> getIDsWithoutMetaObjectBatch(Class<? extends DomainObject> domainClass) {
         String tableName = getTableName(domainClass);
         String className = domainClass.getName();
 
@@ -143,7 +168,7 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
                 "select OID from " + tableName
                         + ", FF$DOMAIN_CLASS_INFO where OID >> 32 = DOMAIN_CLASS_ID and DOMAIN_CLASS_NAME = '" + className
                         + "' and (OID_DOMAIN_META_OBJECT is null or OID_DOMAIN_META_OBJECT not in (" + metaObjectOidsQuery
-                        + ")) order by OID limit " + MAX_NUMBER_OF_OBJECTS_TO_PROCESS;
+                        + ")) order by OID limit " + getBatchSize();
 
         ArrayList<String> oids = new ArrayList<String>();
         try {

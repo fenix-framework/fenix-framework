@@ -50,6 +50,8 @@ public abstract class ConsistencyPredicateSupport {
 
     public abstract void removeAllMetaObjectsForMetaClass(DomainMetaClass domainMetaClass);
 
-    public abstract Collection<String> getExistingOIDsWithoutMetaObject(Class<? extends DomainObject> domainClass);
+    public abstract Collection<String> getIDsWithoutMetaObjectBatch(Class<? extends DomainObject> domainClass);
+
+    public abstract int getBatchSize();
 
 }

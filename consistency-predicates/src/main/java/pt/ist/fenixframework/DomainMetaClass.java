@@ -237,17 +237,17 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         checkFrameworkNotInitialized();
 
         while (true) {
-            Collection<String> oids =
-                    ConsistencyPredicateSupport.getInstance().getExistingOIDsWithoutMetaObject(getDomainClass());
-            if (oids.isEmpty()) {
+            Collection<String> ids =
+                    ConsistencyPredicateSupport.getInstance().getIDsWithoutMetaObjectBatch(getDomainClass());
+            if (ids.isEmpty()) {
                 break;
             }
-            for (String oid : oids) {
+            for (String id : ids) {
                 DomainObject existingDO = null;
                 try {
-                    existingDO = FenixFramework.getDomainObject(oid);
+                    existingDO = FenixFramework.getDomainObject(id);
                 } catch (Exception ex) {
-                    logger.warn("An exception was thrown while allocating the object: {} - {}", getDomainClass(), oid);
+                    logger.warn("An exception was thrown while allocating the object: {} - {}", getDomainClass(), id);
                     ex.printStackTrace();
                     continue;
                 }
