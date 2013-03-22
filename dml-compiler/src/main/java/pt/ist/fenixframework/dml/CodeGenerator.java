@@ -238,7 +238,7 @@ public abstract class CodeGenerator {
         newline(out);
         printMethod(out, "public", "", className);
         startMethodBody(out);
-        print(out, "this((LocalityHints)null);");
+        print(out, "this((" + LOCALITY_HINTS_TYPE + ")null);");
         endMethodBody(out);
 
         printMethod(out, "public", "", className, makeArg(LOCALITY_HINTS_TYPE, "hints"));

@@ -1,0 +1,5 @@
+package eu.cloudtm.test.domain;
+
+class Person {
+    String name;
+}
