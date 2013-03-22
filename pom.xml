@@ -24,12 +24,13 @@
 
     <modules>
         <module>parent</module>
+        <module>cloudtm-locality-hints</module>
         <module>project</module>
         <module>dml-compiler</module>
         <module>dml-maven-plugin</module>
         <module>core</module>
         <module>adt-bplustree</module>
-		<module>adt-linkedlist</module>
+        <module>adt-linkedlist</module>
         <module>adt-skiplist</module>
         <module>data-access-patterns</module>
         <module>txintrospector</module>
