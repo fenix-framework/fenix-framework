@@ -53,6 +53,7 @@
         <version.ojb>1.0.0</version.ojb>
         <version.rhq.helpers>3.0.4</version.rhq.helpers>
         <version.slf4j.api>1.7.2</version.slf4j.api>
+        <version.testng>5.14.10</version.testng>
     </properties>
 
     <!-- Building -->
@@ -316,9 +317,10 @@
                 <version>${version.jgroups}</version>
             </dependency>
             <dependency>
-                <groupId>eu.cloudtm</groupId>
-                <artifactId>cloudtm-utility</artifactId>
-                <version>${version.cloudtm.utility}</version>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${version.testng}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
