@@ -23,6 +23,7 @@
         <module>test-backend-ogm</module>
         <module>test-indexes</module>
         <module>test-collections</module>
+        <module>test-locality-hints</module>
     </modules>
 
 </project>
