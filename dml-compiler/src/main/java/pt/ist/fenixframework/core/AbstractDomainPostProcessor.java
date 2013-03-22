@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -23,7 +24,7 @@ import pt.ist.fenixframework.dml.DomainModel;
 
 public abstract class AbstractDomainPostProcessor extends ClassLoader implements Opcodes {
     protected ArrayList<URL> dmlFiles = new ArrayList<URL>();
-    private HashSet<String> loadedClasses = new HashSet<String>();
+    private final HashSet<String> loadedClasses = new HashSet<String>();
 
     private DomainModel domainModel;
 
@@ -177,6 +178,19 @@ public abstract class AbstractDomainPostProcessor extends ClassLoader implements
         loadedClasses.add(name);
 
         return defineClass(name, bytecode, 0, bytecode.length);
+    }
+
+    @Override
+    public URL getResource(String name) {
+        URL url = null;
+        if (getParent() instanceof URLClassLoader) {
+            URLClassLoader parent = (URLClassLoader) getParent();
+            url = parent.findResource(name);
+        }
+        if (url == null) {
+            url = super.getResource(name);
+        }
+        return url;
     }
 
     public void start() {
