@@ -8,13 +8,22 @@ public abstract class FenixAbstractTransaction implements Transaction {
     /**
      * Arbitrary context per transaction.
      */
-    private final Map<String, Object> context = new HashMap<String, Object>();
+    private Map<String, Object> context = null;
 
-    public Object putInContext(String key, Object value) {
-        return this.context.put(key, value);
+    @Override
+    public void putInContext(String key, Object value) {
+        if (context == null) {
+            this.context = new HashMap<String, Object>();
+        }
+        this.context.put(key, value);
     }
 
+    @Override
     public Object getFromContext(String key) {
+        if (this.context == null) {
+            return null;
+        }
+
         return this.context.get(key);
     }
 }
