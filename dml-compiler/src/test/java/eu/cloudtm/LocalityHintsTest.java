@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
  * // TODO: Document this
  *
  * @author Pedro Ruivo
- * @since 1.0
+ * @since 2.3-cloudtm
  */
 @Test
 public class LocalityHintsTest {

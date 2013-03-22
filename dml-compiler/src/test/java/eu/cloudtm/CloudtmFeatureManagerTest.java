@@ -12,7 +12,7 @@ import java.util.Map;
  * // TODO: Document this
  *
  * @author Pedro Ruivo
- * @since 5.3
+ * @since 2.3-cloudtm
  */
 @Test
 public class CloudtmFeatureManagerTest {

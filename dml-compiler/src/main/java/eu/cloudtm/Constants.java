@@ -4,7 +4,7 @@ package eu.cloudtm;
  * // TODO: Document this
  *
  * @author Pedro Ruivo
- * @since 1.0
+ * @since 2.3-cloudtm
  */
 public class Constants {
    
