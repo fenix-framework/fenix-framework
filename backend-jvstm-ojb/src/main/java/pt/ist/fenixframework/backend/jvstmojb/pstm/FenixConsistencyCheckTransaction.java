@@ -14,6 +14,7 @@ import org.apache.ojb.broker.PersistenceBroker;
 
 import pt.ist.fenixframework.DomainMetaObject;
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 
 public class FenixConsistencyCheckTransaction extends ReadTransaction implements ConsistencyCheckTransaction, FenixTransaction {
@@ -84,10 +85,16 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction implements
 
     @Override
     public <T> T getBoxValue(VBox<T> vbox, Object obj, String attr) {
-        if ((!JvstmOJBConfig.canCreateDomainMetaObjects()) && (obj != checkedObj)) {
-            throw new Error("Consistency predicates are not allowed to access other objects, "
-                    + "unless the FenixFramework is configured to create DomainMetaObjects. "
-                    + "See: ConsistencyPredicatesConfig.canCreateDomainMetaObjects");
+        if (obj != checkedObj) {
+            if (!JvstmOJBConfig.canCreateDomainMetaObjects()) {
+                throw new Error("Consistency predicates are not allowed to access other objects, "
+                        + "unless the FenixFramework is configured to create DomainMetaObjects. "
+                        + "See: JvstmOJBConfig.canCreateDomainMetaObjects");
+            }
+            if (obj.getClass().isAnnotationPresent(NoDomainMetaObjects.class)) {
+                throw new Error("Consistency predicates are not allowed to access objects "
+                        + "of a class annotated with @NoDomainMetaObjects");
+            }
         }
 
         boxesRead.add(vbox);
