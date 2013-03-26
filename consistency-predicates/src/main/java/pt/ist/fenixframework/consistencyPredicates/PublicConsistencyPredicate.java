@@ -61,12 +61,6 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
     }
 
     @Override
-    public void removePublicConsistencyPredicateOverridden() {
-        checkFrameworkNotInitialized();
-        super.removePublicConsistencyPredicateOverridden();
-    }
-
-    @Override
     public void addPublicConsistencyPredicatesOverriding(PublicConsistencyPredicate publicConsistencyPredicatesOverriding) {
         checkFrameworkNotInitialized();
         super.addPublicConsistencyPredicatesOverriding(publicConsistencyPredicatesOverriding);
@@ -282,7 +276,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         for (PublicConsistencyPredicate predicatesOverriding : getPublicConsistencyPredicatesOverriding()) {
             removePublicConsistencyPredicatesOverriding(predicatesOverriding);
         }
-        removePublicConsistencyPredicateOverridden();
+        setPublicConsistencyPredicateOverridden(null);
 
         super.classDelete();
     }

@@ -98,7 +98,7 @@ public class BooksTest {
         assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS).equals(getBookByName(TWOLIGHTS)));
         assertTrue(little.getBooksPublishedByBookName(FEW_MOON).equals(getBookByName(FEW_MOON)));
 
-        getBookByName(TWOLIGHTS).removePublisher();
+        getBookByName(TWOLIGHTS).setPublisher(null);
     }
 
     @Atomic

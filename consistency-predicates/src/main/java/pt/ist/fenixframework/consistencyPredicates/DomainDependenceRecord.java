@@ -57,14 +57,14 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
      */
     public void setConsistent(Boolean consistent) {
         if (consistent) {
-            removeInconsistentPredicate();
+            setInconsistentPredicate(null);
         } else {
             setInconsistentPredicate(getDomainConsistencyPredicate());
         }
     }
 
     public Boolean isConsistent() {
-        return !hasInconsistentPredicate();
+        return getInconsistentPredicate() == null;
     }
 
     /**
@@ -84,8 +84,8 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
         if (!isConsistent()) {
             getDomainConsistencyPredicate().removeInconsistentDependenceRecords(this);
         }
-        removeDomainConsistencyPredicate();
-        removeDependentDomainMetaObject();
+        setDomainConsistencyPredicate(null);
+        setDependentDomainMetaObject(null);
 
         //Deletes THIS DependenceRecord, which is also a Fenix-Framework DomainObject
         deleteDomainObject();

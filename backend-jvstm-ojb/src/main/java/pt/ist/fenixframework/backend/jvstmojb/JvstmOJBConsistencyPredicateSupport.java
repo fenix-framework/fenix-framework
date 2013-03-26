@@ -93,7 +93,7 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
         // Delete the BPlusTree that linked to the existing DomainMetaObjects
         BPlusTree<DomainMetaObject> bPlusTree = domainMetaClass.getExistingDomainMetaObjects();
         bPlusTree.delete();
-        domainMetaClass.removeExistingDomainMetaObjects();
+        domainMetaClass.setExistingDomainMetaObjects(null);
 
         String deleteMetaObjectsQuery =
                 "delete from DOMAIN_META_OBJECT where OID_DOMAIN_META_CLASS = '" + domainMetaClass.getExternalId() + "'";
@@ -107,7 +107,7 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
 
     private String getTableName(DomainMetaClass domainMetaClass) {
         DomainMetaClass topMetaClass = domainMetaClass;
-        while (topMetaClass.hasDomainMetaSuperclass()) {
+        while (topMetaClass.getDomainMetaSuperclass() != null) {
             //skip to the next non-base superclass
             topMetaClass = topMetaClass.getDomainMetaSuperclass();
         }

@@ -297,7 +297,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      */
     private void updateExistingMetaClassHierarchy(Collection<DomainMetaClass> existingMetaClassesToUpdate) {
         for (DomainMetaClass metaClass : existingMetaClassesToUpdate) {
-            if (!metaClass.hasDomainMetaSuperclass()) {
+            if (metaClass.getDomainMetaSuperclass() == null) {
                 if (hasSuperclassInDML(metaClass)) {
                     logger.info("DomainMetaClass " + metaClass.getDomainClass().getSimpleName()
                             + " (and subclasses) hierarchy has changed");

@@ -76,7 +76,7 @@ public class HibernateSearchBooksTest {
         assertTrue(queryResults.contains(getBookByName(FEW_MOON)));
         assertTrue(queryResults.contains(getBookByName(TWOLIGHTS)));
 
-        getBookByName(TWOLIGHTS).removePublisher();
+        getBookByName(TWOLIGHTS).setPublisher(null);
     }
 
     @Atomic

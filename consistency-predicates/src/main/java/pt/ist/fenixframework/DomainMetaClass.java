@@ -132,12 +132,6 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         super.setDomainFenixFrameworkRoot(domainFenixFrameworkRoot);
     }
 
-    @Override
-    public void removeDomainFenixFrameworkRoot() {
-        checkFrameworkNotInitialized();
-        super.removeDomainFenixFrameworkRoot();
-    }
-
     public Class<? extends DomainObject> getDomainClass() {
         String[] strings = getDomainClassName().split(" ");
         String fullyQualifiedClassName = strings[1];
@@ -192,7 +186,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 
     public void removeExistingDomainMetaObject(DomainMetaObject metaObject) {
         getExistingDomainMetaObjects().remove(metaObject.getOid());
-        metaObject.removeDomainMetaClass();
+        metaObject.setDomainMetaClass(null);
     }
 
     public <PredicateT extends DomainConsistencyPredicate> PredicateT getDeclaredConsistencyPredicate(Method predicateMethod) {
@@ -284,12 +278,6 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         super.setDomainMetaSuperclass(domainMetaSuperclass);
     }
 
-    @Override
-    public void removeDomainMetaSuperclass() {
-        checkFrameworkNotInitialized();
-        super.removeDomainMetaSuperclass();
-    }
-
     /**
      * This method should be called only during the initialization of the {@link FenixFramework}.
      * 
@@ -309,7 +297,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      */
     public void executeInheritedPredicates() {
         checkFrameworkNotInitialized();
-        if (!hasDomainMetaSuperclass()) {
+        if (getDomainMetaSuperclass() == null) {
             return;
         }
 
@@ -406,7 +394,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         for (DomainConsistencyPredicate domainConsistencyPredicate : getDeclaredConsistencyPredicates()) {
             domainConsistencyPredicate.classDelete();
         }
-        removeDomainMetaSuperclass();
+        setDomainMetaSuperclass(null);
 
         DomainFenixFrameworkRoot root = getDomainFenixFrameworkRoot();
         if (root != null) {

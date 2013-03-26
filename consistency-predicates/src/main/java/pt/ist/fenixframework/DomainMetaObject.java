@@ -60,7 +60,7 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
         }
 
         // Removes the relation to the DomainObject that this meta object used to represent.
-        removeDomainObject();
+        setDomainObject(null);
 
         // Deletes THIS metaObject, which is also a fenix-framework DomainObject.
         deleteDomainObject();
@@ -107,7 +107,7 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
         return getOwnDependenceRecord(predicate) != null;
     }
 
-    @Override
+    // @Override
     public void removeDomainObject() {
         DomainObject domainObject = getDomainObject();
 
