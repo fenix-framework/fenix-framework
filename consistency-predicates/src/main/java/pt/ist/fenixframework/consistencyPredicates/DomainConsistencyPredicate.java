@@ -157,9 +157,9 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
                 // This limit is half the batch size defined in the ConsistencyPredicate Support class.
                 // Because this method checks for repeated OwnDependenceRecords of each meta object being checked, there is no problem with
                 // processing only an incomplete part of the objects of the given class.
-                DomainFenixFrameworkRoot.checkpointTransaction();
                 logger.info("Transaction finished. Number of processed " + metaClass.getDomainClass().getSimpleName()
                         + " objects: " + count);
+                DomainFenixFrameworkRoot.checkpointTransaction();
             }
 
             // The predicate was already checked during a previous incomplete initialization of this DomainConsistencyPredicate
@@ -274,13 +274,13 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         for (DomainDependenceRecord dependenceRecord : getDomainDependenceRecords()) {
             count++;
             if ((count % (ConsistencyPredicateSupport.getInstance().getBatchSize() / 2)) == 0) {
-                logger.info("Transaction finished. Number of deleted DomainDependenceRecords: " + count);
                 // Commits the current, and starts a new write transaction.
                 // This is necessary to split the load of the mass deletion of DomainDependenceRecords among several transactions.
                 // Each transaction processes a maximum of objects in order to avoid OutOfMemoryExceptions.
                 // This limit is half the batch size defined in the ConsistencyPredicate Support class.
                 // Because this method sets the current predicate as not finalized, there is no problem with processing only an incomplete part
                 // of the DomainDependenceRecords.
+                logger.info("Transaction finished. Number of deleted DomainDependenceRecords: " + count);
                 DomainFenixFrameworkRoot.checkpointTransaction();
             }
             dependenceRecord.delete();

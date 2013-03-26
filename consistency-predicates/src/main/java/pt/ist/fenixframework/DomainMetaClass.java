@@ -255,13 +255,13 @@ public class DomainMetaClass extends DomainMetaClass_Base {
                 addExistingDomainMetaObject(metaObject);
             }
 
-            logger.info("Transaction finished. Number of initialized " + getDomainClass().getSimpleName() + " objects: "
-                    + getExistingDomainMetaObjectsCount());
             // Starts a new transaction to process a limited number of existing objects.
             // This is necessary to split the load of the mass creation of DomainMetaObjects among several transactions.
             // Each transaction processes a maximum of MAX_NUMBER_OF_OBJECTS_TO_PROCESS objects in order to avoid OutOfMemoryExceptions.
             // Because the JDBC query only returns objects that have no DomainMetaObjects, there is no problem with
             // processing only an incomplete part of the objects of this class.
+            logger.info("Transaction finished. Number of initialized " + getDomainClass().getSimpleName() + " objects: "
+                    + getExistingDomainMetaObjectsCount());
             DomainFenixFrameworkRoot.checkpointTransaction();
         }
     }

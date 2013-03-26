@@ -273,7 +273,6 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
 
             logger.info("Resuming the initialization of the DomainMetaClass: " + metaClass.getDomainClass().getSimpleName());
 
-            checkpointTransaction();
             metaClass.initExistingDomainObjects();
             metaClass.executeInheritedPredicates();
 
@@ -283,6 +282,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // the DomainMetaClass was already created, but not yet fully initialized.
             // The init is only considered completed when finalized is set to true.
             metaClass.setInitialized(true);
+            checkpointTransaction();
         }
     }
 
@@ -370,13 +370,11 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     private void createNewMetaClasses(Collection<Class<? extends DomainObject>> newClassesToAddTopDown) {
         for (Class<? extends DomainObject> domainClass : newClassesToAddTopDown) {
 
-            checkpointTransaction();
             DomainMetaClass newDomainMetaClass = new DomainMetaClass(domainClass);
             if (hasSuperclassInDML(newDomainMetaClass)) {
                 newDomainMetaClass.initDomainMetaSuperclass(getDomainMetaSuperclassFromDML(newDomainMetaClass));
             }
 
-            checkpointTransaction();
             newDomainMetaClass.initExistingDomainObjects();
             newDomainMetaClass.executeInheritedPredicates();
 
@@ -386,6 +384,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // the DomainMetaClass was already created, but not yet fully initialized.
             // The init is only considered completed when finalized is set to true.
             newDomainMetaClass.setInitialized(true);
+            checkpointTransaction();
         }
     }
 
@@ -529,11 +528,9 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     private void createAndExecuteNewPredicates(Set<Method> newPredicatesToAdd, DomainMetaClass metaClass) {
         for (Method predicateMethod : newPredicatesToAdd) {
 
-            checkpointTransaction();
             DomainConsistencyPredicate newConsistencyPredicate =
                     DomainConsistencyPredicate.createNewDomainConsistencyPredicate(predicateMethod, metaClass);
             newConsistencyPredicate.initConsistencyPredicateOverridden();
-            checkpointTransaction();
 
             newConsistencyPredicate.executeConsistencyPredicateForMetaClassAndSubclasses(metaClass);
 
@@ -543,6 +540,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // the DomainConsistencyPredicate was already created, but not yet fully initialized.
             // The init is only considered completed when finalized is set to true.
             newConsistencyPredicate.setInitialized(true);
+            checkpointTransaction();
         }
     }
 
@@ -581,8 +579,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // Commits the current, and starts a new write transaction.
             // This is necessary to split the load of the mass deletion of DomainDependenceRecords among several transactions.
             // Each transaction fully processes one DomainConsistencyPredicate.
-            checkpointTransaction();
             domainConsistencyPredicate.delete();
+            checkpointTransaction();
         }
     }
 
@@ -641,7 +639,6 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
 
             logger.info("Resuming the initialization of the consistency predicate: "
                     + consistencyPredicate.getPredicate().getName());
-            checkpointTransaction();
             consistencyPredicate.executeConsistencyPredicateForMetaClassAndSubclasses(metaClass);
 
             // Because the executeConsistencyPredicateForMetaClassAndSubclasses method is split among several transactions,
@@ -650,6 +647,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // the DomainConsistencyPredicate was already created, but not yet fully initialized.
             // The init is only considered completed when finalized is set to true.
             consistencyPredicate.setInitialized(true);
+            checkpointTransaction();
         }
     }
 
@@ -684,8 +682,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
                 // Commits the current, and starts a new write transaction.
                 // This is necessary to split the load of the mass deletion of objects among several transactions.
                 // Each transaction fully processes one DomainMetaClass.
-                checkpointTransaction();
                 metaClass.delete();
+                checkpointTransaction();
             }
         }
     }
