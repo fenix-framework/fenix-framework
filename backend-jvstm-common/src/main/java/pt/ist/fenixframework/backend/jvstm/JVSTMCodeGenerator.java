@@ -18,9 +18,6 @@ import pt.ist.fenixframework.dml.Slot;
 
 public class JVSTMCodeGenerator extends IndexesCodeGenerator {
 
-    public static final String REPOSITORY_ACCESS_STRING =
-            "((pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd)FenixFramework.getConfig().getBackEnd()).getRepository()";
-
     public JVSTMCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
         String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
@@ -175,12 +172,6 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
     }
 
     protected void generateInitRoleSlotMulOne(Role role, PrintWriter out) {
-//        onNewline(out);
-//        printWords(out, role.getName());
-//        print(out, " = ");
-//        print(out, getNewRoleExpression(role));
-//        print(out, ";");
-
         // initialize slots with their default value
 //        generateNewSlotInitialization(role.getName(), "null", out);
 
@@ -213,22 +204,9 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
         return "internal$get" + capitalize(role.getName()) + "$collection";
     }
 
-//    protected String makeDomainBasedMapInternalSetterName(Role role) {
-//        return "internal$set" + capitalize(role.getName()) + "$collection";
-//    }
-
     protected String makeDomainBasedMapVBoxInternalName(Role role) {
         return "internal$" + role.getName() + "$collectionBox";
     }
-
-//    protected String makeDomainBasedMapGetterType(Role role) {
-//        return makeGenericType(DomainBasedMap.Getter.class.getCanonicalName(), getTypeFullName(role.getType()));
-//    }
-
-//    protected String makeDomainBasedMapType(Role role) {
-////        return makeGenericType(DomainBasedMap.class.getCanonicalName(), getTypeFullName(role.getType()));
-//        return getDefaultCollectionFor(role);
-//    }
 
     protected void generateInitRoleSlotStarAllocateOnlyTrue(Role role, PrintWriter out) {
         String getterType = getDefaultCollectionGetterFor(role);
@@ -246,7 +224,6 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
     protected void generateInitRoleSlotStarAllocateOnlyFalse(Role role, PrintWriter out) {
         String collectionToUse = getDefaultCollectionFor(role);
         println(out, collectionToUse + " internalMap = new " + collectionToUse + "();");
-//        println(out, makeDomainBasedMapInternalSetterName(role) + "(internalMap);");
         generateNewSlotInitialization(makeDomainBasedMapVBoxInternalName(role), "internalMap", true, out);
         print(out, role.getName() + " = ");
         print(out, getInitRoleSlotStarExpression(role, "internalMap", out) + ";");
@@ -291,7 +268,6 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
         boolean isIndexed = role.isIndexed();
 
         generateRoleSlotMethodsMultStarInternalGetter(makeDomainBasedMapInternalGetterName(role), role, out);
-//        generateRoleSlotMethodsMultStarInternalSetter(makeDomainBasedMapInternalSetterName(role), role, out);
 
         generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
 
@@ -315,22 +291,6 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
         startMethodBody(out);
 
         print(out, "return (" + getDefaultCollectionFor(role) + ")" + getSlotGetterExpression(decideRoleVBoxName(role)) + ";");
-
-//        String key = "getExternalId() + \":" + role.getName() + "\"";
-//        print(out, "return (" + getDefaultCollectionFor(role) + ")" + REPOSITORY_ACCESS_STRING + ".getValue(" + key + ");");
-
-        endMethodBody(out);
-    }
-
-    protected void generateRoleSlotMethodsMultStarInternalSetter(String setterName, Role role, PrintWriter out) {
-        newline(out);
-        printFinalMethod(out, "public", "void", setterName, makeArg(getDefaultCollectionFor(role), "internalMap"));
-        startMethodBody(out);
-
-        String key = "getExternalId() + \":" + role.getName() + "\"";
-        String value = "internalMap";
-        print(out, REPOSITORY_ACCESS_STRING + ".storeKeyValue(" + key + ", " + value + ");");
-
         endMethodBody(out);
     }
 
