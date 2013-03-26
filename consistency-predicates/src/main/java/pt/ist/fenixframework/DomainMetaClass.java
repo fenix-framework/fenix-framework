@@ -101,7 +101,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         setDomainClass(domainClass);
         DomainFenixFrameworkRoot.getInstance().addDomainMetaClasses(this);
         setExistingDomainMetaObjects(new BPlusTree<DomainMetaObject>());
-        setFinalized(false);
+        setInitialized(false);
 
         logger.info("Creating new a DomainMetaClass: " + domainClass);
     }
@@ -166,14 +166,14 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     /**
      * @return true if this {@link DomainMetaClass} was already fully initialized
      */
-    protected boolean isFinalized() {
-        return getFinalized();
+    protected boolean isInitialized() {
+        return getInitialized();
     }
 
     @Override
-    public void setFinalized(Boolean finalized) {
+    public void setInitialized(Boolean initialized) {
         checkFrameworkNotInitialized();
-        super.setFinalized(finalized);
+        super.setInitialized(initialized);
     }
 
     @Override
@@ -237,8 +237,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         checkFrameworkNotInitialized();
 
         while (true) {
-            Collection<String> ids =
-                    ConsistencyPredicateSupport.getInstance().getIDsWithoutMetaObjectBatch(getDomainClass());
+            Collection<String> ids = ConsistencyPredicateSupport.getInstance().getIDsWithoutMetaObjectBatch(getDomainClass());
             if (ids.isEmpty()) {
                 break;
             }

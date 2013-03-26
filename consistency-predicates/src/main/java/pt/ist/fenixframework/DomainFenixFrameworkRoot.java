@@ -267,7 +267,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      */
     private void finishInitializingMetaClasses(Collection<DomainMetaClass> existingMetaClassesToFinalize) {
         for (DomainMetaClass metaClass : existingMetaClassesToFinalize) {
-            if (metaClass.isFinalized()) {
+            if (metaClass.isInitialized()) {
                 continue;
             }
 
@@ -282,7 +282,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // In case of a system failure during the execution of the initExistingDomainObjects() method,
             // the DomainMetaClass was already created, but not yet fully initialized.
             // The init is only considered completed when finalized is set to true.
-            metaClass.setFinalized(true);
+            metaClass.setInitialized(true);
         }
     }
 
@@ -385,7 +385,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // In case of a system failure during the execution of the initExistingDomainObjects() method,
             // the DomainMetaClass was already created, but not yet fully initialized.
             // The init is only considered completed when finalized is set to true.
-            newDomainMetaClass.setFinalized(true);
+            newDomainMetaClass.setInitialized(true);
         }
     }
 
@@ -542,7 +542,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // In case of a system failure during the execution of the executeConsistencyPredicateForMetaClassAndSubclasses method,
             // the DomainConsistencyPredicate was already created, but not yet fully initialized.
             // The init is only considered completed when finalized is set to true.
-            newConsistencyPredicate.setFinalized(true);
+            newConsistencyPredicate.setInitialized(true);
         }
     }
 
@@ -635,7 +635,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
     private void finishInitializingConsistencyPredicates(Collection<DomainConsistencyPredicate> existingPredicatesToProcess,
             DomainMetaClass metaClass) {
         for (DomainConsistencyPredicate consistencyPredicate : existingPredicatesToProcess) {
-            if (consistencyPredicate.isFinalized()) {
+            if (consistencyPredicate.isInitialized()) {
                 continue;
             }
 
@@ -649,7 +649,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             // In case of a system failure during the execution of the executeConsistencyPredicateForMetaClassAndSubclasses method,
             // the DomainConsistencyPredicate was already created, but not yet fully initialized.
             // The init is only considered completed when finalized is set to true.
-            consistencyPredicate.setFinalized(true);
+            consistencyPredicate.setInitialized(true);
         }
     }
 

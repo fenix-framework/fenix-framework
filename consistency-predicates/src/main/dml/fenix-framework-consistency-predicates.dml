@@ -14,12 +14,12 @@ class DomainFenixFrameworkRoot {
 
 class DomainMetaClass {
 	String domainClassName;
-	Boolean finalized;
+	Boolean initialized;
 }
 
 class consistencyPredicates.DomainConsistencyPredicate {
 	PredicateMethod predicate;
-	Boolean finalized;
+	Boolean initialized;
 }
 
 	class consistencyPredicates.PublicConsistencyPredicate extends consistencyPredicates.DomainConsistencyPredicate {

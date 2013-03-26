@@ -36,7 +36,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
     public DomainConsistencyPredicate() {
         super();
         checkFrameworkNotInitialized();
-        setFinalized(false);
+        setInitialized(false);
     }
 
     /**
@@ -59,14 +59,14 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
 
     public abstract boolean isFinal();
 
-    public boolean isFinalized() {
-        return getFinalized();
+    public boolean isInitialized() {
+        return getInitialized();
     }
 
     @Override
-    public void setFinalized(Boolean finalized) {
+    public void setInitialized(Boolean initialized) {
         checkFrameworkNotInitialized();
-        super.setFinalized(finalized);
+        super.setInitialized(initialized);
     }
 
     @Override
@@ -268,7 +268,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         checkFrameworkNotInitialized();
         logger.info("Deleting predicate " + getPredicate()
                 + ((getPredicate() == null) ? " of " + getDomainMetaClass().getDomainClass() : ""));
-        setFinalized(false);
+        setInitialized(false);
 
         int count = 0;
         for (DomainDependenceRecord dependenceRecord : getDomainDependenceRecords()) {
