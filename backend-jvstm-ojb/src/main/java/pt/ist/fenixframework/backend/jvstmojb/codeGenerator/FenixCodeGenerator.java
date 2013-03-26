@@ -545,14 +545,15 @@ public class FenixCodeGenerator extends ConsistencyPredicatesCodeGenerator {
             if (role.getName() != null) {
                 onNewline(out);
 
-                print(out, "if (");
-                if (role.getMultiplicityUpper() == 1) {
-                    print(out, "has");
-                } else {
-                    print(out, "hasAny");
-                }
+                print(out, "if (get");
                 print(out, capitalize(role.getName()));
-                print(out, "()) handleAttemptToDeleteConnectedObject(\"");
+                print(out, "()");
+                if (role.getMultiplicityUpper() == 1) {
+                    print(out, " != null");
+                } else {
+                    print(out, ".size() > 0");
+                }
+                print(out, ") handleAttemptToDeleteConnectedObject(\"");
                 print(out, capitalize(role.getName()));
                 println(out, "\");");
             }
