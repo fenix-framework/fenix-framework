@@ -848,12 +848,6 @@ public abstract class CodeGenerator {
 
         // public setter
         generateRoleSlotMethodsMultOneSetter(role, out);
-
-        // hasXpto
-        generateRoleSlotMethodsMultOneHas(role, out);
-
-        // removeXpto
-        generateRoleSlotMethodsMultOneRemove(role, out);
     }
 
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
@@ -871,35 +865,6 @@ public abstract class CodeGenerator {
         printMethod(out, methodModifiers, "void", setterName, makeArg(typeName, slotName));
         startMethodBody(out);
         generateRelationAddMethodCall(role, slotName, null, out);
-        endMethodBody(out);
-    }
-
-    protected void generateRoleSlotMethodsMultOneHas(Role role, PrintWriter out) {
-        String slotName = role.getName();
-        String capitalizedSlotName = capitalize(slotName);
-        String getterName = "get" + capitalizedSlotName;
-        String methodModifiers = getMethodModifiers();
-
-        newline(out);
-        printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName);
-        startMethodBody(out);
-        print(out, "return (");
-        print(out, getterName);
-        print(out, "() != null);");
-        endMethodBody(out);
-    }
-
-    protected void generateRoleSlotMethodsMultOneRemove(Role role, PrintWriter out) {
-        String slotName = role.getName();
-        String capitalizedSlotName = capitalize(slotName);
-        String setterName = "set" + capitalizedSlotName;
-        String methodModifiers = getMethodModifiers();
-
-        newline(out);
-        printMethod(out, methodModifiers, "void", "remove" + capitalizedSlotName);
-        startMethodBody(out);
-        print(out, setterName);
-        print(out, "(null);");
         endMethodBody(out);
     }
 
