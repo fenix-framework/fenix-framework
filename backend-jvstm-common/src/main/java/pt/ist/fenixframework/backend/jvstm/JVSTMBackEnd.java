@@ -7,10 +7,16 @@
  */
 package pt.ist.fenixframework.backend.jvstm;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.BackEnd;
+import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
+import pt.ist.fenixframework.backend.jvstm.pstm.StatisticsThread;
+import pt.ist.fenixframework.backend.jvstm.pstm.TransactionSupport;
 import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
 import pt.ist.fenixframework.core.SharedIdentityMap;
@@ -20,6 +26,7 @@ import pt.ist.fenixframework.core.SharedIdentityMap;
  */
 public class JVSTMBackEnd implements BackEnd {
 
+    private static final Logger logger = LoggerFactory.getLogger(DomainClassInfo.class);
     public static final String BACKEND_NAME = "jvstm";
 
     // the repository instance used to persist the changes
@@ -49,6 +56,7 @@ public class JVSTMBackEnd implements BackEnd {
     public DomainRoot getDomainRoot() {
         DomainRoot root = fromOid(1L);
         if (root == null) {
+            logger.debug("Creating DomainRoot instance");
             root = new DomainRoot(); // which automatically caches this instance, but does not
             // ensure that it is the first, as a concurrent request
             // might create another
@@ -56,13 +64,15 @@ public class JVSTMBackEnd implements BackEnd {
             // so we get it again from the cache before returning it
             root = fromOid(1L);
             assert root != null;
+            logger.debug("Returning new DomainRoot: {}", root.getExternalId());
         }
         return root;
     }
 
     @Override
     public <T extends DomainObject> T getDomainObject(String externalId) {
-        return fromOid(Long.parseLong(externalId));
+        return fromOid(Long.parseLong(externalId, 16));
+//        return fromOid(Long.parseLong(externalId));
     }
 
     @Override
@@ -73,6 +83,12 @@ public class JVSTMBackEnd implements BackEnd {
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
         return (T) SharedIdentityMap.getCache().lookup(oid);
+    }
+
+    public void init(JVSTMConfig jvstmConfig) {
+        DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
+        TransactionSupport.setupJVSTM();
+        new StatisticsThread().start();
     }
 
     @Override

@@ -40,7 +40,6 @@ public final class TransactionSupport {
     // this method's name is ugly. please rename
     private static int initializeTransactionSystem() {
         int maxTx = JVSTMBackEnd.getInstance().getRepository().getMaxCommittedTxNumber();
-        new StatisticsThread().start();
         return maxTx;
     }
 

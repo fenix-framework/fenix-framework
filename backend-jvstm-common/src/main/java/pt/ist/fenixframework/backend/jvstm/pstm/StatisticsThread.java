@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
-class StatisticsThread extends Thread {
+public class StatisticsThread extends Thread {
 
     private static final Logger logger = LoggerFactory.getLogger(StatisticsThread.class);
 
@@ -16,7 +16,7 @@ class StatisticsThread extends Thread {
     private final String server;
     private int numReport = 0;
 
-    StatisticsThread() {
+    public StatisticsThread() {
         this.server = Util.getServerName();
 
         setDaemon(true);

@@ -9,7 +9,6 @@ package pt.ist.fenixframework.backend.jvstm;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.backend.BackEnd;
-import pt.ist.fenixframework.backend.jvstm.pstm.TransactionSupport;
 import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
 
 /**
@@ -35,7 +34,8 @@ public class JVSTMConfig extends HibernateSearchConfig {
             this.backEnd = new JVSTMBackEnd();
         }
 
-        TransactionSupport.setupJVSTM();
+        this.backEnd.init(this);
+
         super.init();
     }
 

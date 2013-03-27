@@ -1,35 +1,42 @@
 package pt.ist.fenixframework.backend.jvstm.repository;
 
-import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
+import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class NoRepository extends Repository {
 
     @Override
-    public long getMaxIdForClass(Class domainClass, long upperLimitOID) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
+    public DomainClassInfo[] getDomainClassInfos() {
+        return new DomainClassInfo[0];
+    }
+
+    @Override
+    public void storeDomainClassInfos(DomainClassInfo[] domainClassInfos) {
+        // no-op
+    }
+
+    @Override
+    public long getMaxOidForClass(Class<? extends AbstractDomainObject> domainClass, long lowerLimitOid, long upperLimitOid) {
+        return lowerLimitOid;
     }
 
     @Override
     public void reloadPrimitiveAttribute(VBox box) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
+        throw new UnsupportedOperationException("should not be invoked when using the NoRepository implementation");
     }
 
     @Override
     public void reloadReferenceAttribute(VBox box) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
+        throw new UnsupportedOperationException("should not be invoked when using the NoRepository implementation");
     }
 
     @Override
     public void persistChanges(Set<Entry<jvstm.VBox, Object>> changes, int txNumber, Object nullObject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
+        // no-op
     }
 
     @Override
@@ -39,20 +46,19 @@ public class NoRepository extends Repository {
 
     @Override
     public void closeRepository() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
+        // no-op
     }
 
-    @Override
-    public void storeKeyValue(Serializable key, Serializable value) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-
-    @Override
-    public Serializable getValue(Serializable key) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
-    }
+//    @Override
+//    public void storeKeyValue(Serializable key, Serializable value) {
+//        // TODO Auto-generated method stub
+//        throw new UnsupportedOperationException("not yet implemented");
+//    }
+//
+//    @Override
+//    public Serializable getValue(Serializable key) {
+//        // TODO Auto-generated method stub
+//        throw new UnsupportedOperationException("not yet implemented");
+//    }
 
 }

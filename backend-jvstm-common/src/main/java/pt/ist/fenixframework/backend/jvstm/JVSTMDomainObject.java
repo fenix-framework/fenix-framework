@@ -10,17 +10,16 @@ package pt.ist.fenixframework.backend.jvstm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.backend.OID;
+import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
-import pt.ist.fenixframework.core.IdentityMap;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public abstract class JVSTMDomainObject extends AbstractDomainObjectAdapter {
     private static final Logger logger = LoggerFactory.getLogger(JVSTMDomainObject.class);
 
     // this should be final, but the ensureOid and restoreOid methods prevent it
-    private OID oid;
+    private long oid;
 
     // We need to have the default constructor, because we've added the allocate-instance constructor
     protected JVSTMDomainObject() {
@@ -29,42 +28,39 @@ public abstract class JVSTMDomainObject extends AbstractDomainObjectAdapter {
 
     protected JVSTMDomainObject(DomainObjectAllocator.OID oid) {
         super(oid);
-        this.oid = (OID) oid.oid;
+        this.oid = (Long) oid.oid;
     }
 
     @Override
     protected void ensureOid() {
         try {
-            Class objClass = this.getClass();
-            IdentityMap idMap = SharedIdentityMap.getCache();
-
+            // find successive ids until one is available
             while (true) {
-                // assign new OID
-                this.oid = OID.makeNew(objClass);
-                // cache this instance
-                Object shouldBeSame = idMap.cache(this);
-                if (shouldBeSame == this) {
+                this.oid = DomainClassInfo.getNextOidFor(this.getClass());
+                Object cached = SharedIdentityMap.getCache().cache(this);
+                if (cached == this) {
+                    // break the loop once we got this instance cached
                     return;
-                } else {
-                    logger.warn("Another object was already cached with the same key as this new object: " + oid);
                 }
+                logger.debug("Another object was already cached with the same key as this new object: {}", oid);
+
             }
         } catch (Exception e) {
             throw new UnableToDetermineIdException(e);
         }
-
     }
 
     // dealing with domain object identifiers
 
     @Override
-    public OID getOid() {
+    public Long getOid() {
         return this.oid;
     }
 
     @Override
     public final String getExternalId() {
-        return oid.toExternalId();
+        return Long.toHexString(this.oid);
+//        return String.valueOf(this.oid);
     }
 
 }
