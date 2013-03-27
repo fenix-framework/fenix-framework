@@ -116,7 +116,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
             boolean checksumShouldCompile = true;
 
             for (URL dmlUrl : dmls) {
-                dmlContent.concat(IOUtils.toString(dmlUrl.openStream()));
+                dmlContent = dmlContent.concat(IOUtils.toString(dmlUrl.openStream()));
             }
             final String dmlMd5 = DigestUtils.md5Hex(dmlContent);
 
