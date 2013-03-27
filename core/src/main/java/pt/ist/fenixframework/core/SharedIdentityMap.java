@@ -9,7 +9,7 @@ public class SharedIdentityMap implements IdentityMap {
 
     private static final ReferenceQueue<AbstractDomainObject> refQueue = new ReferenceQueue<AbstractDomainObject>();
 
-    private ConcurrentHashMap<Object, CacheEntry> cache;
+    private final ConcurrentHashMap<Object, CacheEntry> cache;
 
     public SharedIdentityMap() {
         this.cache = new ConcurrentHashMap<Object, CacheEntry>();
@@ -17,6 +17,21 @@ public class SharedIdentityMap implements IdentityMap {
 
     public static SharedIdentityMap getCache() {
         return instance;
+    }
+
+    public void printCachedObjects() {
+        System.out.println("  == SharedIdentityMap contents [BEGIN] == \n");
+        for (Object key : this.cache.keySet()) {
+            AbstractDomainObject value = lookup(key);
+            if (value != null) {
+                System.out.println(value.getExternalId());
+            }
+        }
+        System.out.println("\n  == SharedIdentityMap contents [END] == \n");
+    }
+
+    public int size() {
+        return this.cache.size();
     }
 
     @Override
