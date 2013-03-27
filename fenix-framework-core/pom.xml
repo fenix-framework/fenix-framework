@@ -6,14 +6,14 @@
     <groupId>pt.ist</groupId>
     <artifactId>fenix-framework-core</artifactId>
     <name>Fenix Framework Core</name>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jvstm.version>1.0</jvstm.version>
-        <dml.fenix.version>1.1.5</dml.fenix.version>
-        <dml.maven.plugin.version>1.1.5</dml.maven.plugin.version>
+        <dml.fenix.version>1.1.6</dml.fenix.version>
+        <dml.maven.plugin.version>1.1.6</dml.maven.plugin.version>
     </properties>
 
     <build>
