@@ -29,12 +29,6 @@ public class JvstmIspnConfig extends JVSTMConfig {
      */
     protected String ispnConfigFile = null;
 
-    protected final JvstmIspnBackEnd backEnd;
-
-    public JvstmIspnConfig() {
-        this.backEnd = JvstmIspnBackEnd.getInstance();
-    }
-
     // process this config's parameters
 
     public String getIspnConfigFile() {
@@ -43,8 +37,10 @@ public class JvstmIspnConfig extends JVSTMConfig {
 
     @Override
     protected void init() {
+        JvstmIspnBackEnd thisBackEnd = new JvstmIspnBackEnd();
+        super.backEnd = thisBackEnd;
         try {
-            this.backEnd.configJvstmIspn(this);
+            thisBackEnd.configJvstmIspn(this);
         } catch (Exception e) {
             throw new ConfigError(FAILED_INIT, e);
         }
@@ -62,6 +58,6 @@ public class JvstmIspnConfig extends JVSTMConfig {
 
     @Override
     public JvstmIspnBackEnd getBackEnd() {
-        return this.backEnd;
+        return (JvstmIspnBackEnd) this.backEnd;
     }
 }

@@ -10,27 +10,22 @@ package pt.ist.fenixframework.backend.jvstm.infinispan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.DomainRoot;
-import pt.ist.fenixframework.backend.BackEnd;
-import pt.ist.fenixframework.backend.OID;
-import pt.ist.fenixframework.backend.jvstm.JVSTMTransactionManager;
+import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
+import pt.ist.fenixframework.backend.jvstm.pstm.PersistentReadOnlyTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.PersistentTransaction;
 
-public class JvstmIspnBackEnd implements BackEnd {
+public class JvstmIspnBackEnd extends JVSTMBackEnd {
     private static final Logger logger = LoggerFactory.getLogger(JvstmIspnBackEnd.class);
 
     public static final String BACKEND_NAME = "jvstmispn";
 
-    private static final JvstmIspnBackEnd instance = new JvstmIspnBackEnd();
-
-    protected final JVSTMTransactionManager transactionManager;
-
-    private JvstmIspnBackEnd() {
-        this.transactionManager = new JVSTMTransactionManager();
+    JvstmIspnBackEnd() {
+        super(null);
     }
 
     public static JvstmIspnBackEnd getInstance() {
-        return instance;
+        return (JvstmIspnBackEnd) FenixFramework.getConfig().getBackEnd();
     }
 
     @Override
@@ -39,34 +34,18 @@ public class JvstmIspnBackEnd implements BackEnd {
     }
 
     @Override
-    public DomainRoot getDomainRoot() {
-        OID rootId = OID.ROOT_OBJECT_ID;
-        DomainRoot domainRoot = fromOid(rootId);
-        if (domainRoot == null) {
-            domainRoot = new DomainRoot();
-        }
-        return domainRoot;
-    }
+    protected void initializeTransactionFactory() {
+        jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
+            @Override
+            public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                return new PersistentTransaction(record);
+            }
 
-    @Override
-    public <T extends DomainObject> T getDomainObject(String externalId) {
-        return fromOid(new OID(externalId));
-    }
-
-    @Override
-    public JVSTMTransactionManager getTransactionManager() {
-        return this.transactionManager;
-    }
-
-    @Override
-    public <T extends DomainObject> T fromOid(Object oid) {
-        return null;
-//        OID internalId = (OID)oid;
-//        if (logger.isTraceEnabled()) {
-//            logger.trace("fromOid(" + internalId + ")");
-//        }
-//        return (T)transactionManager.getEntityManager().find(internalId.getObjClass(),
-//                                                             internalId.getPrimaryKey());
+            @Override
+            public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                return new PersistentReadOnlyTransaction(record);
+            }
+        });
     }
 
     @Override
@@ -77,10 +56,5 @@ public class JvstmIspnBackEnd implements BackEnd {
     protected void configJvstmIspn(JvstmIspnConfig config) throws Exception {
 //        transactionManager.setupTxManager(config);
     }
-
-//    public void save(AbstractDomainObject obj) {
-//        logger.debug("Saving " + obj.getClass());
-//        transactionManager.getEntityManager().persist(obj);
-//    }
 
 }

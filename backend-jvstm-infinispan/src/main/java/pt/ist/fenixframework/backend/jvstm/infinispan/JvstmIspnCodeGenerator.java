@@ -1,7 +1,6 @@
 package pt.ist.fenixframework.backend.jvstm.infinispan;
 
 import pt.ist.fenixframework.backend.jvstm.JVSTMCodeGenerator;
-import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainModel;
 
@@ -11,10 +10,10 @@ public class JvstmIspnCodeGenerator extends JVSTMCodeGenerator {
         super(compArgs, domainModel);
     }
 
-    @Override
-    protected String getDomainClassRoot() {
-        return JVSTMDomainObject.class.getName();
-    }
+//    @Override
+//    protected String getDomainClassRoot() {
+//        return JVSTMDomainObject.class.getName();
+//    }
 
     @Override
     protected String getBackEndName() {
