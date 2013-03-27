@@ -269,6 +269,13 @@ public abstract class CodeGenerator {
         print(out, "throw new RuntimeException(e);");
         closeBlock(out);
         endMethodBody(out);
+
+        // getDomainClassRoot
+        newline(out);
+        printMethod(out, "public", "Class<? extends pt.ist.fenixframework.core.AbstractDomainObject>", "getDomainClassRoot");
+        startMethodBody(out);
+        printWords(out, "return", getDomainClassRoot() + ".class;");
+        endMethodBody(out);
     }
 
     protected void generateBaseClass(DomainClass domClass, PrintWriter out) {

@@ -64,6 +64,19 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
         put(newValue);
     }
 
+    /*
+     * Allows a nested FenixConsistencyCheckTransaction, that cannot perform writes,
+     * to delegate the write to boxes to the parent TopLevelTransaction.
+     */
+    public void putInParent(E newE) {
+        FenixTransaction tx = TransactionSupport.currentFenixTransaction();
+        if (tx == null) {
+            throw new Error("Trying to putInParent() a box value without a running transaction!");
+        } else {
+            tx.setBoxValueInParent(this, newE);
+        }
+    }
+
     public boolean hasValue() {
         return TransactionSupport.currentFenixTransaction().isBoxValueLoaded(this);
     }

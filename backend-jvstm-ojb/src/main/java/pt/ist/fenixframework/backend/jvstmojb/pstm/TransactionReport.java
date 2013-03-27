@@ -93,6 +93,9 @@ public class TransactionReport implements Serializable {
                 }
             }
             if (broker != null) {
+                if (broker.isInTransaction()) {
+                    broker.abortTransaction();
+                }
                 broker.close();
             }
             if (statement != null) {
@@ -161,6 +164,9 @@ public class TransactionReport implements Serializable {
                 }
             }
             if (broker != null) {
+                if (broker.isInTransaction()) {
+                    broker.abortTransaction();
+                }
                 broker.close();
             }
             if (statement != null) {

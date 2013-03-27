@@ -1,5 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -10,17 +13,13 @@
 		<relativePath>../parent/pom.xml</relativePath>
 	</parent>
 
-	<artifactId>fenix-framework-backend-jvstm-ojb</artifactId>
-	<name>Fenix Framework Backend using JVSTM and OJB</name>
-	<description>Fenix Framework Old'n'Dirty JVSTM based backed used in DSI</description>
-
-	<properties>
-		<version.commons.pool>1.6</version.commons.pool>
-	</properties>
+	<artifactId>fenix-framework-consistency-predicates</artifactId>
+	<name>Fenix Framework Consistency Predicates</name>
 
 	<build>
 		<plugins>
 
+			<!-- Process dml file class immediately before compiling -->
 			<plugin>
 				<groupId>pt.ist</groupId>
 				<artifactId>ff-maven-plugin</artifactId>
@@ -36,6 +35,7 @@
 				</executions>
 			</plugin>
 
+			<!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -60,40 +60,10 @@
 		<dependency>
 			<groupId>jvstm</groupId>
 			<artifactId>jvstm-fenix</artifactId>
-			<exclusions>
-				<!-- Remove ASM 3 from the JVSTM. It conflicts with the Framework's Core 
-					ASM 4 -->
-				<exclusion>
-					<groupId>asm</groupId>
-					<artifactId>asm</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>asm</groupId>
-					<artifactId>asm-commons</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>asm</groupId>
-					<artifactId>asm-tree</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>ojb</groupId>
-			<artifactId>db-ojb</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-pool</groupId>
-			<artifactId>commons-pool</artifactId>
-			<version>${version.commons.pool}</version>
 		</dependency>
 		<dependency>
 			<groupId>pt.ist</groupId>
-			<artifactId>fenix-framework-consistency-predicates</artifactId>
-			<version>2.1-SNAPSHOT</version>
+			<artifactId>fenix-framework-adt-bplustree</artifactId>
 		</dependency>
 	</dependencies>
 

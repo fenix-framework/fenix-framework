@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 /**
@@ -17,6 +19,7 @@ import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
  * comparable to each other (e.g. the same BPlusTree instance cannot simultaneously support keys of
  * type Integer and String).
  */
+@NoDomainMetaObjects
 public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements DomainBasedMap<T> {
 
     /* Special last key */
@@ -57,6 +60,9 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     private static class ComparatorSupportingLastKey implements Comparator<Comparable>, Serializable {
         // only LAST_KEY knows how to compare itself with others, so we must check for it before
         // delegating the comparison to the Comparables.
+
+        private static final long serialVersionUID = 0L;
+
         @Override
         public int compare(Comparable o1, Comparable o2) {
             if (o1 == LAST_KEY) {
@@ -168,6 +174,22 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     @Override
     public int size() {
         return this.getRoot().size();
+    }
+
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    /**
+     * Completly deletes this <code>BPlusTree</code>, and all its {@link AbstractNode}s. Does not delete any {@link DomainObject}
+     * contained
+     * in the tree.
+     */
+    public void delete() {
+        AbstractNode<T> rootNode = getRoot();
+        removeRoot();
+        rootNode.delete();
+        deleteDomainObject();
     }
 
     public String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds) {

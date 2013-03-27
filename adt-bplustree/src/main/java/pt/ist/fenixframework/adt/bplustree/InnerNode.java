@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import pt.ist.fenixframework.NoDomainMetaObjects;
+
 /**
  * Inner node of a B+-Tree. These nodes do not contain elements. They only
  * contain M keys (ordered) and M+1 sub-nodes (M > 0). The n-th sub-node will
@@ -14,6 +16,7 @@ import java.util.TreeMap;
  * last sub-node (L) which will contain elements whose keys will be greater
  * than or equal to the M-th key.
  */
+@NoDomainMetaObjects
 public class InnerNode extends InnerNode_Base {
 
     private InnerNode() {
@@ -105,6 +108,15 @@ public class InnerNode extends InnerNode_Base {
     @Override
     public AbstractNode remove(Comparable key) {
         return findSubNode(key).remove(key);
+    }
+
+    @Override
+    void delete() {
+        for (AbstractNode subNode : getSubNodes().values()) {
+            subNode.delete();
+        }
+        removeParent();
+        deleteDomainObject();
     }
 
     AbstractNode replaceDeletedKey(Comparable deletedKey, Comparable replacementKey) {

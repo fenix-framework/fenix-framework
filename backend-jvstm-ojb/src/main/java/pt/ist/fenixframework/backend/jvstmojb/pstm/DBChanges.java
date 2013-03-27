@@ -66,6 +66,11 @@ class DBChanges {
         return Collections.<DomainObject> unmodifiableSet(set);
     }
 
+    /**
+     * 
+     * @return a <code>Set</code> containing the {@link DomainObject}s that were modified,
+     *         but <strong>not created</strong>, by the current transaction
+     */
     public Set<DomainObject> getModifiedObjects() {
         Set<DomainObject> modified = new HashSet<DomainObject>();
 

@@ -1,11 +1,20 @@
 package pt.ist.fenixframework.backend.jvstmojb;
 
-import pt.ist.fenixframework.Config;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import pt.ist.fenixframework.DomainFenixFrameworkRoot;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.jvstmojb.ojb.MetadataManager;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
+import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil;
+import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil.DBLockedCommand;
 import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
+import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicatesConfig;
 
 /**
  * An instance of the <code>Config</code> class bundles together the
@@ -63,7 +72,9 @@ import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
  * <li>dbPassword</li>
  * </ul>
  */
-public class JvstmOJBConfig extends Config {
+public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(JvstmOJBConfig.class);
 
     protected final BackEnd backEnd;
 
@@ -123,13 +134,6 @@ public class JvstmOJBConfig extends Config {
      */
     protected boolean updateRepositoryStructureIfNeeded = false;
 
-    /**
-     * This <strong>optional</strong> parameter indicates whether the framework
-     * should throw an exception when a DomainObject that is still connected to
-     * other objects is trying to be deleted or rather delete it.
-     */
-    protected boolean errorfIfDeletingObjectNotDisconnected = true;
-
     /*
      * Initialization methods
      */
@@ -140,11 +144,19 @@ public class JvstmOJBConfig extends Config {
 
     @Override
     protected void init() {
+        print();
         MetadataManager.init(this);
-        new RepositoryBootstrap(this).updateDataRepositoryStructureIfNeeded();
-        DomainClassInfo.initializeClassInfos(0);
-        DomainClassInfo.ensureDomainRoot();
-        TransactionSupport.setupJVSTM();
+
+        DbUtil.runWithinDBLock(new DBLockedCommand() {
+            @Override
+            public void run() {
+                RepositoryBootstrap.updateDataRepositoryStructureIfNeeded(getConnection());
+                DomainClassInfo.initializeClassInfos(0);
+                DomainClassInfo.ensureDomainRoot();
+                TransactionSupport.setupJVSTM();
+                DomainFenixFrameworkRoot.bootstrap();
+            }
+        });
     }
 
     @Override
@@ -188,10 +200,6 @@ public class JvstmOJBConfig extends Config {
         errorIfChangingDeletedObject = Boolean.parseBoolean(value);
     }
 
-    protected void errorfIfDeletingObjectNotDisconnectedFromString(String value) {
-        errorfIfDeletingObjectNotDisconnected = Boolean.parseBoolean(value);
-    }
-
     protected void createRepositoryStructureIfNotExistsFromString(String value) {
         createRepositoryStructureIfNotExists = Boolean.parseBoolean(value);
     }
@@ -208,6 +216,15 @@ public class JvstmOJBConfig extends Config {
         return dbAlias;
     }
 
+    public String getDBName() {
+        Pattern pattern = Pattern.compile("//.*/(.*)\\?");
+        Matcher matcher = pattern.matcher(getDbAlias());
+        if (!matcher.find()) {
+            throw new Error("Malformed dbAlias - could not retrieve dbName.");
+        }
+        return matcher.group(1);
+    }
+
     public String getDbUsername() {
         return dbUsername;
     }
@@ -220,10 +237,6 @@ public class JvstmOJBConfig extends Config {
         return errorIfChangingDeletedObject;
     }
 
-    public boolean isErrorfIfDeletingObjectNotDisconnected() {
-        return errorfIfDeletingObjectNotDisconnected;
-    }
-
     public boolean getCreateRepositoryStructureIfNotExists() {
         return createRepositoryStructureIfNotExists;
     }
@@ -231,4 +244,21 @@ public class JvstmOJBConfig extends Config {
     public boolean getUpdateRepositoryStructureIfNeeded() {
         return updateRepositoryStructureIfNeeded;
     }
+
+    public void print() {
+        logger.trace("dbAlias: " + dbAlias);
+        logger.trace("dbName: " + getDBName());
+        logger.trace("dbUsername: " + dbUsername);
+        // The password should never be shown, or even mentioned
+        //logger.trace("dbPassword: *hidden*");
+
+        logger.trace("appName: " + appName);
+        logger.trace("errorIfChangingDeletedObject: " + errorIfChangingDeletedObject);
+
+        logger.trace("createRepositoryStructureIfNotExists: " + createRepositoryStructureIfNotExists);
+        logger.trace("updateRepositoryStructureIfNeeded: " + updateRepositoryStructureIfNeeded);
+
+        logger.trace("canCreateDomainMetaObjects: " + canCreateDomainMetaObjects);
+    }
+
 }

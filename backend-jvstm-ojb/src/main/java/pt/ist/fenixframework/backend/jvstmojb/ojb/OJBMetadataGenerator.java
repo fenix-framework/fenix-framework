@@ -127,6 +127,9 @@ public class OJBMetadataGenerator {
         // write the OID also
         addFieldDescriptor(domainModel, "oid", "long", fieldID++, classDescriptor, persistentFieldClass);
 
+        // write the domainMetaObject for all domain objects
+        addFieldDescriptor(domainModel, "oidDomainMetaObject", "Long", fieldID++, classDescriptor, persistentFieldClass);
+
         while (domEntity instanceof DomainClass) {
             DomainClass dClass = (DomainClass) domEntity;
 

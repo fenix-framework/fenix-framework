@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.backend.jvstmojb.dml.runtime;
+package pt.ist.fenixframework.consistencyPredicates.runtime;
 
 public class ConsistencyChecks {
     public static void checkRequired(Object obj, String slotname, Object slotvalue) {

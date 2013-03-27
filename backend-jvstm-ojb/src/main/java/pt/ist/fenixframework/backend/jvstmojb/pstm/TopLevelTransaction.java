@@ -1,5 +1,7 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,8 +17,11 @@ import jvstm.CommitException;
 import jvstm.ResumeException;
 import jvstm.Transaction;
 import jvstm.VBoxBody;
+import jvstm.cps.ChainedIterator;
 import jvstm.cps.ConsistencyCheckTransaction;
+import jvstm.cps.ConsistencyException;
 import jvstm.cps.ConsistentTopLevelTransaction;
+import jvstm.cps.Depended;
 import jvstm.cps.DependenceRecord;
 import jvstm.util.Cons;
 
@@ -26,8 +31,16 @@ import org.apache.ojb.broker.accesslayer.LookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.DomainMetaClass;
+import pt.ist.fenixframework.DomainMetaObject;
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.NoDomainMetaObjects;
+import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.DBChanges.AttrChangeLog;
+import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicateSystem;
+import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
+import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
 import pt.ist.fenixframework.core.WriteOnReadError;
 import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
@@ -130,6 +143,9 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     protected void suspendTx() {
         // close the broker to release the db connection on suspension
         if (broker != null) {
+            if (broker.isInTransaction()) {
+                broker.abortTransaction();
+            }
             broker.close();
             broker = null;
         }
@@ -186,6 +202,9 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     protected void finish() {
         super.finish();
         if (broker != null) {
+            if (broker.isInTransaction()) {
+                broker.abortTransaction();
+            }
             broker.close();
             broker = null;
         }
@@ -234,6 +253,12 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
             numBoxWrites++;
             super.setBoxValue(vbox, value);
         }
+    }
+
+    @Override
+    public <T> void setBoxValueInParent(VBox<T> vbox, T value) {
+        // A TopLevelTransaction has no parent, so just set the box value.
+        setBoxValue(vbox, value);
     }
 
     @Override
@@ -395,25 +420,115 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
     // consistency-predicates-system methods
 
+    /**
+     * Checks all the necessary consistency predicates for this transaction to commit
+     */
     @Override
     protected void checkConsistencyPredicates() {
-        // check all the consistency predicates for the objects modified in this
-        // transaction
+        // checks the consistency predicates declared by the objects modified in this transaction
         for (Object obj : getDBChanges().getModifiedObjects()) {
             checkConsistencyPredicates(obj);
         }
 
+        // checks new objects and dependence records (if any)
         super.checkConsistencyPredicates();
     }
 
+    /**
+     * Checks the consistency predicates that depend on a changed object
+     */
     @Override
-    protected void checkConsistencyPredicates(Object obj) {
-        if (getDBChanges().isDeleted(obj)) {
-            // don't check deleted objects
-            return;
-        } else {
-            super.checkConsistencyPredicates(obj);
+    protected void recheckDependenceRecord(DependenceRecord dependence) {
+        if (!JvstmOJBConfig.canCreateDomainMetaObjects()) {
+            // This should never happen
+            throw new Error("Cannot recheck dependence records unless the framework is allowed to create meta objects");
         }
+        DomainDependenceRecord dependenceRecord = (DomainDependenceRecord) dependence;
+        AbstractDomainObject object = (AbstractDomainObject) dependenceRecord.getDependent();
+        Pair pair = checkPredicateForOneObject(object, dependenceRecord.getPredicate(), dependenceRecord.isConsistent());
+        if (pair == null) {
+            // a null return means that the predicate was already checked
+            return;
+        }
+        // If an object is consistent and depends only on itself, the DomainDependenceRecord is not necessary.
+        if (isConsistent(pair) && dependsOnlyOnItself(pair)) {
+            dependenceRecord.delete();
+            return;
+        }
+
+        Set<Depended> newDependedSet = (Set<Depended>) pair.first;
+
+        for (Depended oldDepended : dependenceRecord.getDependedDomainMetaObjects()) {
+            if (!newDependedSet.remove(oldDepended)) {
+                // if we didn't find the oldDepended in the newDepended, it's
+                // because it is no longer a depended, so remove the dependence
+                oldDepended.removeDependence(dependenceRecord);
+            }
+        }
+
+        // the elements remaining in the set newDepended are new and
+        // should be added to the dependence record
+        // likewise, the dependence record should be added to those depended
+        for (Depended newDepended : newDependedSet) {
+            newDepended.addDependence(dependenceRecord);
+        }
+
+        // update the consistent value of the dependence record
+        dependenceRecord.setConsistent((Boolean) pair.second);
+    }
+
+    /**
+     * Checks all the consistency predicates declared by an object.
+     * 
+     * @param object
+     *            an object that was created or modified, and whose predicates
+     *            must be checked
+     */
+    @Override
+    protected void checkConsistencyPredicates(Object object) {
+        if (getDBChanges().isDeleted(object)) {
+            // Deleted objects no longer have to be consistent
+            return;
+        }
+        if (object.getClass().isAnnotationPresent(NoDomainMetaObjects.class)) {
+            return;
+        }
+        AbstractDomainObject ado = (AbstractDomainObject) object;
+        if (!JvstmOJBConfig.canCreateDomainMetaObjects()) {
+            for (Method predicate : ConsistencyPredicateSystem.getPredicatesFor(object)) {
+                checkPredicateForOneObject(ado, predicate, true);
+            }
+            return;
+        }
+
+        // First, check for existing dependence records of modified objects
+        // Nothing will happen for new objects
+        DomainMetaObject metaObject = ado.getDomainMetaObject();
+        for (DomainDependenceRecord dependenceRecord : metaObject.getOwnDependenceRecords()) {
+            recheckDependenceRecord(dependenceRecord);
+        }
+
+        // Then, check the consistency predicates declared by the object itself
+        DomainMetaClass metaClass = metaObject.getDomainMetaClass();
+        for (DomainConsistencyPredicate domainPredicate : metaClass.getAllConsistencyPredicates()) {
+            Method predicate = domainPredicate.getPredicate();
+            Pair pair = checkPredicateForOneObject(ado, predicate, true);
+            // Predicates that were already checked return null
+            if (pair != null) {
+                // If an object is consistent and depends only on itself, the DomainDependenceRecord is not necessary.
+                if (!(isConsistent(pair) && dependsOnlyOnItself(pair))) {
+                    new DomainDependenceRecord(object, domainPredicate, (Set<Depended>) pair.first, (Boolean) pair.second);
+                }
+            }
+        }
+    }
+
+    public static boolean isConsistent(Pair pair) {
+        return (Boolean) pair.second;
+    }
+
+    public static boolean dependsOnlyOnItself(Pair pair) {
+        return ((Set<Depended>) pair.first).isEmpty();
     }
 
     @Override
@@ -421,10 +536,173 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         return new FenixConsistencyCheckTransaction(this, obj);
     }
 
+    /**
+     * @return an <code>Iterator</code> of {@link DependenceRecord}s that have
+     *         to be rechecked, based on the boxes (objects) written by the
+     *         current transaction.
+     */
     @Override
     protected Iterator<DependenceRecord> getDependenceRecordsToRecheck() {
-        // for now, just return an empty iterator
-        return Util.emptyIterator();
+        if (!JvstmOJBConfig.canCreateDomainMetaObjects()) {
+            // Dependence records are not used if the FenixFramework is not configured
+            // to create meta objects
+            return Util.emptyIterator();
+        }
+
+        Cons<Iterator<DependenceRecord>> iteratorsList = Cons.empty();
+
+        // The body of the for may cause the consolidation of elements of RelationLists,
+        // which in turn modifies the boxesWritten.
+        // So, create a copy of the boxesWritten, to avoid ConcurrentModificationExceptions
+        Set<jvstm.VBox> currentBoxesWritten = new HashSet<jvstm.VBox>(boxesWritten.keySet());
+        for (jvstm.VBox box : currentBoxesWritten) {
+            Depended dep = ((AbstractDomainObject) ((VBox) box).getOwnerObject()).getDomainMetaObject();
+            if (dep != null) {
+                iteratorsList = iteratorsList.cons(dep.getDependenceRecords().iterator());
+            }
+        }
+
+        return new ChainedIterator<DependenceRecord>(iteratorsList.iterator());
+    }
+
+    /**
+     * Checks one predicate for one {@link AbstractDomainObject}.
+     * 
+     * @return the set of other objects on which the check depended (excluding
+     *         the object itself), or null, if this predicate was already
+     *         checked for this object (in which case the check is skipped)
+     **/
+    protected Pair checkPredicateForOneObject(AbstractDomainObject obj, Method predicate, boolean wasConsistent) {
+        Pair toCheck = new Pair(obj, predicate);
+
+        if (getDBChanges().isDeleted(obj)) {
+            // Deleted objects no longer have to be consistent
+            return null;
+        }
+
+        if (alreadyChecked.contains(toCheck)) {
+            // returning null means that no check was actually done, because it
+            // is repeated
+            return null;
+        }
+
+        alreadyChecked.add(toCheck);
+
+        ConsistencyCheckTransaction tx = makeConsistencyCheckTransaction(obj);
+        tx.start();
+
+        boolean predicateOk = false;
+        boolean finished = false;
+
+        Class<? extends ConsistencyException> excClass = null;
+        boolean inconsistencyTolerant = false;
+        ConsistencyPredicate consistencyPredicateAnnotation = predicate.getAnnotation(ConsistencyPredicate.class);
+        if (consistencyPredicateAnnotation != null) {
+            excClass = consistencyPredicateAnnotation.value();
+            inconsistencyTolerant = consistencyPredicateAnnotation.inconsistencyTolerant();
+        } else {
+            jvstm.cps.ConsistencyPredicate consistencyPredicateJVSTMAnnotation =
+                    predicate.getAnnotation(jvstm.cps.ConsistencyPredicate.class);
+            excClass = consistencyPredicateJVSTMAnnotation.value();
+        }
+        try {
+            predicateOk = (Boolean) (predicate.invoke(obj));
+            Transaction.commit();
+            finished = true;
+        } catch (InvocationTargetException ite) {
+            if (inconsistencyTolerant && !wasConsistent) {
+                // if the predicate is inconsistency-tolerant, and we are editing an object
+                // whose previous state was also inconsistent, the transaction should still
+                // proceed and commit.
+
+                // Do not register the own object as a depended
+                Set<Depended> depended = tx.getDepended();
+                if (!depended.isEmpty()) {
+                    depended.remove(obj.getDomainMetaObject());
+                }
+                return new Pair(depended, false);
+            }
+            Throwable cause = ite.getCause();
+
+            ConsistencyException exc;
+
+            // only wrap the cause if it is not a ConsistencyException already
+            if (cause instanceof ConsistencyException) {
+                exc = (ConsistencyException) cause;
+            } else {
+                try {
+                    exc = excClass.newInstance();
+                } catch (Throwable t) {
+                    throw new Error(t);
+                }
+                exc.initCause(cause);
+            }
+
+            exc.init(obj, predicate);
+            throw exc;
+        } catch (Throwable t) {
+            // any other kind of throwable is an Error in the framework that should
+            // be fixed
+            throw new Error(t);
+        } finally {
+            if (!finished) {
+                Transaction.abort();
+            }
+        }
+
+        if (predicateOk) {
+            // Do not register the own object as a depended
+            Set<Depended> depended = tx.getDepended();
+            if (!depended.isEmpty()) {
+                depended.remove(obj.getDomainMetaObject());
+            }
+            return new Pair(depended, true);
+        } else if (inconsistencyTolerant && !wasConsistent) {
+            // if the predicate is inconsistency-tolerant, and we are editing an object
+            // whose previous state was also inconsistent, the transaction should still
+            // proceed and commit.
+
+            // Do not register the own object as a depended
+            Set<Depended> depended = tx.getDepended();
+            if (!depended.isEmpty()) {
+                depended.remove(obj.getDomainMetaObject());
+            }
+            return new Pair(depended, false);
+        }
+        ConsistencyException exc;
+        try {
+            exc = excClass.newInstance();
+        } catch (Throwable t) {
+            throw new Error(t);
+        }
+        exc.init(obj, predicate);
+        throw exc;
+    }
+
+    public static final class Pair {
+        public final Object first;
+        public final Object second;
+
+        public Pair(Object first, Object second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        @Override
+        public int hashCode() {
+            return first.hashCode() + second.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (other.getClass() != Pair.class) {
+                return false;
+            }
+
+            Pair p2 = (Pair) other;
+
+            return (p2.first == first) && (p2.second == second);
+        }
     }
 
     // implement the TxIntrospector interface
@@ -483,16 +761,16 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     private HashMap<RelationTupleChange, RelationTupleChange> relationTupleChanges = null;
 
     @Override
-    public void logRelationAdd(String relationName, AbstractDomainObject o1, AbstractDomainObject o2) {
+    public void logRelationAdd(String relationName, DomainObject o1, DomainObject o2) {
         logRelationTuple(relationName, o1, o2, false);
     }
 
     @Override
-    public void logRelationRemove(String relationName, AbstractDomainObject o1, AbstractDomainObject o2) {
+    public void logRelationRemove(String relationName, DomainObject o1, DomainObject o2) {
         logRelationTuple(relationName, o1, o2, true);
     }
 
-    private void logRelationTuple(String relationName, AbstractDomainObject o1, AbstractDomainObject o2, boolean remove) {
+    private void logRelationTuple(String relationName, DomainObject o1, DomainObject o2, boolean remove) {
         if (relationTupleChanges == null) {
             relationTupleChanges = new HashMap<RelationTupleChange, RelationTupleChange>();
         }
@@ -516,11 +794,11 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
     private static class RelationTupleChange {
         final String relationName;
-        final AbstractDomainObject obj1;
-        final AbstractDomainObject obj2;
+        final DomainObject obj1;
+        final DomainObject obj2;
         final boolean remove;
 
-        RelationTupleChange(String relationName, AbstractDomainObject obj1, AbstractDomainObject obj2, boolean remove) {
+        RelationTupleChange(String relationName, DomainObject obj1, DomainObject obj2, boolean remove) {
             this.relationName = relationName;
             this.obj1 = obj1;
             this.obj2 = obj2;

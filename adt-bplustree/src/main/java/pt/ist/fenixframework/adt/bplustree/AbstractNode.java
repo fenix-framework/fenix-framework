@@ -6,11 +6,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.core.Externalization;
 
 // import java.util.concurrent.atomic.AtomicInteger;
 
 /** The keys comparison function should be consistent with equals. */
+@NoDomainMetaObjects
 public abstract class AbstractNode<T extends Serializable> extends AbstractNode_Base implements Iterable {
     /* Node Interface */
 
@@ -67,6 +70,13 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
         return thisParent == null ? this : thisParent.getRoot();
     }
 
+    /**
+     * Deletes this <code>AbstractNode</code>, and any other child {@link AbstractNode}s. Does not delete any {@link DomainObject}
+     * linked by
+     * the Node.
+     */
+    abstract void delete();
+
     abstract Map.Entry<Comparable, T> removeBiggestKeyValue();
 
     abstract Map.Entry<Comparable, T> removeSmallestKeyValue();
@@ -107,7 +117,7 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
     private static class TreeMapExternalization implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        private byte[] serializedTreeMap;
+        private final byte[] serializedTreeMap;
 
         TreeMapExternalization(TreeMap<Comparable, ? extends Serializable> treeMap) {
             this.serializedTreeMap = Externalization.externalizeSerializable(treeMap);
