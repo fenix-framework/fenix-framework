@@ -19,9 +19,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.CommitListener;
-//import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject.UnableToDetermineIdException;
 import pt.ist.fenixframework.backend.jvstm.pstm.GenericTopLevelTransaction;
-//import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
 import pt.ist.fenixframework.core.WriteOnReadError;
 
@@ -61,7 +59,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
             // check has been made in the super-class.
             transactions.get().commit();
         } finally {
-            transactions.remove();
+            transactions.remove();  // smf: if an exception occurs during commit, should we still do this??  Won't the transaction be neeed for rollback?
         }
     }
 
@@ -120,7 +118,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
         try {
             return handleWriteCommand(command, false);
         } catch (Exception e) {
-            throw new Error("Exception ocurred while running transaction", e);
+            throw new RuntimeException("Unexpected exception ocurred while running transaction", e);
         }
     }
 
@@ -209,7 +207,10 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
                         return result;
                     } finally {
                         if (keepGoing) {
-                            rollback();
+                            logger.trace("Transaction failed to commit.");
+                            if (getTransaction() != null) {
+                                rollback();
+                            }
                         }
                     }
                 } catch (RollbackException e) {
