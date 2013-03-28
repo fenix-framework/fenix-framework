@@ -18,7 +18,7 @@ import javax.lang.model.type.TypeKind;
  * primitive boolean value, and are public, protected, or private. Otherwise,
  * throws an <code>Error</code> during the compilation.
  */
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedAnnotationTypes({ "pt.ist.fenixframework.pstm.consistencyPredicates.ConsistencyPredicate",
         "jvstm.cps.ConsistencyPredicate" })
 public class ConsistencyPredicateAnnotationProcessor extends AbstractProcessor {
