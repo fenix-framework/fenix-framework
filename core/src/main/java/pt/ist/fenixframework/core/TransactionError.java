@@ -8,7 +8,7 @@ package pt.ist.fenixframework.core;
  * 
  * An application should never catch instances of this class, as the purpose of throwing an instance
  * of this class is to make a non-local exit from the currently running transaction, and to deal
- * with the situation at an infrastrutural level. This is done by the Fenix Framework runtime and
+ * with the situation at an infrastructural level. This is done by the Fenix Framework runtime and
  * should not be masked by the application code in anyway.
  * 
  * The class <code>TransactionError</code> is specifically a subclass of <code>Error</code> rather than <code>Exception</code>, even

@@ -63,10 +63,10 @@ public abstract class AbstractTransaction extends FenixAbstractTransaction {
             this.status = Status.STATUS_COMMITTED;
         } catch (Exception e) {
             rollback();
-            return;
+            throw new RollbackException(e.getMessage());
         } catch (TransactionError e) {
             rollback();
-            return;
+            throw new RollbackException(e.getMessage());
         }
         notifyAfterCommit();
     }

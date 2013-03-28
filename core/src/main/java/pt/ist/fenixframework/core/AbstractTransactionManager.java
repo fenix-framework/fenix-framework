@@ -8,6 +8,9 @@ import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.CommitListener;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionManager;
@@ -20,6 +23,8 @@ import pt.ist.fenixframework.TransactionManager;
  * 
  */
 public abstract class AbstractTransactionManager implements TransactionManager {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractTransactionManager.class);
 
     protected final ConcurrentLinkedQueue<CommitListener> listeners = new ConcurrentLinkedQueue<CommitListener>();
 
@@ -34,8 +39,9 @@ public abstract class AbstractTransactionManager implements TransactionManager {
 
         Transaction toCommit = getTransaction();
 
-        if (toCommit == null)
+        if (toCommit == null) {
             throw new IllegalStateException();
+        }
 
         try {
             for (CommitListener listener : listeners) {
@@ -90,8 +96,9 @@ public abstract class AbstractTransactionManager implements TransactionManager {
 
         Transaction toRollback = getTransaction();
 
-        if (toRollback == null)
+        if (toRollback == null) {
             throw new IllegalStateException();
+        }
 
         backendRollback();
 
@@ -105,6 +112,14 @@ public abstract class AbstractTransactionManager implements TransactionManager {
      */
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {
+
+        Transaction tx = this.getTransaction();
+
+        if (tx == null) {
+            throw new IllegalStateException();
+        }
+
+        logger.trace("Setting rollbackOnly.");
         this.getTransaction().setRollbackOnly();
     }
 
