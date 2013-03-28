@@ -20,6 +20,7 @@
     <modules>
         <module>test-txintrospector</module>
         <module>test-hibernate-search</module>
+        <module>test-backend-jvstm-common</module>
         <module>test-backend-ogm</module>
         <module>test-indexes</module>
         <module>test-collections</module>

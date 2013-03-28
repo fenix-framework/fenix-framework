@@ -1,0 +1,10 @@
+package test.backend.jvstm.domain;
+
+class Counter {
+    int value;
+}
+
+relation RootHasCounter {
+    .pt.ist.fenixframework.DomainRoot playsRole;
+    Counter playsRole counter;
+}
