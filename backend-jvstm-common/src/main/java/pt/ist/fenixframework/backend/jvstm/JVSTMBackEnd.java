@@ -10,11 +10,13 @@ package pt.ist.fenixframework.backend.jvstm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
+import pt.ist.fenixframework.backend.jvstm.pstm.FenixFrameworkData;
 import pt.ist.fenixframework.backend.jvstm.pstm.StatisticsThread;
 import pt.ist.fenixframework.backend.jvstm.pstm.TransactionSupport;
 import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
@@ -88,7 +90,18 @@ public class JVSTMBackEnd implements BackEnd {
     public void init(JVSTMConfig jvstmConfig) {
         DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
         TransactionSupport.setupJVSTM();
+        // this method will be moved (probably to the core) when we have FenixFrameworkData (or a similarly named class) defined there
+        ensureFenixFrameworkDataExists();
         new StatisticsThread().start();
+    }
+
+    @Atomic
+    // in the core we will not be able to use Atomic. Must do begin/commit
+    private void ensureFenixFrameworkDataExists() {
+        FenixFrameworkData data = FenixFramework.getDomainRoot().getFenixFrameworkData();
+        if (data == null) {
+            FenixFramework.getDomainRoot().setFenixFrameworkData(new FenixFrameworkData());
+        }
     }
 
     @Override
