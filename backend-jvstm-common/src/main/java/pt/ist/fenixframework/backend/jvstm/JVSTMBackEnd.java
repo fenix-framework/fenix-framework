@@ -21,6 +21,8 @@ import pt.ist.fenixframework.backend.jvstm.pstm.StatisticsThread;
 import pt.ist.fenixframework.backend.jvstm.pstm.TransactionSupport;
 import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
+import pt.ist.fenixframework.core.AbstractDomainObject;
+import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 /**
@@ -28,7 +30,7 @@ import pt.ist.fenixframework.core.SharedIdentityMap;
  */
 public class JVSTMBackEnd implements BackEnd {
 
-    private static final Logger logger = LoggerFactory.getLogger(DomainClassInfo.class);
+    private static final Logger logger = LoggerFactory.getLogger(JVSTMBackEnd.class);
     public static final String BACKEND_NAME = "jvstm";
 
     // the repository instance used to persist the changes
@@ -56,25 +58,12 @@ public class JVSTMBackEnd implements BackEnd {
 
     @Override
     public DomainRoot getDomainRoot() {
-        DomainRoot root = fromOid(1L);
-        if (root == null) {
-            logger.debug("Creating DomainRoot instance");
-            root = new DomainRoot(); // which automatically caches this instance, but does not
-            // ensure that it is the first, as a concurrent request
-            // might create another
-
-            // so we get it again from the cache before returning it
-            root = fromOid(1L);
-            assert root != null;
-            logger.debug("Returning new DomainRoot: {}", root.getExternalId());
-        }
-        return root;
+        return fromOid(1L);
     }
 
     @Override
     public <T extends DomainObject> T getDomainObject(String externalId) {
         return fromOid(Long.parseLong(externalId, 16));
-//        return fromOid(Long.parseLong(externalId));
     }
 
     @Override
@@ -84,18 +73,45 @@ public class JVSTMBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        return (T) SharedIdentityMap.getCache().lookup(oid);
+        logger.trace("fromOid({})", oid);
+
+        AbstractDomainObject obj = SharedIdentityMap.getCache().lookup(oid);
+
+        if (obj == null) {
+            long longOid = ((Long) oid).longValue();
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("Object not found in IdentityMap: " + longOid);
+            }
+
+            obj = DomainObjectAllocator.allocateObject(DomainClassInfo.mapOidToClass(longOid), oid);
+            // cache object and return the canonical object
+            obj = SharedIdentityMap.getCache().cache(obj);
+        }
+
+        return (T) obj;
     }
 
     public void init(JVSTMConfig jvstmConfig) {
+        logger.info("initializeDomainClassInfos");
         DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
+
+        logger.info("setupJVSTM");
         TransactionSupport.setupJVSTM();
+
+        // We need to ensure that the DomainRoot instance exists and is correctly initialized BEFORE the execution of any code that may need it.
+        logger.info("ensureDomainRoot");
+        getRepository().ensureDomainRoot();
+
         // this method will be moved (probably to the core) when we have FenixFrameworkData (or a similarly named class) defined there
+        logger.info("ensureFenixFrameworkDataExists");
         ensureFenixFrameworkDataExists();
+
+        logger.info("startStatisticsThread");
         new StatisticsThread().start();
     }
 
-    @Atomic
+    @Atomic(speculativeReadOnly = false)
     // in the core we will not be able to use Atomic. Must do begin/commit
     private void ensureFenixFrameworkDataExists() {
         FenixFrameworkData data = FenixFramework.getDomainRoot().getFenixFrameworkData();

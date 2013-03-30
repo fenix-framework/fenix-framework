@@ -3,11 +3,18 @@ package pt.ist.fenixframework.backend.jvstm.repository;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class NoRepository extends Repository {
+
+    private static final Logger logger = LoggerFactory.getLogger(NoRepository.class);
 
     @Override
     public DomainClassInfo[] getDomainClassInfos() {
@@ -47,6 +54,13 @@ public class NoRepository extends Repository {
     @Override
     public void closeRepository() {
         // no-op
+    }
+
+    @Override
+    @Atomic(speculativeReadOnly = false)
+    public void ensureDomainRoot() {
+        logger.info("Creating the singleton DomainRoot instance");
+        new DomainRoot();
     }
 
 //    @Override
