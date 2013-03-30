@@ -1,10 +1,126 @@
 package test.backend.jvstm.domain;
 
+valueType java.math.BigDecimal as BigDecimalAuto {
+    externalizeWith {
+	String toString();
+    }
+}
+
+valueType java.math.BigDecimal as BigDecimalManual {
+    externalizeWith {
+	String test.backend.jvstm.util.BigDecimalExternalization.bigDecimalAsString();
+    }
+    internalizeWith test.backend.jvstm.util.BigDecimalExternalization.bigDecimalFromString();
+}
+
+valueType test.backend.jvstm.domain.CompositeValueType as CompositeValueType {
+    externalizeWith {
+	BigDecimalAuto getValue();
+ 	String getUnit();
+    }
+    internalizeWith fromComponents();
+}
+
+valueType java.math.BigInteger as BigInteger {
+    externalizeWith {
+	int signum();
+	bytearray toByteArray();
+    }
+}
+
+valueType java.math.BigDecimal as UnscaledBigDecimal {
+    externalizeWith {
+	BigInteger unscaledValue();
+    }
+}
+
+valueType test.backend.jvstm.domain.CompositeValueType as OtherCompositeValueType {
+    externalizeWith {
+	UnscaledBigDecimal getValue();
+ 	String getUnit();
+    }
+    internalizeWith fromComponents();
+}
+
+valueType test.backend.jvstm.domain.CompositeValueType {
+    externalizeWith {
+	BigDecimalAuto getValue();
+ 	String getUnit();
+    }
+    internalizeWith fromComponents();
+}
+
+valueType test.backend.jvstm.domain.ParametricValueType as PVTWithBigDecimalAndString {
+    externalizeWith {
+	BigDecimalAuto getValue();
+	String getUnit();
+    }
+}
+
+class ValueTypes {
+    BigDecimalAuto aBigDecimalAuto;
+    BigDecimalManual aBigDecimalManual;
+    CompositeValueType aCompositeValueType;
+    BigInteger aBigInteger;
+    OtherCompositeValueType anotherCompositeValueType;
+    test.backend.jvstm.domain.CompositeValueType yetAnotherCompositeValueType;
+    PVTWithBigDecimalAndString aParametricValueType;
+    PVTWithBigDecimalAndString<java.math.BigDecimal, String> anotherParametricValueType;
+}
+
 class Counter {
     int value;
+}
+
+class BuiltInTypes {
+    boolean slotBooleanPrimitive;
+    byte slotBytePrimitive;
+    char slotCharPrimitive;
+    short slotShortPrimitive;
+    int slotIntPrimitive;
+    float slotFloatPrimitive;
+    long slotLongPrimitive;
+    double slotDoublePrimitive;
+
+    Boolean slotBoolean;
+    Byte slotByte;
+    Character slotCharacter;
+    Short slotShort;
+    Integer slotInteger;
+    Float slotFloat;
+    Long slotLong;
+    Double slotDouble;
+
+    String slotString;
+
+    bytearray slotBytearray;
+
+    DateTime slotDatetime;
+    LocalDate slotLocaldate;
+    LocalTime slotLocaltime;
+    Partial slotPartial;
+
+    Serializable slotSerializable;
 }
 
 relation RootHasCounter {
     .pt.ist.fenixframework.DomainRoot playsRole;
     Counter playsRole counter;
+}
+
+relation RootHasBuiltInTypes {
+    .pt.ist.fenixframework.DomainRoot playsRole;
+    BuiltInTypes playsRole builtInTypes;
+}
+
+relation RootHasValueTypes {
+    .pt.ist.fenixframework.DomainRoot playsRole;
+    ValueTypes playsRole valueTypes;
+}
+
+relation RootHasCounters {
+    .pt.ist.fenixframework.DomainRoot playsRole;
+    Counter playsRole multipleCounter {
+        multiplicity *;
+    }
 }
