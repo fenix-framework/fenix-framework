@@ -201,6 +201,11 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-backend-jvstm-infinispan</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
                 <artifactId>fenix-framework-backend-mem</artifactId>
                 <version>${project.version}</version>
             </dependency>
