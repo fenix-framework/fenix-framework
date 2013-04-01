@@ -185,6 +185,11 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
+                <artifactId>fenix-framework-backend-jvstm-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist</groupId>
                 <artifactId>fenix-framework-backend-jvstm-mem</artifactId>
                 <version>${project.version}</version>
             </dependency>
