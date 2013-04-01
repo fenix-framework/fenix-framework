@@ -2,6 +2,8 @@ package pt.ist.fenixframework.dml;
 
 import java.io.PrintWriter;
 
+import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
+
 /**
  * This code generator enhances the default generation by adding indexation to fields
  * annotated to have that behavior. To do so, it:
@@ -91,10 +93,19 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     @Override
     protected String getDefaultCollectionFor(Role role) {
         if (role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY) {
-            return makeGenericType(super.getCollectionToUse(),
-                    makeGenericType(LINKED_LIST_FULL_CLASS, role.getType().getFullName()));
+            return makeGenericType(getCollectionToUse(), makeGenericType(LINKED_LIST_FULL_CLASS, role.getType().getFullName()));
         } else {
-            return makeGenericType(super.getCollectionToUse(), role.getType().getFullName());
+            return super.getDefaultCollectionFor(role);
+        }
+    }
+
+    @Override
+    protected String getDefaultCollectionGetterFor(Role role) {
+        if (role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY) {
+            return makeGenericType(DomainBasedMap.Getter.class.getCanonicalName(),
+                    makeGenericType(LINKED_LIST_FULL_CLASS, getTypeFullName(role.getType())));
+        } else {
+            return super.getDefaultCollectionGetterFor(role);
         }
     }
 

@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 
+import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
 
 /**
@@ -430,14 +431,22 @@ public abstract class CodeGenerator {
         printMethod(out, "public", getTypeFullName(role.getType()), "getValue",
                 makeArg(getTypeFullName(otherRole.getType()), "o1"));
         startMethodBody(out);
-        printWords(out, "return", "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + ";");
+        generateStaticRoleSlotsMultOneGetterBody(role, otherRole, out);
         endMethodBody(out);
 
         printMethod(out, "public", "void", "setValue", makeArg(getTypeFullName(otherRole.getType()), "o1"),
                 makeArg(getTypeFullName(role.getType()), "o2"));
         startMethodBody(out);
-        printWords(out, "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + " = o2;");
+        generateStaticRoleSlotsMultOneSetterBody(role, otherRole, out);
         endMethodBody(out);
+    }
+
+    protected void generateStaticRoleSlotsMultOneGetterBody(Role role, Role otherRole, PrintWriter out) {
+        printWords(out, "return", "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + ";");
+    }
+
+    protected void generateStaticRoleSlotsMultOneSetterBody(Role role, Role otherRole, PrintWriter out) {
+        printWords(out, "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + " = o2;");
     }
 
     protected void generateStaticRoleSlotsMultStar(Role role, Role otherRole, PrintWriter out) {
@@ -620,7 +629,11 @@ public abstract class CodeGenerator {
     }
 
     protected String getDefaultCollectionFor(Role role) {
-        return makeGenericType(collectionToUse, role.getType().getFullName());
+        return makeGenericType(getCollectionToUse(), role.getType().getFullName());
+    }
+
+    protected String getDefaultCollectionGetterFor(Role role) {
+        return makeGenericType(DomainBasedMap.Getter.class.getCanonicalName(), getTypeFullName(role.getType()));
     }
 
     protected String getNewRoleStarSlotExpression(Role role) {
@@ -660,7 +673,7 @@ public abstract class CodeGenerator {
      * </ol>
      * 
      * <p>
-     * In the first case the parameter 'allocateOnly' is false. Tipically, we need to fully initialize the slots, e.g. create new
+     * In the first case the parameter 'allocateOnly' is false. Typically, we need to fully initialize the slots, e.g. create new
      * lists, etc. In the second case, the instance's attributes will be populated, so we should not create them anew.
      * 
      * <p>
@@ -714,27 +727,6 @@ public abstract class CodeGenerator {
         print(out, "initInstance(false);");
         closeBlock(out);
     }
-
-    //     protected void generateInitSlot(Slot slot, PrintWriter out) {
-    //         onNewline(out);
-    //         printWords(out, slot.getName());
-    //         print(out, " = ");
-    //         print(out, getNewSlotExpression(slot));
-    //         print(out, ";");
-
-    //         // initialize primitive slots with their default value
-    //         generateInitializePrimitiveIfNeeded(slot, out);
-    //     }
-
-    //     protected void generateInitializePrimitiveIfNeeded(Slot slot, PrintWriter out) {
-    // 	PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(slot.getTypeName());
-    // 	if (wrapperEntry != null) { // then it is a primitive type
-    // 	    onNewline(out);
-    // 	    print(out, "if (!allocateOnly) this.");
-    // 	    print(out, slot.getName() + ".put(this, \"" + slot.getName() + "\", ");
-    // 	    println(out, wrapperEntry.defaultPrimitiveValue + ");");
-    // 	}
-    //     }
 
     protected void generateInitRoleSlot(Role role, PrintWriter out) {
         if (role.getMultiplicityUpper() != 1) {
@@ -797,7 +789,11 @@ public abstract class CodeGenerator {
     }
 
     protected void generateSetterBody(String setterName, Slot slot, PrintWriter out) {
-        printWords(out, getSlotExpression(slot.getName()), "=", slot.getName() + ";");
+        printWords(out, getSlotSetterExpression(slot, slot.getName()) + ";");
+    }
+
+    protected String getSlotSetterExpression(Slot slot, String value) {
+        return getSlotExpression(slot.getName()) + " = " + value;
     }
 
     protected void generateRoleSlotsMethods(Iterator roleSlotsIter, PrintWriter out) {
