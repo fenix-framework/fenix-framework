@@ -1,0 +1,49 @@
+package pt.ist.fenixframework.backend.jvstm.pstm;
+
+valueType pt.ist.fenixframework.backend.jvstm.pstm.TransactionStatistics.CounterStats as CounterStats {
+    externalizeWith {
+        int getMinValue();
+        int getMaxValue();
+        long getValueSum();
+    }
+}
+
+class TransactionStatisticsEntry {
+    String server;
+    int numReport;
+    long numReads;
+    long numWrites;
+    long numAborts;
+    long numConflicts;
+    long secondsBetweenReports;
+    DateTime when;
+    CounterStats readOnlyReads;
+    CounterStats readWriteReads;
+    CounterStats readWriteWrites;
+}
+
+// Placeholder class, so that we do not polute the DomainRoot class with lots of stuff from the FenixFramework.  If needed the
+// class FenixFrameworkData and its relation with DomainRoot may be moved to a higher-visibility module, e.g.,
+// fenix-framework-core.
+class FenixFrameworkData;
+relation DomainRootHasFenixFrameworkData {
+    .pt.ist.fenixframework.DomainRoot playsRole;
+    FenixFrameworkData playsRole fenixFrameworkData;
+}
+
+// class TransactionStatisticsLog;
+
+// relation TransactionStatisticsLogHasTransactionStatisticsEntry {
+//     TransactionStatisticsEntry playsRole entry {
+//         multiplicity *;
+//     }
+//     TransactionStatisticsLog playsRole;
+// }
+
+
+relation FenixDataHasTransactionStatistics {
+    FenixFrameworkData playsRole;
+    TransactionStatisticsEntry playsRole FFTxStatsLog {
+        multiplicity *;
+    }
+}
