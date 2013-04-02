@@ -262,7 +262,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
     protected void generateRoleSlotMethodsMultStarGetters(Role role, PrintWriter out) {
         generateRoleSlotMethodsMultStarInternalGetter(makeDomainBasedMapInternalGetterName(role), role, out);
 
-        generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
+        generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()) + "Set", role, out);
     }
 
     protected void generateRoleSlotMethodsMultStarInternalGetter(String getterName, Role role, PrintWriter out) {

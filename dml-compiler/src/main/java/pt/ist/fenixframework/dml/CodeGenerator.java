@@ -471,7 +471,7 @@ public abstract class CodeGenerator {
         print(out, "return (" + getConcreteSetTypeDeclarationFor(role) + ")");
         print(out, "o1.get");
         print(out, capitalize(role.getName()));
-        print(out, "();");
+        print(out, "Set();");
         endMethodBody(out);
     }
 
@@ -999,7 +999,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateRoleSlotMethodsMultStarGetters(Role role, PrintWriter out) {
-        generateRelationGetter("get" + capitalize(role.getName()), role, out);
+        generateRelationGetter("get" + capitalize(role.getName()) + "Set", role, out);
     }
 
     protected void generateRelationGetter(String getterName, Role role, PrintWriter out) {

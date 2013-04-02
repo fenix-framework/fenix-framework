@@ -242,7 +242,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
     protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out) {
         newline(out);
-        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()));
+        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()) + "Set");
         startMethodBody(out);
 
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement

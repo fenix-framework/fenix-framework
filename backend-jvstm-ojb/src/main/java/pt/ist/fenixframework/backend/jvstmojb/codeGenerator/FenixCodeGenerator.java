@@ -288,7 +288,7 @@ public class FenixCodeGenerator extends ConsistencyPredicatesCodeGenerator {
     }
 
     protected void generateRelationGetter(Role role, String paramListType, PrintWriter out) {
-        generateRelationGetter("get" + capitalize(role.getName()), getSlotExpression(role.getName()), paramListType, out);
+        generateRelationGetter("get" + capitalize(role.getName()) + "Set", getSlotExpression(role.getName()), paramListType, out);
     }
 
     protected void generateRelationGetter(String getterName, String valueToReturn, String typeName, PrintWriter out) {
@@ -312,7 +312,7 @@ public class FenixCodeGenerator extends ConsistencyPredicatesCodeGenerator {
 
     @Override
     protected void generateRoleSlotMethodsMultStarGetters(Role role, PrintWriter out) {
-        generateRelationGetter("get" + capitalize(role.getName()), role, out);
+        generateRelationGetter("get" + capitalize(role.getName()) + "Set", role, out);
         generateOJBSetter(role.getName(), "OJBFunctionalSetWrapper", out);
     }
 
@@ -547,11 +547,10 @@ public class FenixCodeGenerator extends ConsistencyPredicatesCodeGenerator {
 
                 print(out, "if (get");
                 print(out, capitalize(role.getName()));
-                print(out, "()");
                 if (role.getMultiplicityUpper() == 1) {
-                    print(out, " != null");
+                    print(out, "() != null");
                 } else {
-                    print(out, ".size() > 0");
+                    print(out, "Set().size() > 0");
                 }
                 print(out, ") handleAttemptToDeleteConnectedObject(\"");
                 print(out, capitalize(role.getName()));
