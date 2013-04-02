@@ -265,7 +265,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         setInitialized(false);
 
         int count = 0;
-        for (DomainDependenceRecord dependenceRecord : getDomainDependenceRecords()) {
+        for (DomainDependenceRecord dependenceRecord : getDomainDependenceRecordsSet()) {
             count++;
             if ((count % (ConsistencyPredicateSupport.getInstance().getBatchSize() / 2)) == 0) {
                 // Commits the current, and starts a new write transaction.

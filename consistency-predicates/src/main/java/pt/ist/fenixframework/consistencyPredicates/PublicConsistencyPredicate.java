@@ -97,7 +97,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
     private void removeDomainDependenceRecordsForMetaClassAndSubclasses(DomainMetaClass metaClass) {
         removeDomainDependenceRecordsForExistingObjects(metaClass);
 
-        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclasses()) {
+        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclassesSet()) {
             removeDomainDependenceRecordsForMetaClassAndSubclasses(metaSubclass);
         }
     }
@@ -189,7 +189,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         }
 
         // Continue searching in subclasses for overriding predicates
-        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclasses()) {
+        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclassesSet()) {
             executeConsistencyPredicateForMetaClassAndSubclasses(metaSubclass);
         }
     }
@@ -224,7 +224,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         }
 
         // Continue searching in subclasses for overriding predicates
-        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclasses()) {
+        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclassesSet()) {
             checkOverridingMethods(metaSubclass);
         }
     }
@@ -253,7 +253,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
                     + " which must be executed from the former class downwards.");
             overriddenPredicate.executeConsistencyPredicateForMetaClassAndSubclasses(getDomainMetaClass());
 
-            for (PublicConsistencyPredicate predicatesOverriding : getPublicConsistencyPredicatesOverriding()) {
+            for (PublicConsistencyPredicate predicatesOverriding : getPublicConsistencyPredicatesOverridingSet()) {
                 predicatesOverriding.setPublicConsistencyPredicateOverridden(overriddenPredicate);
             }
         }
@@ -273,7 +273,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
      **/
     @Override
     public void classDelete() {
-        for (PublicConsistencyPredicate predicatesOverriding : getPublicConsistencyPredicatesOverriding()) {
+        for (PublicConsistencyPredicate predicatesOverriding : getPublicConsistencyPredicatesOverridingSet()) {
             removePublicConsistencyPredicatesOverriding(predicatesOverriding);
         }
         setPublicConsistencyPredicateOverridden(null);

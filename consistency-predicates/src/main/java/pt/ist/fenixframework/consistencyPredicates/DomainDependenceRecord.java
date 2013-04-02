@@ -78,7 +78,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
      * </ul>
      **/
     public void delete() {
-        for (DomainMetaObject dependedMetaObject : getDependedDomainMetaObjects()) {
+        for (DomainMetaObject dependedMetaObject : getDependedDomainMetaObjectsSet()) {
             removeDependedDomainMetaObjects(dependedMetaObject);
         }
         if (!isConsistent()) {
@@ -99,7 +99,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
 
     @Override
     public Iterator<DomainMetaObject> getDepended() {
-        return getDependedDomainMetaObjects().iterator();
+        return getDependedDomainMetaObjectsSet().iterator();
     }
 
     @Override

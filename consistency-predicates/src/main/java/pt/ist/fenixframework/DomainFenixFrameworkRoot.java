@@ -161,7 +161,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         existingDMLDomainClasses = getExistingDomainClasses(domainModel);
         Set<DomainMetaClass> oldMetaClassesToRemove = new HashSet<DomainMetaClass>();
 
-        for (DomainMetaClass metaClass : getDomainMetaClasses()) {
+        for (DomainMetaClass metaClass : getDomainMetaClassesSet()) {
             Class<? extends DomainObject> domainClass = metaClass.getDomainClass();
             if ((domainClass == null) || (!existingDMLDomainClasses.keySet().contains(domainClass))) {
                 oldMetaClassesToRemove.add(metaClass);
@@ -409,7 +409,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         for (DomainMetaClass metaClass : existingMetaClassesTopDown) {
 
             Set<Method> existingPredicateMethods = getDeclaredConsistencyPredicateMethods(metaClass);
-            for (DomainConsistencyPredicate declaredPredicate : metaClass.getDeclaredConsistencyPredicates()) {
+            for (DomainConsistencyPredicate declaredPredicate : metaClass.getDeclaredConsistencyPredicatesSet()) {
                 Method predicateMethod = declaredPredicate.getPredicate();
                 if ((predicateMethod == null)
                         || (!predicateMethod.isAnnotationPresent(ConsistencyPredicate.class) && !predicateMethod
@@ -661,8 +661,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      *             method
      */
     private void checkAllMethodsOverridingPredicates() {
-        for (DomainMetaClass metaClass : getDomainMetaClasses()) {
-            for (DomainConsistencyPredicate predicate : metaClass.getDeclaredConsistencyPredicates()) {
+        for (DomainMetaClass metaClass : getDomainMetaClassesSet()) {
+            for (DomainConsistencyPredicate predicate : metaClass.getDeclaredConsistencyPredicatesSet()) {
                 predicate.checkOverridingMethods(metaClass);
             }
         }
@@ -676,9 +676,9 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * @see JvstmOJBConfig#canCreateMetaObjects
      */
     private void deleteAllMetaObjectsAndClasses() {
-        if (!getDomainMetaClasses().isEmpty()) {
+        if (!getDomainMetaClassesSet().isEmpty()) {
             logger.info("Deleting all DomainMetaObjects, DomainMetaClasses, DomainConsistencyPredicates and DomainDependenceRecords");
-            for (DomainMetaClass metaClass : getDomainMetaClasses()) {
+            for (DomainMetaClass metaClass : getDomainMetaClassesSet()) {
                 // Commits the current, and starts a new write transaction.
                 // This is necessary to split the load of the mass deletion of objects among several transactions.
                 // Each transaction fully processes one DomainMetaClass.

@@ -45,7 +45,7 @@ public class FinalConsistencyPredicate extends FinalConsistencyPredicate_Base {
     public void executeConsistencyPredicateForMetaClassAndSubclasses(DomainMetaClass metaClass) {
         executeConsistencyPredicateForExistingDomainObjects(metaClass);
 
-        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclasses()) {
+        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclassesSet()) {
             executeConsistencyPredicateForMetaClassAndSubclasses(metaSubclass);
         }
     }

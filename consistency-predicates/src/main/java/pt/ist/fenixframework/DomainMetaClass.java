@@ -190,7 +190,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     public <PredicateT extends DomainConsistencyPredicate> PredicateT getDeclaredConsistencyPredicate(Method predicateMethod) {
-        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicates()) {
+        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicatesSet()) {
             if (declaredConsistencyPredicate.getPredicate().equals(predicateMethod)) {
                 return (PredicateT) declaredConsistencyPredicate;
             }
@@ -333,7 +333,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      * directly in this class.
      */
     private void fillDeclaredPrivatePredicates(List<PrivateConsistencyPredicate> privatePredicates) {
-        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicates()) {
+        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicatesSet()) {
             if (declaredConsistencyPredicate.isPrivate()) {
                 privatePredicates.add((PrivateConsistencyPredicate) declaredConsistencyPredicate);
             }
@@ -345,7 +345,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      * {@link PublicConsistencyPredicate}s declared directly in this class, associated to their method names.
      */
     private void fillDeclaredPublicPredicates(Map<String, PublicConsistencyPredicate> publicPredicates) {
-        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicates()) {
+        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicatesSet()) {
             if (declaredConsistencyPredicate.isPublic()) {
                 // Overwrites previous values under the same key.
                 // So, any overridden predicate with the same name will be replaced.  
@@ -386,12 +386,12 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 
         // If we are deleting this class, then the previous subclass will have changed its superclass
         // and should also be deleted.
-        for (DomainMetaClass metaSubclass : getDomainMetaSubclasses()) {
+        for (DomainMetaClass metaSubclass : getDomainMetaSubclassesSet()) {
             metaSubclass.delete();
         }
 
         logger.info("Deleted DomainMetaClass " + getDomainClassName());
-        for (DomainConsistencyPredicate domainConsistencyPredicate : getDeclaredConsistencyPredicates()) {
+        for (DomainConsistencyPredicate domainConsistencyPredicate : getDeclaredConsistencyPredicatesSet()) {
             domainConsistencyPredicate.classDelete();
         }
         setDomainMetaSuperclass(null);
