@@ -154,7 +154,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     }
 
     protected void generateDefaultConstructor(DomainClass domClass, PrintWriter out) {
-        printMethod(out, "public", "", domClass.getBaseName());
+        printConstructor(out, "public", domClass.getBaseName());
         startMethodBody(out);
         generateBaseClassConstructorsBody(domClass, out);
         endMethodBody(out);
