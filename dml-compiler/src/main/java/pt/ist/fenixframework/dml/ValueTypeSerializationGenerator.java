@@ -92,7 +92,7 @@ public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
 
     protected void generateConstructor(ValueType vt) {
         onNewline(out);
-        printMethod(out, "private", "", makeSerializationValueTypeName(vt), makeArg(vt.getFullname(), "obj"));
+        printConstructor(out, "private", makeSerializationValueTypeName(vt), makeArg(vt.getFullname(), "obj"));
         startMethodBody(out);
         List<ExternalizationElement> extElems = vt.getExternalizationElements();
         for (ExternalizationElement extElem : extElems) {

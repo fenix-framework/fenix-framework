@@ -235,7 +235,7 @@ public abstract class CodeGenerator {
 
     protected void generatePublicClassConstructors(String className, PrintWriter out) {
         newline(out);
-        printMethod(out, "public", "", className);
+        printConstructor(out, "public", className);
         startMethodBody(out);
         print(out, "super();");
         endMethodBody(out);
@@ -1159,18 +1159,17 @@ public abstract class CodeGenerator {
 
         return buf.toString();
     }
+    
+    protected void printConstructor(PrintWriter out, String mods, String name, String... args) {
+        printWords(out, mods, name);
+
+        printArguments(out, args);
+    }
 
     protected void printMethod(PrintWriter out, String mods, String type, String name, String... args) {
         printWords(out, mods, type, name);
 
-        print(out, "(");
-        String sep = "";
-        for (String arg : args) {
-            print(out, sep);
-            print(out, arg);
-            sep = ", ";
-        }
-        print(out, ")");
+        printArguments(out, args);
     }
 
     protected void printFinalMethod(PrintWriter out, String mods, String type, String name, String... args) {
@@ -1190,6 +1189,17 @@ public abstract class CodeGenerator {
 
     protected String makeArg(String type, String arg) {
         return type + " " + arg;
+    }
+    
+    protected void printArguments(PrintWriter out, String... args) {
+        print(out, "(");
+        String sep = "";
+        for (String arg : args) {
+            print(out, sep);
+            print(out, arg);
+            sep = ", ";
+        }
+        print(out, ")");
     }
 
     protected void printWords(PrintWriter out, String... words) {
