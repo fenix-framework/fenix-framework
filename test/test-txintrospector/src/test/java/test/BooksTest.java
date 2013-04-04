@@ -550,15 +550,15 @@ public class BooksTest {
     public void reset() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        for (Book book : domainRoot.getTheBooks()) {
+        for (Book book : domainRoot.getTheBooksSet()) {
             domainRoot.removeTheBooks(book);
         }
 
-        for (Author author : domainRoot.getTheAuthors()) {
+        for (Author author : domainRoot.getTheAuthorsSet()) {
             domainRoot.removeTheAuthors(author);
         }
 
-        for (Publisher publisher : domainRoot.getThePublishers()) {
+        for (Publisher publisher : domainRoot.getThePublishersSet()) {
             domainRoot.removeThePublishers(publisher);
         }
     }
@@ -568,15 +568,15 @@ public class BooksTest {
     private static void printAll() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        for (Book book : domainRoot.getTheBooks()) {
+        for (Book book : domainRoot.getTheBooksSet()) {
             System.out.println(book);
         }
 
-        for (Author author : domainRoot.getTheAuthors()) {
+        for (Author author : domainRoot.getTheAuthorsSet()) {
             System.out.println(author);
         }
 
-        for (Publisher publisher : domainRoot.getThePublishers()) {
+        for (Publisher publisher : domainRoot.getThePublishersSet()) {
             System.out.println(publisher);
         }
     }
@@ -584,7 +584,7 @@ public class BooksTest {
     @Atomic
     public static Author getAuthorByName(String authorName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Author author : domainRoot.getTheAuthors()) {
+        for (Author author : domainRoot.getTheAuthorsSet()) {
             if (author.getName().equals(authorName)) {
                 return author;
             }
@@ -595,7 +595,7 @@ public class BooksTest {
     @Atomic
     public static Book getBookByName(String bookName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Book book : domainRoot.getTheBooks()) {
+        for (Book book : domainRoot.getTheBooksSet()) {
             if (book.getBookName().equals(bookName)) {
                 return book;
             }
@@ -610,7 +610,7 @@ public class BooksTest {
     @Atomic
     public static Publisher getPublisherByName(String publisherName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Publisher publisher : domainRoot.getThePublishers()) {
+        for (Publisher publisher : domainRoot.getThePublishersSet()) {
             if (publisher.getPublisherName().equals(publisherName)) {
                 return publisher;
             }

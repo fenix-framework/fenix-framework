@@ -87,7 +87,7 @@ public class HibernateSearchBooksTest {
         assertTrue(queryResults.size() == 1);
         assertTrue(queryResults.contains(getBookByName(FEW_MOON)));
 
-        getPublisherByName(LITTLE).getBooksPublished().clear();
+        getPublisherByName(LITTLE).getBooksPublishedSet().clear();
     }
 
     @Atomic
@@ -168,7 +168,7 @@ public class HibernateSearchBooksTest {
     @Atomic
     public static Author getAuthorByName(String authorName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Author author : domainRoot.getTheAuthors()) {
+        for (Author author : domainRoot.getTheAuthorsSet()) {
             if (author.getName().equals(authorName)) {
                 return author;
             }
@@ -179,7 +179,7 @@ public class HibernateSearchBooksTest {
     @Atomic
     public static Book getBookByName(String bookName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Book book : domainRoot.getTheBooks()) {
+        for (Book book : domainRoot.getTheBooksSet()) {
             if (book.getBookName().equals(bookName)) {
                 return book;
             }
@@ -194,7 +194,7 @@ public class HibernateSearchBooksTest {
     @Atomic
     public static Publisher getPublisherByName(String publisherName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Publisher publisher : domainRoot.getThePublishers()) {
+        for (Publisher publisher : domainRoot.getThePublishersSet()) {
             if (publisher.getPublisherName().equals(publisherName)) {
                 return publisher;
             }
