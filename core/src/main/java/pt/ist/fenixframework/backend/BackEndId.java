@@ -68,6 +68,8 @@ public abstract class BackEndId {
      */
     public abstract Class<? extends AbstractDomainObject> getDomainClassRoot();
 
+    public abstract String getAppName();
+
     /**
      * Lookup via reflection the {@link pt.ist.fenixframework.backend.CurrentBackEndId} class and
      * return an instance of it.

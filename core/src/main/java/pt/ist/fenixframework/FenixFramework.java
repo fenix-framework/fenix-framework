@@ -171,6 +171,14 @@ public class FenixFramework {
         props = loadSystemProperties(props);
         logger.debug("Fenix Framework properties after enforcing system properties:" + props.toString());
 
+        if (!props.containsKey("appName")) {
+            String defaultAppName = BackEndId.getBackEndId().getAppName();
+            if (defaultAppName != null) {
+                props.put("appName", defaultAppName);
+                logger.debug("appName property automatically discovered: {}", defaultAppName);
+            }
+        }
+
         // try auto init for the given properties.  If none exists just skip
         if (props.isEmpty() || !tryAutoInit(props)) {
             logger.info("Skipping configuration by convention.");

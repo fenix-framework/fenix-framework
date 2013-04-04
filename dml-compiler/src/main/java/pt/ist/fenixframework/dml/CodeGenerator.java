@@ -277,6 +277,17 @@ public abstract class CodeGenerator {
         startMethodBody(out);
         printWords(out, "return", getDomainClassRoot() + ".class;");
         endMethodBody(out);
+
+        // getAppName
+        newline(out);
+        printMethod(out, "public", "String", "getAppName");
+        startMethodBody(out);
+        if (compArgs.getAppName() == null) {
+            printWords(out, "return null;");
+        } else {
+            printWords(out, "return \"" + compArgs.getAppName() + "\";");
+        }
+        endMethodBody(out);
     }
 
     protected void generateBaseClass(DomainClass domClass, PrintWriter out) {
@@ -1159,7 +1170,7 @@ public abstract class CodeGenerator {
 
         return buf.toString();
     }
-    
+
     protected void printConstructor(PrintWriter out, String mods, String name, String... args) {
         printWords(out, mods, name);
 
@@ -1190,7 +1201,7 @@ public abstract class CodeGenerator {
     protected String makeArg(String type, String arg) {
         return type + " " + arg;
     }
-    
+
     protected void printArguments(PrintWriter out, String... args) {
         print(out, "(");
         String sep = "";
