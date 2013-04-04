@@ -30,6 +30,11 @@ public class JVSTMConfig extends HibernateSearchConfig {
         // any sub-BackEnd with a concrete repository should have set it up by now
         // (and invoked super.init() only after doing so).  If a backend is not 
         // yet set, then we use the default JVSTMBackEnd, which has its own Repository.
+        //      
+        // We do not use the Config's constructor to pass the BackEnd instance,
+        // because the config instance is created **before** being populated with
+        // the configuration parameters, thus it may not be possible to create the
+        // BackEnd instance.
         if (backEnd == null) {
             this.backEnd = new JVSTMBackEnd();
         }

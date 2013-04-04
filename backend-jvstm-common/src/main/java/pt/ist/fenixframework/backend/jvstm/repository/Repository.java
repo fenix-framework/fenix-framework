@@ -10,8 +10,7 @@ package pt.ist.fenixframework.backend.jvstm.repository;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.DomainRoot;
+import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -45,6 +44,10 @@ public abstract class Repository {
 //
     // creates a repository bootstrap instance
 //    public abstract RepositoryBootstrap createRepositoryBootstrap(Config config);
+
+    // initialize this repository instance given a configuration
+    // returns whether the repository is new, so that we know we need to create the DomainRoot
+    public abstract boolean init(JVSTMConfig jvstmConfig);
 
     // get the stored information concerning the DomainClassInfo
     public abstract DomainClassInfo[] getDomainClassInfos();
@@ -90,14 +93,6 @@ public abstract class Repository {
      */
     public void createdNewOidFor(long newOid, long serverOidBase, DomainClassInfo instantiatedClass) {
     }
-
-    /**
-     * Ensure that the {@link DomainRoot} instance exists and is stored in the Repository. If necessary this method must create
-     * the singleton instance of the {@link DomainRoot} and store it in the Repository. This method is invoked during bootstrap
-     * of the framework, only after the transaction system is working, because the method may need to use it (e.g. via the
-     * {@link Atomic} annotation).
-     */
-    public abstract void ensureDomainRoot();
 
 //    /**
 //     * Store the given value using the given key.

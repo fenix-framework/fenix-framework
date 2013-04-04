@@ -97,7 +97,15 @@ public class JVSTMBackEnd implements BackEnd {
         return (T) obj;
     }
 
+    /**
+     * Initialize this backend. This method is invoked with the JVSTMConfig instance fully available.
+     * 
+     * @param jvstmConfig
+     */
     public void init(JVSTMConfig jvstmConfig) {
+        logger.info("initializeRepository()");
+        boolean repositoryIsNew = initializeRepository(jvstmConfig);
+
         logger.info("initializeDomainClassInfos");
         DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
 
@@ -105,8 +113,10 @@ public class JVSTMBackEnd implements BackEnd {
         setupJVSTM();
 
         // We need to ensure that the DomainRoot instance exists and is correctly initialized BEFORE the execution of any code that may need it.
-        logger.info("ensureDomainRoot");
-        getRepository().ensureDomainRoot();
+        logger.info("createDomainRootIfNeeded");
+        if (repositoryIsNew) {
+            createDomainRoot();
+        }
 
         // this method will be moved (probably to the core) when we have FenixFrameworkData (or a similarly named class) defined there
         logger.info("ensureFenixFrameworkDataExists");
@@ -114,6 +124,11 @@ public class JVSTMBackEnd implements BackEnd {
 
         logger.info("startStatisticsThread");
         new StatisticsThread().start();
+    }
+
+    // returns whether the repository is new, so that we know we need to create the DomainRoot
+    protected boolean initializeRepository(JVSTMConfig jvstmConfig) {
+        return this.repository.init(jvstmConfig);
     }
 
     protected void setupJVSTM() {
@@ -146,6 +161,11 @@ public class JVSTMBackEnd implements BackEnd {
         } else {
             throw new Error("Couldn't determine the last transaction number");
         }
+    }
+
+    @Atomic(mode = TxMode.WRITE)
+    protected void createDomainRoot() {
+        new DomainRoot();
     }
 
     @Atomic(mode = TxMode.WRITE)
