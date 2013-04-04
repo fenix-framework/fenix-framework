@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.BackEndId;
+import pt.ist.fenixframework.core.Project;
 import pt.ist.fenixframework.dml.DmlCompilerException;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.util.NodeBarrier;
@@ -423,5 +424,18 @@ public class FenixFramework {
 
     public static void barrier(String barrierName, int expectedMembers) throws Exception {
         getNodeBarrier().blockUntil(barrierName, expectedMembers);
+    }
+
+    /**
+     * Returns the {@link Project} associated with the running application.
+     */
+    public static Project getProject() {
+        try {
+            return Project.fromName(config.getAppName());
+        } catch (Exception e) {
+            // If no appName is defined or an error occurs, 
+            // just return nothing...
+            return null;
+        }
     }
 }
