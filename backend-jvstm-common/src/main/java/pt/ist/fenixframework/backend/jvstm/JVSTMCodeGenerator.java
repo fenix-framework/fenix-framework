@@ -259,7 +259,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
+    protected void generateRoleSlotMethodsMultStarGetters(Role role, PrintWriter out) {
         generateRoleSlotMethodsMultStarInternalGetter(makeDomainBasedMapInternalGetterName(role), role, out);
 
         generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
@@ -280,18 +280,6 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
         startMethodBody(out);
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
         generateRoleStarGetterBody(role.getName(), getTypeFullName(role.getType()), out);
-        endMethodBody(out);
-    }
-
-    @Override
-    protected void generateIteratorMethod(Role role, PrintWriter out) {
-        newline(out);
-        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
-                + capitalize(role.getName()) + "Iterator");
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
-        printWords(out, "return get" + capitalize(role.getName()) + "().iterator();");
         endMethodBody(out);
     }
 

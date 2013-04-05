@@ -236,9 +236,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
+    protected void generateRoleSlotMethodsMultStarGetters(Role role, PrintWriter out) {
         generateRoleSlotMethodsMultStarGetter(role, out);
-        generateIteratorMethod(role, out);
     }
 
     protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out) {
@@ -271,24 +270,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, ", internalSet, keyFunction$$");
         print(out, role.getName());
         print(out, ");");
-        endMethodBody(out);
-    }
-
-    @Override
-    protected void generateIteratorMethod(Role role, PrintWriter out) {
-        generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "Iterator", "get" + capitalize(role.getName())
-                + "()");
-    }
-
-    protected void generateIteratorMethod(Role role, PrintWriter out, String methodName, final String slotAccessExpression) {
-        newline(out);
-        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), methodName);
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-
-        printWords(out, "return", slotAccessExpression);
-        print(out, ".iterator();");
         endMethodBody(out);
     }
 

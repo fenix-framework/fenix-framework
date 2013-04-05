@@ -311,26 +311,9 @@ public class FenixCodeGenerator extends ConsistencyPredicatesCodeGenerator {
     }
 
     @Override
-    protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
+    protected void generateRoleSlotMethodsMultStarGetters(Role role, PrintWriter out) {
         generateRelationGetter("get" + capitalize(role.getName()), role, out);
         generateOJBSetter(role.getName(), "OJBFunctionalSetWrapper", out);
-        generateIteratorMethod(role, out);
-    }
-
-    @Override
-    protected void generateIteratorMethod(Role role, PrintWriter out) {
-        generateIteratorMethod(role, out, getSlotExpression(role.getName()));
-    }
-
-    @Override
-    protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {
-        newline(out);
-        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
-                + capitalize(role.getName()) + "Iterator");
-        startMethodBody(out);
-        printWords(out, "return", slotAccessExpression);
-        print(out, ".iterator();");
-        endMethodBody(out);
     }
 
     @Override

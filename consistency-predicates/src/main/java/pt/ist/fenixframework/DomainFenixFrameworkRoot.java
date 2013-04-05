@@ -676,7 +676,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * @see JvstmOJBConfig#canCreateMetaObjects
      */
     private void deleteAllMetaObjectsAndClasses() {
-        if (hasAnyDomainMetaClasses()) {
+        if (!getDomainMetaClasses().isEmpty()) {
             logger.info("Deleting all DomainMetaObjects, DomainMetaClasses, DomainConsistencyPredicates and DomainDependenceRecords");
             for (DomainMetaClass metaClass : getDomainMetaClasses()) {
                 // Commits the current, and starts a new write transaction.

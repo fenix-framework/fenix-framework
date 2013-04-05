@@ -99,7 +99,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
 
     @Override
     public Iterator<DomainMetaObject> getDepended() {
-        return getDependedDomainMetaObjectsIterator();
+        return getDependedDomainMetaObjects().iterator();
     }
 
     @Override

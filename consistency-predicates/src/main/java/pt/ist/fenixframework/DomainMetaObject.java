@@ -138,6 +138,6 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
 
     @Override
     public Set<DomainDependenceRecord> getDependenceRecords() {
-        return getDependingDependenceRecordsSet();
+        return getDependingDependenceRecords();
     }
 }
