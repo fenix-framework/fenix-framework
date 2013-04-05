@@ -21,7 +21,10 @@ public class LocalityHints {
     private static volatile KeyFeatureManager cloudtmFeatureManager;
     private final Map<String, String> keyValues;
 
-    public LocalityHints(String... hints) {
+    public LocalityHints(String[] hints) {
+        if (hints == null) {
+            throw new NullPointerException("Hints array cannot be null.");
+        }
         this.keyValues = new HashMap<String, String>(hints.length / 2);
         for (int i = 0; i < hints.length; ++i) {
             if (i + 1 >= hints.length) {
@@ -29,6 +32,10 @@ public class LocalityHints {
             }
             keyValues.put(hints[i++], hints[i]);
         }
+    }
+
+    public LocalityHints() {
+        this.keyValues = new HashMap<String, String>();
     }
 
     private LocalityHints(Map<String, String> keyValues) {
@@ -60,6 +67,10 @@ public class LocalityHints {
             throw new IllegalArgumentException("String " + hints + " is not a valid string");
         }
         return new LocalityHints(keyValues);
+    }
+
+    public final synchronized void addHint(String key, String value) {
+        this.keyValues.put(key, value);
     }
 
     private static void checkIfInitialized() {
