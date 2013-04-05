@@ -21,7 +21,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
     public static final String BACKEND_NAME = "jvstmispn";
 
     JvstmIspnBackEnd() {
-        super(null);
+        super(new InfinispanRepository());
     }
 
     public static JvstmIspnBackEnd getInstance() {
@@ -53,8 +53,8 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
 //        transactionManager.emf.close();
     }
 
-    protected void configJvstmIspn(JvstmIspnConfig config) throws Exception {
+//    protected void configJvstmIspn(JvstmIspnConfig config) throws Exception {
 //        transactionManager.setupTxManager(config);
-    }
+//    }
 
 }

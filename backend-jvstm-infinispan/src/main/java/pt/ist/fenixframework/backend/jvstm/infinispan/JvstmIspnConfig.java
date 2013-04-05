@@ -10,7 +10,6 @@ package pt.ist.fenixframework.backend.jvstm.infinispan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.ConfigError;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 
 /**
@@ -39,13 +38,13 @@ public class JvstmIspnConfig extends JVSTMConfig {
     protected void init() {
         JvstmIspnBackEnd thisBackEnd = new JvstmIspnBackEnd();
         super.backEnd = thisBackEnd;
-        try {
-            thisBackEnd.configJvstmIspn(this);
-        } catch (Exception e) {
-            throw new ConfigError(FAILED_INIT, e);
-        }
-
-        super.init(); // do this only after having set up transaction manager
+//        try {
+//            thisBackEnd.configJvstmIspn(this);
+//        } catch (Exception e) {
+//            throw new ConfigError(FAILED_INIT, e);
+//        }
+//
+        super.init(); // this will in turn initialize our backend 
     }
 
     @Override
