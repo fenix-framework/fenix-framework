@@ -92,6 +92,7 @@ import pt.ist.fenixframework.util.Converter;
  * </ul>
  */
 public class CompilerArgs {
+    private String appName;
     boolean generateFinals = false;
     File destDirectoryBase = null;
     File destDirectory = null;
@@ -109,9 +110,10 @@ public class CompilerArgs {
      */
     private boolean addToLocalDomainSpecs = true;
 
-    private CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
+    private CompilerArgs(String appName, File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
             Class<? extends CodeGenerator> generatorClass, Map<String, String> params) {
 
+        this.appName = appName;
         this.destDirectory = destDirectory;
         this.destDirectoryBase = destDirectoryBase;
         this.packageName = packageName;
@@ -123,11 +125,11 @@ public class CompilerArgs {
     /**
      * Create the CompilerArgs using a local and external DML files specification
      */
-    public CompilerArgs(File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
+    public CompilerArgs(String appName, File destDirectory, File destDirectoryBase, String packageName, Boolean generateFinals,
             Class<? extends CodeGenerator> generatorClass, List<URL> localDomainSpecs, List<URL> externalDomainSpecs,
             Map<String, String> params) {
 
-        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params);
+        this(appName, destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params);
         if (localDomainSpecs != null) {
             this.localDomainSpecs.addAll(localDomainSpecs);
         }
@@ -145,7 +147,7 @@ public class CompilerArgs {
             Class<? extends CodeGenerator> generatorClass, String projectName, Map<String, String> params)
             throws DmlCompilerException {
 
-        this(destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params);
+        this(projectName, destDirectory, destDirectoryBase, packageName, generateFinals, generatorClass, params);
         try {
             setDmlSpecsFromProjectName(projectName);
         } catch (Exception e) {
@@ -274,6 +276,10 @@ public class CompilerArgs {
 
         this.localDomainSpecs = localDmls;
         this.externalDomainSpecs = externalDmls;
+    }
+
+    public String getAppName() {
+        return appName;
     }
 
     public Class<? extends CodeGenerator> getCodeGenerator() {
