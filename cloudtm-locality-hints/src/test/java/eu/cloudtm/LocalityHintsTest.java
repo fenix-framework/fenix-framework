@@ -13,12 +13,12 @@ public class LocalityHintsTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testWrongParameters() {
-        new LocalityHints("bla");
+        new LocalityHints(new String[] {"bla"});
     }
 
     @Test(expectedExceptions = IllegalStateException.class)
     public void testIfInitialized() {
-        LocalityHints hints = new LocalityHints(Constants.GROUP_ID, "bla");
+        LocalityHints hints = new LocalityHints(new String[] {Constants.GROUP_ID, "bla"});
         hints.hints2String();
     }
 

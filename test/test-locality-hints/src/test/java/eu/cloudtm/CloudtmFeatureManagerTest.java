@@ -40,7 +40,7 @@ public class CloudtmFeatureManagerTest {
 
     @Test
     public void testSimpleHints() {
-        LocalityHints hints = new LocalityHints(Constants.GROUP_ID, "group", "feature1", "1", "feature2", "2");
+        LocalityHints hints = new LocalityHints(new String[] {Constants.GROUP_ID, "group", "feature1", "1", "feature2", "2"});
         createTestPerson(hints);
 
         CloudtmFeatureManager manager = TEST_MANAGER;
@@ -62,7 +62,7 @@ public class CloudtmFeatureManagerTest {
 
     @Test
     public void testOnlyGroup() {
-        LocalityHints hints = new LocalityHints(Constants.GROUP_ID, "group");
+        LocalityHints hints = new LocalityHints(new String[]{Constants.GROUP_ID, "group"});
         createTestPerson(hints);
 
         CloudtmFeatureManager manager = TEST_MANAGER;
