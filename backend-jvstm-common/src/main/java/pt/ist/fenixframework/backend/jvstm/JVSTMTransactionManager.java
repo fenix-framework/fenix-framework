@@ -59,7 +59,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
             // check has been made in the super-class.
             transactions.get().commit();
         } finally {
-            transactions.remove();  // smf: if an exception occurs during commit, should we still do this??  Won't the transaction be neeed for rollback?
+            transactions.remove();
         }
     }
 
@@ -114,11 +114,16 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
+    // allow unchecked exceptions to pass to the caller
     public <T> T withTransaction(CallableWithoutException<T> command) {
         try {
             return handleWriteCommand(command, false);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Error e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Unexpected exception ocurred while running transaction", e);
+            throw new Error("Unexpected exception ocurred while running transaction", e);
         }
     }
 
