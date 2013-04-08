@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.ojb.MetadataManager;
+import pt.ist.fenixframework.util.FenixFrameworkThread;
 
 public class TransactionChangeLogs {
 
@@ -308,13 +309,14 @@ public class TransactionChangeLogs {
         }
     }
 
-    private static class CleanThread extends Thread {
+    private static class CleanThread extends FenixFrameworkThread {
         private static final long SECONDS_BETWEEN_UPDATES = 120;
 
         private final String server;
         private int lastTxNumber = -1;
 
         CleanThread(int lastTxNumber) {
+            super("CleanThread");
             this.server = Util.getServerName();
             this.lastTxNumber = lastTxNumber;
 
