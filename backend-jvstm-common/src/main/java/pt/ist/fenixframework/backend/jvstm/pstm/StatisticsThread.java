@@ -35,7 +35,7 @@ public class StatisticsThread extends Thread {
     }
 
     private void reportStatistics() {
-        final TransactionStatistics.Report stats = TransactionSupport.STATISTICS.getReportAndReset();
+        final TransactionStatistics.Report stats = TransactionStatistics.STATISTICS.getReportAndReset();
         numReport++;
         doAtomicReporting(stats);
     }

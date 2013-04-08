@@ -3,6 +3,7 @@ package pt.ist.fenixframework.backend.jvstm.pstm;
 import java.util.List;
 import java.util.ListIterator;
 
+import jvstm.Transaction;
 import jvstm.VBoxBody;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.backend.jvstm.FenixVBox;
@@ -62,7 +63,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
 
     @Override
     public E get(/*Object obj, String attrName*/) {
-        return TransactionSupport.currentFenixTransaction().getBoxValue(this);
+        return ((JvstmInFenixTransaction) Transaction.current()).getBoxValue(this);
     }
 
     @Override
@@ -77,7 +78,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
 
     public boolean hasValue() {
         throw new UnsupportedOperationException("not yet implemented");
-//        return Transaction.currentFenixTransaction().isBoxValueLoaded(this);
+//        return ((JvstmInFenixTransaction)Transaction.current()).isBoxValueLoaded(this);
     }
 
     public void putNotLoadedValue() {

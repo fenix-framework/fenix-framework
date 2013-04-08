@@ -16,9 +16,9 @@ import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 import pt.ist.fenixframework.backend.jvstm.repository.PersistenceException;
 import pt.ist.fenixframework.core.WriteOnReadError;
 
-public class GenericTopLevelTransaction extends ConsistentTopLevelTransaction implements FenixTransaction/*, TxIntrospector*/{
+public class PersistentTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction/*, TxIntrospector*/{
 
-    private static final Logger logger = LoggerFactory.getLogger(GenericTopLevelTransaction.class);
+    private static final Logger logger = LoggerFactory.getLogger(PersistentTransaction.class);
 
     private static int NUM_READS_THRESHOLD = 10000000;
     private static int NUM_WRITES_THRESHOLD = 100000;
@@ -29,23 +29,25 @@ public class GenericTopLevelTransaction extends ConsistentTopLevelTransaction im
     protected int numBoxReads = 0;
     protected int numBoxWrites = 0;
 
-    GenericTopLevelTransaction(ActiveTransactionsRecord record) {
+    public PersistentTransaction(ActiveTransactionsRecord record) {
         super(record);
         this.readOnly = false;
     }
 
-//    public PersistenceBroker getOJBBroker() {
-//	throw new UnsupportedOperationException();
-//    }
-
-//    @Deprecated
-//    public DomainObject readDomainObject(String classname, int oid) {
-//	throw new UnsupportedOperationException();
-//    }
-
     @Override
     public void setReadOnly() {
         this.readOnly = true;
+    }
+
+    @Override
+    public int getNumBoxReads() {
+        return numBoxReads;
+    }
+
+    @Override
+    public int getNumBoxWrites() {
+        return numBoxWrites;
+
     }
 
     @Override
@@ -56,9 +58,9 @@ public class GenericTopLevelTransaction extends ConsistentTopLevelTransaction im
     @Override
     protected void doCommit() {
         if (isWriteTransaction()) {
-            TransactionSupport.STATISTICS.incWrites(this);
+            TransactionStatistics.STATISTICS.incWrites(this);
         } else {
-            TransactionSupport.STATISTICS.incReads(this);
+            TransactionStatistics.STATISTICS.incReads(this);
         }
 
         if ((numBoxReads > NUM_READS_THRESHOLD) || (numBoxWrites > NUM_WRITES_THRESHOLD)) {
@@ -103,7 +105,7 @@ public class GenericTopLevelTransaction extends ConsistentTopLevelTransaction im
         boolean result = super.validateCommit();
 
         if (!result) {
-            TransactionSupport.STATISTICS.incConflicts();
+            TransactionStatistics.STATISTICS.incConflicts();
         }
 
         return result;
@@ -181,6 +183,7 @@ public class GenericTopLevelTransaction extends ConsistentTopLevelTransaction im
 //	throw new UnsupportedOperationException();
 //    }
 
+    @Override
     public boolean txAllowsWrite() {
         return !this.readOnly;
     }
