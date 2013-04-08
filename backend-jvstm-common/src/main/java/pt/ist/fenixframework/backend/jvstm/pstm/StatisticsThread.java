@@ -40,7 +40,7 @@ public class StatisticsThread extends Thread {
         doAtomicReporting(stats);
     }
 
-    @Atomic
+    @Atomic(readOnly = false)
     private void doAtomicReporting(final TransactionStatistics.Report stats) {
         TransactionStatisticsEntry entry;
         entry =
