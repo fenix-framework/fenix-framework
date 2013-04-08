@@ -7,6 +7,9 @@
  */
 package pt.ist.fenixframework.backend.jvstm;
 
+import jvstm.ActiveTransactionsRecord;
+import jvstm.Transaction;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +20,9 @@ import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.FenixFrameworkData;
+import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelReadOnlyTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.StatisticsThread;
-import pt.ist.fenixframework.backend.jvstm.pstm.TransactionSupport;
 import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -97,7 +101,7 @@ public class JVSTMBackEnd implements BackEnd {
         DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
 
         logger.info("setupJVSTM");
-        TransactionSupport.setupJVSTM();
+        setupJVSTM();
 
         // We need to ensure that the DomainRoot instance exists and is correctly initialized BEFORE the execution of any code that may need it.
         logger.info("ensureDomainRoot");
@@ -109,6 +113,38 @@ public class JVSTMBackEnd implements BackEnd {
 
         logger.info("startStatisticsThread");
         new StatisticsThread().start();
+    }
+
+    protected void setupJVSTM() {
+        // by default use JVSTM's transaction classes
+        initializeTransactionFactory();
+
+        // initialize transaction system
+        initializeJvstmTxNumber();
+    }
+
+    protected void initializeTransactionFactory() {
+        jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
+            @Override
+            public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                return new NonPersistentTopLevelTransaction(record);
+            }
+
+            @Override
+            public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                return new NonPersistentTopLevelReadOnlyTransaction(record);
+            }
+        });
+    }
+
+    protected void initializeJvstmTxNumber() {
+        int maxTx = getRepository().getMaxCommittedTxNumber();
+        if (maxTx >= 0) {
+            logger.info("Setting the last committed TX number to {}", maxTx);
+            Transaction.setMostRecentActiveRecord(new ActiveTransactionsRecord(maxTx, null));
+        } else {
+            throw new Error("Couldn't determine the last transaction number");
+        }
     }
 
     @Atomic(speculativeReadOnly = false)
