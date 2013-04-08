@@ -7,27 +7,29 @@ import javax.transaction.SystemException;
 
 import jvstm.CommitException;
 import jvstm.Transaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.GenericTopLevelTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.JvstmInFenixTransaction;
 import pt.ist.fenixframework.core.AbstractTransaction;
 import pt.ist.fenixframework.core.TransactionError;
 import pt.ist.fenixframework.txintrospector.TxStats;
 
 public class JVSTMTransaction extends AbstractTransaction {
 
-    private final GenericTopLevelTransaction underlyingTransaction;
+    private final JVSTMTransaction parent;
+    private final JvstmInFenixTransaction underlyingTransaction;
 
-    JVSTMTransaction(GenericTopLevelTransaction underlyingTransaction) {
+    JVSTMTransaction(JvstmInFenixTransaction underlyingTransaction, JVSTMTransaction parent) {
         super();
         this.underlyingTransaction = underlyingTransaction;
+        this.parent = parent;
     }
 
-    GenericTopLevelTransaction getUnderlyingTransaction() {
+    JvstmInFenixTransaction getUnderlyingTransaction() {
         return underlyingTransaction;
     }
 
-//    boolean isReadOnly() {
-//        return underlyingTransaction.isReadOnly();
-//    }
+    JVSTMTransaction getParent() {
+        return this.parent;
+    }
 
     void setReadOnly() {
         this.underlyingTransaction.setReadOnly();

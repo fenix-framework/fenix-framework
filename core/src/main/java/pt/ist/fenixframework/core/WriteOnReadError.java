@@ -12,4 +12,8 @@ public class WriteOnReadError extends TransactionError {
     public WriteOnReadError() {
         super();
     }
+
+    public WriteOnReadError(Throwable cause) {
+        super(cause);
+    }
 }

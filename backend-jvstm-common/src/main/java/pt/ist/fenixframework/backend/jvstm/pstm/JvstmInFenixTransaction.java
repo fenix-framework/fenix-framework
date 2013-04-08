@@ -1,7 +1,10 @@
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
-public interface FenixTransaction {
+public interface JvstmInFenixTransaction {
+
     public void setReadOnly();
+
+    public boolean txAllowsWrite();
 
     public <T> T getBoxValue(VBox<T> vbox);
 

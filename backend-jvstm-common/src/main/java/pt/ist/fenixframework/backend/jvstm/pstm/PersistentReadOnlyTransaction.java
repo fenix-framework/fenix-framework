@@ -3,9 +3,9 @@ package pt.ist.fenixframework.backend.jvstm.pstm;
 import jvstm.ActiveTransactionsRecord;
 import jvstm.VBoxBody;
 
-class ReadOnlyTopLevelTransaction extends GenericTopLevelTransaction {
+public class PersistentReadOnlyTransaction extends PersistentTransaction {
 
-    ReadOnlyTopLevelTransaction(ActiveTransactionsRecord record) {
+    public PersistentReadOnlyTransaction(ActiveTransactionsRecord record) {
         super(record);
     }
 
@@ -36,6 +36,6 @@ class ReadOnlyTopLevelTransaction extends GenericTopLevelTransaction {
 
     @Override
     public void setReadOnly() {
-        // nothing to do, ReadOnlyTopLevelTransaction is already read-only :-)
+        // nothing to do, PersistentReadOnlyTransaction is already read-only :-)
     }
 }
