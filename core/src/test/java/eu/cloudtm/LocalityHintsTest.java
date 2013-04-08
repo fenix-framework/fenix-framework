@@ -24,7 +24,7 @@ public class LocalityHintsTest {
     public void testFeatureEquality() {
         LocalityHints.init(TEST_MANAGER);
 
-        LocalityHints hints = new LocalityHints("feature1", "value1", "feature2", "value2", "feature3", "value3");
+        LocalityHints hints = new LocalityHints(new String[] {"feature1", "value1", "feature2", "value2", "feature3", "value3"});
 
         Assert.assertEquals(hints.get("feature1"), "value1", "Error checking feature1.");
         Assert.assertEquals(hints.get("feature2"), "value2", "Error checking feature2.");
@@ -44,7 +44,7 @@ public class LocalityHintsTest {
     public void testFeatureAndGroupEquality() {
         LocalityHints.init(TEST_MANAGER);
 
-        LocalityHints hints = new LocalityHints("feature1", "value1", "feature2", "value2", Constants.GROUP_ID, "group");
+        LocalityHints hints = new LocalityHints(new String[] {"feature1", "value1", "feature2", "value2", Constants.GROUP_ID, "group"});
 
         Assert.assertEquals(hints.get("feature1"), "value1", "Error checking feature1.");
         Assert.assertEquals(hints.get("feature2"), "value2", "Error checking feature2.");
