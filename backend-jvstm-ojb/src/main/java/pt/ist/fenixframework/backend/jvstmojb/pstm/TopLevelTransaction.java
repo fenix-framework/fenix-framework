@@ -169,11 +169,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
     }
 
     @Override
-    public AbstractDomainObject readDomainObject(String classname, int oid) {
-        return TransactionChangeLogs.readDomainObject(broker, classname, oid);
-    }
-
-    @Override
     public void setReadOnly() {
         // a null dbChanges indicates a read-only tx
         this.dbChanges = null;

@@ -13,8 +13,6 @@ public interface FenixTransaction {
 
     public PersistenceBroker getOJBBroker();
 
-    public AbstractDomainObject readDomainObject(String classname, int oid);
-
     public <T> T getBoxValue(VBox<T> vbox, Object obj, String attr);
 
     public <T> void setBoxValueInParent(VBox<T> box, T value);
