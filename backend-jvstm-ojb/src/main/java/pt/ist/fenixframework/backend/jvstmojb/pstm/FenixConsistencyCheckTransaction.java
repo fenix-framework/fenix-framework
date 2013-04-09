@@ -79,11 +79,6 @@ public class FenixConsistencyCheckTransaction extends ReadTransaction implements
     }
 
     @Override
-    public AbstractDomainObject readDomainObject(String classname, int oid) {
-        return parent.readDomainObject(classname, oid);
-    }
-
-    @Override
     public <T> T getBoxValue(VBox<T> vbox, Object obj, String attr) {
         if (obj != checkedObj) {
             if (!JvstmOJBConfig.canCreateDomainMetaObjects()) {

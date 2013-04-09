@@ -9,18 +9,20 @@ import org.apache.ojb.broker.PersistenceBrokerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class StatisticsThread extends Thread {
+import pt.ist.fenixframework.util.FenixFrameworkThread;
+
+class StatisticsThread extends FenixFrameworkThread {
 
     private static final Logger logger = LoggerFactory.getLogger(StatisticsThread.class);
 
     private static final long SECONDS_BETWEEN_REPORTS = 5 * 60;
 
-    private final String server;
+    private final static String server = Util.getServerName();
+
     private int numReport = 0;
 
     StatisticsThread() {
-        this.server = Util.getServerName();
-
+        super("StatisticsThread-" + server);
         setDaemon(true);
     }
 
