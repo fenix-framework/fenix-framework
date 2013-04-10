@@ -158,16 +158,14 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
 
         logger.trace("Handling callable {}", commandName);
 
-        // atomic defaults
+        // preset based on atomic defaults
         boolean readOnly = false;
-        boolean speculativeReadOnly = true;
+        boolean tryReadOnly = true;
 
         if (atomic != null) {
             readOnly = (atomic.mode() == TxMode.READ);
-            speculativeReadOnly = atomic.mode() == TxMode.SPECULATIVE_READ;
+            tryReadOnly = readOnly || (atomic.mode() == TxMode.SPECULATIVE_READ);
         }
-
-        boolean tryReadOnly = readOnly || speculativeReadOnly;
 
         int tries = 0;
 
