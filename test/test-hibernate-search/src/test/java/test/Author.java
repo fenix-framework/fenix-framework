@@ -41,7 +41,7 @@ public class Author extends Author_Base {
 
     @Override
     @ContainedIn
-    public java.util.Set<test.Book> getBooksSet() {
-        return super.getBooksSet();
+    public java.util.Set<test.Book> getBookSet() {
+        return super.getBookSet();
     }
 }

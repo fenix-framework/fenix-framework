@@ -79,7 +79,7 @@ public class PrivateConsistencyPredicate extends PrivateConsistencyPredicate_Bas
     public void executeConsistencyPredicateForMetaClassAndSubclasses(DomainMetaClass metaClass) {
         executeConsistencyPredicateForExistingDomainObjects(metaClass);
 
-        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclassesSet()) {
+        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclassSet()) {
             executeConsistencyPredicateForMetaClassAndSubclasses(metaSubclass);
         }
     }

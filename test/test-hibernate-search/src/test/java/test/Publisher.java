@@ -18,7 +18,7 @@ public class Publisher extends Publisher_Base {
     //	@Override
     //	public String toString() {
     //		String books = " of";
-    //		for (Book book : getBooksPublished()) {
+    //		for (Book book : getPublishedBook()) {
     //			books += " " + book.getBookName();
     //		}
     //		return "Publisher " + getPublisherName() + " of " + books;
@@ -31,7 +31,7 @@ public class Publisher extends Publisher_Base {
 
     @Override
     @ContainedIn
-    public java.util.Set<test.Book> getBooksPublishedSet() {
-        return super.getBooksPublishedSet();
+    public java.util.Set<test.Book> getPublishedBookSet() {
+        return super.getPublishedBookSet();
     }
 }

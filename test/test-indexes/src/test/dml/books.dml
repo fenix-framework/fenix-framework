@@ -21,18 +21,18 @@ class VampireBook extends Book {
 
 relation PublisherWithBooks {
     Publisher playsRole publisher;
-    Book playsRole booksPublished {
+    Book playsRole publishedBook {
         multiplicity *;
         indexed by bookName;
     }
 }
 
 relation AuthorsWithBooks {
-    Author playsRole authors {
+    Author playsRole author {
         multiplicity *;
         indexed by name #(*);
     }
-    Book playsRole books {
+    Book playsRole book {
         multiplicity *;
         indexed by bookName;
     }
@@ -45,7 +45,7 @@ relation VampireBookToVampireBook {
 
 relation DRWithBooks {
     .pt.ist.fenixframework.DomainRoot playsRole parent;
-    Book playsRole theBooks {
+    Book playsRole theBook {
         multiplicity *;
         indexed by bookName;
     }
@@ -53,7 +53,7 @@ relation DRWithBooks {
 
 relation DRWithAuthors {
     .pt.ist.fenixframework.DomainRoot playsRole parent;
-    Author playsRole theAuthors {
+    Author playsRole theAuthor {
         multiplicity *;
         indexed by name #(*);
     }
@@ -61,7 +61,7 @@ relation DRWithAuthors {
 
 relation DRWithPublishers {
     .pt.ist.fenixframework.DomainRoot playsRole parent;
-    Publisher playsRole thePublishers {
+    Publisher playsRole thePublisher {
         multiplicity *;
         indexed by publisherName;
     }

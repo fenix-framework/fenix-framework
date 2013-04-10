@@ -45,29 +45,29 @@ public class BooksTest {
 //    public void test00() {
 //	DomainRoot domainRoot = FenixFramework.getDomainRoot();
 //	
-//	assertTrue(domainRoot.getTheBooks().size() == NUMBER_ELEMENTS);
-//	assertTrue(domainRoot.getTheAuthors().size() == NUMBER_ELEMENTS);
-//	assertTrue(domainRoot.getThePublishers().size() == NUMBER_ELEMENTS);
+//	assertTrue(domainRoot.getTheBookSet().size() == NUMBER_ELEMENTS);
+//	assertTrue(domainRoot.getTheAuthorSet().size() == NUMBER_ELEMENTS);
+//	assertTrue(domainRoot.getThePublisherSet().size() == NUMBER_ELEMENTS);
 //	
-//        for (Book book : domainRoot.getTheBooks()) {
-//            domainRoot.removeTheBooks(book);
+//        for (Book book : domainRoot.getTheBookSet()) {
+//            domainRoot.removeTheBook(book);
 //        }
 //
-//        for (Author author : domainRoot.getTheAuthors()) {
-//            domainRoot.removeTheAuthors(author);
+//        for (Author author : domainRoot.getTheAuthorSet()) {
+//            domainRoot.removeTheAuthor(author);
 //        }
 //
-//        for (Publisher publisher : domainRoot.getThePublishers()) {
-//            domainRoot.removeThePublishers(publisher);
+//        for (Publisher publisher : domainRoot.getThePublisherSet()) {
+//            domainRoot.removeThePublisher(publisher);
 //        }
 //        
-//        System.out.println("Books: " + domainRoot.getTheBooks().size());
-//        System.out.println("Authors: " + domainRoot.getTheAuthors().size());
-//        System.out.println("Publishers: " + domainRoot.getThePublishers().size());
+//        System.out.println("Books: " + domainRoot.getTheBookSet().size());
+//        System.out.println("Authors: " + domainRoot.getTheAuthorSet().size());
+//        System.out.println("Publishers: " + domainRoot.getThePublisherSet().size());
 //        
-//	assertTrue(domainRoot.getTheBooks().size() == 0);
-//	assertTrue(domainRoot.getTheAuthors().size() == 0);
-//	assertTrue(domainRoot.getThePublishers().size() == 0);
+//	assertTrue(domainRoot.getTheBookSet().size() == 0);
+//	assertTrue(domainRoot.getTheAuthorSet().size() == 0);
+//	assertTrue(domainRoot.getThePublisherSet().size() == 0);
 //        
 //    }
 
@@ -76,9 +76,9 @@ public class BooksTest {
     public void test01() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        Set<Book> books = domainRoot.getTheBooksSet();
-        Set<Author> authors = domainRoot.getTheAuthorsSet();
-        Set<Publisher> publishers = domainRoot.getThePublishersSet();
+        Set<Book> books = domainRoot.getTheBookSet();
+        Set<Author> authors = domainRoot.getTheAuthorSet();
+        Set<Publisher> publishers = domainRoot.getThePublisherSet();
 
         assertTrue(books.size() == NUMBER_ELEMENTS);
         assertTrue(authors.size() == NUMBER_ELEMENTS);
@@ -117,17 +117,17 @@ public class BooksTest {
     public int[] test02part1() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        Book book = domainRoot.getTheBooksById(NUMBER_ELEMENTS / DIVIDE_RATIO);
-        domainRoot.removeTheBooks(book);
+        Book book = domainRoot.getTheBookById(NUMBER_ELEMENTS / DIVIDE_RATIO);
+        domainRoot.removeTheBook(book);
 
         Publisher publisher = getPublisherById(0);
-        domainRoot.removeThePublishers(publisher);
+        domainRoot.removeThePublisher(publisher);
 
-        Set<Author> authors = domainRoot.getTheAuthorsById(KEY_ONE);
+        Set<Author> authors = domainRoot.getTheAuthorById(KEY_ONE);
         Author author = authors.iterator().next();
-        domainRoot.removeTheAuthors(author);
+        domainRoot.removeTheAuthor(author);
 
-        authors = domainRoot.getTheAuthorsById(KEY_TWO);
+        authors = domainRoot.getTheAuthorById(KEY_TWO);
 
         int[] result = new int[2 + authors.size()];
         result[0] = publisher.getId();
@@ -143,7 +143,7 @@ public class BooksTest {
         for (int i = 2; i < upperBound; i++) {
             author = iter.next();
             result[i] = author.getAge();
-            domainRoot.removeTheAuthors(author);
+            domainRoot.removeTheAuthor(author);
         }
 
         return result;
@@ -153,13 +153,13 @@ public class BooksTest {
     public void test02part2(int[] ids) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        assertTrue(domainRoot.getTheBooksById(NUMBER_ELEMENTS / DIVIDE_RATIO) == null);
+        assertTrue(domainRoot.getTheBookById(NUMBER_ELEMENTS / DIVIDE_RATIO) == null);
         assertTrue(getBookById(NUMBER_ELEMENTS / DIVIDE_RATIO) == null);
 
         Publisher publisher = getPublisherById(ids[0]);
         assertTrue(publisher == null);
 
-        Set<Author> authors = domainRoot.getTheAuthorsById(KEY_ONE);
+        Set<Author> authors = domainRoot.getTheAuthorById(KEY_ONE);
         assertTrue(authors.size() == (DIVIDE_RATIO - 1));
         for (Author author : authors) {
             assertTrue(author.getId() == KEY_ONE);
@@ -167,7 +167,7 @@ public class BooksTest {
         }
         assertTrue(getAuthorByIdAndAge(KEY_ONE, ids[1]) == null);
 
-        authors = domainRoot.getTheAuthorsById(KEY_TWO);
+        authors = domainRoot.getTheAuthorById(KEY_TWO);
         assertTrue(authors.size() == 0);
         for (int i = 2; i < ids.length; i++) {
             assertTrue(getAuthorByIdAndAge(KEY_TWO, ids[i]) == null);
@@ -184,33 +184,33 @@ public class BooksTest {
     public void test03part01() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        domainRoot.addTheBooks(new Book(KEY_THREE, KEY_THREE));
-        domainRoot.addTheBooks(domainRoot.getTheBooksById(KEY_TWO + 1));
+        domainRoot.addTheBook(new Book(KEY_THREE, KEY_THREE));
+        domainRoot.addTheBook(domainRoot.getTheBookById(KEY_TWO + 1));
 
-        domainRoot.addTheAuthors(new Author(KEY_THREE, NUMBER_ELEMENTS * 10));
-        Iterator<Author> iter = domainRoot.getTheAuthorsById(KEY_TWO - 4).iterator();
+        domainRoot.addTheAuthor(new Author(KEY_THREE, NUMBER_ELEMENTS * 10));
+        Iterator<Author> iter = domainRoot.getTheAuthorById(KEY_TWO - 4).iterator();
         Author duplicate = null;
         for (int i = 0; i < DIVIDE_RATIO / 2; i++) {
             duplicate = iter.next();
         }
-        domainRoot.addTheAuthors(duplicate);
+        domainRoot.addTheAuthor(duplicate);
 
-        domainRoot.addThePublishers(new Publisher(KEY_THREE));
-        domainRoot.addThePublishers(getPublisherById(KEY_TWO + 1));
+        domainRoot.addThePublisher(new Publisher(KEY_THREE));
+        domainRoot.addThePublisher(getPublisherById(KEY_TWO + 1));
     }
 
     @Atomic
     public void test03part02() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        assertTrue(domainRoot.getTheBooksById(KEY_THREE).getId() == KEY_THREE);
-        assertTrue(domainRoot.getTheBooksSet().size() == (NUMBER_ELEMENTS + 1));
+        assertTrue(domainRoot.getTheBookById(KEY_THREE).getId() == KEY_THREE);
+        assertTrue(domainRoot.getTheBookSet().size() == (NUMBER_ELEMENTS + 1));
 
-        assertTrue(domainRoot.getTheAuthorsById(KEY_THREE).contains(getAuthorByIdAndAge(KEY_THREE, NUMBER_ELEMENTS * 10)));
-        assertTrue(domainRoot.getTheAuthorsSet().size() == (NUMBER_ELEMENTS + 1));
+        assertTrue(domainRoot.getTheAuthorById(KEY_THREE).contains(getAuthorByIdAndAge(KEY_THREE, NUMBER_ELEMENTS * 10)));
+        assertTrue(domainRoot.getTheAuthorSet().size() == (NUMBER_ELEMENTS + 1));
 
-        assertTrue(domainRoot.getThePublishersSet().contains(getPublisherById(KEY_THREE)));
-        assertTrue(domainRoot.getThePublishersSet().size() == (NUMBER_ELEMENTS + 1));
+        assertTrue(domainRoot.getThePublisherSet().contains(getPublisherById(KEY_THREE)));
+        assertTrue(domainRoot.getThePublisherSet().size() == (NUMBER_ELEMENTS + 1));
     }
 
     private void checkArrayCount(int[] arrayCount) {
@@ -239,9 +239,9 @@ public class BooksTest {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
         for (int i = 0; i < NUMBER_ELEMENTS; i++) {
-            domainRoot.addTheBooks(new Book(i, i));
-            domainRoot.addTheAuthors(new Author(i % (NUMBER_ELEMENTS / DIVIDE_RATIO), i));
-            domainRoot.addThePublishers(new Publisher(i));
+            domainRoot.addTheBook(new Book(i, i));
+            domainRoot.addTheAuthor(new Author(i % (NUMBER_ELEMENTS / DIVIDE_RATIO), i));
+            domainRoot.addThePublisher(new Publisher(i));
         }
     }
 
@@ -252,30 +252,30 @@ public class BooksTest {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
         Set<Book> copyBooks = new HashSet<Book>();
-        for (Book book : domainRoot.getTheBooksSet()) {
+        for (Book book : domainRoot.getTheBookSet()) {
             copyBooks.add(book);
         }
 
         Set<Author> copyAuthors = new HashSet<Author>();
-        for (Author author : domainRoot.getTheAuthorsSet()) {
+        for (Author author : domainRoot.getTheAuthorSet()) {
             copyAuthors.add(author);
         }
 
         Set<Publisher> copyPublishers = new HashSet<Publisher>();
-        for (Publisher publisher : domainRoot.getThePublishersSet()) {
+        for (Publisher publisher : domainRoot.getThePublisherSet()) {
             copyPublishers.add(publisher);
         }
 
         for (Book book : copyBooks) {
-            domainRoot.removeTheBooks(book);
+            domainRoot.removeTheBook(book);
         }
 
         for (Author author : copyAuthors) {
-            domainRoot.removeTheAuthors(author);
+            domainRoot.removeTheAuthor(author);
         }
 
         for (Publisher publisher : copyPublishers) {
-            domainRoot.removeThePublishers(publisher);
+            domainRoot.removeThePublisher(publisher);
         }
     }
 
@@ -284,15 +284,15 @@ public class BooksTest {
     private static void printAll() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        for (Book book : domainRoot.getTheBooksSet()) {
+        for (Book book : domainRoot.getTheBookSet()) {
             System.out.println(book);
         }
 
-        for (Author author : domainRoot.getTheAuthorsSet()) {
+        for (Author author : domainRoot.getTheAuthorSet()) {
             System.out.println(author);
         }
 
-        for (Publisher publisher : domainRoot.getThePublishersSet()) {
+        for (Publisher publisher : domainRoot.getThePublisherSet()) {
             System.out.println(publisher);
         }
     }
@@ -300,7 +300,7 @@ public class BooksTest {
     @Atomic
     public static Author getAuthorById(int id) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Author author : domainRoot.getTheAuthorsSet()) {
+        for (Author author : domainRoot.getTheAuthorSet()) {
             if (author.getId() == id) {
                 return author;
             }
@@ -311,7 +311,7 @@ public class BooksTest {
     @Atomic
     public static Author getAuthorByIdAndAge(int id, int age) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Author author : domainRoot.getTheAuthorsSet()) {
+        for (Author author : domainRoot.getTheAuthorSet()) {
             if (author.getAge() == age && author.getId() == id) {
                 return author;
             }
@@ -322,7 +322,7 @@ public class BooksTest {
     @Atomic
     public static Book getBookById(int id) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Book book : domainRoot.getTheBooksSet()) {
+        for (Book book : domainRoot.getTheBookSet()) {
             if (book.getId() == id) {
                 return book;
             }
@@ -333,7 +333,7 @@ public class BooksTest {
     @Atomic
     public static Publisher getPublisherById(int id) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Publisher publisher : domainRoot.getThePublishersSet()) {
+        for (Publisher publisher : domainRoot.getThePublisherSet()) {
             if (publisher.getId() == id) {
                 return publisher;
             }

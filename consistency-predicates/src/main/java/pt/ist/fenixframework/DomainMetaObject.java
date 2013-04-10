@@ -49,13 +49,13 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
         // Removes the dependencies from other objects.
         // Because the object was disconnected from all relations, any depending objects
         // will be checked by the objects on the other side of the relations. 
-        for (DomainDependenceRecord dependingDependenceRecord : getDependingDependenceRecordsSet()) {
-            removeDependingDependenceRecords(dependingDependenceRecord);
+        for (DomainDependenceRecord dependingDependenceRecord : getDependingDependenceRecordSet()) {
+            removeDependingDependenceRecord(dependingDependenceRecord);
         }
 
         // Removes this objects own records, of its own predicates.
         // The object is being deleted, so it no longer has to be consistent.
-        for (DomainDependenceRecord ownDependenceRecord : getOwnDependenceRecordsSet()) {
+        for (DomainDependenceRecord ownDependenceRecord : getOwnDependenceRecordSet()) {
             ownDependenceRecord.delete();
         }
 
@@ -79,7 +79,7 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
      *         passed as argument
      */
     public DomainDependenceRecord getOwnDependenceRecord(DomainConsistencyPredicate predicate) {
-        for (DomainDependenceRecord dependenceRecord : getOwnDependenceRecordsSet()) {
+        for (DomainDependenceRecord dependenceRecord : getOwnDependenceRecordSet()) {
             if (dependenceRecord.getDomainConsistencyPredicate() == predicate) {
                 return dependenceRecord;
             }
@@ -91,7 +91,7 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
      * @return true if this object is consistent according to all its {@link DomainConsistencyPredicate}s.
      */
     public boolean isConsistent() {
-        for (DomainDependenceRecord dependenceRecord : getOwnDependenceRecordsSet()) {
+        for (DomainDependenceRecord dependenceRecord : getOwnDependenceRecordSet()) {
             if (!dependenceRecord.isConsistent()) {
                 return false;
             }
@@ -128,16 +128,16 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
     // Depended interface implemented below:
     @Override
     public void addDependence(DomainDependenceRecord record) {
-        addDependingDependenceRecords(record);
+        addDependingDependenceRecord(record);
     }
 
     @Override
     public void removeDependence(DomainDependenceRecord record) {
-        removeDependingDependenceRecords(record);
+        removeDependingDependenceRecord(record);
     }
 
     @Override
     public Set<DomainDependenceRecord> getDependenceRecords() {
-        return getDependingDependenceRecordsSet();
+        return getDependingDependenceRecordSet();
     }
 }
