@@ -87,14 +87,14 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * meta classes.
      */
     @Override
-    public void removeDomainMetaClasses(DomainMetaClass metaClass) {
+    public void removeDomainMetaClass(DomainMetaClass metaClass) {
         checkFrameworkNotInitialized();
         Class<? extends DomainObject> domainClass = metaClass.getDomainClass();
         if (domainClass != null) {
             existingDomainMetaClasses.remove(metaClass.getDomainClass());
             existingDomainMetaClasses.remove(metaClass.getDomainClass().getSuperclass());
         }
-        super.removeDomainMetaClasses(metaClass);
+        super.removeDomainMetaClass(metaClass);
     }
 
     /**
@@ -115,12 +115,12 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * Adds a {@link DomainMetaClass} to the domain relation of existing meta classes.
      */
     @Override
-    public void addDomainMetaClasses(DomainMetaClass metaClass) {
+    public void addDomainMetaClass(DomainMetaClass metaClass) {
         checkFrameworkNotInitialized();
         existingDomainMetaClasses.put(metaClass.getDomainClass(), metaClass);
         // The metaClass for the base class is the same as the regular domain class
         existingDomainMetaClasses.put((Class<? extends DomainObject>) metaClass.getDomainClass().getSuperclass(), metaClass);
-        super.addDomainMetaClasses(metaClass);
+        super.addDomainMetaClass(metaClass);
     }
 
     /**
@@ -161,7 +161,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         existingDMLDomainClasses = getExistingDomainClasses(domainModel);
         Set<DomainMetaClass> oldMetaClassesToRemove = new HashSet<DomainMetaClass>();
 
-        for (DomainMetaClass metaClass : getDomainMetaClassesSet()) {
+        for (DomainMetaClass metaClass : getDomainMetaClassSet()) {
             Class<? extends DomainObject> domainClass = metaClass.getDomainClass();
             if ((domainClass == null) || (!existingDMLDomainClasses.keySet().contains(domainClass))) {
                 oldMetaClassesToRemove.add(metaClass);
@@ -409,7 +409,7 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
         for (DomainMetaClass metaClass : existingMetaClassesTopDown) {
 
             Set<Method> existingPredicateMethods = getDeclaredConsistencyPredicateMethods(metaClass);
-            for (DomainConsistencyPredicate declaredPredicate : metaClass.getDeclaredConsistencyPredicatesSet()) {
+            for (DomainConsistencyPredicate declaredPredicate : metaClass.getDeclaredConsistencyPredicateSet()) {
                 Method predicateMethod = declaredPredicate.getPredicate();
                 if ((predicateMethod == null)
                         || (!predicateMethod.isAnnotationPresent(ConsistencyPredicate.class) && !predicateMethod
@@ -661,8 +661,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      *             method
      */
     private void checkAllMethodsOverridingPredicates() {
-        for (DomainMetaClass metaClass : getDomainMetaClassesSet()) {
-            for (DomainConsistencyPredicate predicate : metaClass.getDeclaredConsistencyPredicatesSet()) {
+        for (DomainMetaClass metaClass : getDomainMetaClassSet()) {
+            for (DomainConsistencyPredicate predicate : metaClass.getDeclaredConsistencyPredicateSet()) {
                 predicate.checkOverridingMethods(metaClass);
             }
         }
@@ -676,9 +676,9 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      * @see JvstmOJBConfig#canCreateMetaObjects
      */
     private void deleteAllMetaObjectsAndClasses() {
-        if (!getDomainMetaClassesSet().isEmpty()) {
+        if (!getDomainMetaClassSet().isEmpty()) {
             logger.info("Deleting all DomainMetaObjects, DomainMetaClasses, DomainConsistencyPredicates and DomainDependenceRecords");
-            for (DomainMetaClass metaClass : getDomainMetaClassesSet()) {
+            for (DomainMetaClass metaClass : getDomainMetaClassSet()) {
                 // Commits the current, and starts a new write transaction.
                 // This is necessary to split the load of the mass deletion of objects among several transactions.
                 // Each transaction fully processes one DomainMetaClass.

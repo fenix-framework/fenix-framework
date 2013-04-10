@@ -48,7 +48,7 @@ public class StatisticsThread extends Thread {
                         stats.numConflicts, SECONDS_BETWEEN_REPORTS, new DateTime(), stats.readOnlyReads, stats.readWriteReads,
                         stats.readWriteWrites);
         FenixFrameworkData ffData = FenixFramework.getDomainRoot().getFenixFrameworkData();
-        ffData.addFFTxStatsLog(entry);
+        ffData.addFFTxStatsEntry(entry);
     }
 
 }

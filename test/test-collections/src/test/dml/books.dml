@@ -17,7 +17,7 @@ class Author {
 
 relation DRWithBooks {
     .pt.ist.fenixframework.DomainRoot playsRole parent;
-    Book playsRole theBooks {
+    Book playsRole theBook {
         multiplicity *;
         indexed by id;
     }
@@ -25,7 +25,7 @@ relation DRWithBooks {
 
 relation DRWithAuthors {
     .pt.ist.fenixframework.DomainRoot playsRole parent;
-    Author playsRole theAuthors {
+    Author playsRole theAuthor {
         multiplicity *;
         indexed by id #(*);
     }
@@ -33,7 +33,7 @@ relation DRWithAuthors {
 
 relation DRWithPublishers {
     .pt.ist.fenixframework.DomainRoot playsRole parent;
-    Publisher playsRole thePublishers {
+    Publisher playsRole thePublisher {
         multiplicity *;
     }
 }

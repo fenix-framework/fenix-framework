@@ -35,7 +35,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
         setDependentDomainMetaObject(DomainMetaObject.getDomainMetaObjectFor((DomainObject) dependent));
         setDomainConsistencyPredicate(predicate);
         for (Depended<DomainDependenceRecord> dependedMetaObject : depended) {
-            addDependedDomainMetaObjects((DomainMetaObject) dependedMetaObject);
+            addDependedDomainMetaObject((DomainMetaObject) dependedMetaObject);
         }
         setConsistent(consistent);
     }
@@ -45,7 +45,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
         setDependentDomainMetaObject(DomainMetaObject.getDomainMetaObjectFor((DomainObject) dependent));
         setPredicate(predicate);
         for (Depended<DomainDependenceRecord> dependedMetaObject : depended) {
-            addDependedDomainMetaObjects((DomainMetaObject) dependedMetaObject);
+            addDependedDomainMetaObject((DomainMetaObject) dependedMetaObject);
         }
         setConsistent(consistent);
     }
@@ -78,11 +78,11 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
      * </ul>
      **/
     public void delete() {
-        for (DomainMetaObject dependedMetaObject : getDependedDomainMetaObjectsSet()) {
-            removeDependedDomainMetaObjects(dependedMetaObject);
+        for (DomainMetaObject dependedMetaObject : getDependedDomainMetaObjectSet()) {
+            removeDependedDomainMetaObject(dependedMetaObject);
         }
         if (!isConsistent()) {
-            getDomainConsistencyPredicate().removeInconsistentDependenceRecords(this);
+            getDomainConsistencyPredicate().removeInconsistentDependenceRecord(this);
         }
         setDomainConsistencyPredicate(null);
         setDependentDomainMetaObject(null);
@@ -94,12 +94,12 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
     // DependenceRecord interface implemented below:
     @Override
     public void addDepended(DomainMetaObject dependedMetaObject) {
-        addDependedDomainMetaObjects(dependedMetaObject);
+        addDependedDomainMetaObject(dependedMetaObject);
     }
 
     @Override
     public Iterator<DomainMetaObject> getDepended() {
-        return getDependedDomainMetaObjectsSet().iterator();
+        return getDependedDomainMetaObjectSet().iterator();
     }
 
     @Override

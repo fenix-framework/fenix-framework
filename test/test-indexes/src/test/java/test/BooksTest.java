@@ -41,38 +41,38 @@ public class BooksTest {
     @Test
     @Atomic
     public void test01() {
-        Set<Author> stokers = FenixFramework.getDomainRoot().getTheAuthorsByName(BRAM_STOKER);
+        Set<Author> stokers = FenixFramework.getDomainRoot().getTheAuthorByName(BRAM_STOKER);
 
         assertTrue(stokers.size() == 2);
         assertTrue(stokers.contains(getAuthorByNameAndAge(BRAM_STOKER, 125)));
         assertTrue(stokers.contains(getAuthorByNameAndAge(BRAM_STOKER, 60)));
 
-        Set<Author> meh = FenixFramework.getDomainRoot().getTheAuthorsByName(MEH);
+        Set<Author> meh = FenixFramework.getDomainRoot().getTheAuthorByName(MEH);
         assertTrue(meh.size() == 1);
         assertTrue(meh.contains(getAuthorByName(MEH)));
 
-        Set<Author> empty = FenixFramework.getDomainRoot().getTheAuthorsByName("EMPTY");
+        Set<Author> empty = FenixFramework.getDomainRoot().getTheAuthorByName("EMPTY");
         assertTrue(empty.size() == 0);
     }
 
     @Test
     @Atomic
     public void test02() {
-        Book dracula = FenixFramework.getDomainRoot().getTheBooksByBookName(DRACULA);
+        Book dracula = FenixFramework.getDomainRoot().getTheBookByBookName(DRACULA);
 
         assertTrue(dracula.equals(getBookByName(DRACULA)));
 
-        Set<Author> stokers = dracula.getAuthorsByName(BRAM_STOKER);
+        Set<Author> stokers = dracula.getAuthorByName(BRAM_STOKER);
         assertTrue(stokers.size() == 1);
         assertTrue(stokers.contains(getAuthorByNameAndAge(BRAM_STOKER, 125)));
 
-        Set<Author> archibald = dracula.getAuthorsByName(ARCHIBALD);
+        Set<Author> archibald = dracula.getAuthorByName(ARCHIBALD);
         assertTrue(archibald.size() == 0);
 
         Publisher pub = dracula.getPublisher();
         assertTrue(pub.getPublisherName().equals(ARCHIBALD));
 
-        assertTrue(pub.getBooksPublishedByBookName(DRACULA) == dracula);
+        assertTrue(pub.getPublishedBookByBookName(DRACULA) == dracula);
     }
 
     @Test
@@ -86,48 +86,48 @@ public class BooksTest {
 
     @Atomic
     public void test03part1() {
-        Publisher little = FenixFramework.getDomainRoot().getThePublishersByPublisherName(LITTLE);
+        Publisher little = FenixFramework.getDomainRoot().getThePublisherByPublisherName(LITTLE);
 
         assertTrue(little.equals(getPublisherByName(LITTLE)));
 
-        Set<Book> booksPublishedByLittle = little.getBooksPublishedSet();
+        Set<Book> booksPublishedByLittle = little.getPublishedBookSet();
         assertTrue(booksPublishedByLittle.size() == 2);
         assertTrue(booksPublishedByLittle.contains(getBookByName(FEW_MOON)));
         assertTrue(booksPublishedByLittle.contains(getBookByName(TWOLIGHTS)));
 
-        assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS).equals(getBookByName(TWOLIGHTS)));
-        assertTrue(little.getBooksPublishedByBookName(FEW_MOON).equals(getBookByName(FEW_MOON)));
+        assertTrue(little.getPublishedBookByBookName(TWOLIGHTS).equals(getBookByName(TWOLIGHTS)));
+        assertTrue(little.getPublishedBookByBookName(FEW_MOON).equals(getBookByName(FEW_MOON)));
 
         getBookByName(TWOLIGHTS).setPublisher(null);
     }
 
     @Atomic
     public void test03part2() {
-        Publisher little = FenixFramework.getDomainRoot().getThePublishersByPublisherName(LITTLE);
+        Publisher little = FenixFramework.getDomainRoot().getThePublisherByPublisherName(LITTLE);
 
         assertTrue(little.equals(getPublisherByName(LITTLE)));
 
-        Set<Book> booksPublishedByLittle = little.getBooksPublishedSet();
+        Set<Book> booksPublishedByLittle = little.getPublishedBookSet();
         assertTrue(booksPublishedByLittle.size() == 1);
         assertTrue(booksPublishedByLittle.contains(getBookByName(FEW_MOON)));
 
-        assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS) == null);
-        assertTrue(little.getBooksPublishedByBookName(FEW_MOON).equals(getBookByName(FEW_MOON)));
+        assertTrue(little.getPublishedBookByBookName(TWOLIGHTS) == null);
+        assertTrue(little.getPublishedBookByBookName(FEW_MOON).equals(getBookByName(FEW_MOON)));
 
         booksPublishedByLittle.clear();
     }
 
     @Atomic
     public void test03part3() {
-        Publisher little = FenixFramework.getDomainRoot().getThePublishersByPublisherName(LITTLE);
+        Publisher little = FenixFramework.getDomainRoot().getThePublisherByPublisherName(LITTLE);
 
         assertTrue(little.equals(getPublisherByName(LITTLE)));
 
-        Set<Book> booksPublishedByLittle = little.getBooksPublishedSet();
+        Set<Book> booksPublishedByLittle = little.getPublishedBookSet();
         assertTrue(booksPublishedByLittle.size() == 0);
 
-        assertTrue(little.getBooksPublishedByBookName(TWOLIGHTS) == null);
-        assertTrue(little.getBooksPublishedByBookName(FEW_MOON) == null);
+        assertTrue(little.getPublishedBookByBookName(TWOLIGHTS) == null);
+        assertTrue(little.getPublishedBookByBookName(FEW_MOON) == null);
     }
 
     @Before
@@ -137,39 +137,39 @@ public class BooksTest {
 
         // Authors
         Author steph = new Author(STEPH, 83);
-        domainRoot.addTheAuthors(steph);
+        domainRoot.addTheAuthor(steph);
         Author meh = new Author(MEH, 83);
-        domainRoot.addTheAuthors(meh);
+        domainRoot.addTheAuthor(meh);
         Author bStoker = new Author(BRAM_STOKER, 125);
-        domainRoot.addTheAuthors(bStoker);
+        domainRoot.addTheAuthor(bStoker);
         Author bStokerSon = new Author(BRAM_STOKER, 60);
-        domainRoot.addTheAuthors(bStokerSon);
+        domainRoot.addTheAuthor(bStokerSon);
 
         // Publishers
         Publisher little = new Publisher(LITTLE);
-        domainRoot.addThePublishers(little);
+        domainRoot.addThePublisher(little);
         Publisher archibald = new Publisher(ARCHIBALD);
-        domainRoot.addThePublishers(archibald);
+        domainRoot.addThePublisher(archibald);
 
         // Books
         VampireBook twolights = new VampireBook(TWOLIGHTS, 0.42, true);
-        domainRoot.addTheBooks(twolights);
+        domainRoot.addTheBook(twolights);
         VampireBook fewMoons = new VampireBook(FEW_MOON, 0.84, true);
-        domainRoot.addTheBooks(fewMoons);
+        domainRoot.addTheBook(fewMoons);
         Book dracula = new VampireBook(DRACULA, 12.42, false);
-        domainRoot.addTheBooks(dracula);
+        domainRoot.addTheBook(dracula);
 
         // Publisher with books
-        little.addBooksPublished(twolights);
-        little.addBooksPublished(fewMoons);
-        archibald.addBooksPublished(dracula);
+        little.addPublishedBook(twolights);
+        little.addPublishedBook(fewMoons);
+        archibald.addPublishedBook(dracula);
 
         // Authors with books
-        steph.addBooks(twolights);
-        steph.addBooks(fewMoons);
-        meh.addBooks(twolights);
-        meh.addBooks(fewMoons);
-        bStoker.addBooks(dracula);
+        steph.addBook(twolights);
+        steph.addBook(fewMoons);
+        meh.addBook(twolights);
+        meh.addBook(fewMoons);
+        bStoker.addBook(dracula);
 
         // VampireBook to VampireBook
         twolights.setSequel(fewMoons);
@@ -180,16 +180,16 @@ public class BooksTest {
     public void reset() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        for (Book book : domainRoot.getTheBooksSet()) {
-            domainRoot.removeTheBooks(book);
+        for (Book book : domainRoot.getTheBookSet()) {
+            domainRoot.removeTheBook(book);
         }
 
-        for (Author author : domainRoot.getTheAuthorsSet()) {
-            domainRoot.removeTheAuthors(author);
+        for (Author author : domainRoot.getTheAuthorSet()) {
+            domainRoot.removeTheAuthor(author);
         }
 
-        for (Publisher publisher : domainRoot.getThePublishersSet()) {
-            domainRoot.removeThePublishers(publisher);
+        for (Publisher publisher : domainRoot.getThePublisherSet()) {
+            domainRoot.removeThePublisher(publisher);
         }
     }
 
@@ -198,15 +198,15 @@ public class BooksTest {
     private static void printAll() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
 
-        for (Book book : domainRoot.getTheBooksSet()) {
+        for (Book book : domainRoot.getTheBookSet()) {
             System.out.println(book);
         }
 
-        for (Author author : domainRoot.getTheAuthorsSet()) {
+        for (Author author : domainRoot.getTheAuthorSet()) {
             System.out.println(author);
         }
 
-        for (Publisher publisher : domainRoot.getThePublishersSet()) {
+        for (Publisher publisher : domainRoot.getThePublisherSet()) {
             System.out.println(publisher);
         }
     }
@@ -214,7 +214,7 @@ public class BooksTest {
     @Atomic
     public static Author getAuthorByName(String authorName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Author author : domainRoot.getTheAuthorsSet()) {
+        for (Author author : domainRoot.getTheAuthorSet()) {
             if (author.getName().equals(authorName)) {
                 return author;
             }
@@ -225,7 +225,7 @@ public class BooksTest {
     @Atomic
     public static Author getAuthorByNameAndAge(String authorName, int age) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Author author : domainRoot.getTheAuthorsSet()) {
+        for (Author author : domainRoot.getTheAuthorSet()) {
             if (author.getAge() == age && author.getName().equals(authorName)) {
                 return author;
             }
@@ -236,7 +236,7 @@ public class BooksTest {
     @Atomic
     public static Book getBookByName(String bookName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Book book : domainRoot.getTheBooksSet()) {
+        for (Book book : domainRoot.getTheBookSet()) {
             if (book.getBookName().equals(bookName)) {
                 return book;
             }
@@ -251,7 +251,7 @@ public class BooksTest {
     @Atomic
     public static Publisher getPublisherByName(String publisherName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Publisher publisher : domainRoot.getThePublishersSet()) {
+        for (Publisher publisher : domainRoot.getThePublisherSet()) {
             if (publisher.getPublisherName().equals(publisherName)) {
                 return publisher;
             }

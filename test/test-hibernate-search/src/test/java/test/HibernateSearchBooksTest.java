@@ -87,7 +87,7 @@ public class HibernateSearchBooksTest {
         assertTrue(queryResults.size() == 1);
         assertTrue(queryResults.contains(getBookByName(FEW_MOON)));
 
-        getPublisherByName(LITTLE).getBooksPublishedSet().clear();
+        getPublisherByName(LITTLE).getPublishedBookSet().clear();
     }
 
     @Atomic
@@ -124,37 +124,37 @@ public class HibernateSearchBooksTest {
 
         // Authors
         Author steph = new Author(STEPH, 83);
-        domainRoot.addTheAuthors(steph);
+        domainRoot.addTheAuthor(steph);
         Author meh = new Author(MEH, 83);
-        domainRoot.addTheAuthors(meh);
+        domainRoot.addTheAuthor(meh);
         Author bStoker = new Author(BRAM_STOKER, 125);
-        domainRoot.addTheAuthors(bStoker);
+        domainRoot.addTheAuthor(bStoker);
 
         // Publishers
         Publisher little = new Publisher(LITTLE);
-        domainRoot.addThePublishers(little);
+        domainRoot.addThePublisher(little);
         Publisher archibald = new Publisher(ARCHIBALD);
-        domainRoot.addThePublishers(archibald);
+        domainRoot.addThePublisher(archibald);
 
         // Books
         VampireBook twolights = new VampireBook(TWOLIGHTS, 0.42, true);
-        domainRoot.addTheBooks(twolights);
+        domainRoot.addTheBook(twolights);
         VampireBook fewMoons = new VampireBook(FEW_MOON, 0.84, true);
-        domainRoot.addTheBooks(fewMoons);
+        domainRoot.addTheBook(fewMoons);
         Book dracula = new VampireBook(DRACULA, 12.42, false);
-        domainRoot.addTheBooks(dracula);
+        domainRoot.addTheBook(dracula);
 
         // Publisher with books
-        little.addBooksPublished(twolights);
-        little.addBooksPublished(fewMoons);
-        archibald.addBooksPublished(dracula);
+        little.addPublishedBook(twolights);
+        little.addPublishedBook(fewMoons);
+        archibald.addPublishedBook(dracula);
 
         // Authors with books
-        steph.addBooks(twolights);
-        steph.addBooks(fewMoons);
-        meh.addBooks(twolights);
-        meh.addBooks(fewMoons);
-        bStoker.addBooks(dracula);
+        steph.addBook(twolights);
+        steph.addBook(fewMoons);
+        meh.addBook(twolights);
+        meh.addBook(fewMoons);
+        bStoker.addBook(dracula);
 
         // VampireBook to VampireBook
         twolights.setSequel(fewMoons);
@@ -168,7 +168,7 @@ public class HibernateSearchBooksTest {
     @Atomic
     public static Author getAuthorByName(String authorName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Author author : domainRoot.getTheAuthorsSet()) {
+        for (Author author : domainRoot.getTheAuthorSet()) {
             if (author.getName().equals(authorName)) {
                 return author;
             }
@@ -179,7 +179,7 @@ public class HibernateSearchBooksTest {
     @Atomic
     public static Book getBookByName(String bookName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Book book : domainRoot.getTheBooksSet()) {
+        for (Book book : domainRoot.getTheBookSet()) {
             if (book.getBookName().equals(bookName)) {
                 return book;
             }
@@ -194,7 +194,7 @@ public class HibernateSearchBooksTest {
     @Atomic
     public static Publisher getPublisherByName(String publisherName) {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
-        for (Publisher publisher : domainRoot.getThePublishersSet()) {
+        for (Publisher publisher : domainRoot.getThePublisherSet()) {
             if (publisher.getPublisherName().equals(publisherName)) {
                 return publisher;
             }

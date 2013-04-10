@@ -453,7 +453,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
         Set<Depended> newDependedSet = (Set<Depended>) pair.first;
 
-        for (Depended oldDepended : dependenceRecord.getDependedDomainMetaObjectsSet()) {
+        for (Depended oldDepended : dependenceRecord.getDependedDomainMetaObjectSet()) {
             if (!newDependedSet.remove(oldDepended)) {
                 // if we didn't find the oldDepended in the newDepended, it's
                 // because it is no longer a depended, so remove the dependence
@@ -499,7 +499,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         // First, check for existing dependence records of modified objects
         // Nothing will happen for new objects
         DomainMetaObject metaObject = ado.getDomainMetaObject();
-        for (DomainDependenceRecord dependenceRecord : metaObject.getOwnDependenceRecordsSet()) {
+        for (DomainDependenceRecord dependenceRecord : metaObject.getOwnDependenceRecordSet()) {
             recheckDependenceRecord(dependenceRecord);
         }
 
