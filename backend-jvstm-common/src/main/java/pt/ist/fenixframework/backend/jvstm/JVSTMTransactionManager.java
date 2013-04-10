@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.backend.jvstm.pstm.JvstmInFenixTransaction;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
@@ -28,17 +29,12 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
 
     protected static final Atomic DEFAULT_ATOMIC = new Atomic() {
         @Override
-        public boolean readOnly() {
-            return false;
+        public TxMode mode() {
+            return TxMode.SPECULATIVE_READ;
         }
 
         @Override
-        public boolean canFail() {
-            return true;
-        }
-
-        @Override
-        public boolean speculativeReadOnly() {
+        public boolean flattenNested() {
             return true;
         }
 
@@ -46,6 +42,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
         public Class<? extends Annotation> annotationType() {
             return pt.ist.fenixframework.Atomic.class;
         }
+
     };
 
     /*
@@ -166,8 +163,8 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
         boolean speculativeReadOnly = true;
 
         if (atomic != null) {
-            readOnly = atomic.readOnly();
-            speculativeReadOnly = atomic.speculativeReadOnly();
+            readOnly = (atomic.mode() == TxMode.READ);
+            speculativeReadOnly = atomic.mode() == TxMode.SPECULATIVE_READ;
         }
 
         boolean tryReadOnly = readOnly || speculativeReadOnly;

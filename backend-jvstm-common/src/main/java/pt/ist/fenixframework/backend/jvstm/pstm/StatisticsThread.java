@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.FenixFramework;
 
 public class StatisticsThread extends Thread {
@@ -40,7 +41,7 @@ public class StatisticsThread extends Thread {
         doAtomicReporting(stats);
     }
 
-    @Atomic(readOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     private void doAtomicReporting(final TransactionStatistics.Report stats) {
         TransactionStatisticsEntry entry;
         entry =

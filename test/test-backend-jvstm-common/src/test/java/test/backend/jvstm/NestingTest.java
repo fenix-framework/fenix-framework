@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.core.WriteOnReadError;
 import test.backend.jvstm.domain.Counter;
 
@@ -17,7 +18,7 @@ public class NestingTest {
     Counter counter;
 
     @Before
-    @Atomic(speculativeReadOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     public void createCounter() {
         logger.info("Creating counter");
         this.counter = new Counter();
@@ -64,13 +65,13 @@ public class NestingTest {
         Assert.fail("Expected a WriteOnReadError");
     }
 
-    @Atomic(readOnly = true)
+    @Atomic(mode = TxMode.READ)
     private void topLevelReadOnlyInc(Counter c) {
         // this inc should not be allowed
         c.inc();
     }
 
-    @Atomic(readOnly = true)
+    @Atomic(mode = TxMode.READ)
     private void topLevelReadOnlyIncNested(Counter c) {
         // this inc should not be allowed
         incNested(c);
@@ -81,7 +82,7 @@ public class NestingTest {
         return c.getValue();
     }
 
-    @Atomic(readOnly = false, speculativeReadOnly = true)
+    @Atomic(mode = TxMode.SPECULATIVE_READ)
     private void incTopLevelAfterNestedInc(Counter c) {
         logger.info("Begin incTopLevel");
 
@@ -91,7 +92,7 @@ public class NestingTest {
         logger.info("End incTopLevel");
     }
 
-    @Atomic(readOnly = false, speculativeReadOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     private void incNested(Counter c) {
         logger.info("Begin incNested");
 
