@@ -1,5 +1,8 @@
 package test.backend.jvstm;
 
+import javax.transaction.NotSupportedException;
+import javax.transaction.SystemException;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +16,9 @@ import test.backend.jvstm.domain.Counter;
 
 public class NestingTest {
 
+    public class MyException extends Exception {
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(NestingTest.class);
 
     Counter counter;
@@ -24,6 +30,8 @@ public class NestingTest {
         this.counter = new Counter();
     }
 
+    //////////////////////////////////////////////////////////////////////////////
+
     /**
      * Confirm that a committed nested increment is undone when afterwards the speculative top-level transaction needs to restart
      * because of a write. This bug was first found in the jvstm-ojb backend due to the flattening that was being performed.
@@ -34,6 +42,18 @@ public class NestingTest {
 
         Assert.assertEquals(2, getCounterValue(this.counter));
     }
+
+    @Atomic(mode = TxMode.SPECULATIVE_READ)
+    private void incTopLevelAfterNestedInc(Counter c) {
+        logger.info("Begin incTopLevel");
+
+        incNested(c);
+        c.inc();
+
+        logger.info("End incTopLevel");
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
 
     /**
      * Confirm that a top-level read-only transaction does not allow writes to occur.
@@ -50,8 +70,16 @@ public class NestingTest {
         Assert.fail("Expected a WriteOnReadError");
     }
 
+    @Atomic(mode = TxMode.READ)
+    private void topLevelReadOnlyInc(Counter c) {
+        // this inc should not be allowed
+        c.inc();
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+
     /**
-     * Confirm that a top-level read-only transaction does not allow writes to occur within write nested transactions.
+     * Confirm that a top-level read-only transaction does not allow writes to occur within nested write transactions.
      */
     @Test
     public void testNestedWriteFailsInTopLevelReadOnly() {
@@ -66,39 +94,79 @@ public class NestingTest {
     }
 
     @Atomic(mode = TxMode.READ)
-    private void topLevelReadOnlyInc(Counter c) {
-        // this inc should not be allowed
-        c.inc();
-    }
-
-    @Atomic(mode = TxMode.READ)
     private void topLevelReadOnlyIncNested(Counter c) {
         // this inc should not be allowed
         incNested(c);
+        Assert.fail("expected an exception before this point");
     }
 
-    @Atomic
-    private int getCounterValue(Counter c) {
-        return c.getValue();
-    }
+    //////////////////////////////////////////////////////////////////////////////
 
-    @Atomic(mode = TxMode.SPECULATIVE_READ)
-    private void incTopLevelAfterNestedInc(Counter c) {
-        logger.info("Begin incTopLevel");
-
-        incNested(c);
-        c.inc();
-
-        logger.info("End incTopLevel");
+    @Test
+    public void testNestedFailureIsHidden() throws NotSupportedException, SystemException {
+        topLevelIncCallsNestedIncThatRollsback(this.counter);
+        Assert.assertEquals(1, getCounterValue(this.counter));
     }
 
     @Atomic(mode = TxMode.WRITE)
+    private void topLevelIncCallsNestedIncThatRollsback(Counter c) {
+        c.inc();
+        try {
+            incAndFail(c);
+        } catch (MyException e) {
+            Assert.assertTrue("Unexpected exception: " + e.getClass().getCanonicalName(), e instanceof MyException);
+            return;
+        }
+        Assert.fail("Expected an exception from nested transaction");
+    }
+
+    @Atomic(flattenNested = false)
+    private void incAndFail(Counter c) throws MyException {
+        c.inc();
+        throw new MyException();
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+
+    @Test
+    public void testFlattenNestedFailureIsNotHidden() throws NotSupportedException, SystemException {
+        topLevelIncCallsFlattenNestedIncThatRollsback(this.counter);
+        Assert.assertEquals(2, getCounterValue(this.counter));
+    }
+
+    @Atomic(mode = TxMode.WRITE)
+    private void topLevelIncCallsFlattenNestedIncThatRollsback(Counter c) {
+        c.inc();
+        try {
+            flattenIncAndFail(c);
+        } catch (MyException e) {
+            Assert.assertTrue("Unexpected exception: " + e.getClass().getCanonicalName(), e instanceof MyException);
+            return;
+        }
+        Assert.fail("Expected an exception from flatten nested transaction");
+    }
+
+    @Atomic(flattenNested = true)
+    private void flattenIncAndFail(Counter c) throws MyException {
+        c.inc();
+        throw new MyException();
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    // Common methods
+
+    @Atomic(mode = TxMode.SPECULATIVE_READ)
     private void incNested(Counter c) {
         logger.info("Begin incNested");
 
         c.inc();
 
         logger.info("End incNested");
+    }
+
+    @Atomic
+    private int getCounterValue(Counter c) {
+        return c.getValue();
     }
 
     public static void main(String[] args) throws InterruptedException {
