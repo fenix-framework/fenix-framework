@@ -61,21 +61,15 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
     }
 
     @Override
-    public void removePublicConsistencyPredicateOverridden() {
+    public void addPublicConsistencyPredicateOverriding(PublicConsistencyPredicate publicConsistencyPredicatesOverriding) {
         checkFrameworkNotInitialized();
-        super.removePublicConsistencyPredicateOverridden();
+        super.addPublicConsistencyPredicateOverriding(publicConsistencyPredicatesOverriding);
     }
 
     @Override
-    public void addPublicConsistencyPredicatesOverriding(PublicConsistencyPredicate publicConsistencyPredicatesOverriding) {
+    public void removePublicConsistencyPredicateOverriding(PublicConsistencyPredicate publicConsistencyPredicatesOverriding) {
         checkFrameworkNotInitialized();
-        super.addPublicConsistencyPredicatesOverriding(publicConsistencyPredicatesOverriding);
-    }
-
-    @Override
-    public void removePublicConsistencyPredicatesOverriding(PublicConsistencyPredicate publicConsistencyPredicatesOverriding) {
-        checkFrameworkNotInitialized();
-        super.removePublicConsistencyPredicatesOverriding(publicConsistencyPredicatesOverriding);
+        super.removePublicConsistencyPredicateOverriding(publicConsistencyPredicatesOverriding);
     }
 
     /**
@@ -103,7 +97,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
     private void removeDomainDependenceRecordsForMetaClassAndSubclasses(DomainMetaClass metaClass) {
         removeDomainDependenceRecordsForExistingObjects(metaClass);
 
-        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclasses()) {
+        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclassSet()) {
             removeDomainDependenceRecordsForMetaClassAndSubclasses(metaSubclass);
         }
     }
@@ -195,7 +189,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         }
 
         // Continue searching in subclasses for overriding predicates
-        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclasses()) {
+        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclassSet()) {
             executeConsistencyPredicateForMetaClassAndSubclasses(metaSubclass);
         }
     }
@@ -230,7 +224,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
         }
 
         // Continue searching in subclasses for overriding predicates
-        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclasses()) {
+        for (DomainMetaClass metaSubclass : metaClass.getDomainMetaSubclassSet()) {
             checkOverridingMethods(metaSubclass);
         }
     }
@@ -259,7 +253,7 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
                     + " which must be executed from the former class downwards.");
             overriddenPredicate.executeConsistencyPredicateForMetaClassAndSubclasses(getDomainMetaClass());
 
-            for (PublicConsistencyPredicate predicatesOverriding : getPublicConsistencyPredicatesOverriding()) {
+            for (PublicConsistencyPredicate predicatesOverriding : getPublicConsistencyPredicateOverridingSet()) {
                 predicatesOverriding.setPublicConsistencyPredicateOverridden(overriddenPredicate);
             }
         }
@@ -279,10 +273,10 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
      **/
     @Override
     public void classDelete() {
-        for (PublicConsistencyPredicate predicatesOverriding : getPublicConsistencyPredicatesOverriding()) {
-            removePublicConsistencyPredicatesOverriding(predicatesOverriding);
+        for (PublicConsistencyPredicate predicatesOverriding : getPublicConsistencyPredicateOverridingSet()) {
+            removePublicConsistencyPredicateOverriding(predicatesOverriding);
         }
-        removePublicConsistencyPredicateOverridden();
+        setPublicConsistencyPredicateOverridden(null);
 
         super.classDelete();
     }

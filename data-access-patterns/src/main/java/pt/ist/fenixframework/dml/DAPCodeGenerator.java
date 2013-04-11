@@ -30,30 +30,34 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
 
     public final String getGetterDAPStatement(DomainClass domainClass, String slotName, String typeName) {
         //System.out.println("\tGenerating getter DAP statement for " + domainClass.getFullName() + "."  + slotName + " of type " + typeName);
-        if (DAP_ENABLED)
+        if (DAP_ENABLED) {
             return "pt.ist.dap.implementation.simple.SimpleContextManager.updateReadStatisticsWithoutContext(\""
                     + domainClass.getFullName() + "\", \"" + slotName + "\");";
-        else
+        } else {
             return "";
+        }
     }
 
     public final String getSetterDAPStatement(DomainClass domainClass, String slotName, String typeName) {
         //System.out.println("\tGenerating setter DAP statement for " + domainClass.getFullName() + "."  + slotName + " of type " + typeName);
-        if (DAP_ENABLED)
+        if (DAP_ENABLED) {
             return "pt.ist.dap.implementation.simple.SimpleContextManager.updateWriteStatisticsWithoutContext(\""
                     + domainClass.getFullName() + "\", \"" + slotName + "\");";
-        else
+        } else {
             return "";
+        }
     }
 
     protected final void generateGetterDAPStatement(DomainClass domainClass, String slotName, String typeName, PrintWriter out) {
-        if (DAP_ENABLED)
+        if (DAP_ENABLED) {
             println(out, getGetterDAPStatement(domainClass, slotName, typeName));
+        }
     }
 
     protected final void generateSetterDAPStatement(DomainClass domainClass, String slotName, String typeName, PrintWriter out) {
-        if (DAP_ENABLED)
+        if (DAP_ENABLED) {
             println(out, getSetterDAPStatement(domainClass, slotName, typeName));
+        }
     }
 
     @Override
@@ -93,101 +97,6 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
 
     //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
     @Override
-    protected void generateRoleSlotMethodsMultOneHas(Role role, PrintWriter out) {
-        String slotName = role.getName();
-        String capitalizedSlotName = capitalize(slotName);
-        String getterName = "get" + capitalizedSlotName;
-        String methodModifiers = getMethodModifiers();
-
-        newline(out);
-        printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName);
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-
-        print(out, "return (");
-        print(out, getterName);
-        print(out, "() != null);");
-        endMethodBody(out);
-    }
-
-    //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
-    @Override
-    protected void generateRoleSlotMethodsMultOneRemove(Role role, PrintWriter out) {
-        String slotName = role.getName();
-        String capitalizedSlotName = capitalize(slotName);
-        String setterName = "set" + capitalizedSlotName;
-        String methodModifiers = getMethodModifiers();
-
-        newline(out);
-        printMethod(out, methodModifiers, "void", "remove" + capitalizedSlotName);
-        startMethodBody(out);
-
-        generateSetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-
-        print(out, setterName);
-        print(out, "(null);");
-        endMethodBody(out);
-    }
-
-    //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
-    @Override
-    protected void generateRoleSlotMethodsMultStarCount(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName, String slotAccessExpression) {
-        newline(out);
-        printMethod(out, methodModifiers, "int", "get" + capitalizedSlotName + "Count");
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-
-        print(out, "return ");
-        print(out, slotAccessExpression);
-        print(out, ".size();");
-        endMethodBody(out);
-    }
-
-    //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
-    @Override
-    protected void generateRoleSlotMethodsMultStarHasAnyChild(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName, String slotAccessExpression) {
-        newline(out);
-        printMethod(out, methodModifiers, "boolean", "hasAny" + capitalizedSlotName);
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-
-        print(out, "return (! ");
-        print(out, slotAccessExpression);
-        print(out, ".isEmpty());");
-        endMethodBody(out);
-    }
-
-    //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
-    @Override
-    protected void generateRoleSlotMethodsMultStarHasChildBody(Role role, PrintWriter out, String slotAccessExpression,
-            String slotName) {
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-        super.generateRoleSlotMethodsMultStarHasChildBody(role, out, slotAccessExpression, slotName);
-    }
-
-    //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
-    @Override
-    protected void generateRoleSlotMethodsMultStarSet(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName, String slotAccessExpression, String slotName, String typeName) {
-        newline(out);
-        printMethod(out, methodModifiers, makeGenericType("java.util.Set", typeName), "get" + capitalizedSlotName + "Set");
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-
-        print(out, "return ");
-        print(out, slotAccessExpression);
-        print(out, ";");
-        endMethodBody(out);
-    }
-
-    //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
-    @Override
     protected void generateRelationGetter(String getterName, String valueToReturn, Role role, String typeName, PrintWriter out) {
         newline(out);
         printFinalMethod(out, "public", typeName, getterName);
@@ -196,21 +105,6 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
         generateRelationGetterBody(role, out);
 
-        endMethodBody(out);
-    }
-
-    //N.B: the only difference between this method and the one in the super CodeGenerator is the single invocation to the DAP framework
-    @Override
-    protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {
-        newline(out);
-        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
-                + capitalize(role.getName()) + "Iterator");
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-
-        printWords(out, "return", slotAccessExpression);
-        print(out, ".iterator();");
         endMethodBody(out);
     }
 

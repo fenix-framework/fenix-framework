@@ -187,7 +187,7 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
      */
     public void delete() {
         AbstractNode<T> rootNode = getRoot();
-        removeRoot();
+        setRoot(null);
         rootNode.delete();
         deleteDomainObject();
     }

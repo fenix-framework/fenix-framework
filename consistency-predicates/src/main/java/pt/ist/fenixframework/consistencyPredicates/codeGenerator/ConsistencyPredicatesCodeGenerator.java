@@ -74,9 +74,9 @@ public abstract class ConsistencyPredicatesCodeGenerator extends CodeGenerator {
         if (lower > 0) {
             print(out, "if (");
             if (upper == 1) {
-                print(out, "! has");
+                print(out, "get");
                 print(out, capitalizedSlotName);
-                print(out, "()");
+                print(out, "() == null");
             } else {
                 print(out, slotAccessExpression);
                 print(out, ".size() < " + lower);
