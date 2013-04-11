@@ -8,6 +8,7 @@ import javax.transaction.SystemException;
 
 import jvstm.CommitException;
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.CommitListener;
 import pt.ist.fenixframework.Transaction;
@@ -102,7 +103,7 @@ public class JVSTMMemTransactionManager implements TransactionManager {
     @Override
     public <T> T withTransaction(Callable<T> command, Atomic atomic) {
         try {
-            return withTransaction(command, atomic.readOnly());
+            return withTransaction(command, atomic.mode() == TxMode.READ);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(-11);

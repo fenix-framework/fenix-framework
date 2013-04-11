@@ -5,6 +5,8 @@ import java.util.concurrent.Callable;
 import javax.transaction.NotSupportedException;
 import javax.transaction.SystemException;
 
+import pt.ist.fenixframework.core.WriteOnReadError;
+
 /**
  * Fenix Framework's interface for all Transaction Managers. This interface is
  * similar to {@link javax.transaction.TransactionManager}'s interface with some
@@ -31,7 +33,7 @@ public interface TransactionManager extends javax.transaction.TransactionManager
     /**
      * Transactionally execute a command, possibly returning a result.
      * Implementations of this method normally invoke {@link
-     * #withTransaction(Callable<T>, Atomic)} with a default atomic behaviour.
+     * #withTransaction(Callable<T>, Atomic)} with a default atomic behavior.
      * 
      * @param command
      *            The command to execute.
@@ -41,7 +43,7 @@ public interface TransactionManager extends javax.transaction.TransactionManager
     /**
      * Transactionally execute a command, possibly returning a result.
      * Implementations of this method normally invoke {@link
-     * #withTransaction(Callable<T>, Atomic)} with a default atomic behaviour.
+     * #withTransaction(Callable<T>, Atomic)} with a default atomic behavior.
      * 
      * @param command
      *            The command to execute.
@@ -60,14 +62,10 @@ public interface TransactionManager extends javax.transaction.TransactionManager
 
     /**
      * Create a new transaction and associate it with the current thread. This
-     * method can be used as a hint from the programmer that she does (or does
-     * not) intend do perform write operations. As such, implementations may
-     * optimize for the read-only case, and fail as soon as a write is
-     * attempted. However, if during the transaction the program attempts any
-     * write, and the transactional system is able to cope with the request, it
-     * may proceed without failing. In other words, write transactions are not
-     * guaranteed to rollback (i.e. they may commit) when invoking this method
-     * with <code>true</code>.
+     * method can be used by the programmer to ensure that a transaction will
+     * execute as read-only. Invoking this method with <code>true</code> attempts
+     * to create a read-only transaction. Within such transaction any attempt
+     * to perform a write operation will throw a WriteOnReadError.
      * 
      * @throws NotSupportedException
      *             Thrown if the thread is already associated with a transaction
@@ -77,11 +75,17 @@ public interface TransactionManager extends javax.transaction.TransactionManager
      *             Thrown if the transaction manager encounters an unexpected
      *             error condition that prevents future transaction services
      *             from proceeding.
+     * @throws WriteOnReadError
+     *             Thrown if an attempt is made to begin a write transaction
+     *             within an existing read-only transaction (in case nested
+     *             transactions are supported).
      */
-    public void begin(boolean readOnly) throws NotSupportedException, SystemException;
+    // para alem de rever o texto, explica que pode sair um writeonreaderror! se nao for possivel fazer o begin
+
+    public void begin(boolean readOnly) throws NotSupportedException, SystemException, WriteOnReadError;
 
     /**
-     * Registers a commit listener, that will be called whenever any {@link Transaction} managed by this Manager is committed.
+     * Registers a commit listener, that will be called whenever any {@link Transaction}managed by this Manager is committed.
      * 
      * @param listener
      *            The listener to be added.

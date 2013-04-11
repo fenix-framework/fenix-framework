@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import test.backend.jvstm.domain.Counter;
 
 public class SequentialUpdatesTest {
@@ -26,7 +27,7 @@ public class SequentialUpdatesTest {
         }
 
         @Override
-        @Atomic(speculativeReadOnly = false)
+        @Atomic(mode = TxMode.WRITE)
         public void run() {
             log("Incrementing upwards from " + counter.getValue());
 
@@ -58,7 +59,7 @@ public class SequentialUpdatesTest {
         Assert.assertEquals(MAX_THREADS * INCS_PER_THREAD, getCounterValue(c));
     }
 
-    @Atomic(speculativeReadOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     private Counter createCounter() {
         return new Counter();
     }
