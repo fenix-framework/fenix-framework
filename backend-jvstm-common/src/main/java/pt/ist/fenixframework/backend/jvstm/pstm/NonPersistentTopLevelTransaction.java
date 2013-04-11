@@ -16,12 +16,17 @@ public class NonPersistentTopLevelTransaction extends TopLevelTransaction implem
 
     @Override
     public Transaction makeNestedTransaction(boolean readOnly) {
-        if (txAllowsWrite()) {
-            // create a RW nested transaction, because we need its read-set
-            return new NonPersistentNestedTransaction(this);
-        } else {
-            return new NonPersistentReadOnlyTransaction(this);
+        if (!txAllowsWrite() && !readOnly) {
+            throw new WriteOnReadError();
         }
+
+        // create a RW nested transaction, because we need its read-set
+        NonPersistentNestedTransaction nested = new NonPersistentNestedTransaction(this);
+
+        if (readOnly) {
+            nested.setReadOnly();
+        }
+        return nested;
     }
 
     @Override

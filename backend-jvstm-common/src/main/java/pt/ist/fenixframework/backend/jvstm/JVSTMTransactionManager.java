@@ -161,10 +161,17 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
         // preset based on atomic defaults
         boolean readOnly = false;
         boolean tryReadOnly = true;
+        boolean flattenNested = false;
 
         if (atomic != null) {
             readOnly = (atomic.mode() == TxMode.READ);
             tryReadOnly = readOnly || (atomic.mode() == TxMode.SPECULATIVE_READ);
+            flattenNested = atomic.flattenNested();
+        }
+
+        if (flattenNested && getTransaction() != null) {
+            logger.trace("Using flattenNested=true");
+            return command.call();
         }
 
         int tries = 0;
@@ -200,7 +207,17 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
                     } else {
                         rollback();
                     }
-                } catch (Exception e) {
+                } catch (RollbackException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (HeuristicMixedException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (HeuristicRollbackException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (SecurityException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (IllegalStateException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (SystemException e) {
                     logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
                 }
             }
