@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.backend.jvstm.pstm.JvstmInFenixTransaction;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
@@ -28,17 +29,12 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
 
     protected static final Atomic DEFAULT_ATOMIC = new Atomic() {
         @Override
-        public boolean readOnly() {
-            return false;
+        public TxMode mode() {
+            return TxMode.SPECULATIVE_READ;
         }
 
         @Override
-        public boolean canFail() {
-            return true;
-        }
-
-        @Override
-        public boolean speculativeReadOnly() {
+        public boolean flattenNested() {
             return true;
         }
 
@@ -46,6 +42,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
         public Class<? extends Annotation> annotationType() {
             return pt.ist.fenixframework.Atomic.class;
         }
+
     };
 
     /*
@@ -161,16 +158,21 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
 
         logger.trace("Handling callable {}", commandName);
 
-        // atomic defaults
+        // preset based on atomic defaults
         boolean readOnly = false;
-        boolean speculativeReadOnly = true;
+        boolean tryReadOnly = true;
+        boolean flattenNested = false;
 
         if (atomic != null) {
-            readOnly = atomic.readOnly();
-            speculativeReadOnly = atomic.speculativeReadOnly();
+            readOnly = (atomic.mode() == TxMode.READ);
+            tryReadOnly = readOnly || (atomic.mode() == TxMode.SPECULATIVE_READ);
+            flattenNested = atomic.flattenNested();
         }
 
-        boolean tryReadOnly = readOnly || speculativeReadOnly;
+        if (flattenNested && getTransaction() != null) {
+            logger.trace("Using flattenNested=true");
+            return command.call();
+        }
 
         int tries = 0;
 
@@ -205,7 +207,17 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
                     } else {
                         rollback();
                     }
-                } catch (Exception e) {
+                } catch (RollbackException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (HeuristicMixedException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (HeuristicRollbackException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (SecurityException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (IllegalStateException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (SystemException e) {
                     logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
                 }
             }

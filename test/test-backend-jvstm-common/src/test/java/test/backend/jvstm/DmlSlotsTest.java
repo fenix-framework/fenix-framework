@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.FenixFramework;
 import test.backend.jvstm.domain.BuiltInTypes;
 import test.backend.jvstm.domain.CompositeValueType;
@@ -123,7 +124,7 @@ public class DmlSlotsTest {
         confirmBuiltInTypes();
     }
 
-    @Atomic(speculativeReadOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     private void initBuiltInTypes() {
         BuiltInTypes bt = new BuiltInTypes();
 
@@ -159,7 +160,7 @@ public class DmlSlotsTest {
         FenixFramework.getDomainRoot().setBuiltInTypes(bt);
     }
 
-    @Atomic()
+    @Atomic
     private void confirmBuiltInTypes() {
         BuiltInTypes bt = FenixFramework.getDomainRoot().getBuiltInTypes();
 
@@ -198,7 +199,7 @@ public class DmlSlotsTest {
         confirmValueTypes();
     }
 
-    @Atomic(speculativeReadOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     private void initValueTypes() {
         ValueTypes vt = new ValueTypes();
 
@@ -235,7 +236,7 @@ public class DmlSlotsTest {
         confirmRelationToOne();
     }
 
-    @Atomic(speculativeReadOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     private void initRelationToOne() {
         counter = new Counter();
         counter.setValue(4);
@@ -256,7 +257,7 @@ public class DmlSlotsTest {
         confirmRelationToMany();
     }
 
-    @Atomic(speculativeReadOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     private void initRelationToMany() {
         counters = new HashSet<Counter>();
 

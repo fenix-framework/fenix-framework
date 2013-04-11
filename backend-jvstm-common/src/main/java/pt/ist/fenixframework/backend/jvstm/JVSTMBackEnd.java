@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
@@ -147,7 +148,7 @@ public class JVSTMBackEnd implements BackEnd {
         }
     }
 
-    @Atomic(speculativeReadOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     // in the core we will not be able to use Atomic. Must do begin/commit
     private void ensureFenixFrameworkDataExists() {
         FenixFrameworkData data = FenixFramework.getDomainRoot().getFenixFrameworkData();

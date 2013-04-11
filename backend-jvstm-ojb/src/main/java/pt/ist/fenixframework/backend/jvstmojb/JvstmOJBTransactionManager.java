@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.CommitListener;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject.UnableToDetermineIdException;
@@ -131,8 +132,8 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
     @Override
     public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
-        boolean readOnly = atomic != null && atomic.readOnly();
-        boolean speculativeReadOnly = atomic != null && atomic.speculativeReadOnly();
+        boolean readOnly = atomic != null && atomic.mode() == TxMode.READ;
+        boolean speculativeReadOnly = atomic != null && atomic.mode() == TxMode.SPECULATIVE_READ;
 
         if (readOnly) {
             return handleReadCommand(command);

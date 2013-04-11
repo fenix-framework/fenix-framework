@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
@@ -57,7 +58,7 @@ public class NoRepository extends Repository {
     }
 
     @Override
-    @Atomic(speculativeReadOnly = false)
+    @Atomic(mode = TxMode.WRITE)
     public void ensureDomainRoot() {
         logger.info("Creating the singleton DomainRoot instance");
         new DomainRoot();
