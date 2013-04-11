@@ -43,7 +43,7 @@ relation DomainRootHasFenixFrameworkData {
 
 relation FenixDataHasTransactionStatistics {
     FenixFrameworkData playsRole;
-    TransactionStatisticsEntry playsRole FFTxStatsLog {
+    TransactionStatisticsEntry playsRole FFTxStatsEntry {
         multiplicity *;
     }
 }

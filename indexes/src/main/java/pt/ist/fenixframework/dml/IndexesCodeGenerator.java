@@ -87,7 +87,7 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     private String getSearchForKey(Role role, String retType) {
         boolean indexMult = role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY;
         String fetchMethod = "get" + (indexMult ? "Values" : "");
-        return "((" + getRelationAwareTypeFor(role) + ") get" + capitalize(role.getName()) + "())." + fetchMethod + "(key)";
+        return "((" + getRelationAwareTypeFor(role) + ") get" + capitalize(role.getName()) + "Set())." + fetchMethod + "(key)";
     }
 
     @Override

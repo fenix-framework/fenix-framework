@@ -90,12 +90,6 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         super.setDomainMetaClass(domainMetaClass);
     }
 
-    @Override
-    public void removeDomainMetaClass() {
-        checkFrameworkNotInitialized();
-        super.removeDomainMetaClass();
-    }
-
     /**
      * Finds and initializes the {@link PublicConsistencyPredicate} that is
      * being overridden by this predicate (if any).
@@ -271,7 +265,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         setInitialized(false);
 
         int count = 0;
-        for (DomainDependenceRecord dependenceRecord : getDomainDependenceRecords()) {
+        for (DomainDependenceRecord dependenceRecord : getDomainDependenceRecordSet()) {
             count++;
             if ((count % (ConsistencyPredicateSupport.getInstance().getBatchSize() / 2)) == 0) {
                 // Commits the current, and starts a new write transaction.
@@ -285,7 +279,7 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
             }
             dependenceRecord.delete();
         }
-        removeDomainMetaClass();
+        setDomainMetaClass(null);
         deleteDomainObject();
     }
 

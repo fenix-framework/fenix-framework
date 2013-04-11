@@ -452,11 +452,6 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
 
-    @Override
-    protected void generateIteratorMethod(Role role, PrintWriter out) {
-        generateIteratorMethod(role, out, getRoleManyGetterExpression(role.getName()));
-    }
-
     protected void generateRoleMultGetterSetter(Role role, PrintWriter out) {
         generateRoleMultGetter(role, out);
         generateRoleMultSetter(role, out);

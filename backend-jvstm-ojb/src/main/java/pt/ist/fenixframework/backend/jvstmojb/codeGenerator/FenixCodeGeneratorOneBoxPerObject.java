@@ -478,15 +478,4 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     }
 
-    @Override
-    protected void generateRoleSlotMethodsMultStarSet(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName, String slotAccessExpression, String slotName, String typeName) {
-        newline(out);
-        printMethod(out, methodModifiers, makeGenericType("java.util.Set", typeName), "get" + capitalizedSlotName + "Set");
-        startMethodBody(out);
-        print(out, "return ");
-        print(out, makeRelationListGetterName(role.getName()));
-        print(out, "();");
-        endMethodBody(out);
-    }
 }

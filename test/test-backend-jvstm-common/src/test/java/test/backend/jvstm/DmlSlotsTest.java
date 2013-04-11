@@ -271,7 +271,7 @@ public class DmlSlotsTest {
 
     @Atomic
     private void confirmRelationToMany() {
-        Set<Counter> actualCounters = FenixFramework.getDomainRoot().getMultipleCounter();
+        Set<Counter> actualCounters = FenixFramework.getDomainRoot().getMultipleCounterSet();
 
         Assert.assertEquals(counters, actualCounters);
     }

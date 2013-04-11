@@ -111,9 +111,9 @@ public class LeafNode extends LeafNode_Base {
 
     @Override
     void delete() {
-        removeNext();
-        removePrevious();
-        removeParent();
+        setNext(null);
+        setPrevious(null);
+        setParent(null);
         deleteDomainObject();
     }
 
