@@ -12,9 +12,31 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 
+import com.mysql.jdbc.NonRegisteringDriver;
+
 public class DbUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(DbUtil.class);
+
+    private static final NonRegisteringDriver mysqlDriver;
+
+    static {
+        try {
+            mysqlDriver = new NonRegisteringDriver();
+            DriverManager.registerDriver(mysqlDriver);
+        } catch (SQLException ex) {
+            throw new Error(ex);
+        }
+    }
+
+    public static void deregisterDriver() {
+        try {
+            DriverManager.deregisterDriver(mysqlDriver);
+            logger.info("Successfully deregistered JDBC driver " + mysqlDriver);
+        } catch (SQLException e) {
+            throw new Error(e);
+        }
+    }
 
     public static String getFkName(String slotName) {
         return "OID_" + convertToDBStyle(slotName);
@@ -101,24 +123,22 @@ public class DbUtil {
         }
     }
 
-    public static abstract class DBLockedCommand {
-
-        public DBLockedCommand() {
-            try {
-                connection = initConnection(getConfig());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new Error(ex);
-            }
-        }
-
-        private Connection initConnection(JvstmOJBConfig config) throws ClassNotFoundException, SQLException {
-            final String driverName = "com.mysql.jdbc.Driver";
-            Class.forName(driverName);
+    static Connection getNewConnection() {
+        try {
+            final JvstmOJBConfig config = getConfig();
             final String url = "jdbc:mysql:" + config.getDbAlias();
             final Connection connection = DriverManager.getConnection(url, config.getDbUsername(), config.getDbPassword());
             connection.setAutoCommit(false);
             return connection;
+        } catch (SQLException ex) {
+            throw new Error(ex);
+        }
+    }
+
+    public static abstract class DBLockedCommand {
+
+        public DBLockedCommand() {
+            this.connection = getNewConnection();
         }
 
         public final Connection connection;
@@ -127,6 +147,6 @@ public class DbUtil {
             return connection;
         }
 
-        public abstract void run();
+        protected abstract void run();
     }
 }

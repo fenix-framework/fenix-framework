@@ -35,7 +35,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
         setDependentDomainMetaObject(DomainMetaObject.getDomainMetaObjectFor((DomainObject) dependent));
         setDomainConsistencyPredicate(predicate);
         for (Depended<DomainDependenceRecord> dependedMetaObject : depended) {
-            addDependedDomainMetaObjects((DomainMetaObject) dependedMetaObject);
+            addDependedDomainMetaObject((DomainMetaObject) dependedMetaObject);
         }
         setConsistent(consistent);
     }
@@ -45,7 +45,7 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
         setDependentDomainMetaObject(DomainMetaObject.getDomainMetaObjectFor((DomainObject) dependent));
         setPredicate(predicate);
         for (Depended<DomainDependenceRecord> dependedMetaObject : depended) {
-            addDependedDomainMetaObjects((DomainMetaObject) dependedMetaObject);
+            addDependedDomainMetaObject((DomainMetaObject) dependedMetaObject);
         }
         setConsistent(consistent);
     }
@@ -57,14 +57,14 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
      */
     public void setConsistent(Boolean consistent) {
         if (consistent) {
-            removeInconsistentPredicate();
+            setInconsistentPredicate(null);
         } else {
             setInconsistentPredicate(getDomainConsistencyPredicate());
         }
     }
 
     public Boolean isConsistent() {
-        return !hasInconsistentPredicate();
+        return getInconsistentPredicate() == null;
     }
 
     /**
@@ -78,14 +78,14 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
      * </ul>
      **/
     public void delete() {
-        for (DomainMetaObject dependedMetaObject : getDependedDomainMetaObjects()) {
-            removeDependedDomainMetaObjects(dependedMetaObject);
+        for (DomainMetaObject dependedMetaObject : getDependedDomainMetaObjectSet()) {
+            removeDependedDomainMetaObject(dependedMetaObject);
         }
         if (!isConsistent()) {
-            getDomainConsistencyPredicate().removeInconsistentDependenceRecords(this);
+            getDomainConsistencyPredicate().removeInconsistentDependenceRecord(this);
         }
-        removeDomainConsistencyPredicate();
-        removeDependentDomainMetaObject();
+        setDomainConsistencyPredicate(null);
+        setDependentDomainMetaObject(null);
 
         //Deletes THIS DependenceRecord, which is also a Fenix-Framework DomainObject
         deleteDomainObject();
@@ -94,12 +94,12 @@ public class DomainDependenceRecord extends DomainDependenceRecord_Base implemen
     // DependenceRecord interface implemented below:
     @Override
     public void addDepended(DomainMetaObject dependedMetaObject) {
-        addDependedDomainMetaObjects(dependedMetaObject);
+        addDependedDomainMetaObject(dependedMetaObject);
     }
 
     @Override
     public Iterator<DomainMetaObject> getDepended() {
-        return getDependedDomainMetaObjectsIterator();
+        return getDependedDomainMetaObjectSet().iterator();
     }
 
     @Override

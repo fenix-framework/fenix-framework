@@ -15,6 +15,7 @@ import pt.ist.fenixframework.core.DmlFile;
 import pt.ist.fenixframework.core.Project;
 import pt.ist.fenixframework.core.exception.ProjectException;
 import pt.ist.fenixframework.util.Converter;
+import pt.ist.fenixframework.util.FenixFrameworkThread;
 
 /**
  * <p>
@@ -211,8 +212,9 @@ public abstract class Config {
     }
 
     private boolean attemptSetPropertyUsingMethod(Method setter, String value) {
-        if (setter == null)
+        if (setter == null) {
             return false;
+        }
 
         setter.setAccessible(true);
         try {
@@ -356,6 +358,7 @@ public abstract class Config {
      */
     protected void shutdown() {
         getBackEnd().shutdown();
+        FenixFrameworkThread.shutdownAllThreads();
     }
 
     /* UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - BEGIN */

@@ -11,9 +11,9 @@ package pt.ist.fenixframework.core;
  * with the situation at an infrastructural level. This is done by the Fenix Framework runtime and
  * should not be masked by the application code in anyway.
  * 
- * The class <code>TransactionError</code> is specifically a subclass of <code>Error</code> rather than <code>Exception</code>, even
- * though it is a "normal occurrence", because many applications catch
- * all occurrences of <code>Exception</code> and then discard the exception.
+ * The class <code>TransactionError</code> is specifically a subclass of <code>Error</code> rather than <code>Exception</code>,
+ * even though it is a "normal occurrence", because many applications catch all occurrences of <code>Exception</code> and then
+ * discard the exception.
  * 
  */
 public class TransactionError extends Error {
@@ -21,5 +21,9 @@ public class TransactionError extends Error {
 
     public TransactionError() {
         super();
+    }
+
+    public TransactionError(Throwable cause) {
+        super(cause);
     }
 }

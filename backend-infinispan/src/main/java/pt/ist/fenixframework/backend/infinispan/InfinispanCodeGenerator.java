@@ -236,33 +236,13 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     }
 
     @Override
-    protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
-
-        String typeName = getTypeFullName(role.getType());
-        String slotName = role.getName();
-        String capitalizedSlotName = capitalize(slotName);
-        String methodModifiers = getMethodModifiers();
-        boolean isIndexed = role.isIndexed();
-
+    protected void generateRoleSlotMethodsMultStarGetters(Role role, PrintWriter out) {
         generateRoleSlotMethodsMultStarGetter(role, out);
-
-        if (isIndexed) {
-            generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName,
-                    "get" + capitalize(role.getName()), typeName, slotName);
-        }
-
-        generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
-        generateRoleSlotMethodsMultStarRemover(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
-        generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, typeName);
-        generateRoleSlotMethodsMultStarCount(role, out, methodModifiers, capitalizedSlotName);
-        generateRoleSlotMethodsMultStarHasAnyChild(role, out, methodModifiers, capitalizedSlotName);
-        generateRoleSlotMethodsMultStarHasChild(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
-        generateIteratorMethod(role, out);
     }
 
     protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out) {
         newline(out);
-        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()));
+        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()) + "Set");
         startMethodBody(out);
 
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
@@ -290,93 +270,6 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, ", internalSet, keyFunction$$");
         print(out, role.getName());
         print(out, ");");
-        endMethodBody(out);
-    }
-
-    protected void generateRoleSlotMethodsMultStarSetter(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName, String typeName, String slotName) {
-        newline(out);
-        String adderMethodName = getAdderMethodName(role);
-        printFinalMethod(out, methodModifiers, "void", adderMethodName, makeArg(typeName, slotName));
-        startMethodBody(out);
-        generateRelationAddMethodCall(role, slotName, null, out);
-        endMethodBody(out);
-    }
-
-    protected void generateRoleSlotMethodsMultStarRemover(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName, String typeName, String slotName) {
-        String removerMethodName = getRemoverMethodName(role);
-
-        newline(out);
-        printMethod(out, methodModifiers, "void", removerMethodName, makeArg(typeName, slotName));
-        startMethodBody(out);
-        generateRelationRemoveMethodCall(role, slotName, out);
-        endMethodBody(out);
-    }
-
-    protected void generateRoleSlotMethodsMultStarCount(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName) {
-        newline(out);
-        printMethod(out, methodModifiers, "int", "get" + capitalizedSlotName + "Count");
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
-
-        printWords(out, "return get" + capitalizedSlotName + "().size();");
-        endMethodBody(out);
-    }
-
-    protected void generateRoleSlotMethodsMultStarHasAnyChild(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName) {
-        newline(out);
-        printMethod(out, methodModifiers, "boolean", "hasAny" + capitalizedSlotName);
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
-
-        printWords(out, "return (get" + capitalizedSlotName + "().size() != 0);");
-        endMethodBody(out);
-    }
-
-    protected void generateRoleSlotMethodsMultStarHasChild(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName, String typeName, String slotName) {
-        newline(out);
-        printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
-
-        printWords(out, "return get" + capitalizedSlotName + "().contains(" + slotName + ");");
-        endMethodBody(out);
-    }
-
-    protected void generateRoleSlotMethodsMultStarSet(Role role, PrintWriter out, String methodModifiers,
-            String capitalizedSlotName, String typeName) {
-        newline(out);
-        printMethod(out, methodModifiers, makeGenericType("java.util.Set", typeName), "get" + capitalizedSlotName + "Set");
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
-
-        print(out, "return get" + capitalizedSlotName + "();");
-        endMethodBody(out);
-    }
-
-    @Override
-    protected void generateIteratorMethod(Role role, PrintWriter out) {
-        generateIteratorMethod(role, out, "get" + capitalize(role.getName()) + "Iterator", "get" + capitalize(role.getName())
-                + "()");
-    }
-
-    protected void generateIteratorMethod(Role role, PrintWriter out, String methodName, final String slotAccessExpression) {
-        newline(out);
-        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), methodName);
-        startMethodBody(out);
-
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
-
-        printWords(out, "return", slotAccessExpression);
-        print(out, ".iterator();");
         endMethodBody(out);
     }
 

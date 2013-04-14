@@ -144,7 +144,6 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
 
     @Override
     protected void init() {
-        print();
         MetadataManager.init(this);
 
         DbUtil.runWithinDBLock(new DBLockedCommand() {
@@ -243,22 +242,6 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
 
     public boolean getUpdateRepositoryStructureIfNeeded() {
         return updateRepositoryStructureIfNeeded;
-    }
-
-    public void print() {
-        logger.trace("dbAlias: " + dbAlias);
-        logger.trace("dbName: " + getDBName());
-        logger.trace("dbUsername: " + dbUsername);
-        // The password should never be shown, or even mentioned
-        //logger.trace("dbPassword: *hidden*");
-
-        logger.trace("appName: " + appName);
-        logger.trace("errorIfChangingDeletedObject: " + errorIfChangingDeletedObject);
-
-        logger.trace("createRepositoryStructureIfNotExists: " + createRepositoryStructureIfNotExists);
-        logger.trace("updateRepositoryStructureIfNeeded: " + updateRepositoryStructureIfNeeded);
-
-        logger.trace("canCreateDomainMetaObjects: " + canCreateDomainMetaObjects);
     }
 
 }

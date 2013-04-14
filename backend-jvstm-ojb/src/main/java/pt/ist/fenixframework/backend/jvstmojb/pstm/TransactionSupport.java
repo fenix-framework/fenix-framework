@@ -8,8 +8,6 @@ import org.apache.ojb.broker.PersistenceBroker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
-
 public final class TransactionSupport {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionSupport.class);
@@ -49,10 +47,6 @@ public final class TransactionSupport {
 
     protected static DBChanges currentDBChanges() {
         return currentFenixTransaction().getDBChanges();
-    }
-
-    public static DomainObject readDomainObject(String classname, Integer oid) {
-        return (oid == null) ? null : currentFenixTransaction().readDomainObject(classname, oid);
     }
 
     public static void logAttrChange(AbstractDomainObject obj, String attrName) {

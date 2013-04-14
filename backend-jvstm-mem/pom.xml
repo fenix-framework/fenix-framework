@@ -54,7 +54,7 @@
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-indexes</artifactId>
+            <artifactId>fenix-framework-backend-jvstm-common</artifactId>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>

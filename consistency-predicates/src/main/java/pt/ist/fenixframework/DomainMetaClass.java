@@ -99,7 +99,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         super();
         checkFrameworkNotInitialized();
         setDomainClass(domainClass);
-        DomainFenixFrameworkRoot.getInstance().addDomainMetaClasses(this);
+        DomainFenixFrameworkRoot.getInstance().addDomainMetaClass(this);
         setExistingDomainMetaObjects(new BPlusTree<DomainMetaObject>());
         setInitialized(false);
 
@@ -130,12 +130,6 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     public void setDomainFenixFrameworkRoot(DomainFenixFrameworkRoot domainFenixFrameworkRoot) {
         checkFrameworkNotInitialized();
         super.setDomainFenixFrameworkRoot(domainFenixFrameworkRoot);
-    }
-
-    @Override
-    public void removeDomainFenixFrameworkRoot() {
-        checkFrameworkNotInitialized();
-        super.removeDomainFenixFrameworkRoot();
     }
 
     public Class<? extends DomainObject> getDomainClass() {
@@ -192,11 +186,11 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 
     public void removeExistingDomainMetaObject(DomainMetaObject metaObject) {
         getExistingDomainMetaObjects().remove(metaObject.getOid());
-        metaObject.removeDomainMetaClass();
+        metaObject.setDomainMetaClass(null);
     }
 
     public <PredicateT extends DomainConsistencyPredicate> PredicateT getDeclaredConsistencyPredicate(Method predicateMethod) {
-        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicates()) {
+        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicateSet()) {
             if (declaredConsistencyPredicate.getPredicate().equals(predicateMethod)) {
                 return (PredicateT) declaredConsistencyPredicate;
             }
@@ -214,15 +208,15 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     @Override
-    public void addDeclaredConsistencyPredicates(DomainConsistencyPredicate declaredConsistencyPredicates) {
+    public void addDeclaredConsistencyPredicate(DomainConsistencyPredicate declaredConsistencyPredicates) {
         checkFrameworkNotInitialized();
-        super.addDeclaredConsistencyPredicates(declaredConsistencyPredicates);
+        super.addDeclaredConsistencyPredicate(declaredConsistencyPredicates);
     }
 
     @Override
-    public void removeDeclaredConsistencyPredicates(DomainConsistencyPredicate declaredConsistencyPredicates) {
+    public void removeDeclaredConsistencyPredicate(DomainConsistencyPredicate declaredConsistencyPredicates) {
         checkFrameworkNotInitialized();
-        super.removeDeclaredConsistencyPredicates(declaredConsistencyPredicates);
+        super.removeDeclaredConsistencyPredicate(declaredConsistencyPredicates);
     }
 
     /**
@@ -267,27 +261,21 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     @Override
-    public void addDomainMetaSubclasses(DomainMetaClass domainMetaSubclasses) {
+    public void addDomainMetaSubclass(DomainMetaClass domainMetaSubclasses) {
         checkFrameworkNotInitialized();
-        super.addDomainMetaSubclasses(domainMetaSubclasses);
+        super.addDomainMetaSubclass(domainMetaSubclasses);
     }
 
     @Override
-    public void removeDomainMetaSubclasses(DomainMetaClass domainMetaSubclasses) {
+    public void removeDomainMetaSubclass(DomainMetaClass domainMetaSubclasses) {
         checkFrameworkNotInitialized();
-        super.removeDomainMetaSubclasses(domainMetaSubclasses);
+        super.removeDomainMetaSubclass(domainMetaSubclasses);
     }
 
     @Override
     public void setDomainMetaSuperclass(DomainMetaClass domainMetaSuperclass) {
         checkFrameworkNotInitialized();
         super.setDomainMetaSuperclass(domainMetaSuperclass);
-    }
-
-    @Override
-    public void removeDomainMetaSuperclass() {
-        checkFrameworkNotInitialized();
-        super.removeDomainMetaSuperclass();
     }
 
     /**
@@ -309,7 +297,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      */
     public void executeInheritedPredicates() {
         checkFrameworkNotInitialized();
-        if (!hasDomainMetaSuperclass()) {
+        if (getDomainMetaSuperclass() == null) {
             return;
         }
 
@@ -345,7 +333,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      * directly in this class.
      */
     private void fillDeclaredPrivatePredicates(List<PrivateConsistencyPredicate> privatePredicates) {
-        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicates()) {
+        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicateSet()) {
             if (declaredConsistencyPredicate.isPrivate()) {
                 privatePredicates.add((PrivateConsistencyPredicate) declaredConsistencyPredicate);
             }
@@ -357,7 +345,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
      * {@link PublicConsistencyPredicate}s declared directly in this class, associated to their method names.
      */
     private void fillDeclaredPublicPredicates(Map<String, PublicConsistencyPredicate> publicPredicates) {
-        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicates()) {
+        for (DomainConsistencyPredicate declaredConsistencyPredicate : getDeclaredConsistencyPredicateSet()) {
             if (declaredConsistencyPredicate.isPublic()) {
                 // Overwrites previous values under the same key.
                 // So, any overridden predicate with the same name will be replaced.  
@@ -398,19 +386,19 @@ public class DomainMetaClass extends DomainMetaClass_Base {
 
         // If we are deleting this class, then the previous subclass will have changed its superclass
         // and should also be deleted.
-        for (DomainMetaClass metaSubclass : getDomainMetaSubclasses()) {
+        for (DomainMetaClass metaSubclass : getDomainMetaSubclassSet()) {
             metaSubclass.delete();
         }
 
         logger.info("Deleted DomainMetaClass " + getDomainClassName());
-        for (DomainConsistencyPredicate domainConsistencyPredicate : getDeclaredConsistencyPredicates()) {
+        for (DomainConsistencyPredicate domainConsistencyPredicate : getDeclaredConsistencyPredicateSet()) {
             domainConsistencyPredicate.classDelete();
         }
-        removeDomainMetaSuperclass();
+        setDomainMetaSuperclass(null);
 
         DomainFenixFrameworkRoot root = getDomainFenixFrameworkRoot();
         if (root != null) {
-            root.removeDomainMetaClasses(this);
+            root.removeDomainMetaClass(this);
         }
         //Deletes THIS metaClass, which is also a Fenix-Framework DomainObject
         deleteDomainObject();

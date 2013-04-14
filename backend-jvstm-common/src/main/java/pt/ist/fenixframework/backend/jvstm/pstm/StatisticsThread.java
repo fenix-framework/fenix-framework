@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.FenixFramework;
 
 public class StatisticsThread extends Thread {
@@ -35,12 +36,12 @@ public class StatisticsThread extends Thread {
     }
 
     private void reportStatistics() {
-        final TransactionStatistics.Report stats = TransactionSupport.STATISTICS.getReportAndReset();
+        final TransactionStatistics.Report stats = TransactionStatistics.STATISTICS.getReportAndReset();
         numReport++;
         doAtomicReporting(stats);
     }
 
-    @Atomic
+    @Atomic(mode = TxMode.WRITE)
     private void doAtomicReporting(final TransactionStatistics.Report stats) {
         TransactionStatisticsEntry entry;
         entry =
@@ -48,7 +49,7 @@ public class StatisticsThread extends Thread {
                         stats.numConflicts, SECONDS_BETWEEN_REPORTS, new DateTime(), stats.readOnlyReads, stats.readWriteReads,
                         stats.readWriteWrites);
         FenixFrameworkData ffData = FenixFramework.getDomainRoot().getFenixFrameworkData();
-        ffData.addFFTxStatsLog(entry);
+        ffData.addFFTxStatsEntry(entry);
     }
 
 }

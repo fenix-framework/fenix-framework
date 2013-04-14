@@ -141,8 +141,9 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 Map<String, String> realParams = getParams() == null ? new HashMap<String, String>() : getParams();
 
                 compArgs =
-                        new CompilerArgs(getSourcesDirectory(), getGeneratedSourcesDirectory(), getPackageName(),
-                                generateFinals(), getCodeGeneratorClass(), localDmls, externalDmls, realParams);
+                        new CompilerArgs(getMavenProject().getArtifactId(), getSourcesDirectory(),
+                                getGeneratedSourcesDirectory(), getPackageName(), generateFinals(), getCodeGeneratorClass(),
+                                localDmls, externalDmls, realParams);
 
                 DmlCompiler.compile(compArgs);
             } else {

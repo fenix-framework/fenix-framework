@@ -288,7 +288,7 @@ public class FenixCodeGenerator extends ConsistencyPredicatesCodeGenerator {
     }
 
     protected void generateRelationGetter(Role role, String paramListType, PrintWriter out) {
-        generateRelationGetter("get" + capitalize(role.getName()), getSlotExpression(role.getName()), paramListType, out);
+        generateRelationGetter("get" + capitalize(role.getName()) + "Set", getSlotExpression(role.getName()), paramListType, out);
     }
 
     protected void generateRelationGetter(String getterName, String valueToReturn, String typeName, PrintWriter out) {
@@ -311,26 +311,9 @@ public class FenixCodeGenerator extends ConsistencyPredicatesCodeGenerator {
     }
 
     @Override
-    protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
-        generateRelationGetter("get" + capitalize(role.getName()), role, out);
+    protected void generateRoleSlotMethodsMultStarGetters(Role role, PrintWriter out) {
+        generateRelationGetter("get" + capitalize(role.getName()) + "Set", role, out);
         generateOJBSetter(role.getName(), "OJBFunctionalSetWrapper", out);
-        generateIteratorMethod(role, out);
-    }
-
-    @Override
-    protected void generateIteratorMethod(Role role, PrintWriter out) {
-        generateIteratorMethod(role, out, getSlotExpression(role.getName()));
-    }
-
-    @Override
-    protected void generateIteratorMethod(Role role, PrintWriter out, final String slotAccessExpression) {
-        newline(out);
-        printFinalMethod(out, "public", makeGenericType("java.util.Iterator", getTypeFullName(role.getType())), "get"
-                + capitalize(role.getName()) + "Iterator");
-        startMethodBody(out);
-        printWords(out, "return", slotAccessExpression);
-        print(out, ".iterator();");
-        endMethodBody(out);
     }
 
     @Override
@@ -562,14 +545,14 @@ public class FenixCodeGenerator extends ConsistencyPredicatesCodeGenerator {
             if (role.getName() != null) {
                 onNewline(out);
 
-                print(out, "if (");
-                if (role.getMultiplicityUpper() == 1) {
-                    print(out, "has");
-                } else {
-                    print(out, "hasAny");
-                }
+                print(out, "if (get");
                 print(out, capitalize(role.getName()));
-                print(out, "()) handleAttemptToDeleteConnectedObject(\"");
+                if (role.getMultiplicityUpper() == 1) {
+                    print(out, "() != null");
+                } else {
+                    print(out, "Set().size() > 0");
+                }
+                print(out, ") handleAttemptToDeleteConnectedObject(\"");
                 print(out, capitalize(role.getName()));
                 println(out, "\");");
             }

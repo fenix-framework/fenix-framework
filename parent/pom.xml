@@ -20,7 +20,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- PLEASE KEEP THIS LIST SORTED ALPHABETICALLY!!!  THANKS -->
-        <version.advice>1.5</version.advice>
+        <version.advice>1.7</version.advice>
         <version.antlr>2.7.7</version.antlr>
         <version.apache.ant>1.8.2</version.apache.ant>
         <version.asm>4.0</version.asm>
@@ -340,7 +340,12 @@
             </dependency>
             <dependency>
                 <groupId>pt.ist.esw</groupId>
-                <artifactId>advice</artifactId>
+                <artifactId>advice-program</artifactId>
+                <version>${version.advice}</version>
+            </dependency>
+            <dependency>
+                <groupId>pt.ist.esw</groupId>
+                <artifactId>advice-runtime</artifactId>
                 <version>${version.advice}</version>
             </dependency>
         </dependencies>

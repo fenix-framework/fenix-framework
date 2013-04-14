@@ -115,7 +115,7 @@ public class InnerNode extends InnerNode_Base {
         for (AbstractNode subNode : getSubNodes().values()) {
             subNode.delete();
         }
-        removeParent();
+        setParent(null);
         deleteDomainObject();
     }
 

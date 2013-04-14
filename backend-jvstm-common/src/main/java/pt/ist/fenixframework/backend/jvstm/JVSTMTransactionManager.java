@@ -1,8 +1,7 @@
 package pt.ist.fenixframework.backend.jvstm;
 
-import java.util.Map;
+import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
@@ -12,20 +11,39 @@ import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 
 import jvstm.Transaction;
+import jvstm.WriteOnReadException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.CallableWithoutException;
-import pt.ist.fenixframework.CommitListener;
-import pt.ist.fenixframework.backend.jvstm.pstm.GenericTopLevelTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.JvstmInFenixTransaction;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
 import pt.ist.fenixframework.core.WriteOnReadError;
 
 public class JVSTMTransactionManager extends AbstractTransactionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(JVSTMTransactionManager.class);
+
+    protected static final Atomic DEFAULT_ATOMIC = new Atomic() {
+        @Override
+        public TxMode mode() {
+            return TxMode.SPECULATIVE_READ;
+        }
+
+        @Override
+        public boolean flattenNested() {
+            return true;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return pt.ist.fenixframework.Atomic.class;
+        }
+
+    };
 
     /*
      * JVSTMTransactions are stored in a thread local, because JVSTM's are also.
@@ -34,15 +52,13 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
 
     @Override
     public void begin(boolean readOnly) throws NotSupportedException {
-        if (transactions.get() != null) {
-            throw new NotSupportedException("Nesting is not yet supported in JVSTM based backends");
-        }
+        JVSTMTransaction parent = transactions.get();
 
-        logger.trace("Begin Transaction. Read Only: {}", readOnly);
+        logger.trace("Begin {}Transaction. Read Only: {}", (parent != null ? "(nested)" : ""), readOnly);
 
-        GenericTopLevelTransaction underlying = (GenericTopLevelTransaction) Transaction.begin(readOnly);
+        JvstmInFenixTransaction underlying = (JvstmInFenixTransaction) Transaction.begin(readOnly);
 
-        transactions.set(new JVSTMTransaction(underlying));
+        transactions.set(new JVSTMTransaction(underlying, parent));
     }
 
     @Override
@@ -52,27 +68,31 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
 
     @Override
     public void backendCommit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
+        JVSTMTransaction currentTx = transactions.get();
+
         try {
             logger.trace("Committing Transaction");
 
             // Note that no null check is needed, because a
             // check has been made in the super-class.
-            transactions.get().commit();
+            currentTx.commit();
         } finally {
-            transactions.remove();  // smf: if an exception occurs during commit, should we still do this??  Won't the transaction be neeed for rollback?
+            transactions.set(currentTx.getParent());
         }
     }
 
     @Override
     public void backendRollback() throws SystemException {
+        JVSTMTransaction currentTx = transactions.get();
+
         try {
             logger.trace("Rolling Back Transaction");
 
             // Note that no null check is needed, because a
             // check has been made in the super-class.
-            transactions.get().rollback();
+            currentTx.rollback();
         } finally {
-            transactions.remove();
+            transactions.set(currentTx.getParent());
         }
 
     }
@@ -90,7 +110,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
 
         JVSTMTransaction tx = (JVSTMTransaction) tobj;
 
-        Transaction.resume(tx.getUnderlyingTransaction());
+        Transaction.resume((jvstm.Transaction) tx.getUnderlyingTransaction());
         transactions.set(tx);
     }
 
@@ -114,148 +134,127 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
+    // allow unchecked exceptions to pass to the caller
     public <T> T withTransaction(CallableWithoutException<T> command) {
         try {
-            return handleWriteCommand(command, false);
+            return withTransaction(command, DEFAULT_ATOMIC);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Error e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Unexpected exception ocurred while running transaction", e);
+            throw new Error("Unexpected exception ocurred while running transaction", e);
         }
     }
 
     @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {
-        return handleWriteCommand(command, false);
+        return withTransaction(command, DEFAULT_ATOMIC);
     }
 
     @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
-        boolean readOnly = atomic != null && atomic.readOnly();
-        boolean speculativeReadOnly = atomic != null && atomic.speculativeReadOnly();
-
-        if (readOnly) {
-            return handleReadCommand(command);
-        } else {
-            return handleWriteCommand(command, speculativeReadOnly);
-        }
-    }
-
-    private <T> T handleReadCommand(Callable<T> command) throws Exception {
-        if (getTransaction() != null) {
-            // Piggy-back on the currently running transaction, 
-            // be it read-only or not
-            return command.call();
-        }
-
-        begin(true);
-        try {
-            return command.call();
-        } finally {
-            commit();
-        }
-    }
-
-    // Service Handling - Write Transactions
-
-    private static final Map<String, String> knownWriteServices = new ConcurrentHashMap<String, String>();
-
-    private <T> T handleWriteCommand(Callable<T> command, boolean speculativeReadOnly) throws Exception {
-
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception, NotSupportedException {
         final String commandName = command.getClass().getName();
 
-        logger.trace("Handling service {}", commandName);
+        logger.trace("Handling callable {}", commandName);
 
-        if (getTransaction() != null && getTransaction().txAllowsWrite()) {
-            // Piggy-back this write transaction in the currently running
-            // write transaction
-            logger.trace("Inside write transaction. Flattenning...");
+        // preset based on atomic defaults
+        boolean readOnly = false;
+        boolean tryReadOnly = true;
+        boolean flattenNested = false;
+
+        if (atomic != null) {
+            readOnly = (atomic.mode() == TxMode.READ);
+            tryReadOnly = readOnly || (atomic.mode() == TxMode.SPECULATIVE_READ);
+            flattenNested = atomic.flattenNested();
+        }
+
+        if (flattenNested && getTransaction() != null) {
+            logger.trace("Using flattenNested=true");
             return command.call();
         }
 
-        boolean promotedTransaction = false;
-
-        if (getTransaction() != null) {
-            // Commit currently running read-only transaction.
-            // Due to JVSTM, this is guaranteed to never fail.
-            commit();
-
-            // If a read transaction was already running, checkpoint
-            // the current transaction instead of committing it.
-            promotedTransaction = true;
-        }
-
-        boolean readOnly = speculativeReadOnly ? !knownWriteServices.containsKey(commandName) : false;
-
-        boolean keepGoing = true;
         int tries = 0;
 
-        try {
-            while (keepGoing) {
-                tries++;
+        while (true) {
+            begin(tryReadOnly);
+            tries++;
+
+            T result = null;
+            boolean commandFinished = false;
+
+            try {
+                result = command.call();
+                commandFinished = true;
+            } catch (WriteOnReadException e) {
+                tryReadOnly = handleWriteOnRead(commandName, readOnly, tryReadOnly, tries, e);
+            } catch (WriteOnReadError e) {
+                tryReadOnly = handleWriteOnRead(commandName, readOnly, tryReadOnly, tries, e);
+            } catch (UnableToDetermineIdException e) {
+                if (!readOnly) {
+                    tryReadOnly = false;
+                }
+                logTransactionRestart(commandName, e, tries);
+            } catch (Exception e) {
+                // just log any other exception
+                logGenericException(commandName, e, tries);
+                throw e;
+            } finally {
                 try {
-                    try {
-                        begin(readOnly);
-                        T result = command.call();
-                        if (promotedTransaction) {
-                            if (!readOnly) {
-                                // Do nothing if the current transaction did not write anything.
-                                checkpoint();
-                            }
-                        } else {
-                            commit();
-                        }
-                        keepGoing = false;
+                    if (commandFinished) {
+                        commit();
                         return result;
-                    } finally {
-                        if (keepGoing) {
-                            logger.trace("Transaction failed to commit.");
-                            if (getTransaction() != null) {
-                                rollback();
-                            }
-                        }
+                    } else {
+                        rollback();
                     }
                 } catch (RollbackException e) {
-                    if (tries > 3) {
-                        logTransactionRestart(commandName, e, tries);
-                    }
-                } catch (UnableToDetermineIdException e) {
-                    if (tries > 3) {
-                        logTransactionRestart(commandName, e, tries);
-                    }
-                } catch (WriteOnReadError e) {
-                    logger.trace("Restarting transaction due to WriteOnReadError");
-                    knownWriteServices.put(commandName, commandName);
-                    readOnly = false;
-                    if (tries > 3) {
-                        logTransactionRestart(commandName, e, tries);
-                    }
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (HeuristicMixedException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (HeuristicRollbackException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (SecurityException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (IllegalStateException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (SystemException e) {
+                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
                 }
             }
-        } finally {
-            if (promotedTransaction && getTransaction() == null) {
-                // We were inside a transaction when we entered, but now we are not!
-                begin(true);
+        }
+    }
+
+    private boolean handleWriteOnRead(final String commandName, boolean readOnly, boolean tryReadOnly, int tries, Throwable e)
+            throws WriteOnReadError {
+        if (readOnly) {
+            // read-only transactions will end
+            logTransactionAbort(commandName, e, tries);
+            // note that transaction will be rolled back in the finally block
+            if (e instanceof WriteOnReadError) {
+                throw (WriteOnReadError) e;
+            } else {
+                throw new WriteOnReadError(e);
             }
+        } else {
+            // read-write transactions will now be restarted as read-write
+            tryReadOnly = false;
+            logTransactionRestart(commandName, e, tries);
         }
-
-        throw new RuntimeException("This could should never be reached!");
+        return tryReadOnly;
     }
 
-    private void checkpoint() {
-        logger.trace("Checkpointing Transaction");
-        JVSTMTransaction transaction = getTransaction();
-        for (CommitListener listener : listeners) {
-            listener.beforeCommit(transaction);
-        }
-        Transaction.checkpoint();
-        for (CommitListener listener : listeners) {
-            listener.afterCommit(transaction);
-        }
-        transaction.setReadOnly();
-        logger.trace("Transaction is now read-only");
+    private void logTransactionRestart(String commandName, Throwable cause, int tries) {
+        logger.debug("Transaction {} has been restarted {} time(s) because of {}", commandName, tries, cause.getClass()
+                .getSimpleName());
     }
 
-    private void logTransactionRestart(String service, Throwable cause, int tries) {
-        logger.warn("Service {} has been restarted {} times because of {}", service, tries, cause.getClass().getSimpleName());
+    private void logTransactionAbort(String commandName, Throwable cause, int tries) {
+        logger.debug("Aborting transaction {} after {} executions because of {}", commandName, tries, cause.getClass()
+                .getSimpleName());
+    }
+
+    private void logGenericException(String commandName, Throwable cause, int tries) {
+        logger.debug("Transaction {} after {} executions throws {}", commandName, tries, cause.getClass().getSimpleName());
     }
 
 }

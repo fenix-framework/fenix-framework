@@ -8,6 +8,8 @@ import org.apache.ojb.broker.util.configuration.impl.OjbConfiguration;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 
+import com.mysql.jdbc.NonRegisteringDriver;
+
 public class MetadataManager {
 
     private static MetadataManager instance;
@@ -53,7 +55,7 @@ public class MetadataManager {
         jcd.setDefaultConnection(true);
         jcd.setDbms("MySQL");
         jcd.setJdbcLevel("1.0");
-        jcd.setDriver("com.mysql.jdbc.Driver");
+        jcd.setDriver(NonRegisteringDriver.class.getName());
         jcd.setProtocol("jdbc");
         jcd.setSubProtocol("mysql");
         jcd.setDbAlias(config.getDbAlias());
