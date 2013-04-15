@@ -240,7 +240,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     protected void generateSerializedFormConstructor(DomainClass domClass, PrintWriter out) {
         newline(out);
-        printMethod(out, "protected", "", "SerializedForm", makeArg("DO_State", "obj"));
+        printConstructor(out, "protected", "SerializedForm", makeArg("DO_State", "obj"));
         startMethodBody(out);
         print(out, "super(obj);");
 
