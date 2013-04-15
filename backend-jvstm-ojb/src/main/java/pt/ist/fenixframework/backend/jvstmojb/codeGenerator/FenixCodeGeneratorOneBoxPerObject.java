@@ -478,4 +478,27 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     }
 
+    @Override
+    protected void generateRoleSlotMethodsMultStarGetters(Role role, PrintWriter out) {
+        super.generateRoleSlotMethodsMultStarGetters(role, out);
+
+        generateDeprecatedGetters(role, out);
+    }
+
+    private void generateDeprecatedGetters(Role role, PrintWriter out) {
+        newline(out);
+        println(out, "@Deprecated");
+        printMethod(out, "public", makeGenericType("java.util.Set", role.getType().getFullName()),
+                "get" + capitalize(role.getName()));
+        startMethodBody(out);
+        print(out, "return get" + capitalize(role.getName()) + "Set();");
+        endMethodBody(out);
+
+        newline(out);
+        println(out, "@Deprecated");
+        printMethod(out, "public", "int", "get" + capitalize(role.getName()) + "Count");
+        startMethodBody(out);
+        print(out, "return get" + capitalize(role.getName()) + "Set().size();");
+        endMethodBody(out);
+    }
 }
