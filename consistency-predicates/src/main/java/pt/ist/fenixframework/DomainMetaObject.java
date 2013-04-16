@@ -68,10 +68,16 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
 
     @Override
     public void setDomainObject(DomainObject domainObject) {
-        // These two sets are needed because the relation between a domainObject
-        // and it's metaObject is only partially implemented in DML.
-        super.setDomainObject(domainObject);
-        justSetMetaObjectForDomainObject(domainObject, this);
+        if (domainObject == null) {
+            DomainObject previousObject = getDomainObject();
+            // These two sets are needed because the relation between a domainObject
+            // and it's metaObject is only partially implemented in DML.
+            justSetMetaObjectForDomainObject(previousObject, null);
+            super.setDomainObject(null);
+        } else {
+            justSetMetaObjectForDomainObject(domainObject, this);
+            super.setDomainObject(domainObject);
+        }
     }
 
     /**
@@ -105,16 +111,6 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
      */
     public boolean hasOwnDependenceRecord(DomainConsistencyPredicate predicate) {
         return getOwnDependenceRecord(predicate) != null;
-    }
-
-    // @Override
-    public void removeDomainObject() {
-        DomainObject domainObject = getDomainObject();
-
-        // These two sets are needed because the relation between a domainObject
-        // and it's metaObject is only partially implemented in DML.
-        justSetMetaObjectForDomainObject(domainObject, null);
-        super.setDomainObject(null);
     }
 
     public static DomainMetaObject getDomainMetaObjectFor(DomainObject obj) {

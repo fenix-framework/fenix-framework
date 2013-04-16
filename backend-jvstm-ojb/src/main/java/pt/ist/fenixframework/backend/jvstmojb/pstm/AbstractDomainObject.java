@@ -175,10 +175,6 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         domainMetaObject.setDomainObject(this);
     }
 
-    private void removeMetaObject() {
-        getDomainMetaObject().removeDomainObject();
-    }
-
     /**
      * This should be invoked only when this DO is being deleted.
      */
