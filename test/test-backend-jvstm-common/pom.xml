@@ -16,7 +16,7 @@
     <name>Fenix Framework Tests for BackEnd JVSTM common</name>
 
     <properties>
-        <fenixframework.code.generator>pt.ist.fenixframework.backend.jvstm.JVSTMCodeGenerator</fenixframework.code.generator>
+        <code.generator.class>pt.ist.fenixframework.backend.jvstm.JVSTMCodeGenerator</code.generator.class>
     </properties>
 
     <build>
@@ -33,7 +33,7 @@
                             <goal>ff-test-process-atomic-annotations</goal>
                         </goals>
                         <configuration>
-                            <codeGeneratorClassName>${fenixframework.code.generator}</codeGeneratorClassName>
+                            <codeGeneratorClassName>${code.generator.class}</codeGeneratorClassName>
                         </configuration>
                     </execution>
                 </executions>
