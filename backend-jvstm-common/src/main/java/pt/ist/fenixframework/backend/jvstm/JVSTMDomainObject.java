@@ -46,6 +46,7 @@ public abstract class JVSTMDomainObject extends AbstractDomainObjectAdapter {
 
             }
         } catch (Exception e) {
+            logger.debug("Exception in ensureOid:", e);
             throw new UnableToDetermineIdException(e);
         }
     }

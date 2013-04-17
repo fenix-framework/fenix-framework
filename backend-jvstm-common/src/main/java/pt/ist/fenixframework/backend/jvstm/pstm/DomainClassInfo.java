@@ -34,6 +34,7 @@ public class DomainClassInfo implements Serializable {
             int maxId = 0;
 
             for (DomainClassInfo classInfo : map.values()) {
+                logger.info("Existing domain class '{}' with id {}", classInfo.domainClassName, classInfo.classId);
                 maxId = Math.max(maxId, classInfo.classId);
                 addNewInfoToArray(array, classInfo);
             }
@@ -204,9 +205,9 @@ public class DomainClassInfo implements Serializable {
     /* Invocations to this method should be synchronized in the <code>info</code> argument */
     private static int initLastKeyFor(DomainClassInfo info) throws Exception {
         long baseRange = serverOidBase + ((long) info.classId << 32);
-        long maxId = 0;
-
-        JVSTMBackEnd.getInstance().getRepository().getMaxOidForClass(info.domainClass, baseRange, baseRange + 0xFFFFFFFFL);
+        long maxId =
+                JVSTMBackEnd.getInstance().getRepository()
+                        .getMaxOidForClass(info.domainClass, baseRange, baseRange + 0xFFFFFFFFL);
 
         // the closest row might be outside (before) the acceptable range
         // smf: remove this check when all repostory impls correctly check baseRange

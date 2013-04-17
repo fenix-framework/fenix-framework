@@ -5,10 +5,17 @@ import java.util.ListIterator;
 
 import jvstm.Transaction;
 import jvstm.VBoxBody;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.backend.jvstm.FenixVBox;
 
 public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBox<E> {
+
+    private static final Logger logger = LoggerFactory.getLogger(VBox.class);
+
     static final Object NOT_LOADED_VALUE = new Object();
     static final VBoxBody NOT_LOADED_BODY = new VBoxBody(notLoadedValue(), 0, null);
 
@@ -76,28 +83,28 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
         super.put(newValue);
     }
 
-    public boolean hasValue() {
-        throw new UnsupportedOperationException("not yet implemented");
-//        return ((JvstmInFenixTransaction)Transaction.current()).isBoxValueLoaded(this);
-    }
+//    public boolean hasValue() {
+//        throw new UnsupportedOperationException("not yet implemented");
+////        return ((JvstmInFenixTransaction)Transaction.current()).isBoxValueLoaded(this);
+//    }
 
     public void putNotLoadedValue() {
         this.put(VBox.<E> notLoadedValue());
     }
 
-    protected void persistentLoad(E value) {
-        throw new UnsupportedOperationException("not yet implemented");
-//        int txNumber = Transaction.current().getNumber();
-//        persistentLoad(value, txNumber);
-    }
+//    protected void persistentLoad(E value) {
+//        throw new UnsupportedOperationException("not yet implemented");
+////        int txNumber = Transaction.current().getNumber();
+////        persistentLoad(value, txNumber);
+//    }
 
-    public void persistentLoad(Object value, int txNumber) {
-        // find appropriate body
-        VBoxBody<E> body = this.body.getBody(txNumber);
-        if (body.value == NOT_LOADED_VALUE) {
-            body.value = (E) value;
-        }
-    }
+//    public void persistentLoad(Object value, int txNumber) {
+//        // find appropriate body
+//        VBoxBody<E> body = this.body.getBody(txNumber);
+//        if (body.value == NOT_LOADED_VALUE) {
+//            body.value = (E) value;
+//        }
+//    }
 
     @Override
     public synchronized VBoxBody addNewVersion(/*String attr, */int txNumber) {
@@ -126,23 +133,22 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
     // synchronized here processes reloads of the same box one at a time, thus avoiding concurrent accesses to the persistence to
     // load the same box
     synchronized boolean reload(/*Object obj, String attr*/) {
-        throw new UnsupportedOperationException("not yet implemented");
-//        try {
-//            //Re-test to see whether some other thread already did the job for us.
-//            //This also requires the body's value slot to be final.
-//
-//            //VBoxBody<E> body = this.body.getBody(Transaction.current().getNumber());
-//            VBoxBody<E> body = getBody(Transaction.current().getNumber());
-//            if (body.value == VBox.NOT_LOADED_VALUE) {
-//                doReload(obj, attr);
-//            }
-//            return true;
-//        } catch (Throwable e) {
-//            // what to do?
-//            System.err.println("Couldn't reload attribute '" + attr + "': " + e.getMessage());
-//            //e.printStackTrace();
-//            return false;
-//        }
+        try {
+            //Re-test to see whether some other thread already did the job for us.
+            //This also requires the body's value slot to be final.
+
+            //VBoxBody<E> body = this.body.getBody(Transaction.current().getNumber());
+            VBoxBody<E> body = getBody(Transaction.current().getNumber());
+            if (body.value == VBox.NOT_LOADED_VALUE) {
+                doReload(/*obj, attr*/);
+            }
+            return true;
+        } catch (Throwable e) {
+            // what to do?
+            logger.warn("Couldn't reload attribute '" + slotName + "' for '" + ownerObj.getExternalId() + "': " + e.getMessage());
+            //e.printStackTrace();
+            return false;
+        }
     }
 
     public final VBoxBody<E> getBody(int maxVersion) {
@@ -182,9 +188,9 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
         }
     }
 
-    public void setFromOJB(Object obj, String attr, E value) {
-        persistentLoad(value);
-    }
+//    public void setFromOJB(Object obj, String attr, E value) {
+//        persistentLoad(value);
+//    }
 
     // merge the versions kept in this vbox with those stored in vvalues. There might
     // be duplicates.
