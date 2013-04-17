@@ -38,21 +38,7 @@ public class JvstmIspnConfig extends JVSTMConfig {
     protected void init() {
         JvstmIspnBackEnd thisBackEnd = new JvstmIspnBackEnd();
         super.backEnd = thisBackEnd;
-//        try {
-//            thisBackEnd.configJvstmIspn(this);
-//        } catch (Exception e) {
-//            throw new ConfigError(FAILED_INIT, e);
-//        }
-//
         super.init(); // this will in turn initialize our backend 
-    }
-
-    @Override
-    protected void checkConfig() {
-        super.checkConfig();
-        if (ispnConfigFile == null) {
-            missingRequired("ispnConfigFile");
-        }
     }
 
     @Override

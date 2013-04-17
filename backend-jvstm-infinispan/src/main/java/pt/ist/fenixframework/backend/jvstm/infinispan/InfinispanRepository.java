@@ -64,6 +64,7 @@ public class InfinispanRepository extends Repository {
 
     Cache<String, Object> systemCache;
     Cache<String, DataVersionHolder> domainCache;
+    TransactionManager transactionManager;
 
     private int maxCommittedTxId = -1;
 
@@ -83,16 +84,45 @@ public class InfinispanRepository extends Repository {
         }
     }
 
-    private boolean bootstrapIfNeeded(String ispnConfigFile) {
+    // we need the transaction manager to init the caches (because we need preload, otherwise ispn as a bug. So, we just create a dummy cache to get its TxManager :-(
+    private void initTransactionManager() {
+        Configuration conf = makeRequiredConfiguration();
+        // for the dummy cache disable, cache loaders if any was configured
+        ConfigurationBuilder confBuilder = new ConfigurationBuilder().read(conf);
+        confBuilder.loaders().clearCacheLoaders();
+        conf = confBuilder.build();
+
+        String DUMMY_CACHE = "dummy-cache";
+        logger.debug("Configuration for {} is: {}", DUMMY_CACHE, conf.toString());
+
+        try {
+            this.cacheManager.defineConfiguration(DUMMY_CACHE, conf);
+            Cache<?, ?> dummyCache = this.cacheManager.getCache(DUMMY_CACHE);
+            TransactionManager tm = dummyCache.getAdvancedCache().getTransactionManager();
+            this.transactionManager = tm;
+        } catch (Exception e) {
+            logger.error("Failed to get Repository TransactionManager", e);
+            throw new PersistenceException(e);
+        }
+    }
+
+    private boolean bootstrapIfNeeded() {
         createSystemCache();
         createDomainCache();
-        if (this.systemCache.get(CACHE_IS_FULLY_INITIALZED) == null) {
-            logger.info("Initialization marker not present. SystemCache is being initialized for the first time.");
-            return true; // repository is new
-        } else {
-            logger.info("Initialization marker is present. SystemCache already existed.");
-            return false;  // repository is not new
-        }
+
+        return doWithinBackingTransactionIfNeeded(new Callable<Boolean>() {
+            @Override
+            public Boolean call() {
+                if (getSystemCache().get(CACHE_IS_FULLY_INITIALZED) == null) {
+                    getSystemCache().put(CACHE_IS_FULLY_INITIALZED, "true");
+                    logger.info("Initialization marker not present. SystemCache is being initialized for the first time.");
+                    return true; // repository is new
+                } else {
+                    logger.info("Initialization marker is present. SystemCache already existed.");
+                    return false;  // repository is not new
+                }
+            }
+        });
     }
 
     // ensure the required configuration regardless of possible extra stuff in the configuration file
@@ -136,7 +166,14 @@ public class InfinispanRepository extends Repository {
         logger.debug("Configuration for {} is: {}", SYSTEM_CACHE_NAME, conf.toString());
 
         this.cacheManager.defineConfiguration(SYSTEM_CACHE_NAME, conf);
-        this.systemCache = this.cacheManager.getCache(SYSTEM_CACHE_NAME);
+
+        final DefaultCacheManager finalCacheManager = this.cacheManager;
+        this.systemCache = doWithinBackingTransactionIfNeeded(new Callable<Cache<String, Object>>() {
+            @Override
+            public Cache<String, Object> call() {
+                return finalCacheManager.getCache(SYSTEM_CACHE_NAME);
+            }
+        });
     }
 
     private void createDomainCache() {
@@ -145,7 +182,15 @@ public class InfinispanRepository extends Repository {
         logger.debug("Configuration for {} is: {}", DOMAIN_CACHE_NAME, conf.toString());
 
         this.cacheManager.defineConfiguration(DOMAIN_CACHE_NAME, conf);
-        this.domainCache = this.cacheManager.getCache(DOMAIN_CACHE_NAME);
+
+        final DefaultCacheManager finalCacheManager = this.cacheManager;
+        this.domainCache = doWithinBackingTransactionIfNeeded(new Callable<Cache<String, DataVersionHolder>>() {
+            @Override
+            public Cache<String, DataVersionHolder> call() {
+                return finalCacheManager.getCache(DOMAIN_CACHE_NAME);
+            }
+        });
+
     }
 
     /* some useful methods for accessing Infinispan's caches */
@@ -197,8 +242,9 @@ public class InfinispanRepository extends Repository {
     }
 
     private TransactionManager getTransactionManager() {
-        // either cache uses the same manager instance, so we just pick one cache to get the manager from
-        return getDomainCache().getAdvancedCache().getTransactionManager();
+        return this.transactionManager;
+//        // either cache uses the same manager instance, so we just pick one cache to get the manager from
+//        return getDomainCache().getAdvancedCache().getTransactionManager();
     }
 
     /* implementation of the Repository interface */
@@ -208,7 +254,8 @@ public class InfinispanRepository extends Repository {
         String ispnConfigFile = ((JvstmIspnConfig) jvstmConfig).getIspnConfigFile();
 
         createCacheContainer(ispnConfigFile);
-        return bootstrapIfNeeded(ispnConfigFile);
+        initTransactionManager();
+        return bootstrapIfNeeded();
     }
 
     // get the stored information concerning the DomainClassInfo
