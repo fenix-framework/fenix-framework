@@ -149,13 +149,21 @@ public class InfinispanRepository extends Repository {
                 .use1PcForAutoCommitTransactions(false).autoCommit(false);
         // use versioning
         confBuilder.versioning().enable().scheme(VersioningScheme.SIMPLE);
-        // TODO: enable eviction when using a cache store (data persistence) 
-        confBuilder.eviction().strategy(EvictionStrategy.NONE);
-        confBuilder.eviction().maxEntries(-1);
         // disable expiration
         confBuilder.expiration().wakeUpInterval(-1);
 
         Configuration conf = confBuilder.build();
+
+        // TODO: allow eviction only when using a cache loader. Causes writeSkew exception so it's off for now
+//        if (conf.loaders().usingCacheLoaders()) {
+//            confBuilder = new ConfigurationBuilder().read(conf);
+//            confBuilder.eviction().strategy(EvictionStrategy.LIRS).maxEntries(10/*talk about randomness*/);
+//        } else {
+        confBuilder.eviction().strategy(EvictionStrategy.NONE);
+        confBuilder.eviction().maxEntries(-1);
+//        }
+
+        conf = confBuilder.build();
 
         return conf;
     }
