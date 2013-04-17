@@ -70,7 +70,7 @@ public class SequentialUpdatesTest {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        new ConcurrentUpdatesTest().test();
+        new SequentialUpdatesTest().test();
     }
 
 }

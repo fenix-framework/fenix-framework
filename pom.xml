@@ -44,6 +44,7 @@
         <module>backend-jvstm-common</module>
         <module>backend-jvstm-ojb</module>
         <module>backend-jvstm-mem</module>
+        <module>backend-jvstm-infinispan</module>
         <module>test</module>
         <module>archetypes</module>
     </modules>
