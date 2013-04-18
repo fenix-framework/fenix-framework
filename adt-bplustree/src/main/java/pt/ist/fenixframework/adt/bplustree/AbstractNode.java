@@ -120,5 +120,12 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
         TreeMap toTreeMap() {
             return (TreeMap) Externalization.internalizeSerializable(serializedTreeMap);
         }
+
+        @Override
+        public String toString() {
+            return "TreeMapExternalization{" +
+                    "TreeMap=" + toTreeMap() +
+                    '}';
+        }
     }
 }
