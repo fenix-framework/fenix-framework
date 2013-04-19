@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.consistencyPredicates.runtime;
+package pt.ist.fenixframework.backend.jvstmojb.dml.runtime;
 
 import jvstm.cps.ConsistencyException;
 
