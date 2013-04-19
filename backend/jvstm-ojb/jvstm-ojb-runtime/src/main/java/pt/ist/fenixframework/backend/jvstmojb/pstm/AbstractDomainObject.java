@@ -83,6 +83,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     protected void ensureOid() {
+        /*
         try {
             // find successive ids until one is available
             while (true) {
@@ -96,6 +97,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         } catch (Exception e) {
             throw new UnableToDetermineIdException(e);
         }
+        */
     }
 
     protected void ensureIdInternal() {
