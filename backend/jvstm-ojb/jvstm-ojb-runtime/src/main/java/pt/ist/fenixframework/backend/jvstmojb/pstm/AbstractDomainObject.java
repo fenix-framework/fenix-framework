@@ -81,6 +81,11 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         return getIdInternal();
     }
 
+    @Deprecated
+    public Long getOID() {
+        return getOid();
+    }
+
     @Override
     protected void ensureOid() {
         /*
