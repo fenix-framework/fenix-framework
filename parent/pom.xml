@@ -7,7 +7,7 @@
 
     <groupId>pt.ist</groupId>
     <artifactId>fenix-framework-parent</artifactId>
-    <version>2.2-cloudtm</version>
+    <version>2.3-cloudtm</version>
 
     <name>Fenix Framework common parent POM module</name>
     <description>
@@ -26,15 +26,15 @@
         <version.commons.io>2.4</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
         <version.dap-framework>2.0</version.dap-framework>
-        <version.hibernate>4.0.1.Final</version.hibernate>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
         <version.hibernate.search>4.2.0.cloudtm.Final</version.hibernate.search>
-        <version.infinispan>5.2.0-cloudtm-SNAPSHOT</version.infinispan>
+        <version.hibernate>4.0.1.Final</version.hibernate>
+        <version.infinispan>5.2.5-cloudtm.Final</version.infinispan>
         <version.jboss.logging>3.1.0.GA</version.jboss.logging>
         <version.jbossjta>4.16.3.Final</version.jbossjta>
-        <version.jgroups>3.3.0-cloudtm-SNAPSHOT</version.jgroups>
+        <version.jgroups>3.3.0.CR1</version.jgroups>
         <version.jodatime>1.6.2</version.jodatime>
         <version.jpa>1.0</version.jpa>
         <version.jta>1.1</version.jta>
@@ -52,6 +52,7 @@
         <version.ojb>1.0.0</version.ojb>
         <version.rhq.helpers>3.0.4</version.rhq.helpers>
         <version.slf4j.api>1.7.2</version.slf4j.api>
+        <version.testng>5.14.10</version.testng>
     </properties>
 
     <!-- Building -->
@@ -310,9 +311,20 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>pt.ist</groupId>
+                <artifactId>cloudtm-locality-hints</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.jgroups</groupId>
                 <artifactId>jgroups</artifactId>
                 <version>${version.jgroups}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${version.testng}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>pt.ist</groupId>
+        <artifactId>fenix-framework-parent</artifactId>
+        <!-- Perhaps in Maven 3.1 the version may be ommitted -->
+        <version>2.3-cloudtm</version>
+        <relativePath>../parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>cloudtm-locality-hints</artifactId>
+    <name>Cloud-TM LocalityHints</name>
+
+    <build>
+        <plugins>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${version.maven.jar-plugin}</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <!-- This specifies to the JBoss AS, the runtime dependencies of the jar being created -->
+                            <Dependencies>org.apache.commons.lang:main,org.antlr:main,org.joda.time:main</Dependencies>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

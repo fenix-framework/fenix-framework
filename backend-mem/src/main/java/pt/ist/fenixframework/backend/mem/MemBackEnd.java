@@ -2,8 +2,6 @@ package pt.ist.fenixframework.backend.mem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
@@ -61,5 +59,16 @@ public class MemBackEnd implements BackEnd {
     }
 
     @Override
-    public void shutdown() {}
+    public void shutdown() {
+    }
+
+    @Override
+    public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
+        throw new UnsupportedOperationException("It does not make sense to invoke this method in a storage-less BackEnd");
+    }
+
+    @Override
+    public String[] getStorageKeys(DomainObject domainObject) {
+        throw new UnsupportedOperationException("It does not make sense to invoke this method in a storage-less BackEnd");
+    }
 }

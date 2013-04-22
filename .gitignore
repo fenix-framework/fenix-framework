@@ -2,6 +2,9 @@
 target
 bin
 transaction.log
+.classpath
+.project
+.DS_Store
 
 ## IDEA STUFF ##
 .idea

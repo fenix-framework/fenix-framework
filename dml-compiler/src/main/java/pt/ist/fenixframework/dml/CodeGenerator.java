@@ -9,6 +9,7 @@ import java.util.List;
 
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
+import eu.cloudtm.LocalityHints;
 
 /**
  * Top-level class of all DML code generators.
@@ -19,6 +20,7 @@ public abstract class CodeGenerator {
     public static final String CURRENT_BACKEND_ID_CLASS = "CurrentBackEndId";
     public static final String CURRENT_BACKEND_ID_FULL_CLASS = BACKEND_PACKAGE + "." + CURRENT_BACKEND_ID_CLASS;
     public static final String COLLECTION_CLASS_NAME_KEY = "collectionClassName";
+    protected static final String LOCALITY_HINTS_TYPE = LocalityHints.class.getCanonicalName();
 
     protected static class PrimitiveToWrapperEntry {
         public final String primitiveType;
@@ -33,29 +35,24 @@ public abstract class CodeGenerator {
     }
 
     protected static PrimitiveToWrapperEntry[] primitiveToWrapperTypes = {
-        new PrimitiveToWrapperEntry("boolean", "Boolean", "false"),
-        new PrimitiveToWrapperEntry("byte", "Byte", "(byte)0"),
-        new PrimitiveToWrapperEntry("char", "Character", "'\\u0000'"),
-        new PrimitiveToWrapperEntry("short", "Short", "(short)0"),
-        new PrimitiveToWrapperEntry("int", "Integer", "0"),
-        new PrimitiveToWrapperEntry("float", "Float", "0.0f"),
-        new PrimitiveToWrapperEntry("long", "Long", "0L"),
-        new PrimitiveToWrapperEntry("double", "Double", "0.0d")
-    };
+            new PrimitiveToWrapperEntry("boolean", "Boolean", "false"), new PrimitiveToWrapperEntry("byte", "Byte", "(byte)0"),
+            new PrimitiveToWrapperEntry("char", "Character", "'\\u0000'"),
+            new PrimitiveToWrapperEntry("short", "Short", "(short)0"), new PrimitiveToWrapperEntry("int", "Integer", "0"),
+            new PrimitiveToWrapperEntry("float", "Float", "0.0f"), new PrimitiveToWrapperEntry("long", "Long", "0L"),
+            new PrimitiveToWrapperEntry("double", "Double", "0.0d") };
 
-    private CompilerArgs compArgs;
-    private DomainModel domainModel;
-    private File destDirectory;
-    private File destDirectoryBase;
+    private final CompilerArgs compArgs;
+    private final DomainModel domainModel;
+    private final File destDirectory;
+    private final File destDirectoryBase;
     private String collectionToUse;
 
     public CodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         this.compArgs = compArgs;
         this.domainModel = domainModel;
         this.destDirectory = getPackageDirectory(compArgs.destDirectory, compArgs.packageName);
-        this.destDirectoryBase = getPackageDirectory((compArgs.destDirectoryBase == null)
-                ? compArgs.destDirectory
-                        : compArgs.destDirectoryBase,
+        this.destDirectoryBase =
+                getPackageDirectory((compArgs.destDirectoryBase == null) ? compArgs.destDirectory : compArgs.destDirectoryBase,
                         compArgs.packageName);
         String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
         if (collectionName == null || collectionName.isEmpty()) {
@@ -121,14 +118,13 @@ public abstract class CodeGenerator {
     }
 
     /**
-     *  Generate the class that identifies the backend to which this code generator creates the
-     *  code.  The generated class must be named {@link
-     *  pt.ist.fenixframework.backend.CurrentBackEndId} and extend the {@link
-     *  pt.ist.fenixframework.backend.BackEndId} class.
+     * Generate the class that identifies the backend to which this code generator creates the
+     * code. The generated class must be named {@link pt.ist.fenixframework.backend.CurrentBackEndId} and extend the
+     * {@link pt.ist.fenixframework.backend.BackEndId} class.
      */
     protected void generateBackEndId() {
-        writeToFile(new File(getBaseDirectoryFor(BACKEND_PACKAGE), CURRENT_BACKEND_ID_CLASS + ".java"),
-                new WriteProcedure() {
+        writeToFile(new File(getBaseDirectoryFor(BACKEND_PACKAGE), CURRENT_BACKEND_ID_CLASS + ".java"), new WriteProcedure() {
+            @Override
             public void doIt(PrintWriter out) {
                 generateFilePreamble(BACKEND_PACKAGE, out);
                 generateCurrentBackEndIdClass(CURRENT_BACKEND_ID_CLASS, out);
@@ -161,15 +157,15 @@ public abstract class CodeGenerator {
 
     protected void generateClasses(Iterator<DomainClass> classesIter) {
         while (classesIter.hasNext()) {
-            generateOneClass((DomainClass) classesIter.next());
+            generateOneClass(classesIter.next());
         }
     }
 
     protected void generateOneClass(final DomainClass domClass) {
         final String packageName = domClass.getPackageName();
 
-        writeToFile(new File(getBaseDirectoryFor(packageName), domClass.getBaseName() + ".java"),
-                new WriteProcedure() {
+        writeToFile(new File(getBaseDirectoryFor(packageName), domClass.getBaseName() + ".java"), new WriteProcedure() {
+            @Override
             public void doIt(PrintWriter out) {
                 generateFilePreamble(packageName, out);
                 generateBaseClass(domClass, out);
@@ -177,13 +173,14 @@ public abstract class CodeGenerator {
         });
 
         // don't generate non-base classes for an external definition.
-        if (compArgs.isExternalDefinition(domClass.getSourceFile()))
+        if (compArgs.isExternalDefinition(domClass.getSourceFile())) {
             return;
+        }
 
         File leafClassFile = new File(getDirectoryFor(packageName), domClass.getName() + ".java");
-        if (! leafClassFile.exists()) {
-            writeToFile(leafClassFile,
-                    new WriteProcedure() {
+        if (!leafClassFile.exists()) {
+            writeToFile(leafClassFile, new WriteProcedure() {
+                @Override
                 public void doIt(PrintWriter out) {
                     generatePublicFilePreamble(packageName, out);
                     generatePublicClass(domClass, out);
@@ -241,7 +238,12 @@ public abstract class CodeGenerator {
         newline(out);
         printMethod(out, "public", "", className);
         startMethodBody(out);
-        print(out, "super();");
+        print(out, "this((" + LOCALITY_HINTS_TYPE + ")null);");
+        endMethodBody(out);
+
+        printMethod(out, "public", "", className, makeArg(LOCALITY_HINTS_TYPE, "hints"));
+        startMethodBody(out);
+        print(out, "super(hints);");
         endMethodBody(out);
     }
 
@@ -266,8 +268,8 @@ public abstract class CodeGenerator {
         startMethodBody(out);
         print(out, "try");
         newBlock(out);
-        printWords(out, "return", "(Class<? extends pt.ist.fenixframework.Config>)Class.forName(\""
-                + getDefaultConfigClassName() + "\");");
+        printWords(out, "return", "(Class<? extends pt.ist.fenixframework.Config>)Class.forName(\"" + getDefaultConfigClassName()
+                + "\");");
         closeBlock(out);
         printWords(out, "catch", "(Exception e)");
         newBlock(out);
@@ -306,7 +308,6 @@ public abstract class CodeGenerator {
         closeBlock(out);
     }
 
-
     protected void generateBaseClassBody(DomainClass domClass, PrintWriter out) {
         generateStaticSlots(domClass, out);
         newline(out);
@@ -321,10 +322,7 @@ public abstract class CodeGenerator {
 
         // constructors
         newline(out);
-        printMethod(out, "protected", "", domClass.getBaseName());
-        startMethodBody(out);
-        generateBaseClassConstructorsBody(domClass, out);
-        endMethodBody(out);
+        generateBaseClassConstructors(domClass, out);
 
         // slots getters/setters
         generateSlotsAccessors(domClass, out);
@@ -336,8 +334,21 @@ public abstract class CodeGenerator {
         // generateSlotConsistencyPredicates(domClass, out);
     }
 
+    protected void generateBaseClassConstructors(DomainClass domClass, PrintWriter out) {
+        printMethod(out, "protected", "", domClass.getBaseName());
+        startMethodBody(out);
+        printWords(out, "this(null);");
+        endMethodBody(out);
+
+        newline(out);
+        printMethod(out, "protected", "", domClass.getBaseName(), makeArg(LOCALITY_HINTS_TYPE, "hints"));
+        startMethodBody(out);
+        generateBaseClassConstructorsBody(domClass, out);
+        endMethodBody(out);
+    }
+
     protected void generateBaseClassConstructorsBody(DomainClass domClass, PrintWriter out) {
-        print(out, "super();");
+        print(out, "super(hints);");
     }
 
     protected void generateSlots(Iterator slotsIter, PrintWriter out) {
@@ -398,15 +409,18 @@ public abstract class CodeGenerator {
     }
 
     protected void generateStaticKeyFunctionForRole(Role role, PrintWriter out) {
-        if (role.getMultiplicityUpper() == Role.MULTIPLICITY_MANY) { 
+        if (role.getMultiplicityUpper() == Role.MULTIPLICITY_MANY) {
             println(out, generateMapKeyFunction(role.getName(), role.getType().getFullName(), "Comparable<?>", "Oid", false));
         }
     }
 
-    protected String generateMapKeyFunction(String roleName, String valueType, String keyType, String keyField, boolean allowMultipleKeys) {
-        String format = "private static pt.ist.fenixframework.dml.runtime.KeyFunction<%keyType%,%valueType%> keyFunction$$%roleName% = new pt.ist.fenixframework.dml.runtime.KeyFunction<%keyType%,%valueType%>() { public %keyType% getKey(%valueType% value) { return value.get%keyField%(); } public boolean allowMultipleKeys() {return %multKeys%; }};";
-        return format.replaceAll("%roleName%", roleName).replaceAll("%valueType%", valueType).replaceAll("%keyType%", getReferenceType(keyType))
-                .replaceAll("%keyField%", capitalize(keyField)).replaceAll("%multKeys%", allowMultipleKeys ? "true" : "false");
+    protected String generateMapKeyFunction(String roleName, String valueType, String keyType, String keyField,
+            boolean allowMultipleKeys) {
+        String format =
+                "private static pt.ist.fenixframework.dml.runtime.KeyFunction<%keyType%,%valueType%> keyFunction$$%roleName% = new pt.ist.fenixframework.dml.runtime.KeyFunction<%keyType%,%valueType%>() { public %keyType% getKey(%valueType% value) { return value.get%keyField%(); } public boolean allowMultipleKeys() {return %multKeys%; }};";
+        return format.replaceAll("%roleName%", roleName).replaceAll("%valueType%", valueType)
+                .replaceAll("%keyType%", getReferenceType(keyType)).replaceAll("%keyField%", capitalize(keyField))
+                .replaceAll("%multKeys%", allowMultipleKeys ? "true" : "false");
     }
 
     protected void generateStaticRoleSlots(Role role, PrintWriter out) {
@@ -435,13 +449,13 @@ public abstract class CodeGenerator {
     }
 
     protected void generateStaticRoleSlotsMultOne(Role role, Role otherRole, PrintWriter out) {
-        printMethod(out, "public", getTypeFullName(role.getType()), "getValue", makeArg(getTypeFullName(otherRole.getType()), "o1"));
+        printMethod(out, "public", getTypeFullName(role.getType()), "getValue",
+                makeArg(getTypeFullName(otherRole.getType()), "o1"));
         startMethodBody(out);
         printWords(out, "return", "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + ";");
         endMethodBody(out);
 
-        printMethod(out, "public", "void",  "setValue",
-                makeArg(getTypeFullName(otherRole.getType()), "o1"),
+        printMethod(out, "public", "void", "setValue", makeArg(getTypeFullName(otherRole.getType()), "o1"),
                 makeArg(getTypeFullName(role.getType()), "o2"));
         startMethodBody(out);
         printWords(out, "((" + otherRole.getType().getBaseName() + ")o1)." + role.getName() + " = o2;");
@@ -465,9 +479,9 @@ public abstract class CodeGenerator {
 
     protected void generateRoleMethodGetInverseRole(Role role, Role otherRole, PrintWriter out) {
         // the getInverseRole method
-        String inverseRoleType = makeGenericType("pt.ist.fenixframework.dml.runtime.Role",
-                getTypeFullName(role.getType()),
-                getTypeFullName(otherRole.getType()));
+        String inverseRoleType =
+                makeGenericType("pt.ist.fenixframework.dml.runtime.Role", getTypeFullName(role.getType()),
+                        getTypeFullName(otherRole.getType()));
         printMethod(out, "public", inverseRoleType, "getInverseRole");
         startMethodBody(out);
         print(out, "return ");
@@ -505,12 +519,7 @@ public abstract class CodeGenerator {
 
         Role otherRole = role.getOtherRole();
 
-        String genericType = 
-                "<" 
-                        + getTypeFullName(otherRole.getType())
-                        + ","
-                        + getTypeFullName(role.getType())
-                        + ">";
+        String genericType = "<" + getTypeFullName(otherRole.getType()) + "," + getTypeFullName(role.getType()) + ">";
 
         boolean multOne = (role.getMultiplicityUpper() == 1);
 
@@ -558,17 +567,12 @@ public abstract class CodeGenerator {
     }
 
     protected String getRoleType(Role role) {
-        return makeGenericType(getRoleBaseType(role),
-                getTypeFullName(role.getOtherRole().getType()),
+        return makeGenericType(getRoleBaseType(role), getTypeFullName(role.getOtherRole().getType()),
                 getTypeFullName(role.getType()));
     }
 
     protected String getRoleBaseType(Role role) {
-        return ((role.getName() == null)
-                ? "pt.ist.fenixframework.dml.runtime.RoleEmpty"
-                        : ((role.getMultiplicityUpper() == 1) 
-                                ? getRoleOneBaseType()
-                                        : getRoleManyBaseType()));
+        return ((role.getName() == null) ? "pt.ist.fenixframework.dml.runtime.RoleEmpty" : ((role.getMultiplicityUpper() == 1) ? getRoleOneBaseType() : getRoleManyBaseType()));
     }
 
     protected String getRoleArgs(Role role) {
@@ -649,30 +653,29 @@ public abstract class CodeGenerator {
         // we need to give different names to the relation slots because both
         // will be in the same class
 
-        if ((role.getType() == role.getOtherRole().getType()) && (! role.isFirstRole())) {
+        if ((role.getType() == role.getOtherRole().getType()) && (!role.isFirstRole())) {
             return (role.getRelation().getName() + "$Inverse");
         } else {
             return role.getRelation().getName();
         }
     }
 
-
     /**
      * The purpose of the initInstance method is to have the code needed to correctly initialize a
-     * domain object instance.  There are two cases:
-     *
+     * domain object instance. There are two cases:
+     * 
      * <ol>
-     * <li> When the instance is *really* new.
-     * <li> When the instance is being re-constructed from persistence (by the DomainObjectAllocator)
+     * <li>When the instance is *really* new.
+     * <li>When the instance is being re-constructed from persistence (by the DomainObjectAllocator)
      * </ol>
      * 
-     * <p>In the first case the parameter 'allocateOnly' is false.  Tipically, we need to fully
-     * initialize the slots, e.g. create new lists, etc.  In the second case, the instance's
-     * attributes will be populated, so we should not create them anew.
-     *
-     * <p> This method is responsible for: generating the <code>initInstance(boolean)</code> method;
-     * generate the call to this method as an instance initializer with the parameter
-     * <code>allocateInstance = false</code>.
+     * <p>
+     * In the first case the parameter 'allocateOnly' is false. Tipically, we need to fully initialize the slots, e.g. create new
+     * lists, etc. In the second case, the instance's attributes will be populated, so we should not create them anew.
+     * 
+     * <p>
+     * This method is responsible for: generating the <code>initInstance(boolean)</code> method; generate the call to this method
+     * as an instance initializer with the parameter <code>allocateInstance = false</code>.
      */
     protected void generateInitInstance(DomainClass domClass, PrintWriter out) {
         // generate initInstance method to be used by OJB.  This is used in the
@@ -788,7 +791,6 @@ public abstract class CodeGenerator {
         printWords(out, "return", getSlotExpression(slotName) + ";");
     }
 
-
     protected void generateSlotSetter(Slot slot, PrintWriter out) {
         generateSetter("public", "set" + capitalize(slot.getName()), slot, out);
     }
@@ -804,7 +806,7 @@ public abstract class CodeGenerator {
 
         startMethodBody(out);
         generateSetterBody(setterName, slot, out);
-        endMethodBody(out);            
+        endMethodBody(out);
     }
 
     protected void generateSetterBody(String setterName, Slot slot, PrintWriter out) {
@@ -916,7 +918,6 @@ public abstract class CodeGenerator {
         print(out, ");");
     }
 
-
     protected void generateRelationRemoveMethodCall(Role role, String otherArg, PrintWriter out) {
         print(out, getRelationSlotNameFor(role));
         print(out, ".remove((");
@@ -954,14 +955,17 @@ public abstract class CodeGenerator {
         generateRoleSlotMethodsMultStarHasAnyChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression);
 
         // hasXpto
-        generateRoleSlotMethodsMultStarHasChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName, "");
+        generateRoleSlotMethodsMultStarHasChild(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName,
+                slotName, "");
 
         if (isOrdered) {
-            generateRoleSlotMethodsMultStarOrdered(role, out, typeName,methodModifiers, capitalizedSlotName, slotAccessExpression);
+            generateRoleSlotMethodsMultStarOrdered(role, out, typeName, methodModifiers, capitalizedSlotName,
+                    slotAccessExpression);
         }
 
         // getXptoSet
-        generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, slotName, typeName);
+        generateRoleSlotMethodsMultStarSet(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, slotName,
+                typeName);
 
         // addXpto
         String adderMethodName = getAdderMethodName(role);
@@ -995,8 +999,7 @@ public abstract class CodeGenerator {
 
     }
 
-    private void generateRoleSlotMethodsMultStarOrdered(Role role,
-            PrintWriter out, String typeName, String methodModifiers,
+    private void generateRoleSlotMethodsMultStarOrdered(Role role, PrintWriter out, String typeName, String methodModifiers,
             String capitalizedSlotName, String slotAccessExpression) {
         //         SiteElement getChild(int index) {
         //             return (SiteElement)listOfChild.get(index);
@@ -1012,7 +1015,6 @@ public abstract class CodeGenerator {
         print(out, ".get(index);");
         endMethodBody(out);
 
-
         //         void switchChild(int index1, int index2) {
         //             List collection = getCollectionOfChild();
         //             Object el1 = collection.get(index1);
@@ -1021,7 +1023,8 @@ public abstract class CodeGenerator {
         //         }
         // getXpto
         newline(out);
-        printMethod(out, methodModifiers, "void", "switch" + capitalizedSlotName, makeArg("int", "index1"), makeArg("int", "index2"));
+        printMethod(out, methodModifiers, "void", "switch" + capitalizedSlotName, makeArg("int", "index1"),
+                makeArg("int", "index2"));
         startMethodBody(out);
         print(out, getCollectionTypeFor(role));
         print(out, " collection = ");
@@ -1087,8 +1090,8 @@ public abstract class CodeGenerator {
         print(out, ");");
     }
 
-    protected void generateRoleSlotMethodsMultStarCount(Role role, PrintWriter out,
-            String methodModifiers, String capitalizedSlotName, String slotAccessExpression) {
+    protected void generateRoleSlotMethodsMultStarCount(Role role, PrintWriter out, String methodModifiers,
+            String capitalizedSlotName, String slotAccessExpression) {
         newline(out);
         printMethod(out, methodModifiers, "int", "get" + capitalizedSlotName + "Count");
         startMethodBody(out);
@@ -1098,8 +1101,8 @@ public abstract class CodeGenerator {
         endMethodBody(out);
     }
 
-    protected void generateRoleSlotMethodsMultStarHasAnyChild(Role role, PrintWriter out,
-            String methodModifiers, String capitalizedSlotName, String slotAccessExpression) {
+    protected void generateRoleSlotMethodsMultStarHasAnyChild(Role role, PrintWriter out, String methodModifiers,
+            String capitalizedSlotName, String slotAccessExpression) {
         newline(out);
         printMethod(out, methodModifiers, "boolean", "hasAny" + capitalizedSlotName);
         startMethodBody(out);
@@ -1114,12 +1117,12 @@ public abstract class CodeGenerator {
         newline(out);
         printMethod(out, methodModifiers, "boolean", "has" + capitalizedSlotName, makeArg(typeName, slotName));
         startMethodBody(out);
-        generateRoleSlotMethodsMultStarHasChildBody(role, out, slotAccessExpression,slotName);
+        generateRoleSlotMethodsMultStarHasChildBody(role, out, slotAccessExpression, slotName);
         endMethodBody(out);
     }
 
-    protected void generateRoleSlotMethodsMultStarHasChildBody(Role role, PrintWriter out,
-            String slotAccessExpression, String slotName) {
+    protected void generateRoleSlotMethodsMultStarHasChildBody(Role role, PrintWriter out, String slotAccessExpression,
+            String slotName) {
         print(out, "return ");
         print(out, slotAccessExpression);
         print(out, ".");
@@ -1264,7 +1267,6 @@ public abstract class CodeGenerator {
         }
     }
 
-
     protected void print(PrintWriter out, String text) {
         out.print(text);
         onNewline = false;
@@ -1277,7 +1279,7 @@ public abstract class CodeGenerator {
     }
 
     protected void newBlock(PrintWriter out) {
-        if (! afterSpace) {
+        if (!afterSpace) {
             print(out, " ");
         }
         print(out, "{");
@@ -1305,7 +1307,7 @@ public abstract class CodeGenerator {
     }
 
     protected void onNewline(PrintWriter out) {
-        if (! onNewline) {
+        if (!onNewline) {
             newline(out);
         }
     }
@@ -1317,7 +1319,6 @@ public abstract class CodeGenerator {
             return Character.toUpperCase(str.charAt(0)) + str.substring(1);
         }
     }
-
 
     private int indent = 0;
     private boolean onNewline = true;
@@ -1340,20 +1341,18 @@ public abstract class CodeGenerator {
         afterSpace = true;
     }
 
-
-
     // Generic API that all code generators must implement.  These methods are invoked by the
     // DmlCompiler during its execution.
 
     /**
-     *  Get the name of the backend for which this class generates code.  This method is used during
-     *  the execution of {@link #generateBackEndId()}.
+     * Get the name of the backend for which this class generates code. This method is used during
+     * the execution of {@link #generateBackEndId()}.
      */
     protected abstract String getBackEndName();
 
     /**
-     *  Get the name of the default configuration class of the backend for which this class
-     *  generates code.  This method is used during the execution of {@link #generateBackEndId()}.
+     * Get the name of the default configuration class of the backend for which this class
+     * generates code. This method is used during the execution of {@link #generateBackEndId()}.
      */
     protected abstract String getDefaultConfigClassName();
 

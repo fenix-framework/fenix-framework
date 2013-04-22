@@ -9,7 +9,7 @@
         <groupId>pt.ist</groupId>
         <artifactId>fenix-framework-parent</artifactId>
         <!-- Perhaps in Maven 3.1 the version may be ommitted -->
-        <version>2.2-cloudtm</version>
+        <version>2.3-cloudtm</version>
         <relativePath>parent/pom.xml</relativePath>
     </parent>
 
@@ -24,12 +24,13 @@
 
     <modules>
         <module>parent</module>
+        <module>cloudtm-locality-hints</module>
         <module>project</module>
         <module>dml-compiler</module>
         <module>dml-maven-plugin</module>
         <module>core</module>
         <module>adt-bplustree</module>
-		<module>adt-linkedlist</module>
+        <module>adt-linkedlist</module>
         <module>adt-skiplist</module>
         <module>data-access-patterns</module>
         <module>txintrospector</module>
