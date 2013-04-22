@@ -39,7 +39,7 @@ public class MultiConfig {
      * @return the previous configuration for the same backend, or null if there was none
      */
     public Config add(Config config) {
-        return configs.put(config.getBackEnd().getName(), config);
+        return configs.put(config.getBackEndName(), config);
     }
 
     public Config get(String backEndName) {

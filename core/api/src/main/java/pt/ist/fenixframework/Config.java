@@ -336,6 +336,14 @@ public abstract class Config {
      */
     public abstract BackEnd getBackEnd();
 
+    /**
+     * Get the backend name. Should return the same as getBackEnd().getName(), except that this method may already be invoked
+     * before the backEnd instance is created.
+     * 
+     * @return the {@link BackEnd}'s name
+     */
+    public abstract String getBackEndName();
+
     public URL[] getDomainModelURLs() {
         return domainModelURLs;
     }

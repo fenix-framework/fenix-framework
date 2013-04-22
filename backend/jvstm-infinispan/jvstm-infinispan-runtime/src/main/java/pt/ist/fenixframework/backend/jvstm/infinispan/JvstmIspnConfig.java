@@ -45,4 +45,10 @@ public class JvstmIspnConfig extends JVSTMConfig {
     public JvstmIspnBackEnd getBackEnd() {
         return (JvstmIspnBackEnd) this.backEnd;
     }
+
+    @Override
+    public String getBackEndName() {
+        return JvstmIspnBackEnd.BACKEND_NAME;
+    }
+
 }

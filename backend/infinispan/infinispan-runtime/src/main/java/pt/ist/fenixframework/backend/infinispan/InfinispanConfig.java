@@ -98,4 +98,10 @@ public class InfinispanConfig extends HibernateSearchConfig {
     public InfinispanBackEnd getBackEnd() {
         return this.backEnd;
     }
+
+    @Override
+    public String getBackEndName() {
+        return InfinispanBackEnd.BACKEND_NAME;
+    }
+
 }

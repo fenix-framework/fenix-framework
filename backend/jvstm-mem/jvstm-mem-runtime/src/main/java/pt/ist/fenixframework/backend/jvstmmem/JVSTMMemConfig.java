@@ -22,4 +22,9 @@ public class JVSTMMemConfig extends HibernateSearchConfig {
         return this.backEnd;
     }
 
+    @Override
+    public String getBackEndName() {
+        return JVSTMMemBackEnd.BACKEND_NAME;
+    }
+
 }

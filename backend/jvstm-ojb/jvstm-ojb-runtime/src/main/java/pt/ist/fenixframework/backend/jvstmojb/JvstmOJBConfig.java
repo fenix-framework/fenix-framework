@@ -166,6 +166,11 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
     }
 
     @Override
+    public String getBackEndName() {
+        return JvstmOJBBackEnd.BACKEND_NAME;
+    }
+
+    @Override
     public void checkConfig() {
         super.checkConfig();
         checkRequired(dbAlias, "dbAlias");

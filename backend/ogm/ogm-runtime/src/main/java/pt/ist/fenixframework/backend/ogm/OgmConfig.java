@@ -59,4 +59,9 @@ public class OgmConfig extends HibernateSearchConfig {
     public OgmBackEnd getBackEnd() {
         return this.backEnd;
     }
+
+    @Override
+    public String getBackEndName() {
+        return OgmBackEnd.BACKEND_NAME;
+    }
 }

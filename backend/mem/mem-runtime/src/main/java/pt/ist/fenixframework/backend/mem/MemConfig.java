@@ -28,4 +28,9 @@ public class MemConfig extends HibernateSearchConfig {
     public BackEnd getBackEnd() {
         return this.backEnd;
     }
+
+    @Override
+    public String getBackEndName() {
+        return MemBackEnd.BACKEND_NAME;
+    }
 }
