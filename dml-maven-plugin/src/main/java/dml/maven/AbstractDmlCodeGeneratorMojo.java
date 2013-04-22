@@ -9,6 +9,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -105,6 +108,25 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 dmls.add(dmlFile.getUrl());
             }
 
+            String checksumPath = getGeneratedSourcesDirectory().getAbsolutePath() + ".checksum";
+            final File checksumFile = new File(checksumPath);
+
+            String dmlContent = new String();
+
+            boolean checksumShouldCompile = true;
+
+            for (URL dmlUrl : dmls) {
+                dmlContent = dmlContent.concat(IOUtils.toString(dmlUrl.openStream()));
+            }
+            final String dmlMd5 = DigestUtils.md5Hex(dmlContent);
+
+            if (!checksumFile.exists()) {
+                FileUtils.writeStringToFile(checksumFile, dmlMd5);
+            } else {
+                final String prevDmlMd5 = FileUtils.readFileToString(checksumFile);
+                checksumShouldCompile = !prevDmlMd5.equals(dmlMd5);
+            }
+
             artifact.generateProjectProperties(getOutputDirectoryPath());
 
             if (dmls.isEmpty()) {
@@ -112,7 +134,8 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 return;
             }
 
-            if (artifact.shouldCompile() || shouldCompile) {
+            //if (artifact.shouldCompile() || shouldCompile) {
+            if (checksumShouldCompile) {
                 getSourcesDirectory().mkdirs();
                 getGeneratedSourcesDirectory().setLastModified(System.currentTimeMillis());
                 if (verbose()) {
@@ -130,9 +153,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                                 .newInstance(compArgs, model);
                 generator.generateCode();
             } else {
-                if (verbose()) {
-                    getLog().info("All dml files are up to date. Skipping generation...");
-                }
+                getLog().info("All dml files are up to date. Skipping generation...");
             }
         } catch (Exception e) {
             getLog().error(e);
