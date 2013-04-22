@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
 
 import pt.ist.fenixframework.FenixFramework;
 
-class Util {
+public class Util {
 
     private static final Iterator EMPTY_ITER = new Iterator() {
         @Override

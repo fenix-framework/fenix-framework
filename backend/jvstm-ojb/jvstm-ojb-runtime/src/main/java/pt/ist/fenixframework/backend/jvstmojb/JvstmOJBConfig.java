@@ -14,6 +14,7 @@ import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
 import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil;
 import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil.DBLockedCommand;
 import pt.ist.fenixframework.backend.jvstmojb.repository.RepositoryBootstrap;
+import pt.ist.fenixframework.backend.jvstmojb.repository.ServerId;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicatesConfig;
 
 /**
@@ -150,7 +151,8 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
             @Override
             public void run() {
                 RepositoryBootstrap.updateDataRepositoryStructureIfNeeded(getConnection());
-                DomainClassInfo.initializeClassInfos(0);
+                ServerId.ensureServerId();
+                DomainClassInfo.initializeClassInfos(ServerId.getServerId());
                 DomainClassInfo.ensureDomainRoot();
                 TransactionSupport.setupJVSTM();
                 DomainFenixFrameworkRoot.bootstrap();
