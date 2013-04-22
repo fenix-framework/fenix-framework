@@ -7,12 +7,12 @@
 	<groupId>pt.ist</groupId>
 	<artifactId>dml-fenix</artifactId>
 	<name>DML Fenix</name>
-	<version>1.2.1</version>
+	<version>1.2.2</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<dml.version>1.2.1</dml.version>
+		<dml.version>1.2.2</dml.version>
 	</properties>
 
 	<build>
