@@ -36,13 +36,18 @@
                         </configuration>
                     </execution>
                 </executions>
-				<dependencies>
-					<dependency>
-						<groupId>pt.ist</groupId>
-						<artifactId>fenix-framework-backend-jvstm-common-code-generator</artifactId>
-						<version>${project.version}</version>
-					</dependency>
-				</dependencies>
+                <dependencies>
+                    <dependency>
+                        <groupId>pt.ist</groupId>
+                        <artifactId>fenix-framework-backend-jvstm-common-code-generator</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>pt.ist</groupId>
+                        <artifactId>fenix-framework-backend-jvstm-infinispan-code-generator</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
