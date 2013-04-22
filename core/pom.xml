@@ -1,110 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>pt.ist</groupId>
-        <artifactId>fenix-framework-parent</artifactId>
+        <artifactId>fenix-framework</artifactId>
         <!-- Perhaps in Maven 3.1 the version may be ommitted -->
         <version>2.1-SNAPSHOT</version>
-        <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>fenix-framework-core</artifactId>
+    <packaging>pom</packaging>
     <name>Fenix Framework Core</name>
+    <url>http://fenix-ashes.ist.utl.pt</url>
 
-    <build>
-        <plugins>
-            
-            <!-- Process dml file class immediately before compiling -->
-            <plugin>
-                <groupId>pt.ist</groupId>
-                <artifactId>dml-maven-plugin</artifactId>
-                <version>${project.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate-domain</goal>
-                            <goal>post-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Generate the AtomicInstance class immediatly after compiling -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>${version.maven.exec-plugin}</version>
-                <executions>
-                    <execution>
-                        <id>generate-atomic-instance</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                        <configuration>
-                            <mainClass>pt.ist.esw.advice.GenerateAnnotationInstance</mainClass>
-                            <arguments>
-                                <argument>pt.ist.fenixframework.Atomic</argument>
-                                <argument>${project.build.outputDirectory}</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${version.maven.jar-plugin}</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <!-- This specifies to the JBoss AS, the runtime dependencies of the jar being created -->
-                            <Dependencies>javax.transaction.api:main,org.jgroups:main</Dependencies>
-                        </manifestEntries>
-                    </archive>
-                    <excludes>
-                        <exclude>**/*_Base*</exclude>
-                        <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>
-                        <exclude>pt/ist/fenixframework/backend/CurrentBackEndId*</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-
-        </plugins>
-    </build>
-    
-    <dependencies>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-dml-compiler</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-project</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>jta</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist.esw</groupId>
-            <artifactId>advice-program</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jgroups</groupId>
-            <artifactId>jgroups</artifactId>
-        </dependency>
-    </dependencies>
-
+    <modules>
+        <module>adt</module>
+        <module>api</module>
+        <module>consistency-predicates</module>
+        <module>data-access-patterns</module>
+        <module>dml-compiler</module>
+        <module>hibernate-search</module>
+        <module>indexes</module>
+        <module>project</module>
+        <module>txintrospector</module>
+    </modules>
 </project>

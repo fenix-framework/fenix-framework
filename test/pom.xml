@@ -1,29 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>pt.ist</groupId>
+		<artifactId>fenix-framework</artifactId>
+		<!-- Perhaps in Maven 3.1 the version may be ommitted -->
+		<version>2.1-SNAPSHOT</version>
+	</parent>
 
-    <parent>
-        <groupId>pt.ist</groupId>
-        <artifactId>fenix-framework-parent</artifactId>
-        <!-- Perhaps in Maven 3.1 the version may be ommitted -->
-        <version>2.1-SNAPSHOT</version>
-        <relativePath>../parent/pom.xml</relativePath>
-    </parent>
+	<artifactId>fenix-framework-test</artifactId>
+	<packaging>pom</packaging>
+	<name>Fenix Framework Tests</name>
 
-    <artifactId>fenix-framework-test</artifactId>
-    <packaging>pom</packaging>
-    <name>Fenix Framework Tests</name>
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
-    <modules>
-        <module>test-txintrospector</module>
-        <module>test-hibernate-search</module>
-        <module>test-backend-jvstm-common</module>
-        <module>test-backend-ogm</module>
-        <module>test-indexes</module>
-        <module>test-collections</module>
-    </modules>
-
+	<modules>
+		<module>test-txintrospector</module>
+		<module>test-hibernate-search</module>
+		<module>test-backend-jvstm-common</module>
+		<module>test-backend-ogm</module>
+		<module>test-indexes</module>
+		<module>test-collections</module>
+	</modules>
 </project>

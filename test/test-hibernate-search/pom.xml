@@ -4,10 +4,9 @@
 
     <parent>
         <groupId>pt.ist</groupId>
-        <artifactId>fenix-framework-parent</artifactId>
+        <artifactId>fenix-framework-test</artifactId>
         <!-- Perhaps in Maven 3.1 the version may be ommitted -->
         <version>2.1-SNAPSHOT</version>
-        <relativePath>../../parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>fenix-framework-test-hibernate-search</artifactId>
@@ -38,6 +37,13 @@
                         </goals>
                     </execution>
                 </executions>
+				<dependencies>
+					<dependency>
+						<groupId>pt.ist</groupId>
+						<artifactId>fenix-framework-backend-infinispan-code-generator</artifactId>
+						<version>${project.version}</version>
+					</dependency>
+				</dependencies>
             </plugin>
             <!-- needed by the ogm backend -->
             <plugin>
@@ -70,24 +76,18 @@
     <dependencies>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-hibernate-search</artifactId>
+            <artifactId>fenix-framework-core-hibernate-search</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-infinispan</artifactId>
+            <artifactId>fenix-framework-backend-infinispan-runtime</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-ogm</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <artifactId>fenix-framework-backend-ogm-runtime</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
