@@ -25,6 +25,7 @@
         <version.apache.ant>1.8.2</version.apache.ant>
         <version.asm>4.0</version.asm>
         <version.commons.io>2.4</version.commons.io>
+        <version.commons.codec>1.7</version.commons.codec>
         <version.commons.lang>2.6</version.commons.lang>
         <version.dap-framework>2.0</version.dap-framework>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
@@ -243,6 +244,11 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${version.commons.io}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${version.commons.codec}</version>
             </dependency>
             <dependency>
                 <groupId>javax.persistence</groupId>
