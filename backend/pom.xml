@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>pt.ist</groupId>
+        <artifactId>fenix-framework</artifactId>
+        <!-- Perhaps in Maven 3.1 the version may be ommitted -->
+        <version>2.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>fenix-framework-backend</artifactId>
+    <name>Fenix Framework Backends</name>
+    <packaging>pom</packaging>
+    <url>http://fenix-ashes.ist.utl.pt</url>
+
+    <modules>
+        <module>infinispan</module>
+        <module>jvstm-common</module>
+        <module>jvstm-infinispan</module>
+        <module>jvstm-mem</module>
+        <module>jvstm-ojb</module>
+        <module>mem</module>
+        <module>ogm</module>
+    </modules>
+</project>
