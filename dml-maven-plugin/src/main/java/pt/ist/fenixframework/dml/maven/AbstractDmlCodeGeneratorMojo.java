@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
@@ -117,6 +120,25 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 allDmls.add(dmlFile.getUrl());
             }
 
+            String checksumPath = getGeneratedSourcesDirectory().getAbsolutePath() + ".checksum";
+            final File checksumFile = new File(checksumPath);
+
+            String dmlContent = new String();
+
+            boolean checksumShouldCompile = true;
+
+            for (URL dmlUrl : allDmls) {
+                dmlContent = dmlContent.concat(IOUtils.toString(dmlUrl.openStream()));
+            }
+            final String dmlMd5 = DigestUtils.md5Hex(dmlContent);
+
+            if (!checksumFile.exists()) {
+                FileUtils.writeStringToFile(checksumFile, dmlMd5);
+            } else {
+                final String prevDmlMd5 = FileUtils.readFileToString(checksumFile);
+                checksumShouldCompile = !prevDmlMd5.equals(dmlMd5);
+            }
+
             project.generateProjectProperties(getOutputDirectoryPath());
 
             if (allDmls.isEmpty()) {
@@ -124,7 +146,8 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 return;
             }
 
-            if (project.shouldCompile() || shouldCompile) {
+            //if (artifact.shouldCompile() || shouldCompile) {
+            if (checksumShouldCompile) {
                 // Split all DML files in two sets: local and external.
                 List<URL> localDmls = new ArrayList<URL>();
                 for (DmlFile dmlFile : project.getDmls()) {
