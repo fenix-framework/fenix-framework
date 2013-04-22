@@ -1,19 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>pt.ist</groupId>
-        <artifactId>fenix-framework-parent</artifactId>
-        <!-- Perhaps in Maven 3.1 the version may be ommitted -->
-        <version>2.1-SNAPSHOT</version>
-        <relativePath>../../parent/pom.xml</relativePath>
-    </parent>
+	<parent>
+		<groupId>pt.ist</groupId>
+		<artifactId>fenix-framework-test</artifactId>
+		<!-- Perhaps in Maven 3.1 the version may be ommitted -->
+		<version>2.1-SNAPSHOT</version>
+	</parent>
 
-    <artifactId>fenix-framework-test-backend-jvstm-common</artifactId>
-    <packaging>jar</packaging>
+	<artifactId>fenix-framework-test-backend-jvstm-common</artifactId>
+	<packaging>jar</packaging>
 
-    <name>Fenix Framework Tests for BackEnd JVSTM common</name>
+	<name>Fenix Framework Tests for BackEnd JVSTM common</name>
 
     <properties>
         <code.generator.class>pt.ist.fenixframework.backend.jvstm.JVSTMCodeGenerator</code.generator.class>
@@ -37,6 +36,13 @@
                         </configuration>
                     </execution>
                 </executions>
+				<dependencies>
+					<dependency>
+						<groupId>pt.ist</groupId>
+						<artifactId>fenix-framework-backend-jvstm-common-code-generator</artifactId>
+						<version>${project.version}</version>
+					</dependency>
+				</dependencies>
             </plugin>
         </plugins>
     </build>
@@ -44,11 +50,13 @@
     <dependencies>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-jvstm-common</artifactId>
+            <artifactId>fenix-framework-backend-jvstm-common-runtime</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-jvstm-infinispan</artifactId>
+            <artifactId>fenix-framework-backend-jvstm-infinispan-runtime</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -61,5 +69,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>
