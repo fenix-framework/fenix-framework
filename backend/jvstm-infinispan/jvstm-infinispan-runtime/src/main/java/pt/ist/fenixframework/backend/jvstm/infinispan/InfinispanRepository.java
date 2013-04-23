@@ -20,7 +20,6 @@ import jvstm.Transaction;
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
-import org.infinispan.configuration.cache.VersioningScheme;
 import org.infinispan.eviction.EvictionStrategy;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.transaction.LockingMode;
@@ -136,28 +135,37 @@ public class InfinispanRepository extends Repository {
         ConfigurationBuilder confBuilder = new ConfigurationBuilder();
         confBuilder.read(defaultConf);
 
-        // enforce required configuration
+        /* enforce required configuration */
 
         // use REPEATABLE_READ
-        confBuilder.locking().isolationLevel(IsolationLevel.REPEATABLE_READ).concurrencyLevel(32).writeSkewCheck(true)
-                .useLockStriping(false).lockAcquisitionTimeout(10000);
+//        confBuilder.locking().isolationLevel(IsolationLevel.REPEATABLE_READ).concurrencyLevel(32).writeSkewCheck(true)
+//                .useLockStriping(false).lockAcquisitionTimeout(10000);
+        // use READ_COMMITTED
+        confBuilder.locking().isolationLevel(IsolationLevel.READ_COMMITTED).concurrencyLevel(32).useLockStriping(false)
+                .lockAcquisitionTimeout(10000);
+
         // detect DEALOCKS (is this needed?)
         confBuilder.deadlockDetection().enable();
+
         // transactional optimistic cache
         confBuilder.transaction().transactionMode(TransactionMode.TRANSACTIONAL).syncRollbackPhase(false).cacheStopTimeout(30000)
                 .useSynchronization(true).syncCommitPhase(false).lockingMode(LockingMode.OPTIMISTIC)
                 .use1PcForAutoCommitTransactions(false).autoCommit(false);
-        // use versioning
-        confBuilder.versioning().enable().scheme(VersioningScheme.SIMPLE);
+
+        // use versioning (check if it's really needed, especially in READ_COMMITTED!) 
+//        confBuilder.versioning().enable().scheme(VersioningScheme.SIMPLE);
+        confBuilder.versioning().disable();
+
         // disable expiration
         confBuilder.expiration().wakeUpInterval(-1);
 
         Configuration conf = confBuilder.build();
 
-        // TODO: allow eviction only when using a cache loader. Causes writeSkew exception so it's off for now
+        // allow eviction only when using a cache loader. Causes writeSkew exception so that needs to be off when using eviction :-(
 //        if (conf.loaders().usingCacheLoaders()) {
 //            confBuilder = new ConfigurationBuilder().read(conf);
-//            confBuilder.eviction().strategy(EvictionStrategy.LIRS).maxEntries(10/*talk about randomness*/);
+//            confBuilder.eviction().strategy(EvictionStrategy.LIRS).maxEntries(1/*talk about randomness*/);
+//?            confBuilder.eviction().threadPolicy(EvictionThreadPolicy.PIGGYBACK);
 //        } else {
         confBuilder.eviction().strategy(EvictionStrategy.NONE);
         confBuilder.eviction().maxEntries(-1);
@@ -364,18 +372,16 @@ public class InfinispanRepository extends Repository {
 
                     String key = getKey(vbox.getSlotName(), owner);
                     DataVersionHolder current = cache.get(key);
-                    DataVersionHolder newVersion = new DataVersionHolder();
+                    DataVersionHolder newVersion;
+                    byte[] externalizedData = Externalization.externalizeObject(newValue);
 
                     if (current != null) {
                         cache.put(key + current.version, current); // TODO: colocar aqui um timeout
-                        newVersion.previousVersion = current.version;
+                        newVersion = new DataVersionHolder(txNumber, current.version, externalizedData);
                     } else {
-                        newVersion.previousVersion = -1;
+                        newVersion = new DataVersionHolder(txNumber, -1, externalizedData);
                     }
 
-                    newVersion.version = txNumber;
-                    newVersion.data = Externalization.externalizeObject(newValue);
-                    // newVersion.data = (java.io.Serializable)newValue;
                     cache.put(key, newVersion); // TODO: colocar aqui um timeout
                 }
                 return null;
@@ -512,14 +518,74 @@ public class InfinispanRepository extends Repository {
         }
     }
 
-    /* DataVersionHolder class */
+    /* DataVersionHolder class. Ensures safe publication. */
 
     private static class DataVersionHolder implements java.io.Serializable {
         private static final long serialVersionUID = 1L;
-        public int version;
-        public int previousVersion;
-        public byte[] data;
+        public final int version;
+        public final int previousVersion;
+        public final byte[] data;
+
         // public java.io.Serializable data;
+
+        DataVersionHolder(int version, int previousVersion, byte[] data) {
+            this.version = version;
+            this.previousVersion = previousVersion;
+            this.data = data;
+        }
     }
 
+    /*
+      Notes on the usage of Infinispan:
+
+      One of the goals is to enable the usage of infinispan in READ_COMMITTED
+      mode (thus no writeSkew checks, no versioning).  This is supposedly more
+      efficient.  Moreover, this is  work already being performed by the STM.
+
+      Part of the strategy to accomplish this is to ensure that the cache is
+      "write-only".  If this were true, then we could say that regardless of
+      what is seen in other STM transactions, it never changed, which would make
+      correctness proof attempts easier.
+
+      However, that is not the case.  Still we argue that whenever the value of
+      some key changes, the system as a whole behaves as expected. Here are some
+      things to consider:
+
+      - Keys are never removed.  At most their corresponding value is updated.
+
+      - The domain cache contains the domain entities. When committing (to
+      persistence), a given VBox, we store its most recent value in a key built
+      from the slotName + ownerOid.  Thus, this key's value will change over
+      time.  But we ensure that if a newer value is seen here the previous values
+      already exist somewhere else (in another key).  The previous values in
+      history are written each in their own key built from slotName + ownerOid
+      + #version.  Everything else in the domain cache is write-only.
+
+      - The system cache may be updated.  I'll look further into this.  For now,
+      these updates are performed within a global (cluster-wide) commit lock,
+      so no two updates will ever be attempted on the same key.  Thus, at most,
+      within a transaction two reads from the system cache may seen values that
+      have been written by another meanwhile committing/committed transaction.
+      We need to ensure that whatever is seen is not problematic from the point
+      of view of the running transaction.  For now, this can be:
+
+      1. initialization marker and updates to the domain class infos.  This
+      should only occur at startup time and is work performed by a single node.
+      It occurs  before the system is actually up and running, so it's not a
+      problem.
+
+      2. updates to the highest committed tx number: should occurs within the
+      global commit
+      
+      3. updates to the highest oid per class: I need to revise this. Currently,
+      it's broken.  The idea is that it should only be updated at commit time.
+      However, I need to consider the following aspects: handle a different
+      counter per node? where is the serverOid part? within the same node if a
+      transaction is trying to create a new object of a given class, I know that
+      it's in-memory domain class info will be updated, so I should make sure
+      that only on attempt is made to grab it for ispn's cache. I.e. when updating
+      the highest number per class, by definition, such number is already updated
+      in memory.
+
+     */
 }
