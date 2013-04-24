@@ -104,9 +104,16 @@ public class FenixFramework {
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX = "fenix-framework-";
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX = ".properties";
 
+    /**
+     * When using configuration by convention if appName is not set or is set to INFER_APP_NAME, we attempt to obtain the
+     * property's value from CurrentBackEndId.getAppName().
+     */
+    private static final Object INFER_APP_NAME = "INFER_APP_NAME";
+
     private static final String FENIX_FRAMEWORK_LOGGING_CONFIG = "fenix-framework-log4j.properties";
 
     private static final Object INIT_LOCK = new Object();
+
     // private static boolean bootstrapped = false;
     private static boolean initialized = false;
 
@@ -171,14 +178,6 @@ public class FenixFramework {
         props = loadSystemProperties(props);
         logger.debug("Fenix Framework properties after enforcing system properties:" + props.toString());
 
-        if (!props.containsKey("appName")) {
-            String defaultAppName = BackEndId.getBackEndId().getAppName();
-            if (defaultAppName != null) {
-                props.put("appName", defaultAppName);
-                logger.debug("appName property automatically discovered: {}", defaultAppName);
-            }
-        }
-
         // try auto init for the given properties.  If none exists just skip
         if (props.isEmpty() || !tryAutoInit(props)) {
             logger.info("Skipping configuration by convention.");
@@ -235,6 +234,16 @@ public class FenixFramework {
      * Attempt to automatically initialize the framework with the given set of properties.
      */
     private static boolean tryAutoInit(Properties props) {
+        String appName = props.getProperty("appName");
+
+        if (appName == null || appName.isEmpty() || appName.equals(INFER_APP_NAME)) {
+            String defaultAppName = BackEndId.getBackEndId().getAppName();
+            if (defaultAppName != null) {
+                props.put("appName", defaultAppName);
+                logger.debug("appName property automatically discovered: {}", defaultAppName);
+            }
+        }
+
         Config config = null;
         try {
             config = createConfigFromProperties(props);
