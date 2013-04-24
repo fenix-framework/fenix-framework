@@ -23,7 +23,6 @@
         <module>dml-compiler</module>
         <module>hibernate-search</module>
         <module>indexes</module>
-        <module>project</module>
         <module>txintrospector</module>
     </modules>
 </project>
