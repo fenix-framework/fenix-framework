@@ -39,10 +39,16 @@ public class MultiConfig {
      * @return the previous configuration for the same backend, or null if there was none
      */
     public Config add(Config config) {
-        return configs.put(config.getBackEndName(), config);
+        String backEndName = config.getBackEndName();
+
+        logger.info("Registering config for backend {}", backEndName);
+
+        return configs.put(backEndName, config);
     }
 
     public Config get(String backEndName) {
+        logger.info("Looking up config for backend {}", backEndName);
+
         Config config = configs.get(backEndName);
         if (config == null) {
             logger.warn(UNKNOWN_BACKEND + backEndName);
