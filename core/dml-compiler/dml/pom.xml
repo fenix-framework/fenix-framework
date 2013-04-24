@@ -59,11 +59,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-project</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>

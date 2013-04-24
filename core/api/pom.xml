@@ -95,11 +95,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-project</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>javax.transaction</groupId>
             <artifactId>jta</artifactId>
         </dependency>

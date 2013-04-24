@@ -25,11 +25,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-project</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>pt.ist.esw</groupId>
             <artifactId>advice-program</artifactId>
         </dependency>
