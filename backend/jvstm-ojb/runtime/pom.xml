@@ -67,7 +67,7 @@
 			<artifactId>jvstm-fenix</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>ojb</groupId>
+			<groupId>pt.ist</groupId>
 			<artifactId>db-ojb</artifactId>
 		</dependency>
 		<dependency>

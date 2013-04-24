@@ -60,7 +60,7 @@
         <version.maven.replacer-plugin>1.5.2</version.maven.replacer-plugin>
         <version.maven.umlgraph-doclet-plugin>5.1</version.maven.umlgraph-doclet-plugin>
         <version.mysql.connector>5.1.20</version.mysql.connector>
-        <version.ojb>1.0.0</version.ojb>
+        <version.ojb>1.0.0-escaped</version.ojb>
         <version.rhq.helpers>3.0.4</version.rhq.helpers>
         <version.slf4j.api>1.7.2</version.slf4j.api>
 
@@ -176,7 +176,7 @@
                 <version>${version.jvstm-fenix}</version>
             </dependency>
             <dependency>
-                <groupId>ojb</groupId>
+                <groupId>pt.ist</groupId>
                 <artifactId>db-ojb</artifactId>
                 <version>${version.ojb}</version>
             </dependency>
