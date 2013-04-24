@@ -16,7 +16,7 @@
     <url>http://fenix-ashes.ist.utl.pt</url>
 
     <modules>
-        <module>ogm-runtime</module>
-        <module>ogm-code-generator</module>
+        <module>runtime</module>
+        <module>code-generator</module>
     </modules>
 </project>

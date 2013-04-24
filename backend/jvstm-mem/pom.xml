@@ -16,7 +16,7 @@
     <url>http://fenix-ashes.ist.utl.pt</url>
 
     <modules>
-        <module>jvstm-mem-runtime</module>
-        <module>jvstm-mem-code-generator</module>
+        <module>runtime</module>
+        <module>code-generator</module>
     </modules>
 </project>

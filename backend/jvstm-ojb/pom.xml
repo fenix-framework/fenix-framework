@@ -16,7 +16,7 @@
     <url>http://fenix-ashes.ist.utl.pt</url>
 
     <modules>
-        <module>jvstm-ojb-runtime</module>
-        <module>jvstm-ojb-code-generator</module>
+        <module>runtime</module>
+        <module>code-generator</module>
     </modules>
 </project>

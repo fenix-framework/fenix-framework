@@ -16,7 +16,7 @@
     <url>http://fenix-ashes.ist.utl.pt</url>
 
     <modules>
-        <module>mem-runtime</module>
-        <module>mem-code-generator</module>
+        <module>runtime</module>
+        <module>code-generator</module>
     </modules>
 </project>
