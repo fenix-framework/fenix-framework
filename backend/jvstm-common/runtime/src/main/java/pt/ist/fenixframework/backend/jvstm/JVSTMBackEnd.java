@@ -78,15 +78,15 @@ public class JVSTMBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        logger.trace("fromOid({})", oid);
+        logger.debug("fromOid({})", oid);
 
         AbstractDomainObject obj = SharedIdentityMap.getCache().lookup(oid);
 
         if (obj == null) {
             long longOid = ((Long) oid).longValue();
 
-            if (logger.isTraceEnabled()) {
-                logger.trace("Object not found in IdentityMap: " + longOid);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Object not found in IdentityMap: {}", Long.toHexString(longOid));
             }
 
             obj = DomainObjectAllocator.allocateObject(DomainClassInfo.mapOidToClass(longOid), oid);

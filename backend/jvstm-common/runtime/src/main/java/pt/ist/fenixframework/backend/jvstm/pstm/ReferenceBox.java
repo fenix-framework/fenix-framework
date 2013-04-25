@@ -1,6 +1,10 @@
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
 import jvstm.VBoxBody;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 
@@ -8,6 +12,8 @@ import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 // represented using DomainBasedMaps (versioned collections). Maybe CollectionBox
 // would be a more appropriate name.
 class ReferenceBox<E> extends VBox<E> {
+
+    private static final Logger logger = LoggerFactory.getLogger(PrimitiveBox.class);
 
     ReferenceBox(DomainObject ownerObj, String slotName) {
         super(ownerObj, slotName);
@@ -23,6 +29,10 @@ class ReferenceBox<E> extends VBox<E> {
 
     @Override
     protected void doReload(/*Object obj, String attr*/) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Reload ReferenceVBox: {} for {}", this.slotName, this.ownerObj.getExternalId());
+        }
+
         JVSTMBackEnd.getInstance().getRepository().reloadReferenceAttribute(this);
     }
 }

@@ -34,7 +34,8 @@ public class DomainClassInfo implements Serializable {
             int maxId = 0;
 
             for (DomainClassInfo classInfo : map.values()) {
-                logger.info("Existing domain class '{}' with id {}", classInfo.domainClassName, classInfo.classId);
+                logger.info("Existing domain class '{}' with id '{}'", classInfo.domainClassName,
+                        Long.toHexString(classInfo.classId));
                 maxId = Math.max(maxId, classInfo.classId);
                 addNewInfoToArray(array, classInfo);
             }
@@ -66,7 +67,8 @@ public class DomainClassInfo implements Serializable {
                 newClasses.add(classInfo);
 
                 if (logger.isInfoEnabled()) {
-                    logger.info("Registering new domain class '" + javaClass.getName() + "' with id " + classInfo.classId);
+                    logger.info("Registering new domain class '{}' with id '{}'", javaClass.getName(),
+                            Long.toHexString(classInfo.classId));
                 }
             }
         }

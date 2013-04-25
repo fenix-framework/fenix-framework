@@ -20,8 +20,8 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
     static final VBoxBody NOT_LOADED_BODY = new VBoxBody(notLoadedValue(), 0, null);
 
     //initialized in the constructor
-    private final DomainObject ownerObj;
-    private final String slotName;
+    protected final DomainObject ownerObj;
+    protected final String slotName;
 
     public static <T> T notLoadedValue() {
         return (T) NOT_LOADED_VALUE;
@@ -133,6 +133,10 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
     // synchronized here processes reloads of the same box one at a time, thus avoiding concurrent accesses to the persistence to
     // load the same box
     synchronized boolean reload(/*Object obj, String attr*/) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Reload VBox: {} for {}", this.slotName, this.ownerObj.getExternalId());
+        }
+
         try {
             //Re-test to see whether some other thread already did the job for us.
             //This also requires the body's value slot to be final.

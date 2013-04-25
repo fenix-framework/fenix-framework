@@ -42,7 +42,10 @@ public abstract class JVSTMDomainObject extends AbstractDomainObjectAdapter {
                     // break the loop once we got this instance cached
                     return;
                 }
-                logger.debug("Another object was already cached with the same key as this new object: {}", oid);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Another object was already cached with the same key as this new object: {}",
+                            Long.toHexString(oid));
+                }
 
             }
         } catch (Exception e) {
