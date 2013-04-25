@@ -140,9 +140,9 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
     // smf: It might make sense to define this method in the CodeGenerator class 
     protected void generateInitializePrimitiveIfNeeded(Slot slot, PrintWriter out) {
         PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(slot.getTypeName());
-        if (wrapperEntry != null) { // then it is a primitive type
-            generateNewSlotInitialization(slot.getName(), wrapperEntry.defaultPrimitiveValue, false, out);
-        }
+        String initialValue = wrapperEntry == null ? null : wrapperEntry.defaultPrimitiveValue;
+        // we always set the value to ensure that the box goes to the write-set.
+        generateNewSlotInitialization(slot.getName(), initialValue, false, out);
     }
 
     protected void generateNewSlotInitialization(String slotName, String slotValue, boolean bypassCheckAllocateOnly,
@@ -173,7 +173,8 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
 
     protected void generateInitRoleSlotMulOne(Role role, PrintWriter out) {
         // initialize slots with their default value
-//        generateNewSlotInitialization(role.getName(), "null", out);
+        // we always set the value to ensure that the box goes to the write-set.
+        generateNewSlotInitialization(role.getName(), "null", false, out);
 
     }
 
