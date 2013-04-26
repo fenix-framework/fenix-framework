@@ -62,7 +62,7 @@ public class InfinispanRepository extends Repository {
     static final String DOMAIN_CACHE_NAME = "DomainCache";
 
     // this is a marker, so that when bootstrapping the repository, we can identify whether it already exists 
-    private static final String CACHE_IS_FULLY_INITIALZED = "CacheAlreadExists";
+    private static final String CACHE_IS_NEW = "CacheAlreadExists";
 
     private static final String KEY_INSTANTIATED_CLASSES = "Set<DomainClassInfo>";
 
@@ -88,7 +88,7 @@ public class InfinispanRepository extends Repository {
         }
     }
 
-    // we need the transaction manager to init the caches (because we need preload, otherwise ispn as a bug. So, we just create a dummy cache to get its TxManager :-(
+    // we need the transaction manager to init the caches. So, we just create a dummy cache to get its TxManager :-(  There should be a better way to do this...
     private void initTransactionManager() {
         Configuration conf = makeRequiredConfiguration();
         // for the dummy cache disable, cache loaders if any was configured
@@ -117,8 +117,8 @@ public class InfinispanRepository extends Repository {
         return doWithinBackingTransactionIfNeeded(new Callable<Boolean>() {
             @Override
             public Boolean call() {
-                if (getSystemCache().get(CACHE_IS_FULLY_INITIALZED) == null) {
-                    getSystemCache().put(CACHE_IS_FULLY_INITIALZED, "true");
+                if (getSystemCache().get(CACHE_IS_NEW) == null) {
+                    getSystemCache().put(CACHE_IS_NEW, "false");
                     logger.info("Initialization marker not present. SystemCache is being initialized for the first time.");
                     return true; // repository is new
                 } else {
