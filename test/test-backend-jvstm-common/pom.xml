@@ -39,12 +39,32 @@
                 <dependencies>
                     <dependency>
                         <groupId>pt.ist</groupId>
+                        <artifactId>fenix-framework-backend-infinispan-code-generator</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>pt.ist</groupId>
                         <artifactId>fenix-framework-backend-jvstm-common-code-generator</artifactId>
                         <version>${project.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>pt.ist</groupId>
                         <artifactId>fenix-framework-backend-jvstm-infinispan-code-generator</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>pt.ist</groupId>
+                        <artifactId>fenix-framework-backend-jvstm-mem-code-generator</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>pt.ist</groupId>
+                        <artifactId>fenix-framework-backend-jvstm-ojb-code-generator</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>pt.ist</groupId>
+                        <artifactId>fenix-framework-backend-ogm-code-generator</artifactId>
                         <version>${project.version}</version>
                     </dependency>
                 </dependencies>
@@ -55,12 +75,37 @@
     <dependencies>
         <dependency>
             <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-core-indexes-runtime</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-infinispan-runtime</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-backend-jvstm-common-runtime</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-backend-jvstm-infinispan-runtime</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-jvstm-mem-runtime</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-jvstm-ojb-runtime</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-ogm-runtime</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
