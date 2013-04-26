@@ -209,7 +209,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
                         keepGoing = false;
                         return result;
                     } finally {
-                        if (keepGoing) {
+                        if (keepGoing && getTransaction() != null) {
                             rollback();
                         }
                     }
