@@ -167,7 +167,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
         logger.trace("Handling service {}", commandName);
 
-        if (getTransaction() != null && !getTransaction().isReadOnly()) {
+        if (getTransaction() != null && getTransaction().canFlattenWriteCommand()) {
             // Piggy-back this write transaction in the currently running
             // write transaction
             logger.trace("Inside write transaction. Flattenning...");
@@ -197,7 +197,12 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
                 try {
                     try {
                         begin(readOnly);
+                        if (readOnly) {
+                            // Mark the transaction as being speculative read-only
+                            getTransaction().setSpeculative(true);
+                        }
                         T result = command.call();
+                        getTransaction().setSpeculative(false);
                         if (promotedTransaction) {
                             if (!readOnly) {
                                 // Do nothing if the current transaction did not write anything.

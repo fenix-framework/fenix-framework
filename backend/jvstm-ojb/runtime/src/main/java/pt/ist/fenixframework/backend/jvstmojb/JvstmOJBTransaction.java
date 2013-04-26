@@ -10,11 +10,14 @@ import jvstm.Transaction;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction;
 import pt.ist.fenixframework.core.AbstractTransaction;
 import pt.ist.fenixframework.core.TransactionError;
+import pt.ist.fenixframework.core.WriteOnReadError;
 import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
 public class JvstmOJBTransaction extends AbstractTransaction {
 
     private final TopLevelTransaction underlyingTransaction;
+
+    private boolean markedSpeculative = false;
 
     JvstmOJBTransaction(TopLevelTransaction underlyingTransaction) {
         super();
@@ -25,8 +28,21 @@ public class JvstmOJBTransaction extends AbstractTransaction {
         return underlyingTransaction;
     }
 
-    boolean isReadOnly() {
-        return underlyingTransaction.isReadOnly();
+    /**
+     * Returns whether a write command can run within this transaction
+     * (flattening the command).
+     * 
+     * A transaction can be flattened if is marked as being speculative
+     * read-only (in which case {@link WriteOnReadError}s thrown by the
+     * command should be handled by this transaction) or if the underlying
+     * transaction is already a write transaction.
+     */
+    boolean canFlattenWriteCommand() {
+        return !underlyingTransaction.isReadOnly() || markedSpeculative;
+    }
+
+    void setSpeculative(boolean speculative) {
+        markedSpeculative = speculative;
     }
 
     // AbstractTransaction implementations
