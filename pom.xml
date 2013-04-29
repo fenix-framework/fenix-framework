@@ -67,6 +67,7 @@
         <!-- Used in surefire plugin -->
         <!-- to play on the safe side when do not run tests in parallel. To do so run maven, e.g. with -DforkCount=1.5C -->
         <forkCount>1</forkCount>
+        <test.excludes>**/*Test.java.bogus,property-to-allow-some-test-to-be-excluded-via-command-line,use-commas-for-multiple-entries</test.excludes>
     </properties>
 
     <!-- Building -->
@@ -110,6 +111,9 @@
                     <reuseForks>false</reuseForks>
                     <forkCount>${forkCount}</forkCount>
                     <argLine>-Xms512m -Xmx512m</argLine>
+                    <excludes>
+                        <exclude>${test.excludes}</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
