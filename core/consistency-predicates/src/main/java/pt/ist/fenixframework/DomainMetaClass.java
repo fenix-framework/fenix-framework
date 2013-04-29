@@ -236,7 +236,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
                 break;
             }
             for (String id : ids) {
-                DomainObject existingDO = null;
+                AbstractDomainObject existingDO = null;
                 try {
                     existingDO = FenixFramework.getDomainObject(id);
                 } catch (Exception ex) {

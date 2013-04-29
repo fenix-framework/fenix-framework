@@ -6,6 +6,7 @@ import jvstm.cps.Depended;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicateSupport;
 import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
 import pt.ist.fenixframework.consistencyPredicates.DomainDependenceRecord;
+import pt.ist.fenixframework.core.AbstractDomainObject;
 
 /**
  * Each domain object is associated with one <code>DomainMetaObject</code>,
@@ -67,7 +68,7 @@ public class DomainMetaObject extends DomainMetaObject_Base implements Depended<
     }
 
     @Override
-    public void setDomainObject(DomainObject domainObject) {
+    public void setDomainObject(AbstractDomainObject domainObject) {
         if (domainObject == null) {
             DomainObject previousObject = getDomainObject();
             // These two sets are needed because the relation between a domainObject
