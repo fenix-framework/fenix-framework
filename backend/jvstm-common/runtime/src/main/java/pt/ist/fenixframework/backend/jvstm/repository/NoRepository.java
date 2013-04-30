@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
-import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class NoRepository extends Repository {
 
@@ -26,8 +25,8 @@ public class NoRepository extends Repository {
     }
 
     @Override
-    public long getMaxOidForClass(Class<? extends AbstractDomainObject> domainClass, long lowerLimitOid, long upperLimitOid) {
-        return lowerLimitOid;
+    public int getMaxCounterForClass(DomainClassInfo domainClassInfo) {
+        return -1;
     }
 
     @Override

@@ -22,8 +22,14 @@ public class DomainClassInfo implements Serializable {
     private volatile static Map<Class<? extends AbstractDomainObject>, DomainClassInfo> classInfoMap;
     private volatile static DomainClassInfo[] classInfoById;
     private volatile static long serverOidBase;
+    private static int serverId = -1; // will be provided via DomainClassInfo.initializeClassInfos(...)
+
+    public static int getServerId() {
+        return serverId;
+    }
 
     public static void initializeClassInfos(DomainModel domainModel, int serverId) {
+        DomainClassInfo.serverId = serverId;
         serverOidBase = (long) serverId << 48;  // the server id provides the 16 most significant bits of the OID
         try {
             Map<Class<? extends AbstractDomainObject>, DomainClassInfo> map =
@@ -174,7 +180,8 @@ public class DomainClassInfo implements Serializable {
         synchronized (info) {
             int lastKey = info.getLastKey();
             if (lastKey == UNKNOWN_KEY) {  // not yet initialized from the persistent storage
-                lastKey = initLastKeyFor(info);
+                lastKey = getLastKeyFor(info);
+                logger.debug("Initialize last used counter for class {}: {}", info.domainClassName, lastKey);
             }
 
             nextKey = lastKey + 1;
@@ -199,25 +206,16 @@ public class DomainClassInfo implements Serializable {
         }
 
         // inform the Repository of the new OID; it **may** require such knowledge
-        JVSTMBackEnd.getInstance().getRepository().createdNewOidFor(oid, serverOidBase, info);
+        JVSTMBackEnd.getInstance().getRepository().updateMaxCounterForClass(info, nextKey);
 
         return oid;
     }
 
     /* Invocations to this method should be synchronized in the <code>info</code> argument */
-    private static int initLastKeyFor(DomainClassInfo info) throws Exception {
-        long baseRange = serverOidBase + ((long) info.classId << 32);
-        long maxId =
-                JVSTMBackEnd.getInstance().getRepository()
-                        .getMaxOidForClass(info.domainClass, baseRange, baseRange + 0xFFFFFFFFL);
+    private static int getLastKeyFor(DomainClassInfo info) throws Exception {
+        int maxCounter = JVSTMBackEnd.getInstance().getRepository().getMaxCounterForClass(info);
 
-        // the closest row might be outside (before) the acceptable range
-        // smf: remove this check when all repostory impls correctly check baseRange
-//        if ((maxId & 0xFFFFFFFF00000000L) != baseRange) {
-//            return 0;
-//        } else {
-        return (int) maxId; // the lower 32 bit are the object's relative id.
-//        }
+        return maxCounter < 0 ? UNKNOWN_KEY : maxCounter;
     }
 
     private static final int UNKNOWN_KEY = 0;
@@ -244,11 +242,11 @@ public class DomainClassInfo implements Serializable {
         this.classId = classId;
     }
 
-    protected int getLastKey() {
+    public int getLastKey() {
         return this.lastKey;
     }
 
-    protected void setLastKey(int lastKey) {
+    private void setLastKey(int lastKey) {
         this.lastKey = lastKey;
     }
 
