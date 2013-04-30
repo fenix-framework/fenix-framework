@@ -23,7 +23,6 @@ import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.FenixFrameworkData;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelReadOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.StatisticsThread;
 import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -122,8 +121,8 @@ public class JVSTMBackEnd implements BackEnd {
         logger.info("ensureFenixFrameworkDataExists");
         ensureFenixFrameworkDataExists();
 
-        logger.info("startStatisticsThread");
-        new StatisticsThread().start();
+//        logger.info("startStatisticsThread");
+//        new StatisticsThread().start();
     }
 
     // returns whether the repository is new, so that we know we need to create the DomainRoot
