@@ -204,19 +204,25 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
         this.body = convertVersionedValuesToVBoxBodies(vvalues);
     }
 
+    // this code picks from either the bodies or the Versioned values and inserts them in the correct position in the list of versioned values.
     protected void mergeBodiesIntoLoadedVersions(VBoxBody<E> boxBody, List<VersionedValue> vvalues, int pos) {
         if (boxBody != null && pos < vvalues.size()) {
+            // must decide whether to pick the vboxbody or the vvalue
             if (boxBody.version > vvalues.get(pos).getVersion()) {
+                // pick the vboxbody
                 vvalues.add(pos, new VersionedValue(boxBody.value, boxBody.version));
                 mergeBodiesIntoLoadedVersions(boxBody.next, vvalues, pos + 1);
             } else if (boxBody.version < vvalues.get(pos).getVersion()) {
+                // pick the vvalue 
                 mergeBodiesIntoLoadedVersions(boxBody, vvalues, pos + 1);
             } else {
+                // both are the same version. advance on both lists
                 mergeBodiesIntoLoadedVersions(boxBody.next, vvalues, pos + 1);
             }
-        } else if (boxBody == null) {
+        } else if (boxBody == null) { // all bodies have been put in vvalues
             return;  // we're done
         } else {
+            // only bodies to append to the vvalues
             vvalues.add(new VersionedValue(boxBody.value, boxBody.version));
             mergeBodiesIntoLoadedVersions(boxBody.next, vvalues, pos + 1);
         }

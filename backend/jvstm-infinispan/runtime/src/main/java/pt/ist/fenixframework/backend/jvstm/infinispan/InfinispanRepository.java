@@ -403,7 +403,7 @@ public class InfinispanRepository extends Repository {
                     byte[] externalizedData = Externalization.externalizeObject(newValue);
 
                     if (current != null) {
-                        cache.put(key + current.version, current); // TODO: colocar aqui um timeout
+                        cache.put(makeVersionedDomainKey(key, current.version), current); // TODO: colocar aqui um timeout ?
                         newVersion = new DataVersionHolder(txNumber, current.version, externalizedData);
                     } else {
                         newVersion = new DataVersionHolder(txNumber, -1, externalizedData);
@@ -481,7 +481,7 @@ public class InfinispanRepository extends Repository {
                             break;
                         }
 
-                        current = cache.get(key + current.previousVersion);
+                        current = cache.get(makeVersionedDomainKey(key, current.previousVersion));
                     }
                 }
                 throw new PersistenceException("Version of domain object " + owner.getExternalId()
@@ -535,7 +535,11 @@ public class InfinispanRepository extends Repository {
 
     // computes and returns the key of a slotName of a domain object
     private String makeDomainKey(String slotName, DomainObject domainObject) {
-        return convertSlotName(slotName) + ((AbstractDomainObject) domainObject).getOid();
+        return convertSlotName(slotName) + ":" + ((AbstractDomainObject) domainObject).getOid();
+    }
+
+    private String makeVersionedDomainKey(String domainKey, int version) {
+        return domainKey + ":" + version;
     }
 
     private final String convertSlotName(String slotName) {
