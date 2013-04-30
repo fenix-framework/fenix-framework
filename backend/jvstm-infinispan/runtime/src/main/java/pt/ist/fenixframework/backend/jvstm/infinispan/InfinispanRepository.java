@@ -8,14 +8,13 @@
 package pt.ist.fenixframework.backend.jvstm.infinispan;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.transaction.TransactionManager;
-
-import jvstm.Transaction;
 
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.Configuration;
@@ -29,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
@@ -37,6 +38,8 @@ import pt.ist.fenixframework.backend.jvstm.repository.PersistenceException;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.Externalization;
+
+//import jvstm.Transaction;
 
 /**
  * This class implements the Repository interface using the Infinispan NoSQL key/value data store.
@@ -60,6 +63,8 @@ public class InfinispanRepository extends Repository {
 
     // this is a marker, so that when bootstrapping the repository, we can identify whether it already exists 
     private static final String CACHE_IS_FULLY_INITIALZED = "CacheAlreadExists";
+
+    private static final String KEY_INSTANTIATED_CLASSES = "Set<DomainClassInfo>";
 
     Cache<String, Object> systemCache;
     Cache<String, DataVersionHolder> domainCache;
@@ -149,7 +154,7 @@ public class InfinispanRepository extends Repository {
 
         // transactional optimistic cache
         confBuilder.transaction().transactionMode(TransactionMode.TRANSACTIONAL).syncRollbackPhase(false).cacheStopTimeout(30000)
-                .useSynchronization(true).syncCommitPhase(false).lockingMode(LockingMode.OPTIMISTIC)
+                .useSynchronization(true).syncCommitPhase(true).lockingMode(LockingMode.OPTIMISTIC)
                 .use1PcForAutoCommitTransactions(false).autoCommit(false);
 
         // use versioning (check if it's really needed, especially in READ_COMMITTED!) 
@@ -321,22 +326,43 @@ public class InfinispanRepository extends Repository {
     }
 
     @Override
-    public long getMaxOidForClass(Class<? extends AbstractDomainObject> domainClass, long lowerLimitOid, final long upperLimitOid) {
-        final String key = domainClass.getName() + (upperLimitOid >> 48); // this is the serverOID
+    public int getMaxCounterForClass(DomainClassInfo domainClassInfo) {
+        final String key = makeKeyForMaxCounter(domainClassInfo);
 
-        return doWithinBackingTransactionIfNeeded(new Callable<Long>() {
+        return doWithinBackingTransactionIfNeeded(new Callable<Integer>() {
             @Override
-            public Long call() {
-                Long max = (Long) getSystemCache().get(key);
+            public Integer call() {
+                Integer max = (Integer) getSystemCache().get(key);
 
                 if (max == null) {
-                    return 0L;
+                    return -1;
                 }
 
                 return max;
             }
         });
 
+    }
+
+    // called when a new domain object is created inside a transaction and a new oid is assigned to the
+    // created object.  Register the class info to be updated upon commit
+    @Override
+    public void updateMaxCounterForClass(DomainClassInfo domainClassInfo, final int newCounterValue) {
+        Transaction current = FenixFramework.getTransaction();
+
+        Set<DomainClassInfo> infos = current.getFromContext(KEY_INSTANTIATED_CLASSES);
+        if (infos == null) {
+            infos = new HashSet<DomainClassInfo>();
+            current.putInContext(KEY_INSTANTIATED_CLASSES, infos);
+        }
+
+        if (infos.add(domainClassInfo)) {
+            logger.debug("Will update counter for instances of {} upon commit.", domainClassInfo.domainClassName);
+        }
+    }
+
+    private String makeKeyForMaxCounter(DomainClassInfo domainClassInfo) {
+        return String.valueOf(DomainClassInfo.getServerId()) + ":" + domainClassInfo.classId;
     }
 
     // reloads a primitive value from the storage for the specified box
@@ -361,6 +387,7 @@ public class InfinispanRepository extends Repository {
         doWithinBackingTransactionIfNeeded(new Callable<Void>() {
             @Override
             public Void call() {
+                updatePersistentInstanceCounters();
                 persistCommittedTransactionNumber(txNumber);
 
                 for (Entry<jvstm.VBox, Object> entry : changes) {
@@ -370,7 +397,7 @@ public class InfinispanRepository extends Repository {
 
                     newValue = (newValue == nullObject) ? null : newValue;
 
-                    String key = getKey(vbox.getSlotName(), owner);
+                    String key = makeDomainKey(vbox.getSlotName(), owner);
                     DataVersionHolder current = cache.get(key);
                     DataVersionHolder newVersion;
                     byte[] externalizedData = Externalization.externalizeObject(newValue);
@@ -420,34 +447,10 @@ public class InfinispanRepository extends Repository {
         maxCommittedTxId = -1;
     }
 
-    // called when a new domain object is created inside a transaction and a new oid is assigned to the
-    // created object.
-    @Override
-    public void createdNewOidFor(final long newOid, long serverOidBase, DomainClassInfo instantiatedClass) {
-        final String key = instantiatedClass.domainClassName + (serverOidBase >> 48);
-
-        synchronized (this) {
-
-            doWithinBackingTransactionIfNeeded(new Callable<Void>() {
-                @Override
-                public Void call() {
-                    Long max = (Long) getSystemCache().get(key);
-
-                    if (max == null || max < newOid) {
-                        getSystemCache().put(key, newOid);
-                    }
-
-                    return null;
-                }
-            });
-
-        }
-    }
-
     /* utility methods used by the implementation of the Repository interface methods */
 
     private void reloadAttribute(VBox box) {
-        int txNumber = Transaction.current().getNumber();
+        int txNumber = jvstm.Transaction.current().getNumber();
 
         List<VersionedValue> vvalues = getMostRecentVersions(box.getOwnerObject(), box.getSlotName(), txNumber);
         box.mergeVersions(vvalues);
@@ -455,7 +458,7 @@ public class InfinispanRepository extends Repository {
 
     List<VersionedValue> getMostRecentVersions(final DomainObject owner, final String slotName, final int desiredVersion) {
         final Cache<String, DataVersionHolder> cache = getDomainCache();
-        final String key = getKey(slotName, owner);
+        final String key = makeDomainKey(slotName, owner);
 
         return doWithinBackingTransactionIfNeeded(new Callable<List<VersionedValue>>() {
             @Override
@@ -505,8 +508,33 @@ public class InfinispanRepository extends Repository {
         }
     }
 
+    // only correct if invoked within a backing transaction.  Also this code
+    // assumes a single global commit lock. Otherwise the counter might be set
+    // backwards by a late-running thread.
+    private void updatePersistentInstanceCounters() {
+        Transaction current = FenixFramework.getTransaction();
+
+        Set<DomainClassInfo> infos = current.getFromContext(KEY_INSTANTIATED_CLASSES);
+
+        if (infos != null) {
+            for (DomainClassInfo info : infos) {
+                String key = makeKeyForMaxCounter(info);
+                Integer max = (Integer) getSystemCache().get(key);
+
+                int newCounterValue = info.getLastKey();
+
+                if (max == null || max < newCounterValue) {
+                    getSystemCache().put(key, newCounterValue);
+                    logger.debug("Update persistent counter for class {}: {}", info.domainClassName, newCounterValue);
+                }
+
+            }
+
+        }
+    }
+
     // computes and returns the key of a slotName of a domain object
-    private String getKey(String slotName, DomainObject domainObject) {
+    private String makeDomainKey(String slotName, DomainObject domainObject) {
         return convertSlotName(slotName) + ((AbstractDomainObject) domainObject).getOid();
     }
 

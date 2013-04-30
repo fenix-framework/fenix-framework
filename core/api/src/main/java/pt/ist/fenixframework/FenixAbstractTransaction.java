@@ -18,12 +18,13 @@ public abstract class FenixAbstractTransaction implements Transaction {
         this.context.put(key, value);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Object getFromContext(String key) {
+    public <T> T getFromContext(String key) {
         if (this.context == null) {
             return null;
         }
 
-        return this.context.get(key);
+        return (T) this.context.get(key);
     }
 }

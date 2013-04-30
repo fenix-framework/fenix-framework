@@ -32,5 +32,5 @@ public interface Transaction extends javax.transaction.Transaction {
     /**
      * Retrieves the value for the given key, within the context of the current {@link Transaction}
      */
-    public Object getFromContext(String key);
+    public <T> T getFromContext(String key);
 }

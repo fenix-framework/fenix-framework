@@ -13,7 +13,6 @@ import java.util.Set;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
-import pt.ist.fenixframework.core.AbstractDomainObject;
 
 //import pt.ist.fenixframework.pstm.DomainClassInfo;
 //import pt.ist.fenixframework.pstm.PersistentTransaction;
@@ -56,15 +55,24 @@ public abstract class Repository {
     public abstract void storeDomainClassInfos(final DomainClassInfo[] domainClassInfos);
 
     /**
-     * Returns the maximum stored OID for class domainClass.
+     * Returns the counter stored for a given domain class.
      * 
-     * @param domainClass The DomainClass for which we need the highest stored OID.
-     * @param lowerLimitOid The minimum value the OID can have. It may be useful to optimize the search.
-     * @param upperLimitOid The maximum value the OID can have. It may be useful to optimize the search.
-     * @return The maximum stored OID for the domain class. The minimum return value possible is lowerLimitOid.
+     * @param domainClassInfo The information about the class for which the required counter refers.
+     * @return The (non negative) counter value stored for the given domain class or a negative value if there is no stored
+     *         information regarding this class's counter.
      */
-    public abstract long getMaxOidForClass(Class<? extends AbstractDomainObject> domainClass, final long lowerLimitOid,
-            final long upperLimitOid);
+    public abstract int getMaxCounterForClass(DomainClassInfo domainClassInfo);
+
+    /**
+     * Invoked by the framework whenever a new OID is generated (i.e. a new DomainObject is created inside a transaction).
+     * Depending on the concrete repository, this may be needed for maintaining the maximum id per class (and maybe per server).
+     * By default this method does nothing.
+     * 
+     * @param domainClassInfo Information about the instantiated class
+     * @param newCounterValue The new value of the counter
+     */
+    public void updateMaxCounterForClass(DomainClassInfo domainClassInfo, int newCounterValue) {
+    }
 
     // reloads a primitive value from the storage for the specified box
     public abstract void reloadPrimitiveAttribute(VBox box);
@@ -85,14 +93,6 @@ public abstract class Repository {
      * Close the connection to the repository.
      */
     public abstract void closeRepository();
-
-    /**
-     * Invoked by the framework whenever a new oid is generated (i.e. a new persistent object is created inside a transaction).
-     * Depending on the concrete repository, this may be needed for maintaining persistently the maximum id per class per server.
-     * By default this method does nothing.
-     */
-    public void createdNewOidFor(long newOid, long serverOidBase, DomainClassInfo instantiatedClass) {
-    }
 
 //    /**
 //     * Store the given value using the given key.
