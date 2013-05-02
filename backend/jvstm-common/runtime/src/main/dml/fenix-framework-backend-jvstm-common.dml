@@ -1,10 +1,13 @@
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
 valueType pt.ist.fenixframework.backend.jvstm.pstm.TransactionStatistics.CounterStats as CounterStats {
+    // externalizeWith {
+    //     int getMinValue();
+    //     int getMaxValue();
+    //     long getValueSum();
+    // }
     externalizeWith {
-        int getMinValue();
-        int getMaxValue();
-        long getValueSum();
+        String externalizeInOneElement();
     }
 }
 

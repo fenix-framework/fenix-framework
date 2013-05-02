@@ -359,7 +359,8 @@ public class FenixCodeGenerator extends CodeGenerator {
         while (!(vt.isBuiltin() || vt.isEnum())) {
             List<ExternalizationElement> extElems = vt.getExternalizationElements();
             if (extElems.size() != 1) {
-                throw new Error("Can't handle value-types with more than one externalization element yet...");
+                throw new Error("Can't handle value-types with more than one externalization element yet... ("
+                        + vt.getDomainName() + ")");
             }
 
             ExternalizationElement extElem = extElems.get(0);
@@ -424,7 +425,8 @@ public class FenixCodeGenerator extends CodeGenerator {
         while (!(vt.isBuiltin() || vt.isEnum())) {
             List<ExternalizationElement> extElems = vt.getExternalizationElements();
             if (extElems.size() != 1) {
-                throw new Error("Can't handle value-types with more than one externalization element yet...");
+                throw new Error("Can't handle value-types with more than one externalization element yet... ("
+                        + vt.getDomainName() + ")");
             }
 
             ExternalizationElement extElem = extElems.get(0);

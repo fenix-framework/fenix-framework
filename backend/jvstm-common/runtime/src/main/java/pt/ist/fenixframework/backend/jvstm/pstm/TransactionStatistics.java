@@ -93,6 +93,15 @@ public class TransactionStatistics {
 
         }
 
+        // used only when externalizing as one element.  To delete when no longer needed
+        public CounterStats(String externalizedForm) {
+            String tokens[] = externalizedForm.split(":");
+
+            this.minValue = Integer.parseInt(tokens[0]);
+            this.maxValue = Integer.parseInt(tokens[1]);
+            this.valueSum = Long.parseLong(tokens[2]);
+        }
+
         public final int getMinValue() {
             return this.minValue;
         }
@@ -122,6 +131,10 @@ public class TransactionStatistics {
             valueSum = 0;
 
             return snapshot;
+        }
+
+        public String externalizeInOneElement() {
+            return getMinValue() + ":" + getMaxValue() + ":" + getValueSum();
         }
     }
 }
