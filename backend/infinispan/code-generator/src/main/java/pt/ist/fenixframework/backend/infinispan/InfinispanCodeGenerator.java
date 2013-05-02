@@ -219,7 +219,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         printMethod(out, methodModifiers, "void", setterName + "$unidirectional", makeArg(typeName, slotName));
         startMethodBody(out);
         print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName + "\", (" + slotName
-                + " == null ? Externalization.NULL_OBJECT : " + slotName + ".getOid()));");
+                + " == null ? Externalization.NULL_OBJECT : ((pt.ist.fenixframework.core.AbstractDomainObject)" + slotName
+                + ").getOid()));");
         endMethodBody(out);
     }
 
