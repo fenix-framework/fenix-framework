@@ -75,12 +75,14 @@ public class InfinispanTransactionManager implements TransactionManager {
 
     @Override
     public pt.ist.fenixframework.Transaction getTransaction() {
+        Transaction tx;
 	try {
-	    Transaction tx = delegateTxManager.getTransaction();
-	    return TxMap.getTx(tx);
-	} catch (Exception e) {
+	    tx = delegateTxManager.getTransaction();
+	} catch (SystemException e) {
 	    return null;
 	}
+
+        return (tx == null) ? null : TxMap.getTx(tx);
     }
 
     @Override

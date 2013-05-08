@@ -1,5 +1,7 @@
 package pt.ist.fenixframework.util;
 
+import java.lang.ref.WeakReference;
+
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.RollbackException;
@@ -11,47 +13,55 @@ import pt.ist.fenixframework.FenixAbstractTransaction;
 
 public class JTADelegatingTransaction extends FenixAbstractTransaction {
 
-    private final javax.transaction.Transaction delegateTx;
+    private final WeakReference<javax.transaction.Transaction> delegateTxRef;
 
     public JTADelegatingTransaction(javax.transaction.Transaction delegateTx) {
-	super();
-	this.delegateTx = delegateTx;
+        super();
+        this.delegateTxRef = new WeakReference<javax.transaction.Transaction>(delegateTx);
+    }
+
+    private javax.transaction.Transaction getDelegateTx() {
+        javax.transaction.Transaction delegateTx = delegateTxRef.get();
+        if (delegateTx == null) {
+            throw new IllegalStateException("Delegate transaction no longer exists");
+        }
+        return delegateTx;
     }
 
     @Override
     public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException,
-	    SystemException {
-	delegateTx.commit();
+            SystemException {
+        getDelegateTx().commit();
     }
 
     @Override
     public boolean delistResource(XAResource xaRes, int flag) throws IllegalStateException, SystemException {
-	return delegateTx.delistResource(xaRes, flag);
+        return getDelegateTx().delistResource(xaRes, flag);
     }
 
     @Override
     public boolean enlistResource(XAResource xaRes) throws RollbackException, IllegalStateException, SystemException {
-	return delegateTx.enlistResource(xaRes);
+        return getDelegateTx().enlistResource(xaRes);
     }
 
     @Override
     public int getStatus() throws SystemException {
-	return delegateTx.getStatus();
+        return getDelegateTx().getStatus();
     }
 
     @Override
     public void registerSynchronization(Synchronization sync) throws RollbackException, IllegalStateException, SystemException {
-	delegateTx.registerSynchronization(sync);
+        getDelegateTx().registerSynchronization(sync);
     }
 
     @Override
     public void rollback() throws IllegalStateException, SystemException {
-	delegateTx.rollback();
+        getDelegateTx().rollback();
     }
 
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {
-	delegateTx.setRollbackOnly();
+        getDelegateTx().setRollbackOnly();
     }
 
 }
