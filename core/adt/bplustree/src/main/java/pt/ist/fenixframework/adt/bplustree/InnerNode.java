@@ -19,7 +19,7 @@ import pt.ist.fenixframework.NoDomainMetaObjects;
 @NoDomainMetaObjects
 public class InnerNode extends InnerNode_Base {
 
-    private InnerNode() {
+    protected InnerNode() {
         super();
     }
 
@@ -39,6 +39,14 @@ public class InnerNode extends InnerNode_Base {
         for (AbstractNode subNode : subNodes.values()) { // smf: either don't do this or don't setParent when making new
             subNode.setParent(this);
         }
+    }
+
+    protected InnerNode createNode(AbstractNode leftNode, AbstractNode rightNode, Comparable splitKey) {
+        return new InnerNode(leftNode, rightNode, splitKey);
+    }
+
+    protected InnerNode createNodeWithSubNodes(TreeMap<Comparable, AbstractNode> subNodes) {
+        return new InnerNode(subNodes);
     }
 
     private TreeMap<Comparable, AbstractNode> duplicateMap() {
@@ -71,14 +79,14 @@ public class InnerNode extends InnerNode_Base {
             // this level.  It will be moved up.
             TreeMap<Comparable, AbstractNode> leftSubNodes = new TreeMap<Comparable, AbstractNode>(newMap.headMap(keyToSplit));
             leftSubNodes.put(BPlusTree.LAST_KEY, subNodeToMoveLeft);
-            InnerNode leftNode = new InnerNode(leftSubNodes);
+            InnerNode leftNode = createNodeWithSubNodes(leftSubNodes);
             subNodeToMoveLeft.setParent(leftNode); // smf: maybe it is not necessary because of the code in the constructor
 
-            InnerNode rightNode = new InnerNode(new TreeMap<Comparable, AbstractNode>(newMap.tailMap(nextKey)));
+            InnerNode rightNode = createNodeWithSubNodes(new TreeMap<Comparable, AbstractNode>(newMap.tailMap(nextKey)));
 
             // propagate split to parent
             if (this.getParent() == null) {
-                InnerNode newRoot = new InnerNode(leftNode, rightNode, keyToSplit);
+                InnerNode newRoot = createNode(leftNode, rightNode, keyToSplit);
                 return newRoot;
             } else {
                 return this.getParent().rebase(leftNode, rightNode, keyToSplit);

@@ -34,6 +34,7 @@
         <version.commons.codec>1.7</version.commons.codec>
         <version.commons.io>2.4</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
+        <version.com.google.code.gson>2.2.3</version.com.google.code.gson>
         <version.dap-framework>2.0</version.dap-framework>
         <version.hazelcast.api>2.5.1</version.hazelcast.api>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
@@ -143,7 +144,7 @@
                 <configuration>
                     <pushChanges>false</pushChanges>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
-                    
+
                     <!-- Ensure that every module is versioned together -->
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                 </configuration>
@@ -312,6 +313,11 @@
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast</artifactId>
                 <version>${version.hazelcast.api}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${version.com.google.code.gson}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

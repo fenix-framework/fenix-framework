@@ -56,6 +56,11 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
 
     static final Comparable LAST_KEY = new ComparableLastKey();
 
+    /**
+     * Textual representation of the LastKey.
+     */
+    static final String LAST_KEY_REPRESENTATION = "_$LAST_KEY$_";
+
     /* Special comparator that takes into account LAST_KEY */
     private static class ComparatorSupportingLastKey implements Comparator<Comparable>, Serializable {
         // only LAST_KEY knows how to compare itself with others, so we must check for it before
@@ -99,7 +104,7 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
         initRoot();
     }
 
-    private void initRoot() {
+    protected void initRoot() {
         this.setRoot(new LeafNode());
     }
 
