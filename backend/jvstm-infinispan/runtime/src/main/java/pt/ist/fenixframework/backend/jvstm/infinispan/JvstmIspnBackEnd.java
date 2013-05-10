@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
+import pt.ist.fenixframework.backend.jvstm.pstm.ClusteredPersistentTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.PersistentReadOnlyTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.PersistentTransaction;
 
 import com.hazelcast.core.AtomicNumber;
 import com.hazelcast.core.Hazelcast;
@@ -118,7 +118,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
         jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
             @Override
             public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
-                return new PersistentTransaction(record);
+                return new ClusteredPersistentTransaction(record);
             }
 
             @Override
@@ -128,7 +128,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
         });
     }
 
-    protected HazelcastInstance getHazelcastInstance() {
+    public HazelcastInstance getHazelcastInstance() {
         return this.hazelcastInstance;
     }
 
