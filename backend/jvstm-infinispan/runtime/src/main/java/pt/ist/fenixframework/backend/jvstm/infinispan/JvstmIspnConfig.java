@@ -23,7 +23,7 @@ public class JvstmIspnConfig extends JVSTMConfig {
     private static final String FAILED_INIT = "Failed to initialize Backend JVSTM-Infinispan";
 
     /**
-     * This <strong>required</strong> parameter specifies the location of the XML file used to configure Infinispan. This file
+     * This <strong>optional</strong> parameter specifies the location of the XML file used to configure Infinispan. This file
      * should be available in the application's classpath.
      */
     protected String ispnConfigFile = null;
