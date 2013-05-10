@@ -74,6 +74,10 @@
             <groupId>jvstm</groupId>
             <artifactId>jvstm-fenix</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

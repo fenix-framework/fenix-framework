@@ -416,14 +416,15 @@ public class FenixFramework {
      * guarantee that the Fenix Framework is able to provide any more services.
      */
     public static synchronized void shutdown() {
+        logger.info("Shutting down...");
         if (barrier != null) {
             barrier.shutdown();
         }
         getConfig().shutdown();
+        logger.info("Shutdown complete.");
     }
 
     private static synchronized NodeBarrier getNodeBarrier() throws Exception {
-        //TODO: add jgroups configuration file to config
         if (barrier == null) {
             barrier = new NodeBarrier(getConfig().getJGroupsConfigFile());
         }

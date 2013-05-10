@@ -31,19 +31,20 @@
         <version.antlr>2.7.7</version.antlr>
         <version.apache.ant>1.8.2</version.apache.ant>
         <version.asm>4.0</version.asm>
-        <version.commons.io>2.4</version.commons.io>
         <version.commons.codec>1.7</version.commons.codec>
+        <version.commons.io>2.4</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
         <version.dap-framework>2.0</version.dap-framework>
+        <version.hazelcast.api>2.5.1</version.hazelcast.api>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
         <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
         <version.hibernate>4.0.1.Final</version.hibernate>
-        <version.infinispan>5.1.6.FINAL</version.infinispan>
+        <version.infinispan>5.2.1.Final</version.infinispan>
         <version.jboss.logging>3.1.0.GA</version.jboss.logging>
         <version.jbossjta>4.16.3.Final</version.jbossjta>
-        <version.jgroups>3.2.5.Final</version.jgroups>
+        <version.jgroups>3.2.7.Final</version.jgroups>
         <version.jodatime>1.6.2</version.jodatime>
         <version.jpa>1.0</version.jpa>
         <version.jta>1.1</version.jta>
@@ -306,6 +307,11 @@
                 <groupId>pt.ist.esw</groupId>
                 <artifactId>advice-runtime</artifactId>
                 <version>${version.advice}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast</artifactId>
+                <version>${version.hazelcast.api}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

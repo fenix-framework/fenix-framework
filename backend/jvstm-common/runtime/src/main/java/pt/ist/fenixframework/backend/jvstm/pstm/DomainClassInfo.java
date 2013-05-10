@@ -31,6 +31,9 @@ public class DomainClassInfo implements Serializable {
     public static void initializeClassInfos(DomainModel domainModel, int serverId) {
         DomainClassInfo.serverId = serverId;
         serverOidBase = (long) serverId << 48;  // the server id provides the 16 most significant bits of the OID
+
+        logger.info("serverId: {}, serverOidBase: {}", serverId, Long.toHexString(serverOidBase));
+
         try {
             Map<Class<? extends AbstractDomainObject>, DomainClassInfo> map =
                     importClassInfoMap(JVSTMBackEnd.getInstance().getRepository().getDomainClassInfos());
