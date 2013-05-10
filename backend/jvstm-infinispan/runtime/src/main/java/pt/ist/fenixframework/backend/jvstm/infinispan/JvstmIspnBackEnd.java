@@ -50,7 +50,8 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
 
     @Override
     public void shutdown() {
-//        transactionManager.emf.close();
+        getRepository().closeRepository();
+        super.shutdown();
     }
 
 //    protected void configJvstmIspn(JvstmIspnConfig config) throws Exception {
