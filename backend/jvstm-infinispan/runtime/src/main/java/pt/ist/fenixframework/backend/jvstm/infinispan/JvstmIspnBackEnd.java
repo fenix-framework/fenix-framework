@@ -71,7 +71,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
     private void notifyStartupComplete() {
         logger.info("Notify other nodes that startup completed");
 
-        AtomicNumber initMarker = getHazelCastInstance().getAtomicNumber("initMarker");
+        AtomicNumber initMarker = getHazelcastInstance().getAtomicNumber("initMarker");
         initMarker.incrementAndGet();
     }
 
@@ -79,7 +79,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
         logger.info("Waiting for startup from first node");
 
         // check initMarker in AtomicNumber (value 1)
-        AtomicNumber initMarker = getHazelCastInstance().getAtomicNumber("initMarker");
+        AtomicNumber initMarker = getHazelcastInstance().getAtomicNumber("initMarker");
 
         while (initMarker.get() == 0) {
             logger.debug("Waiting for first node to startup...");
@@ -100,7 +100,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
         to appear.  By reusing numbers with the cluster alive, we either don't
         reuse 0 or change the algorithm  that detects the first member */
 
-        AtomicNumber serverIdGenerator = getHazelCastInstance().getAtomicNumber("serverId");
+        AtomicNumber serverIdGenerator = getHazelcastInstance().getAtomicNumber("serverId");
         long longId = serverIdGenerator.getAndAdd(1L);
 
         logger.info("Got (long) serverId: {}", longId);
@@ -128,14 +128,14 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
         });
     }
 
-    protected HazelcastInstance getHazelCastInstance() {
+    protected HazelcastInstance getHazelcastInstance() {
         return this.hazelcastInstance;
     }
 
     @Override
     public void shutdown() {
         getRepository().closeRepository();
-        getHazelCastInstance().getLifecycleService().shutdown();
+        getHazelcastInstance().getLifecycleService().shutdown();
         super.shutdown();
     }
 
