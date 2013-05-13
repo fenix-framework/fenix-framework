@@ -83,5 +83,9 @@
             <groupId>org.jboss.jbossts</groupId>
             <artifactId>jbossjta</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+        </dependency>
     </dependencies>
 </project>
