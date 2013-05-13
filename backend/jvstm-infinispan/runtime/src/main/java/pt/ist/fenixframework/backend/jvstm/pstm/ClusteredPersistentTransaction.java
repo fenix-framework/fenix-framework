@@ -22,7 +22,7 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
     protected Cons<VBoxBody> performValidCommit() {
         // now revalidate globally
         logger.debug("Will get global cluster lock...");
-        ClusterUtils.globalLock().lock();
+        ClusterUtils.getInstance().globalLock().lock();
         logger.debug("Acquired global cluster lock");
         try {
 
@@ -40,7 +40,7 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
             }
         } finally {
             logger.debug("About to release global cluster lock");
-            ClusterUtils.globalLock().unlock();
+            ClusterUtils.getInstance().globalLock().unlock();
         }
 
     }
