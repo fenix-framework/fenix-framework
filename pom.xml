@@ -111,7 +111,7 @@
                 <configuration>
                     <reuseForks>false</reuseForks>
                     <forkCount>${forkCount}</forkCount>
-                    <argLine>-Xms512m -Xmx512m</argLine>
+                    <argLine>-Xms512m -Xmx512m -Djava.net.preferIPv4Stack=true</argLine>
                     <excludes>
                         <exclude>${test.excludes}</exclude>
                     </excludes>

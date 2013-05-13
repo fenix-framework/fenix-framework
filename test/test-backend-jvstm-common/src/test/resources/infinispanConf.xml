@@ -1,11 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <infinispan>
-    <!-- <global> -->
+    <global>
+        <transport
+                clusterName="infinispan-cluster">
+            <properties>
+                <property
+                        name="configurationFile"
+                        value="fenix-framework-udp-jgroups.xml"/>
+            </properties>
+        </transport>
         <!-- <globalJmxStatistics -->
         <!--         enabled="true" -->
         <!--         jmxDomain="org.infinispan"/> -->
-    <!-- </global> -->
+    </global>
     <default>
+        <clustering mode="r">
+            <sync
+                    replTimeout="15000"/>
+            <stateTransfer
+                    fetchInMemoryState="true"
+                    chunkSize="100"
+                    timeout="240000"/>
+        </clustering>
+
         <!-- <jmxStatistics enabled="true" /> -->
 
         <loaders preload="false" shared="false">

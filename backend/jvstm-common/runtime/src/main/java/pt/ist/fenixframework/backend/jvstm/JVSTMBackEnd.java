@@ -29,10 +29,6 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
-import com.hazelcast.core.AtomicNumber;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-
 /**
  *
  */
@@ -44,8 +40,6 @@ public class JVSTMBackEnd implements BackEnd {
     // the repository instance used to persist the changes
     protected final Repository repository;
     protected final JVSTMTransactionManager transactionManager;
-
-    protected HazelcastInstance hazelcastInstance;
 
     // this constructor is used by the JVSTMConfig when no sub-backend has been created 
     JVSTMBackEnd() {
@@ -108,48 +102,9 @@ public class JVSTMBackEnd implements BackEnd {
      * @param jvstmConfig
      * @throws Exception
      */
-    public void init(JVSTMConfig jvstmConfig) throws Exception {
-        logger.info("initializeGroupCommunication()");
-        initializeGroupCommunication(jvstmConfig);
-
-        int serverId = obtainServerId();
-        boolean firstNode = (serverId == 0);
-
-        if (firstNode) {
-            logger.info("This is the first node!");
-            localInit(jvstmConfig, serverId);
-            // any necessary distributed communication infrastructures must be configured/set before notifying others to proceed
-            notifyStartupComplete();
-
-        } else {
-            logger.info("This is NOT the first node.");
-            waitForStartupFromFirstNode();
-            localInit(jvstmConfig, serverId);
-        }
-    }
-
-    private void notifyStartupComplete() {
-        logger.info("Notify other nodes that startup completed");
-
-        AtomicNumber initMarker = getHazelCastInstance().getAtomicNumber("initMarker");
-        initMarker.incrementAndGet();
-    }
-
-    private void waitForStartupFromFirstNode() {
-        logger.info("Waiting for startup from first node");
-
-        // check initMarker in AtomicNumber (value 1)
-        AtomicNumber initMarker = getHazelCastInstance().getAtomicNumber("initMarker");
-
-        while (initMarker.get() == 0) {
-            logger.debug("Waiting for first node to startup...");
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                // ignore
-            }
-        }
-        logger.debug("First node startup is complete.  We can proceed.");
+    public void init(JVSTMConfig jvstmConfig) {
+        int serverId = obtainNewServerId();
+        localInit(jvstmConfig, serverId);
     }
 
     protected void localInit(JVSTMConfig jvstmConfig, int serverId) {
@@ -177,29 +132,17 @@ public class JVSTMBackEnd implements BackEnd {
 
     }
 
-    private int obtainServerId() {
-        /* currently does not reuse the server Id value while any server is up.
-        This can be changed if needed.  However, we currently depend on the first
-        server getting the AtomicNumber 0 to know that it is the first member
-        to appear.  By reusing numbers with the cluster alive, we either don't
-        reuse 0 or change the algorithm  that detects the first member */
-
-        AtomicNumber serverIdGenerator = getHazelCastInstance().getAtomicNumber("serverId");
-        long longId = serverIdGenerator.getAndAdd(1L);
-
-        logger.info("Got (long) serverId: {}", longId);
-
-        int shortId = (int) longId;
-        if (shortId != longId) {
-            throw new Error("Failed to obtain a valid id");
-        }
-
-        return shortId;
-    }
-
-    protected void initializeGroupCommunication(JVSTMConfig jvstmConfig) {
-        com.hazelcast.config.Config hzlCfg = jvstmConfig.getHazecastConfig();
-        this.hazelcastInstance = Hazelcast.newHazelcastInstance(hzlCfg);
+    /**
+     * Each concrete backend should override this method to provide a new server id when requested. Ideally this method could be
+     * abstract, but the default implementation always returns 0. This is so for two reasons: 1) It works well as a default value
+     * while this jvstm-common code does not wish enforce clustering support on all of its implementations; 2) The NoRepository is
+     * currently implemented at this level (some time in the future it should probably be moved to a 'jvstm-mem' backend). The
+     * Repository implementation does not support clustering, but still requires a serverId value.
+     * 
+     * @return
+     */
+    protected int obtainNewServerId() {
+        return 0;
     }
 
     // returns whether the repository is new, so that we know we need to create the DomainRoot
@@ -257,13 +200,8 @@ public class JVSTMBackEnd implements BackEnd {
         }
     }
 
-    protected HazelcastInstance getHazelCastInstance() {
-        return this.hazelcastInstance;
-    }
-
     @Override
     public void shutdown() {
-        getHazelCastInstance().getLifecycleService().shutdown();
     }
 
     public Repository getRepository() {

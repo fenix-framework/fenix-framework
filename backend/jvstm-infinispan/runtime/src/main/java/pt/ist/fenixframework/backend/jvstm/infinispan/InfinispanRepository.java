@@ -80,7 +80,7 @@ public class InfinispanRepository extends Repository {
         try {
             if (ispnConfigFile == null || ispnConfigFile.isEmpty()) {
                 logger.info("Initializing CacheManager with defaults", ispnConfigFile);
-                this.cacheManager = new DefaultCacheManager(makeDefaultGlobalConfiguration());  // smf: make ispnConfigFile optional???
+                this.cacheManager = new DefaultCacheManager(makeDefaultGlobalConfiguration());
             } else {
                 logger.info("Initializing CacheManager with default configuration provided in {}", ispnConfigFile);
                 this.cacheManager = new DefaultCacheManager(ispnConfigFile);
