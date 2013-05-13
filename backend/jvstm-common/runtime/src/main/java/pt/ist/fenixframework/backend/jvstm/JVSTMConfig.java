@@ -11,11 +11,6 @@ import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
 import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
 
-import com.hazelcast.config.ClasspathXmlConfig;
-//import com.hazelcast.core.AtomicNumber;
-//import com.hazelcast.core.Hazelcast;
-//import com.hazelcast.core.HazelcastInstance;
-
 /**
  * This is the JVSTM configuration manager common for all JVSTM-based backends.
  * 
@@ -24,17 +19,7 @@ import com.hazelcast.config.ClasspathXmlConfig;
  */
 public class JVSTMConfig extends HibernateSearchConfig {
 
-    private static final String FAILED_INIT = "Failed to initialize Backend Infinispan";
-
-    protected static final String HAZELCAST_FF_GROUP_NAME = "FenixFrameworkGroup";
-
-    /**
-     * This <strong>optional</strong> parameter specifies the Hazelcast configuration file. This
-     * configuration will used to create a group communication system between Fenix Framework nodes. The default value
-     * for this parameter is <code>fenix-framework-hazelcast-default.xml</code>, which is the default
-     * configuration file that ships with the framework.
-     */
-    protected String hazelcastConfigFile = "fenix-framework-hazelcast-default.xml";
+    private static final String FAILED_INIT = "Failed to initialize Backend";
 
     protected JVSTMBackEnd backEnd;
 
@@ -73,17 +58,6 @@ public class JVSTMConfig extends HibernateSearchConfig {
     @Override
     public String getBackEndName() {
         return JVSTMBackEnd.BACKEND_NAME;
-    }
-
-    public String getHazelcastConfigFile() {
-        return hazelcastConfigFile;
-    }
-
-    public com.hazelcast.config.Config getHazecastConfig() {
-        System.setProperty("hazelcast.logging.type", "slf4j");
-        com.hazelcast.config.Config hzlCfg = new ClasspathXmlConfig(getHazelcastConfigFile());
-        hzlCfg.getGroupConfig().setName(HAZELCAST_FF_GROUP_NAME);
-        return hzlCfg;
     }
 
 }
