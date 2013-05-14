@@ -41,7 +41,9 @@ public class DomainBPlusTree<T extends AbstractDomainObject> extends DomainBPlus
     /**
      * 
      * Inserting {@link Serializable} into a {@link DomainBPlusTree} is not valid.
-     * Throws {@link UnsupportedOperationException}.
+     * 
+     * Throws {@link UnsupportedOperationException} unless a pair [Oid, AbstractDomainObject]
+     * is being inserted.
      * Use {@code insert(AbstractDomainObject)} instead.
      */
     @Override
@@ -51,7 +53,7 @@ public class DomainBPlusTree<T extends AbstractDomainObject> extends DomainBPlus
                 return super.insert(key, value);
             }
         }
-        throw new UnsupportedOperationException("Cannot insert Serializable in DomainBPlusTree.");
+        throw new UnsupportedOperationException("DomainBPlusTree can only store AbstractDomainObjects indexed using their OID.");
     }
 
 }

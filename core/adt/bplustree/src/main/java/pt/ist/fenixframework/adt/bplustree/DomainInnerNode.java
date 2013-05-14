@@ -77,7 +77,7 @@ public class DomainInnerNode extends DomainInnerNode_Base {
 
     /**
      * The {@link JsonParser} to be used. Because its instances are
-     * stateless we can use only one parser.
+     * stateless we can reuse the parser.
      */
     private static final JsonParser parser = new JsonParser();
 
