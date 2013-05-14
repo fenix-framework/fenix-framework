@@ -43,7 +43,7 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
 
         @Override
         public String toString() {
-            return "LAST_KEY";
+            return "_$LAST_KEY$_";
         }
 
         // This object's serialization is special.  We need to ensure that two deserializations of
@@ -55,11 +55,6 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     }
 
     static final Comparable LAST_KEY = new ComparableLastKey();
-
-    /**
-     * Textual representation of the LastKey.
-     */
-    static final String LAST_KEY_REPRESENTATION = "_$LAST_KEY$_";
 
     /* Special comparator that takes into account LAST_KEY */
     private static class ComparatorSupportingLastKey implements Comparator<Comparable>, Serializable {

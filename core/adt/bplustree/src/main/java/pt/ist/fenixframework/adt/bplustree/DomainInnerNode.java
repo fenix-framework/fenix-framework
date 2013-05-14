@@ -28,27 +28,14 @@ public class DomainInnerNode extends DomainInnerNode_Base {
 
     /*
      * DomainInnerNode constructors. 
-     * 
-     * Due to the limitations of constructors in _Base classes, these have
-     * to be copied from {@link InnerNode} :(
      */
 
     DomainInnerNode(AbstractNode leftNode, AbstractNode rightNode, Comparable splitKey) {
-        TreeMap<Comparable, AbstractNode> newMap =
-                new TreeMap<Comparable, AbstractNode>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
-        newMap.put(splitKey, leftNode);
-        newMap.put(BPlusTree.LAST_KEY, rightNode);
-
-        setSubNodes(newMap);
-        leftNode.setParent(this);
-        rightNode.setParent(this);
+        init(leftNode, rightNode, splitKey);
     }
 
     private DomainInnerNode(TreeMap<Comparable, AbstractNode> subNodes) {
-        setSubNodes(subNodes);
-        for (AbstractNode subNode : subNodes.values()) { // smf: either don't do this or don't setParent when making new
-            subNode.setParent(this);
-        }
+        init(subNodes);
     }
 
     /*
@@ -113,7 +100,7 @@ public class DomainInnerNode extends DomainInnerNode_Base {
             Entry<Comparable, AbstractNode> entry = (Entry<Comparable, AbstractNode>) obj;
             String key;
             if (entry.getKey().equals(BPlusTree.LAST_KEY)) {
-                key = BPlusTree.LAST_KEY_REPRESENTATION;
+                key = BPlusTree.LAST_KEY.toString();
             } else {
                 key = backend.fromOid(entry.getKey()).getExternalId();
             }
@@ -135,7 +122,7 @@ public class DomainInnerNode extends DomainInnerNode_Base {
         JsonObject object = parser.parse(externalizedMap).getAsJsonObject();
         for (Entry<String, JsonElement> entry : object.entrySet()) {
             Comparable key;
-            if (entry.getKey().equals(BPlusTree.LAST_KEY_REPRESENTATION)) {
+            if (entry.getKey().equals(BPlusTree.LAST_KEY.toString())) {
                 key = BPlusTree.LAST_KEY;
             } else {
                 key = FenixFramework.<AbstractDomainObject> getDomainObject(entry.getKey()).getOid();
