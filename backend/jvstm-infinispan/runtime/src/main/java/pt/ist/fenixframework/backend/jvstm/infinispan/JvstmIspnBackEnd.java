@@ -14,8 +14,8 @@ import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.cluster.ClusterUtils;
+import pt.ist.fenixframework.backend.jvstm.pstm.ClusteredPersistentReadOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.ClusteredPersistentTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.PersistentReadOnlyTransaction;
 
 public class JvstmIspnBackEnd extends JVSTMBackEnd {
     private static final Logger logger = LoggerFactory.getLogger(JvstmIspnBackEnd.class);
@@ -40,7 +40,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
         JvstmIspnConfig thisConfig = (JvstmIspnConfig) jvstmConfig;
 
         logger.info("initializeGroupCommunication()");
-        ClusterUtils.getInstance().initializeGroupCommunication(thisConfig);
+        ClusterUtils.initializeGroupCommunication(thisConfig);
 
         int serverId = obtainNewServerId();
         boolean firstNode = (serverId == 0);
@@ -49,18 +49,18 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
             logger.info("This is the first node!");
             localInit(thisConfig, serverId);
             // any necessary distributed communication infrastructures must be configured/set before notifying others to proceed
-            ClusterUtils.getInstance().notifyStartupComplete();
+            ClusterUtils.notifyStartupComplete();
 
         } else {
             logger.info("This is NOT the first node.");
-            ClusterUtils.getInstance().waitForStartupFromFirstNode();
+            ClusterUtils.waitForStartupFromFirstNode();
             localInit(thisConfig, serverId);
         }
     }
 
     @Override
     protected int obtainNewServerId() {
-        return ClusterUtils.getInstance().obtainNewServerId();
+        return ClusterUtils.obtainNewServerId();
     }
 
     @Override
@@ -73,7 +73,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
 
             @Override
             public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
-                return new PersistentReadOnlyTransaction(record);
+                return new ClusteredPersistentReadOnlyTransaction(record);
             }
         });
     }
@@ -81,7 +81,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
     @Override
     public void shutdown() {
         getRepository().closeRepository();
-        ClusterUtils.getInstance().shutdown();
+        ClusterUtils.shutdown();
         super.shutdown();
     }
 

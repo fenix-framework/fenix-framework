@@ -111,16 +111,13 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
         if (body.version < txNumber) {
             return commit(VBox.<E> notLoadedValue(), txNumber);
         } else {
-            // when adding a new version to a box it may happen that a
-            // version with the same number exists already, if we are
-            // processing the change logs in the same server that
-            // committed those changelogs, between the time when the
-            // changelog were written to the database and the commit
-            // finishes setting the committed tx number
-            //
-            // so, do nothing and just return null
-
-            //System.out.println("!!! WARNING !!!: adding older version for a box attr " + attr + " -> " + body.version + " not < " + txNumber);
+            /* when adding a version to the vbox it may happen that such version
+            already exists.  That can happen if the box gets reloaded before the
+            remote commit is applied, but after such remote commit data is already
+            persisted.  In that case, just return null, because we are not
+            responsible for what will happen to that vboxbody */
+            logger.debug("tried to add an older version for a box: attr=" + getOwnerObject().getExternalId() + ":"
+                    + getSlotName() + " -> " + body.version + " is not < " + txNumber);
             return null;
         }
     }
@@ -228,7 +225,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
         }
     }
 
-    protected VBoxBody<E> convertVersionedValuesToVBoxBodies(List<VersionedValue> vvalues) {
+    private VBoxBody<E> convertVersionedValuesToVBoxBodies(List<VersionedValue> vvalues) {
         ListIterator<VersionedValue> iter = vvalues.listIterator(vvalues.size());
 
         VBoxBody<E> result = null;

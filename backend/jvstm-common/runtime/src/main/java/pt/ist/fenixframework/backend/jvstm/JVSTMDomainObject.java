@@ -7,10 +7,13 @@
  */
 package pt.ist.fenixframework.backend.jvstm;
 
+import java.lang.reflect.Field;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
+import pt.ist.fenixframework.backend.jvstm.pstm.VersionedSubject;
 import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
@@ -65,6 +68,35 @@ public abstract class JVSTMDomainObject extends AbstractDomainObjectAdapter {
     public final String getExternalId() {
         return Long.toHexString(this.oid);
 //        return String.valueOf(this.oid);
+    }
+
+    public jvstm.VBoxBody addNewVersion(String attrName, int txNumber) {
+        VersionedSubject vs = getSlotNamed(attrName);
+        if (vs != null) {
+            return vs.addNewVersion(txNumber);
+        }
+
+        logger.warn("!!! WARNING !!!: addNewVersion couldn't find the appropriate slot");
+        return null;
+    }
+
+    VersionedSubject getSlotNamed(String attrName) {
+        Class myClass = this.getClass();
+        while (myClass != Object.class) {
+            try {
+                Field f = myClass.getDeclaredField(attrName);
+                f.setAccessible(true);
+                return (VersionedSubject) f.get(this);
+            } catch (NoSuchFieldException nsfe) {
+                myClass = myClass.getSuperclass();
+            } catch (IllegalAccessException iae) {
+                throw new Error("Couldn't find attribute " + attrName + ": " + iae);
+            } catch (SecurityException se) {
+                throw new Error("Couldn't find attribute " + attrName + ": " + se);
+            }
+        }
+        logger.warn("Couldn't find attribute {}", attrName);
+        return null;
     }
 
 }
