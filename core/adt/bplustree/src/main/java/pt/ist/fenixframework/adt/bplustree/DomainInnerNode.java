@@ -46,12 +46,12 @@ public class DomainInnerNode extends DomainInnerNode_Base {
 
     @Override
     public TreeMap<Comparable, AbstractNode> getSubNodes() {
-        return getIndexedSubNodes();
+        return getSubNodesByOid();
     }
 
     @Override
     public void setSubNodes(TreeMap<Comparable, AbstractNode> subNodes) {
-        setIndexedSubNodes(subNodes);
+        setSubNodesByOid(subNodes);
     }
 
     /*

@@ -50,7 +50,7 @@ class InnerNode extends AbstractNode {
 }
 
 class DomainInnerNode extends InnerNode {
-    OidIndexedMap<Comparable, AbstractNode> indexedSubNodes;
+    OidIndexedMap<Comparable, AbstractNode> subNodesByOid;
 }
 
 relation AdtBPlusTreeHasRootNode {
