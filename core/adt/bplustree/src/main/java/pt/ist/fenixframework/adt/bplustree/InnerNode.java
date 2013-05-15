@@ -19,11 +19,24 @@ import pt.ist.fenixframework.NoDomainMetaObjects;
 @NoDomainMetaObjects
 public class InnerNode extends InnerNode_Base {
 
-    private InnerNode() {
+    protected InnerNode() {
         super();
     }
 
     InnerNode(AbstractNode leftNode, AbstractNode rightNode, Comparable splitKey) {
+        init(leftNode, rightNode, splitKey);
+    }
+
+    private InnerNode(TreeMap<Comparable, AbstractNode> subNodes) {
+        init(subNodes);
+    }
+
+    /*
+     * Initialization methods, to prevent code repetition between constructors
+     * of sub-classes
+     */
+
+    protected void init(AbstractNode leftNode, AbstractNode rightNode, Comparable splitKey) {
         TreeMap<Comparable, AbstractNode> newMap =
                 new TreeMap<Comparable, AbstractNode>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
         newMap.put(splitKey, leftNode);
@@ -34,11 +47,23 @@ public class InnerNode extends InnerNode_Base {
         rightNode.setParent(this);
     }
 
-    private InnerNode(TreeMap<Comparable, AbstractNode> subNodes) {
+    protected void init(TreeMap<Comparable, AbstractNode> subNodes) {
         setSubNodes(subNodes);
         for (AbstractNode subNode : subNodes.values()) { // smf: either don't do this or don't setParent when making new
             subNode.setParent(this);
         }
+    }
+
+    /*
+     * Instantiator methods, to allow sub-classes to return the correct instances
+     */
+
+    protected InnerNode createNode(AbstractNode leftNode, AbstractNode rightNode, Comparable splitKey) {
+        return new InnerNode(leftNode, rightNode, splitKey);
+    }
+
+    protected InnerNode createNodeWithSubNodes(TreeMap<Comparable, AbstractNode> subNodes) {
+        return new InnerNode(subNodes);
     }
 
     private TreeMap<Comparable, AbstractNode> duplicateMap() {
@@ -71,14 +96,14 @@ public class InnerNode extends InnerNode_Base {
             // this level.  It will be moved up.
             TreeMap<Comparable, AbstractNode> leftSubNodes = new TreeMap<Comparable, AbstractNode>(newMap.headMap(keyToSplit));
             leftSubNodes.put(BPlusTree.LAST_KEY, subNodeToMoveLeft);
-            InnerNode leftNode = new InnerNode(leftSubNodes);
+            InnerNode leftNode = createNodeWithSubNodes(leftSubNodes);
             subNodeToMoveLeft.setParent(leftNode); // smf: maybe it is not necessary because of the code in the constructor
 
-            InnerNode rightNode = new InnerNode(new TreeMap<Comparable, AbstractNode>(newMap.tailMap(nextKey)));
+            InnerNode rightNode = createNodeWithSubNodes(new TreeMap<Comparable, AbstractNode>(newMap.tailMap(nextKey)));
 
             // propagate split to parent
             if (this.getParent() == null) {
-                InnerNode newRoot = new InnerNode(leftNode, rightNode, keyToSplit);
+                InnerNode newRoot = createNode(leftNode, rightNode, keyToSplit);
                 return newRoot;
             } else {
                 return this.getParent().rebase(leftNode, rightNode, keyToSplit);
