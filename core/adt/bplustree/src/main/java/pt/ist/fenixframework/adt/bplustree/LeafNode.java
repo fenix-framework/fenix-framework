@@ -38,13 +38,13 @@ public class LeafNode extends LeafNode_Base {
             Comparable keyToSplit = findRightMiddlePosition(localMap.keySet());
 
             // split node in two
-            LeafNode leftNode = new LeafNode(new TreeMap<Comparable, Serializable>(localMap.headMap(keyToSplit)));
-            LeafNode rightNode = new LeafNode(new TreeMap<Comparable, Serializable>(localMap.tailMap(keyToSplit)));
+            LeafNode leftNode = createNodeWithEntries(new TreeMap<Comparable, Serializable>(localMap.headMap(keyToSplit)));
+            LeafNode rightNode = createNodeWithEntries(new TreeMap<Comparable, Serializable>(localMap.tailMap(keyToSplit)));
             fixLeafNodesListAfterSplit(leftNode, rightNode);
 
             // propagate split to parent
             if (getParent() == null) {  // make new root node
-                InnerNode newRoot = new InnerNode(leftNode, rightNode, keyToSplit);
+                InnerNode newRoot = createInnerNode(leftNode, rightNode, keyToSplit);
                 return newRoot;
             } else {
                 // leftNode.parent = getParent();
@@ -52,6 +52,14 @@ public class LeafNode extends LeafNode_Base {
                 return getParent().rebase(leftNode, rightNode, keyToSplit);
             }
         }
+    }
+
+    protected LeafNode createNodeWithEntries(TreeMap<Comparable, Serializable> entries) {
+        return new LeafNode(entries);
+    }
+
+    protected InnerNode createInnerNode(AbstractNode leftNode, AbstractNode rightNode, Comparable splitKey) {
+        return new InnerNode(leftNode, rightNode, splitKey);
     }
 
     private <T extends Comparable> Comparable findRightMiddlePosition(Collection<T> keys) {
@@ -64,7 +72,7 @@ public class LeafNode extends LeafNode_Base {
     }
 
     private TreeMap<Comparable, Serializable> justInsert(Comparable key, Serializable value) {
-        TreeMap<Comparable, Serializable> localEntries = this.getEntries();
+        TreeMap<Comparable, ? extends Serializable> localEntries = this.getEntries();
 
         // this test is performed because we need to return a new structure in
         // case an update occurs.  Value types must be immutable.
@@ -118,7 +126,7 @@ public class LeafNode extends LeafNode_Base {
     }
 
     private TreeMap<Comparable, Serializable> justRemove(Comparable key) {
-        TreeMap<Comparable, Serializable> localEntries = this.getEntries();
+        TreeMap<Comparable, ? extends Serializable> localEntries = this.getEntries();
 
         // this test is performed because we need to return a new structure in
         // case an update occurs.  Value types must be immutable.
@@ -202,7 +210,7 @@ public class LeafNode extends LeafNode_Base {
         }
 
         if (index < shallowSize()) { // the required position is here
-            Iterator<Serializable> values = this.getEntries().values().iterator();
+            Iterator<? extends Serializable> values = this.getEntries().values().iterator();
             for (int i = 0; i < index; i++) {
                 values.next();
             }
@@ -311,7 +319,7 @@ public class LeafNode extends LeafNode_Base {
 
         @Override
         protected Iterator<Serializable> getInternalIterator(LeafNode leafNode) {
-            return leafNode.getEntries().values().iterator();
+            return (Iterator<Serializable>) leafNode.getEntries().values().iterator();
         }
 
     }
@@ -339,7 +347,7 @@ public class LeafNode extends LeafNode_Base {
             str.append("[: ");
         }
 
-        for (Map.Entry<Comparable, Serializable> entry : this.getEntries().entrySet()) {
+        for (Map.Entry<Comparable, ? extends Serializable> entry : this.getEntries().entrySet()) {
             Comparable key = entry.getKey();
             Serializable value = entry.getValue();
             str.append("(" + key);

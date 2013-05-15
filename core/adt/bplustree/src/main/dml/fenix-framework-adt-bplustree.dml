@@ -9,14 +9,34 @@ valueType java.util.TreeMap as GenericTreeMap {
     internalizeWith pt.ist.fenixframework.adt.bplustree.AbstractNode.internalizeTreeMap();
 }
 
+valueType java.util.TreeMap as DomainObjectMap {
+    externalizeWith {
+        String pt.ist.fenixframework.adt.bplustree.DomainLeafNode.externalizeDomainObjectMap();
+    }
+    internalizeWith pt.ist.fenixframework.adt.bplustree.DomainLeafNode.internalizeDomainObjectMap();
+}
+
+valueType java.util.TreeMap as OidIndexedMap {
+    externalizeWith {
+        String pt.ist.fenixframework.adt.bplustree.DomainInnerNode.externalizeOidIndexedMap();
+    }
+    internalizeWith pt.ist.fenixframework.adt.bplustree.DomainInnerNode.internalizeOidIndexedMap();
+}
+
 class BPlusTree {}
+
+class DomainBPlusTree extends BPlusTree {}
 
 class AbstractNode {}
 
 class LeafNode extends AbstractNode {
     // key: any Serializable and Comparable
     // value: any Serializable
-    GenericTreeMap<Comparable,java.io.Serializable> entries;
+    GenericTreeMap<Comparable, ? extends java.io.Serializable> entries;
+}
+
+class DomainLeafNode extends LeafNode {
+    DomainObjectMap<Comparable, pt.ist.fenixframework.core.AbstractDomainObject> domainEntries;
 }
 
 class InnerNode extends AbstractNode {
@@ -27,6 +47,10 @@ class InnerNode extends AbstractNode {
     // key: any Serializable and Comparable
     // value: an AbstractNode
     GenericTreeMap<Comparable,AbstractNode> subNodes;
+}
+
+class DomainInnerNode extends InnerNode {
+    OidIndexedMap<Comparable, AbstractNode> subNodesByOid;
 }
 
 relation AdtBPlusTreeHasRootNode {

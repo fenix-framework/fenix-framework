@@ -62,7 +62,7 @@ relation DomainMetaObjectsDomainMetaClass {
 }
 
 relation DomainMetaClassExistingDomainMetaObjects {
-    .pt.ist.fenixframework.adt.bplustree.BPlusTree playsRole existingDomainMetaObjects;
+    .pt.ist.fenixframework.adt.bplustree.DomainBPlusTree playsRole existingDomainMetaObjects;
 	DomainMetaClass playsRole;
 }
 
