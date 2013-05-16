@@ -75,6 +75,13 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
         }
     }
 
+    /* this is a debug feature. This counter should only increase (although it
+    may skip some numbers, because local commits are not enqueued). If the order
+    of remote commits may become skewed then it's because the thread that processed
+    the messages is being allowed to execute after the global global lock has been
+    set free */
+    private static int debug_hazelcast_last_commit_seen = Transaction.getMostRecentCommitedNumber();
+
     /*
     1. Synchronized on local commit lock? not needed assuming that:
 
@@ -130,14 +137,21 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
             int currentCommittedNumber = Transaction.getMostRecentCommitedNumber();
 
             if (ClusterUtils.getRemoteCommits().isEmpty()) {
-                logger.debug("No remote commits to apply. Someone did our work. Great.");
+                logger.debug("No remote commits to apply. Someone already did it. Great.");
                 return findActiveRecordForNumber(record, currentCommittedNumber);
             }
 
-            // skip all the records already processed
             RemoteCommit remoteCommit = ClusterUtils.getRemoteCommits().poll();
             int txNum = remoteCommit.getTxNumber();
+
+            /* the following block of code is commented because we assume the
+            following invariant: There cannot exist a queued remote commit yet
+            to process when it already exists a newer version that is most recent.
+            (except when booting. see comment below) */
+            /*
+            // skip all the records already processed
             while ((txNum <= currentCommittedNumber) && (remoteCommit = ClusterUtils.getRemoteCommits().poll()) != null) {
+                logger.debug("Ignoring old remote commit. This can only occur for the first transaction ever.");
                 txNum = remoteCommit.getTxNumber();
             }
 
@@ -148,11 +162,31 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
                 logger.debug("No remote commits to apply. All were from self.");
                 return findActiveRecordForNumber(record, txNum);
             }
+             */
 
             // now, it's time to process the new remote commits
 
             do {
                 txNum = remoteCommit.getTxNumber();
+
+                /* this may occur only when booting.  It happens when remote
+                commit messages arrive between the time the topic channel is
+                established, but the most recent committed version hasn't been
+                initialized yet.  When it gets initialized, it is typically to
+                a greater value than the one from the txs that are enqueue. */
+
+                if (txNum <= currentCommittedNumber) {
+                    logger.info("Ignoring outdated remote commit txNum={} <= mostRecentNum={}.", txNum, currentCommittedNumber);
+                    continue;
+                }
+                if (txNum <= debug_hazelcast_last_commit_seen) {
+                    logger.error("The remote commit has a number({}) <= last_seen({})", txNum, debug_hazelcast_last_commit_seen);
+                    System.exit(-1);
+                    throw new Error("Inconsistent remote commit. This should not happen");
+                } else {
+                    logger.warn(":-)");
+                    debug_hazelcast_last_commit_seen = txNum;
+                }
                 applyRemoteCommit(remoteCommit);
             } while ((remoteCommit = ClusterUtils.getRemoteCommits().poll()) != null);
 

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.infinispan.JvstmIspnConfig;
+import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.core.TransactionError;
 
 import com.hazelcast.core.AtomicNumber;
@@ -52,10 +53,24 @@ public class ClusterUtils {
             @Override
             public void onMessage(Message<RemoteCommit> message) {
                 RemoteCommit remoteCommit = message.getMessageObject();
-                logger.debug("Received remote commit message. serverId={}, tx={}", remoteCommit.getServerId(),
-                        remoteCommit.getTxNumber());
 
-                REMOTE_COMMITS.offer(remoteCommit);
+                if (remoteCommit.getServerId() == DomainClassInfo.getServerId()) {
+                    logger.debug("Ignoring self commit message.");
+                } else {
+                    logger.debug("Received remote commit message. serverId={}, tx={}", remoteCommit.getServerId(),
+                            remoteCommit.getTxNumber());
+                    logger.debug("lets take a break");
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        System.exit(-1);
+                    }
+                    REMOTE_COMMITS.offer(remoteCommit);
+                    logger.debug("Only now is the remote commit registered: serverId={}, tx={}", remoteCommit.getServerId(),
+                            remoteCommit.getTxNumber());
+                }
+
             }
         });
     }
