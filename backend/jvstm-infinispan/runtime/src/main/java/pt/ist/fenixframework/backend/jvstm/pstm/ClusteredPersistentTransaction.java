@@ -43,7 +43,7 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
 
     @Override
     protected boolean validateCommit() {
-        tryToApplyRemoteCommits(this.activeTxRecord);
+        applyRemoteCommits(this.activeTxRecord);
         return super.validateCommit();
     }
 
@@ -149,11 +149,15 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
             return findActiveRecordForNumber(record, Transaction.getMostRecentCommitedNumber());
         }
 
-        COMMIT_LOCK.lock(); // change to tryLock to allow the starting transactions to begin  
-        try {
-            return applyRemoteCommits(record);
-        } finally {
-            COMMIT_LOCK.unlock();
+//        COMMIT_LOCK.lock(); // change to tryLock to allow the starting transactions to begin without waiting for a long commit (which in fact may already have processed the queue :-))  
+        if (COMMIT_LOCK.tryLock()) {
+            try {
+                return applyRemoteCommits(record);
+            } finally {
+                COMMIT_LOCK.unlock();
+            }
+        } else {
+            return findActiveRecordForNumber(record, Transaction.getMostRecentCommitedNumber());
         }
     }
 
