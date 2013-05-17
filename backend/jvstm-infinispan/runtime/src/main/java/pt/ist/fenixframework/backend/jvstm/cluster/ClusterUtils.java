@@ -27,6 +27,8 @@ public class ClusterUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ClusterUtils.class);
     private static final String FF_GLOBAL_LOCK_NAME = "ff.hzl.global.lock";
+    private static final String FF_GLOBAL_LOCK_NUMBER_NAME = "ff.hzl.global.lock.number";
+    private static final long FF_GLOBAL_LOCK_LOCKED_VALUE = -1;
     private static final String FF_COMMIT_TOPIC_NAME = "ff.hzl.commits";
 
     private static HazelcastInstance HAZELCAST_INSTANCE;
@@ -59,20 +61,25 @@ public class ClusterUtils {
                 } else {
                     logger.debug("Received remote commit message. serverId={}, tx={}", remoteCommit.getServerId(),
                             remoteCommit.getTxNumber());
-                    logger.debug("lets take a break");
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        System.exit(-1);
-                    }
+//                    logger.debug("lets take a break");
+//                    try {
+//                        Thread.sleep(5000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                        System.exit(-1);
+//                    }
                     REMOTE_COMMITS.offer(remoteCommit);
-                    logger.debug("Only now is the remote commit registered: serverId={}, tx={}", remoteCommit.getServerId(),
-                            remoteCommit.getTxNumber());
+//                    logger.debug("Enqueued remote commit: serverId={}, tx={}", remoteCommit.getServerId(),
+//                            remoteCommit.getTxNumber());
                 }
 
             }
         });
+    }
+
+    public static void initGlobalLockNumber(int value) {
+        AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
+        lockNumber.compareAndSet(0, value);
     }
 
     // the instance should have been initialized in a single thread within the
@@ -82,23 +89,76 @@ public class ClusterUtils {
         return HAZELCAST_INSTANCE;
     }
 
-    public static void globalLock() {
+    public static int globalLock() {
+        logger.debug("Will get global cluster lock...");
+
         try {
-            getHazelcastInstance().getLock(FF_GLOBAL_LOCK_NAME).lock();
+            AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
+
+//            int ourLockValue = 0 - DomainClassInfo.getServerId();
+            do {
+                long currentValue = lockNumber.get();
+                boolean unlocked = currentValue != FF_GLOBAL_LOCK_LOCKED_VALUE;
+
+                if (unlocked && lockNumber.compareAndSet(currentValue, FF_GLOBAL_LOCK_LOCKED_VALUE)) {
+                    logger.debug("Acquired global cluster lock. ({} -> {})", currentValue, FF_GLOBAL_LOCK_LOCKED_VALUE);
+
+                    return (int) currentValue;  // transaction counters fit into an integer
+                } else {
+                    logger.debug("Global lock taken. Retrying...");
+
+                    globalLockIsNotYetAvailable();
+                }
+            } while (true);
         } catch (RuntimeException e) {
             logger.error("Failed to acquire global lock");
             throw new TransactionError(e);
         }
     }
 
-    public static void globalUnlock() {
+    /* We'll retry later. Several mechanisms can be used here.  Which is the
+    best? For now we try to help a little by spending time checking if the
+    REMOTE_COMMITS queue requires any processing.  Also, this may help other
+    transactions that are starting to go ahead */
+    private static void globalLockIsNotYetAvailable() {
+        // first naive version. just burn cpu
+//        try {
+//            Thread.sleep(3000);
+//        } catch (InterruptedException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+        Thread.yield();
+    }
+
+//    public static void globalLock() {
+//        try {
+//            getHazelcastInstance().getLock(FF_GLOBAL_LOCK_NAME).lock();
+//        } catch (RuntimeException e) {
+//            logger.error("Failed to acquire global lock");
+//            throw new TransactionError(e);
+//        }
+//    }
+//    
+    public static void globalUnlock(int txNum) {
+        logger.debug("Will release global cluster lock ( -> {})", txNum);
         try {
-            getHazelcastInstance().getLock(FF_GLOBAL_LOCK_NAME).unlock();
+            AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
+            lockNumber.set(txNum);
         } catch (RuntimeException e) {
             logger.error("Failed to release global lock");
             throw new TransactionError(e);
         }
     }
+
+//    public static void globalUnlock() {
+//        try {
+//            getHazelcastInstance().getLock(FF_GLOBAL_LOCK_NAME).unlock();
+//        } catch (RuntimeException e) {
+//            logger.error("Failed to release global lock");
+//            throw new TransactionError(e);
+//        }
+//    }
 
     public static void notifyStartupComplete() {
         logger.info("Notify other nodes that startup completed");

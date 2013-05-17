@@ -7,6 +7,8 @@
  */
 package pt.ist.fenixframework.backend.jvstm.infinispan;
 
+import jvstm.Transaction;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +50,14 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
         if (firstNode) {
             logger.info("This is the first node!");
             localInit(thisConfig, serverId);
+            // initialize the global lock value to the most recent commit tx number
+            ClusterUtils.initGlobalLockNumber(Transaction.getMostRecentCommitedNumber());
             // any necessary distributed communication infrastructures must be configured/set before notifying others to proceed
             ClusterUtils.notifyStartupComplete();
+            /* alternatively we can now use the initGlobalLockNumber as the
+            notification mechanism. Otherwise, we're assuming that other nodes
+            will see the correct value in the lock number when they get the
+            message about startup being complete */
 
         } else {
             logger.info("This is NOT the first node.");

@@ -7,8 +7,6 @@
  */
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
-import java.util.concurrent.locks.Lock;
-
 import jvstm.ActiveTransactionsRecord;
 import jvstm.Transaction;
 import jvstm.VBoxBody;
@@ -28,7 +26,7 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
 
     public ClusteredPersistentTransaction(ActiveTransactionsRecord record) {
         super(record);
-        ActiveTransactionsRecord newRecord = applyRemoteCommits(record);
+        ActiveTransactionsRecord newRecord = tryToApplyRemoteCommits(record);
         if (newRecord != this.activeTxRecord) {
             // if a new record is returned, that means that this transaction
             // will belong
@@ -43,35 +41,58 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
         }
     }
 
-    public static Lock getCommitlock() {
-        return COMMIT_LOCK;
+    @Override
+    protected boolean validateCommit() {
+        tryToApplyRemoteCommits(this.activeTxRecord);
+        return super.validateCommit();
     }
 
     @Override
     protected Cons<VBoxBody> performValidCommit() {
-        logger.debug("Will get global cluster lock...");
-        ClusterUtils.globalLock();
-        logger.debug("Acquired global cluster lock");
+        int mostRecentGlobalTxNum = ClusterUtils.globalLock();
+
+        boolean commitSuccess = false;
         try {
 
-            // update local data and re-validate, if needed
+            // re-validate, if needed, after updating local data
             ActiveTransactionsRecord myRecord = this.activeTxRecord;
-            if (applyRemoteCommits(this.activeTxRecord) != myRecord) {
+            if (myRecord.transactionNumber != mostRecentGlobalTxNum) {
+                updateToMostRecentCommit(myRecord, mostRecentGlobalTxNum);
+
                 // the cache may have been updated, so validate again
                 logger.debug("Need to re-validate tx due to remote commits");
-                if (!validateCommit()) {
+                if (!validateCommit()) { // we may use a variation here, because we know we don't need to recheck the queue 
                     logger.warn("Invalid commit. Restarting.");
                     throw new jvstm.CommitException();
                 }
+
+                // sanity check. to remove later
+                if (this.activeTxRecord.transactionNumber != mostRecentGlobalTxNum) {
+                    logger.error("this was not supposed to happen");
+                    System.exit(-1);
+                    throw new Error("not supposed to happen");
+                }
+
             }
+
+//            if (updateToMostRecentCommit(myRecord, mostRecentGlobalTxNum) != myRecord) {
+//                // the cache may have been updated, so validate again
+//                logger.debug("Need to re-validate tx due to remote commits");
+//                if (!validateCommit()) {
+//                    logger.warn("Invalid commit. Restarting.");
+//                    throw new jvstm.CommitException();
+//                }
+//            }
 
             Cons<VBoxBody> temp = super.performValidCommit();
             ClusterUtils.sendCommitInfoToOthers(new RemoteCommit(DomainClassInfo.getServerId(), this.getNumber(),
                     this.boxesWritten));
+            commitSuccess = true;
+
             return temp;
         } finally {
-            logger.debug("Will release global cluster lock");
-            ClusterUtils.globalUnlock();
+            // this tx number has been updated after performing the valid commit
+            ClusterUtils.globalUnlock((commitSuccess ? this.getNumber() : mostRecentGlobalTxNum));
         }
     }
 
@@ -79,122 +100,94 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
     may skip some numbers, because local commits are not enqueued). If the order
     of remote commits may become skewed then it's because the thread that processed
     the messages is being allowed to execute after the global global lock has been
-    set free */
+    released */
     private static int debug_hazelcast_last_commit_seen = Transaction.getMostRecentCommitedNumber();
 
-    /*
-    1. Synchronized on local commit lock? not needed assuming that:
+    /* this method only returns after having applied all remote commits up until
+    the mostRecentGlobalTxNum. This way we ensure that no earlier remote commit
+    is missing, which would cause us to commit a wrong tx version */
+    public static ActiveTransactionsRecord updateToMostRecentCommit(ActiveTransactionsRecord currentCommitRecord,
+            int mostRecentGlobalTxNum) {
+        logger.debug("Must apply commits from {} up to {}", currentCommitRecord.transactionNumber, mostRecentGlobalTxNum);
 
-    - there is a single global commit lock
+        while (currentCommitRecord.transactionNumber < mostRecentGlobalTxNum) {
+            ActiveTransactionsRecord newCommitRecord = applyRemoteCommits(currentCommitRecord);
+            if (newCommitRecord == currentCommitRecord) {
+                logger.debug("There was nothing yet to process");
+//                try {
+//                    Thread.sleep(3000);
+//                } catch (InterruptedException e) {
+//                    // TODO Auto-generated catch block
+//                    e.printStackTrace();
+//                }
+                Thread.yield();
+            } else {
+                logger.debug("Processed remote commits up to {}", newCommitRecord.transactionNumber);
+            }
+            currentCommitRecord = newCommitRecord;
+        }
 
-    - commit clears the remote commits queue (synchronized on the
-    REMOTE_COMMITS)
-        
-    So, while a commit is writing back, it is not possible for elements to
-    appear in REMOTE_COMMITS (due to the global lock), and thus transactions
-    that are starting will surely not be trying to update any vboxes due
-    to finding anything in the queue to process
-        
-    2. Synchronized in each vbox is needed, because it's possible that some
-    other tx (ongoing or commiting may need to reload it, while a starting tx
-    is running this method.
-    
-    3. need to apply local commits as well, or remote only?  Need to apply all,
-    because of this: on node A tx 1 is committing.  After committing to repository
-    but before updating local activeRecord it takes a break.  Now, another node
-    B runs a read tx 2 that happens to see values committed by tx 1 to the
-    repository (by reloading them. no prob here).  Now, after committing tx2,
-    the same client of tx 2 runs another tx 3 on node A.  This tx will need to
-    update the stuff that the halted commit is yet to do, so that it can ensure
-    that the client does not see things from the past (the tx would start on
-    an older version).
+        return currentCommitRecord;
+    }
 
-    Actually, this means that I may be able to release the commit lock earlier,
-    by not applying the write set within the commit lock, but by doing so only
-    in applyRemoteCommit (regardless of whether its really remote!) :-)
-    
-    However, do I need to advance the activeRecord in the commit? If not, I can
-    just wait for another starting transaction to do it...hmmm dangerous...  if
-    I do need to update the activeRecord in the commit lock then this method
-    also needs to get the commit lock to update that record... which comes back
-    to whether we need the commit lock from the beginning.
-
-    Playing it on the safe side I may as well just get the commit lock to
-    start with... then re-evaluate its need as an optimization.
-    
-    */
-    public static ActiveTransactionsRecord applyRemoteCommits(ActiveTransactionsRecord record) {
+    /* this method tries to apply as many remote commits as it finds in the queue. if it fails to get the lock it returns without doing anything */
+    public static ActiveTransactionsRecord tryToApplyRemoteCommits(ActiveTransactionsRecord record) {
+        logger.debug("Try to apply remote commits if any.");
         // avoid locking if queue is empty
         if (ClusterUtils.getRemoteCommits().isEmpty()) {
-            logger.debug("No remote commits to apply. Great.");
-            return record;
+//            logger.debug("No remote commits to apply. Great.");
+            /* we need to always return the most recent committed number:
+
+            - if inside a commit (already holding the commit lock), this ensures
+            that we're able to detect record advances caused by the processing
+            of the remote commits queue (e.g. while we were waiting to acquire
+            the global lock) 
+            
+            - if starting a new transaction, it attempts to improve on the version
+            we see (here it would be acceptable to just return the record had)
+            */
+            return findActiveRecordForNumber(record, Transaction.getMostRecentCommitedNumber());
         }
 
-        // commitLock needs to be acquired before the lock on REMOTE_COMMITS (should it be necessary) to avoid deadlock with another commit operation.
-        Lock commitLock = ClusteredPersistentTransaction.getCommitlock();
-        commitLock.lock();
+        COMMIT_LOCK.lock(); // change to tryLock to allow the starting transactions to begin  
         try {
-            int currentCommittedNumber = Transaction.getMostRecentCommitedNumber();
+            return applyRemoteCommits(record);
+        } finally {
+            COMMIT_LOCK.unlock();
+        }
+    }
 
-            if (ClusterUtils.getRemoteCommits().isEmpty()) {
-                logger.debug("No remote commits to apply. Someone already did it. Great.");
-                return findActiveRecordForNumber(record, currentCommittedNumber);
-            }
+    // must be called while holding the local commit lock
+    private static ActiveTransactionsRecord applyRemoteCommits(ActiveTransactionsRecord record) {
+        int currentCommittedNumber = Transaction.getMostRecentCommitedNumber();
 
-            RemoteCommit remoteCommit = ClusterUtils.getRemoteCommits().poll();
+        RemoteCommit remoteCommit;
+        while ((remoteCommit = ClusterUtils.getRemoteCommits().poll()) != null) {
             int txNum = remoteCommit.getTxNumber();
 
-            /* the following block of code is commented because we assume the
-            following invariant: There cannot exist a queued remote commit yet
-            to process when it already exists a newer version that is most recent.
-            (except when booting. see comment below) */
-            /*
-            // skip all the records already processed
-            while ((txNum <= currentCommittedNumber) && (remoteCommit = ClusterUtils.getRemoteCommits().poll()) != null) {
-                logger.debug("Ignoring old remote commit. This can only occur for the first transaction ever.");
-                txNum = remoteCommit.getTxNumber();
-            }
-
+            /* this may occur only when booting.  It happens when remote
+            commit messages arrive between the time the topic channel is
+            established, but the most recent committed version hasn't been
+            initialized yet.  When it gets initialized, it is typically to
+            a greater value than the one from the txs that are enqueued. */
             if (txNum <= currentCommittedNumber) {
-                // the records ended, so simply get out of here, with
-                // the record corresponding to the higher number that
-                // we got
-                logger.debug("No remote commits to apply. All were from self.");
-                return findActiveRecordForNumber(record, txNum);
+                logger.info("Ignoring outdated remote commit txNum={} <= mostRecentNum={}.", txNum, currentCommittedNumber);
+                continue;
             }
-             */
 
-            // now, it's time to process the new remote commits
-
-            do {
-                txNum = remoteCommit.getTxNumber();
-
-                /* this may occur only when booting.  It happens when remote
-                commit messages arrive between the time the topic channel is
-                established, but the most recent committed version hasn't been
-                initialized yet.  When it gets initialized, it is typically to
-                a greater value than the one from the txs that are enqueue. */
-
-                if (txNum <= currentCommittedNumber) {
-                    logger.info("Ignoring outdated remote commit txNum={} <= mostRecentNum={}.", txNum, currentCommittedNumber);
-                    continue;
-                }
-                if (txNum <= debug_hazelcast_last_commit_seen) {
-                    logger.error("The remote commit has a number({}) <= last_seen({})", txNum, debug_hazelcast_last_commit_seen);
-                    System.exit(-1);
-                    throw new Error("Inconsistent remote commit. This should not happen");
-                } else {
-                    logger.warn(":-)");
-                    debug_hazelcast_last_commit_seen = txNum;
-                }
-                applyRemoteCommit(remoteCommit);
-            } while ((remoteCommit = ClusterUtils.getRemoteCommits().poll()) != null);
-
-            return findActiveRecordForNumber(record, txNum);
-
-        } finally {
-            commitLock.unlock();
+            if (txNum <= debug_hazelcast_last_commit_seen) {
+                logger.error("The remote commit has a number({}) <= last_seen({})", txNum, debug_hazelcast_last_commit_seen);
+                System.exit(-1);
+                throw new Error("Inconsistent remote commit. This should not happen");
+            } else {
+                logger.warn(":-)");
+                debug_hazelcast_last_commit_seen = txNum;
+            }
+            applyRemoteCommit(remoteCommit);
+            currentCommittedNumber = remoteCommit.getTxNumber();
         }
+
+        return findActiveRecordForNumber(record, currentCommittedNumber);
     }
 
     // within commit lock
@@ -227,7 +220,6 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
 
         ActiveTransactionsRecord newRecord = new ActiveTransactionsRecord(txNumber, newBodies);
         Transaction.setMostRecentActiveRecord(newRecord);
-
     }
 
     private static ActiveTransactionsRecord findActiveRecordForNumber(ActiveTransactionsRecord rec, int number) {
