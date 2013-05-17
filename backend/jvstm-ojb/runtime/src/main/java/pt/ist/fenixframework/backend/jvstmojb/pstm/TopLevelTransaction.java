@@ -227,9 +227,19 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
 
     @Override
     protected boolean validateCommit() {
+        ActiveTransactionsRecord mostRecentRecord = Transaction.mostRecentRecord;
+
         boolean result = super.validateCommit();
 
-        if (!result) {
+        if (result) {
+            // upgradeTx();
+            setNumber(mostRecentRecord.transactionNumber);
+            // the correct order is to increment first the
+            // new, and only then decrement the old
+            mostRecentRecord.incrementRunning();
+            this.activeTxRecord.decrementRunning();
+            this.activeTxRecord = mostRecentRecord;
+        } else {
             TransactionSupport.STATISTICS.incConflicts();
         }
 
