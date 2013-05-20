@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainMetaClass;
 import pt.ist.fenixframework.DomainMetaObject;
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.FenixConsistencyCheckTransaction;
@@ -59,7 +58,7 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
                 "select OID from DOMAIN_META_OBJECT where OID_DOMAIN_META_CLASS = '" + domainMetaClass.getExternalId() + "'";
 
         String clearDomainObjectsQuery =
-                "update " + tableName + " set OID_DOMAIN_META_OBJECT = null " + "where OID_DOMAIN_META_OBJECT in ("
+                "update `" + tableName + "` set OID_DOMAIN_META_OBJECT = null " + "where OID_DOMAIN_META_OBJECT in ("
                         + metaObjectsToDeleteQuery + ")";
 
         try {
@@ -165,8 +164,8 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
         String metaObjectOidsQuery = "select OID from DOMAIN_META_OBJECT";
 
         String query =
-                "select OID from " + tableName
-                        + ", FF$DOMAIN_CLASS_INFO where OID >> 32 = DOMAIN_CLASS_ID and DOMAIN_CLASS_NAME = '" + className
+                "select OID from `" + tableName
+                        + "`, FF$DOMAIN_CLASS_INFO where OID >> 32 = DOMAIN_CLASS_ID and DOMAIN_CLASS_NAME = '" + className
                         + "' and (OID_DOMAIN_META_OBJECT is null or OID_DOMAIN_META_OBJECT not in (" + metaObjectOidsQuery
                         + ")) order by OID limit " + getBatchSize();
 
