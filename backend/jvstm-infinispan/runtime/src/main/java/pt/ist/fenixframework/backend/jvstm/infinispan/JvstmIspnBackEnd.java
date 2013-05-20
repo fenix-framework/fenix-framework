@@ -76,11 +76,13 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
         jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
             @Override
             public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+//                return new PersistentTransaction(record);
                 return new ClusteredPersistentTransaction(record);
             }
 
             @Override
             public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+//                return new PersistentReadOnlyTransaction(record);
                 return new ClusteredPersistentReadOnlyTransaction(record);
             }
         });

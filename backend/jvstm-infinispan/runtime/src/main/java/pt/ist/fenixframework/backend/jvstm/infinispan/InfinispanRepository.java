@@ -162,13 +162,13 @@ public class InfinispanRepository extends Repository {
         confBuilder.locking().isolationLevel(IsolationLevel.READ_COMMITTED).concurrencyLevel(32).useLockStriping(false)
                 .lockAcquisitionTimeout(10000);
 
-        // detect DEALOCKS (is this needed?)
-//        confBuilder.deadlockDetection().enable();
-        confBuilder.deadlockDetection().disable();
+        // detect DEALOCKS (is this needed? it performs better when on... go figure)
+        confBuilder.deadlockDetection().enable();
+//        confBuilder.deadlockDetection().disable();
 
-        // transactional optimistic cache
+        // transactional optimistic cache (useSynchronization(true) provides better performance)
         confBuilder.transaction().transactionMode(TransactionMode.TRANSACTIONAL).syncRollbackPhase(false).cacheStopTimeout(30000)
-                .useSynchronization(false).syncCommitPhase(true).lockingMode(LockingMode.OPTIMISTIC)
+                .useSynchronization(true).syncCommitPhase(true).lockingMode(LockingMode.OPTIMISTIC)
                 .use1PcForAutoCommitTransactions(false).autoCommit(false);
 
         // use versioning (check if it's really needed, especially in READ_COMMITTED!) 

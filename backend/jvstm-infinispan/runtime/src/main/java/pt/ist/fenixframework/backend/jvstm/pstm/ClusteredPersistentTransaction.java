@@ -184,7 +184,7 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
                 System.exit(-1);
                 throw new Error("Inconsistent remote commit. This should not happen");
             } else {
-                logger.warn(":-)");
+                logger.debug("remove me :-)");
                 debug_hazelcast_last_commit_seen = txNum;
             }
             applyRemoteCommit(remoteCommit);
