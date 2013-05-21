@@ -12,6 +12,9 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 
@@ -19,6 +22,8 @@ import com.hazelcast.nio.DataSerializable;
 
 public class RemoteCommit implements DataSerializable {
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = LoggerFactory.getLogger(RemoteCommit.class);
 
     private int serverId;
     private int txNumber;
@@ -39,6 +44,7 @@ public class RemoteCommit implements DataSerializable {
         this.oids = new long[writeSetSize];
         this.slotNames = new String[writeSetSize];
 
+        // construir isto fora do lock e tb o byte array?
         int pos = 0;
         for (Map.Entry<jvstm.VBox, Object> entry : boxesWritten.entrySet()) {
             VBox<?> vbox = (VBox<?>) entry.getKey();
@@ -70,10 +76,17 @@ public class RemoteCommit implements DataSerializable {
 
         int size = this.oids.length;
         out.writeInt(size);
+
+        int commitSize = 4 * 3; // debug
+
         for (int i = 0; i < size; i++) {
             out.writeLong(oids[i]);
             out.writeUTF(slotNames[i]);
+
+            commitSize += 8 + slotNames[i].length(); // debug: UTF-8 simplification but good enough to get a debug figure
         }
+
+        logger.debug("RemoteCommit approximate size: {} bytes", commitSize);
     }
 
     @Override
