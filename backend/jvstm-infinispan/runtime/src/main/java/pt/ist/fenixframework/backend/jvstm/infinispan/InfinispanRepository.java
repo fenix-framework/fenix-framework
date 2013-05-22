@@ -60,9 +60,11 @@ public class InfinispanRepository extends Repository {
     private static final String MAX_COMMITTED_TX_ID = "maxTxId";
 
     // the name of the cache used to store system information
-    static final String SYSTEM_CACHE_NAME = "SystemCache";
+//    static final String SYSTEM_CACHE_NAME = "SystemCache";
+    static final String SYSTEM_CACHE_NAME = "FFCache";
     // the name of the cache used to store all instances of all domain classes
-    static final String DOMAIN_CACHE_NAME = "DomainCache";
+//    static final String DOMAIN_CACHE_NAME = "DomainCache";
+    static final String DOMAIN_CACHE_NAME = "FFCache";
 
     // this is a marker, so that when bootstrapping the repository, we can identify whether it already exists 
     private static final String CACHE_IS_NEW = "CacheAlreadExists";
