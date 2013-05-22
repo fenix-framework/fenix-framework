@@ -18,11 +18,13 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 import pt.ist.fenixframework.backend.jvstm.cluster.ClusterUtils;
 import pt.ist.fenixframework.backend.jvstm.cluster.RemoteCommit;
+import pt.ist.fenixframework.backend.jvstm.cluster.RemoteCommit.SpeculativeRemoteCommit;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class ClusteredPersistentTransaction extends PersistentTransaction {
 
     private static final Logger logger = LoggerFactory.getLogger(ClusteredPersistentTransaction.class);
+    private SpeculativeRemoteCommit speculativeRemoteCommit;
 
     public ClusteredPersistentTransaction(ActiveTransactionsRecord record) {
         super(record);
@@ -39,6 +41,18 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
             this.activeTxRecord = newRecord;
             setNumber(newRecord.transactionNumber);
         }
+    }
+
+    @Override
+    protected void tryCommit() {
+        if (isWriteTransaction() && this.perTxValues.isEmpty()) {
+            makeSpeculativeRemoteCommit();
+        }
+        super.tryCommit();
+    }
+
+    private void makeSpeculativeRemoteCommit() {
+        this.speculativeRemoteCommit = new SpeculativeRemoteCommit(DomainClassInfo.getServerId(), this.boxesWritten);
     }
 
     @Override
@@ -85,8 +99,16 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
 //            }
 
             Cons<VBoxBody> temp = super.performValidCommit();
-            ClusterUtils.sendCommitInfoToOthers(new RemoteCommit(DomainClassInfo.getServerId(), this.getNumber(),
-                    this.boxesWritten));
+
+            if (this.speculativeRemoteCommit != null) {
+                this.speculativeRemoteCommit.setTxNumber(this.getNumber());
+                logger.debug("Sending remote commit created before lock");
+                ClusterUtils.sendCommitInfoToOthers(this.speculativeRemoteCommit);
+            } else {
+                logger.debug("Creating remote commit (within lock) to send others");
+                ClusterUtils.sendCommitInfoToOthers(new RemoteCommit(DomainClassInfo.getServerId(), this.getNumber(),
+                        this.boxesWritten));
+            }
             commitSuccess = true;
 
             return temp;

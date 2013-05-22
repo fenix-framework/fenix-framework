@@ -10,6 +10,7 @@ package pt.ist.fenixframework.backend.jvstm.cluster;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -18,6 +19,11 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.hazelcast.nio.DataSerializable;
 
 public class RemoteCommit implements DataSerializable {
@@ -25,12 +31,12 @@ public class RemoteCommit implements DataSerializable {
 
     private static final Logger logger = LoggerFactory.getLogger(RemoteCommit.class);
 
-    private int serverId;
-    private int txNumber;
+    protected int serverId;
+    protected int txNumber;
 
     // these two arrays have a matching oid:slotName pair in each position 
-    private long[] oids;
-    private String[] slotNames;
+    protected long[] oids;
+    protected String[] slotNames;
 
     public RemoteCommit() {
         // required by Hazelcast's DataSerializable
@@ -100,6 +106,77 @@ public class RemoteCommit implements DataSerializable {
         for (int i = 0; i < size; i++) {
             this.oids[i] = in.readLong();
             this.slotNames[i] = in.readUTF();
+        }
+    }
+
+    public static class SpeculativeRemoteCommit extends RemoteCommit {
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * The {@link JsonParser} to be used. Because its instances are
+         * stateless we can reuse the parser.
+         */
+        private static final JsonParser parser = new JsonParser();
+
+        // prepared data to send so that during commit lock, things can go faster
+        protected String commitData;
+
+        public SpeculativeRemoteCommit() {
+            // required by Hazelcast's DataSerializable
+        }
+
+        // makes a speculative RemoteCommit (doesn't yet know the transaction number). Advantage: can be performed outside the locked code :-)
+        public SpeculativeRemoteCommit(int serverId, Map<jvstm.VBox, Object> boxesWritten) {
+            super();
+
+            // get everything ready to 'just' send
+            this.serverId = serverId;
+
+            JsonArray array = new JsonArray();
+            int size = 0;
+            for (Map.Entry<jvstm.VBox, Object> entry : boxesWritten.entrySet()) {
+                VBox<?> vbox = (VBox<?>) entry.getKey();
+                array.add(new JsonPrimitive(vbox.getSlotName()));
+                array.add(new JsonPrimitive(((JVSTMDomainObject) vbox.getOwnerObject()).getOid()));
+                size++;
+            }
+
+            JsonObject topLevel = new JsonObject();
+            topLevel.add("size", new JsonPrimitive(size));
+            topLevel.add("data", array);
+
+            this.commitData = topLevel.toString();
+        }
+
+        public void setTxNumber(int txNumber) {
+            this.txNumber = txNumber;
+        }
+
+        @Override
+        public void writeData(DataOutput out) throws IOException {
+            out.writeInt(this.serverId);
+            out.writeInt(this.txNumber);
+            out.writeUTF(this.commitData);
+        }
+
+        @Override
+        public void readData(DataInput in) throws IOException {
+            this.serverId = in.readInt();
+            this.txNumber = in.readInt();
+            String commitData = in.readUTF();
+
+            JsonObject topLevel = parser.parse(commitData).getAsJsonObject();
+
+            int size = topLevel.get("size").getAsInt();
+            this.slotNames = new String[size];
+            this.oids = new long[size];
+
+            Iterator<JsonElement> it = topLevel.get("data").getAsJsonArray().iterator();
+            for (int i = 0; i < size; i++) {
+
+                this.slotNames[i] = it.next().getAsString();
+                this.oids[i] = it.next().getAsLong();
+            }
         }
     }
 
