@@ -48,6 +48,7 @@ public abstract class AbstractDomainObject implements DomainObject {
      */
     protected AbstractDomainObject() {
         super();
+        init$Instance(false);
         ensureOid();
     }
 
@@ -62,6 +63,7 @@ public abstract class AbstractDomainObject implements DomainObject {
      * documentation.
      */
     protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
+        init$Instance(true);
     }
 
     /**
@@ -72,6 +74,15 @@ public abstract class AbstractDomainObject implements DomainObject {
      */
     protected void ensureOid() {
         throw new UnsupportedOperationException("ensureOid not implemented at this level");
+    }
+
+    /**
+     * Initialize this instance as needed.
+     * 
+     * @param allocateOnly <code>false</code> if this is a new instance. <code>true</code> otherwise (in which case the instance
+     *            should only be allocated, not fully initialized).
+     */
+    protected void init$Instance(boolean allocateOnly) {
     }
 
     @Override
