@@ -80,23 +80,9 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
                     throw new jvstm.CommitException();
                 }
 
-                // sanity check. to remove later
-                if (this.activeTxRecord.transactionNumber != mostRecentGlobalTxNum) {
-                    logger.error("this was not supposed to happen");
-                    System.exit(-1);
-                    throw new Error("not supposed to happen");
-                }
+                assert (this.activeTxRecord.transactionNumber == mostRecentGlobalTxNum);
 
             }
-
-//            if (updateToMostRecentCommit(myRecord, mostRecentGlobalTxNum) != myRecord) {
-//                // the cache may have been updated, so validate again
-//                logger.debug("Need to re-validate tx due to remote commits");
-//                if (!validateCommit()) {
-//                    logger.warn("Invalid commit. Restarting.");
-//                    throw new jvstm.CommitException();
-//                }
-//            }
 
             Cons<VBoxBody> temp = super.performValidCommit();
 
