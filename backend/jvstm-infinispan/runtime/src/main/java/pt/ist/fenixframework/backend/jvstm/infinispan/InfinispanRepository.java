@@ -17,11 +17,8 @@ import java.util.concurrent.Callable;
 import javax.transaction.TransactionManager;
 
 import org.infinispan.Cache;
-import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
-import org.infinispan.configuration.global.GlobalConfiguration;
-import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.eviction.EvictionStrategy;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.transaction.LockingMode;
@@ -82,7 +79,7 @@ public class InfinispanRepository extends Repository {
         try {
             if (ispnConfigFile == null || ispnConfigFile.isEmpty()) {
                 logger.info("Initializing CacheManager with defaults", ispnConfigFile);
-                this.cacheManager = new DefaultCacheManager(makeDefaultGlobalConfiguration());
+                this.cacheManager = new DefaultCacheManager();
             } else {
                 logger.info("Initializing CacheManager with default configuration provided in {}", ispnConfigFile);
                 this.cacheManager = new DefaultCacheManager(ispnConfigFile);
@@ -134,14 +131,6 @@ public class InfinispanRepository extends Repository {
         });
     }
 
-    // create the default global configuration
-    private GlobalConfiguration makeDefaultGlobalConfiguration() {
-        logger.debug("Creating default Infinispan global configuration");
-
-        return GlobalConfigurationBuilder.defaultClusteredBuilder().transport()
-                .addProperty("configurationFile", FenixFramework.getConfig().getJGroupsConfigFile()).build();
-    }
-
     // ensure the required configuration regardless of possible extra stuff in the configuration file
     private Configuration makeRequiredConfiguration() {
         logger.debug("Ensuring required Infinispan configuration");
@@ -154,8 +143,6 @@ public class InfinispanRepository extends Repository {
         confBuilder.read(defaultConf);
 
         /* enforce required configuration */
-
-        confBuilder.clustering().cacheMode(CacheMode.REPL_SYNC);
 
         // use REPEATABLE_READ
 //        confBuilder.locking().isolationLevel(IsolationLevel.REPEATABLE_READ).concurrencyLevel(32).writeSkewCheck(true)
