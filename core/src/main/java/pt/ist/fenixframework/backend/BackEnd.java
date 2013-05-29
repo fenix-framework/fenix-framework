@@ -58,4 +58,16 @@ public interface BackEnd {
      */
     public String[] getStorageKeys(DomainObject domainObject);
 
+    /**
+     * Special values:
+     *
+     * <ul>
+     *     <li>{@link ClusterInformation#LOCAL_MODE}: if Fénix Framework is used in local-mode only</li>
+     *     <li>{@link ClusterInformation#NOT_AVAILABLE}: if no information is available</li>
+     * </ul>
+     *
+     * @return the cluster information in which this node belong to.
+     */
+    public ClusterInformation getClusterInformation();
+
 }

@@ -4,12 +4,15 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.infinispan.Cache;
 import org.infinispan.manager.CacheContainer;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.remoting.rpc.RpcManager;
+import org.infinispan.remoting.transport.Address;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +21,8 @@ import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
+import pt.ist.fenixframework.backend.BasicClusterInformation;
+import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.backend.OID;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
@@ -185,5 +190,21 @@ public class InfinispanBackEnd implements BackEnd {
             keys.add(oid + ':' + slot.getName());
         }
         return keys.toArray(new String[keys.size()]);
+    }
+
+    @Override
+    public ClusterInformation getClusterInformation() {
+        RpcManager rpcManager = domainCache.getAdvancedCache().getRpcManager();
+        //if the cache does not have the rpc manager, then the cache is configured in local mode only
+        if (rpcManager == null) {
+            return ClusterInformation.LOCAL_MODE;
+        }
+        List<Address> members = rpcManager.getMembers();
+        int thisMemberIndex = members.indexOf(rpcManager.getAddress());
+        if (thisMemberIndex < 0) {
+            return ClusterInformation.NOT_AVAILABLE;
+        }
+
+        return new BasicClusterInformation(members.size(), thisMemberIndex);
     }
 }
