@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainMetaClass;
 import pt.ist.fenixframework.DomainMetaObject;
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.adt.bplustree.BPlusTree;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.AbstractDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.FenixConsistencyCheckTransaction;
