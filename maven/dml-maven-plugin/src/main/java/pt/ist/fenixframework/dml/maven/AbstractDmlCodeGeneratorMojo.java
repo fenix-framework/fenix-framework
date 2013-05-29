@@ -62,7 +62,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
         List<String> classpath = new ArrayList<String>(getClasspathElements());
 
         for (Artifact artifact : getMavenProject().getDependencyArtifacts()) {
-            if (artifact.getFile().isDirectory()) {
+            if (artifact.getFile() != null && artifact.getFile().isDirectory()) {
                 classpath.add(artifact.getFile().getAbsolutePath());
             }
         }
