@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.backend.BackEnd;
+import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class OgmBackEnd implements BackEnd {
@@ -82,6 +83,11 @@ public class OgmBackEnd implements BackEnd {
     @Override
     public String[] getStorageKeys(DomainObject domainObject) {
         throw new UnsupportedOperationException("not yet implemented. Depends on support from the Hibernate OGM.");
+    }
+
+    @Override
+    public ClusterInformation getClusterInformation() {
+        return ClusterInformation.NOT_AVAILABLE;
     }
 
     // protected IdentityMap getIdentityMap() {
