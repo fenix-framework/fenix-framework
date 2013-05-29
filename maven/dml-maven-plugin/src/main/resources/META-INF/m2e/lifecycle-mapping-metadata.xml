@@ -1,0 +1,33 @@
+<!--
+	This file tells eclipse to run the CodeGeneratorMojo once a project is imported.
+	
+	For more details see http://wiki.eclipse.org/M2E_compatible_maven_plugins -->
+<lifecycleMappingMetadata>
+	<pluginExecutions>
+		<pluginExecution>
+			<pluginExecutionFilter>
+				<goals>
+					<goal>post-compile</goal>
+					<goal>test-post-compile</goal>
+				</goals>
+			</pluginExecutionFilter>
+			<action>
+				<ignore />
+			</action>
+		</pluginExecution>
+		<pluginExecution>
+			<pluginExecutionFilter>
+				<goals>
+					<goal>test-generate-domain</goal>
+					<goal>generate-domain</goal>
+				</goals>
+			</pluginExecutionFilter>
+			<action>
+				<execute>
+					<runOnIncremental>false</runOnIncremental>
+					<runOnConfiguration>true</runOnConfiguration>
+				</execute>
+			</action>
+		</pluginExecution>
+	</pluginExecutions>
+</lifecycleMappingMetadata>

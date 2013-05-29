@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>pt.ist</groupId>
+        <artifactId>fenix-framework-backend-infinispan</artifactId>
+        <!-- Perhaps in Maven 3.1 the version may be ommitted -->
+        <version>2.1.0</version>
+    </parent>
+
+    <artifactId>fenix-framework-backend-infinispan-code-generator</artifactId>
+    <name>Fenix Framework Infinispan Backend Code Generator</name>
+
+    <description>
+        This project provides an Infinispan-based backend for the Fenix
+        Framework.  Domain entities are stored in Infinispan.  The
+        transactional system uses Infinispan's.
+    </description>
+
+    <build>
+        <plugins>
+
+            <!-- Process dml file class immediately before compiling -->
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>dml-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-domain</goal>
+                            <goal>post-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${version.maven.jar-plugin}</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <!-- This specifies to the JBoss AS, the runtime dependencies of the jar being created -->
+                            <Dependencies>org.infinispan:main,javax.transaction.api:main</Dependencies>
+                        </manifestEntries>
+                    </archive>
+                    <excludes>
+                        <exclude>**/*_Base*</exclude>
+                        <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>
+                        <exclude>pt/ist/fenixframework/backend/CurrentBackEndId*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-core-dml-code-generator</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-backend-infinispan-runtime</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-core-indexes-code-generator</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+        </dependency>
+        <!-- infinispan-core forgot rhq-pluginAnnotations dependency. Remove the following dependency when fixed. See: https://issues.jboss.org/browse/ISPN-1521 -->
+        <dependency>
+            <groupId>org.rhq.helpers</groupId>
+            <artifactId>rhq-pluginAnnotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.jbossts</groupId>
+            <artifactId>jbossjta</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging-spi</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>jboss-public-repository-group</id>
+            <name>JBoss Public Maven Repository Group</name>
+            <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>guice-maven</id>
+            <name>guice maven</name>
+            <url>http://guice-maven.googlecode.com/svn/trunk</url>
+        </repository>
+        <repository>
+            <id>jboss-deprecated-repository</id>
+            <name>JBoss Deprecated Maven Repository</name>
+            <url>https://repository.jboss.org/nexus/content/repositories/deprecated/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>pruivo-public-repository-group</id>
+            <name>Pedro Ruivo Public Maven Repository Group</name>
+            <url>http://homepages.gsd.inesc-id.pt/~pruivo/maven-repo/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jboss-public-repository-group</id>
+            <name>JBoss Public Maven Repository Group</name>
+            <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </pluginRepository>
+
+        <pluginRepository>
+            <id>pruivo-public-repository-group</id>
+            <name>Pedro Ruivo Public Maven Repository Group</name>
+            <url>http://homepages.gsd.inesc-id.pt/~pruivo/maven-repo/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>

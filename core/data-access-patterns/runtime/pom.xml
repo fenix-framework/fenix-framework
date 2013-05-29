@@ -1,0 +1,59 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>pt.ist</groupId>
+        <artifactId>fenix-framework-core-data-access-patterns</artifactId>
+        <!-- Perhaps in Maven 3.1 the version may be ommitted -->
+        <version>2.1.0</version>
+    </parent>
+
+    <artifactId>fenix-framework-core-data-access-patterns-runtime</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Fenix Framework DAP Analysis Runtime</name>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>dml-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-domain</goal>
+                            <goal>post-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${version.maven.jar-plugin}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*_Base*</exclude>
+                        <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>
+                        <exclude>pt/ist/fenixframework/backend/CurrentBackEndId*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-core-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>dap-framework</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

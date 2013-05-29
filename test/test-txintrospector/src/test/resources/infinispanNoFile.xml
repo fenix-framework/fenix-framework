@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan>
+    <global>
+        <globalJmxStatistics
+                enabled="true"
+                jmxDomain="org.infinispan"/>
+        <transport
+                clusterName="infinispan-cluster">
+            <!-- <properties> -->
+            <!--     <property -->
+            <!--             name="configurationFile" -->
+            <!--             value="jgroups/jgroups.xml" /> -->
+            <!-- </properties> -->
+        </transport>
+    </global>
+    <default>
+        <locking
+                isolationLevel="REPEATABLE_READ"
+                concurrencyLevel="32"
+                writeSkewCheck="true"
+                useLockStriping="false"
+                lockAcquisitionTimeout="10000"/>
+        <jmxStatistics
+                enabled="true"/>
+        <deadlockDetection
+                enabled="true"/>
+        <transaction
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.JBossStandaloneJTAManagerLookup"
+                useEagerLocking="false"
+                transactionMode="TRANSACTIONAL"
+                syncRollbackPhase="false"
+                cacheStopTimeout="30000"
+                useSynchronization="false"
+                syncCommitPhase="false"
+                lockingMode="OPTIMISTIC"
+                eagerLockSingleNode="false"
+                use1PcForAutoCommitTransactions="false"
+                autoCommit="true"/>
+        <!-- <clustering mode="r"> -->
+        <!--     <sync -->
+        <!--             replTimeout="15000" /> -->
+        <!--     <stateTransfer -->
+        <!--             fetchInMemoryState="false" -->
+        <!--             chunkSize="100" -->
+        <!--             timeout="240000"/> -->
+        <!-- </clustering> -->
+        <versioning
+                enabled="true"
+                versioningScheme="SIMPLE"/>
+    </default>
+</infinispan>
+

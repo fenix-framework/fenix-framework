@@ -1,0 +1,32 @@
+/* Abstract Data Type: Skip List */
+
+package pt.ist.fenixframework.adt.skiplist;
+
+valueType pt.ist.fenixframework.adt.skiplist.ForwardArray as NodeArray {
+	externalizeWith {
+		Serializable pt.ist.fenixframework.adt.skiplist.Externalizer.externalizeNodeArray();
+	}
+	internalizeWith pt.ist.fenixframework.adt.skiplist.Externalizer.internalizeNodeArray();
+}
+
+valueType pt.ist.fenixframework.adt.skiplist.KeyValue as KeyVal {
+	externalizeWith {
+		Serializable pt.ist.fenixframework.adt.skiplist.KeyValue.externalizeKeyValue();
+	}
+	internalizeWith pt.ist.fenixframework.adt.skiplist.KeyValue.internalizeKeyValue();
+}
+
+
+class SkipList {
+	int level;
+}
+
+class SkipListNode {
+	NodeArray forward;
+	KeyVal keyValue;
+}
+
+relation SkipListHasHead {
+	SkipList playsRole;
+	SkipListNode playsRole head;
+}
