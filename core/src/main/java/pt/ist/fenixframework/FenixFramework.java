@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.BackEndId;
+import pt.ist.fenixframework.backend.BasicClusterInformation;
+import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.dml.DmlCompilerException;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.util.NodeBarrier;
@@ -442,5 +444,14 @@ public class FenixFramework {
 
     public static void barrier(String barrierName, int expectedMembers) throws Exception {
         getNodeBarrier().blockUntil(barrierName, expectedMembers);
+    }
+
+    /**
+     * See {@link pt.ist.fenixframework.backend.BackEnd#getClusterInformation()} and {@link pt.ist.fenixframework.backend.ClusterInformation}.
+     *
+     * @return the current cluster information.
+     */
+    public static ClusterInformation getClusterInformation() {
+        return getConfig().getBackEnd().getClusterInformation();
     }
 }

@@ -4,6 +4,8 @@ import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
+import pt.ist.fenixframework.backend.BasicClusterInformation;
+import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class JVSTMMemBackEnd implements BackEnd {
@@ -63,6 +65,12 @@ public class JVSTMMemBackEnd implements BackEnd {
     @Override
     public String[] getStorageKeys(DomainObject domainObject) {
         throw new UnsupportedOperationException("It does not make sense to invoke this method in a storage-less BackEnd");
+    }
+
+    @Override
+    public ClusterInformation getClusterInformation() {
+        //if I'm not mistaken, JVSTM only works in non-cluster environment
+        return ClusterInformation.LOCAL_MODE;
     }
 
 }

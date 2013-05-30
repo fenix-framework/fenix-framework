@@ -7,6 +7,8 @@ import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
+import pt.ist.fenixframework.backend.BasicClusterInformation;
+import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class MemBackEnd implements BackEnd {
@@ -70,5 +72,11 @@ public class MemBackEnd implements BackEnd {
     @Override
     public String[] getStorageKeys(DomainObject domainObject) {
         throw new UnsupportedOperationException("It does not make sense to invoke this method in a storage-less BackEnd");
+    }
+
+    @Override
+    public ClusterInformation getClusterInformation() {
+        //local-only back end
+        return ClusterInformation.LOCAL_MODE;
     }
 }
