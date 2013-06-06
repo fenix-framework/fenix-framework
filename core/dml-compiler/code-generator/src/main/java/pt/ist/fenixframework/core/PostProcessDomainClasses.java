@@ -127,12 +127,13 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
                 mv.visitVarInsn(ALOAD, 1);
                 mv.visitMethodInsn(INVOKESPECIAL, superDesc, "<init>", CONSTRUCTOR_DESC);
 
-                if (isDomainBaseClass(descToName(classDesc))) {
-                    // for base classes, we must invoke the initInstance()
-                    // method
-                    mv.visitVarInsn(ALOAD, 0);
-                    mv.visitMethodInsn(INVOKESPECIAL, classDesc, "initInstance", "()V");
-                }
+//   Now, this invocation is performed by the AbstractDomainObject and the initInstance(s) is(are) protected (instead of provate)                
+//                if (isDomainBaseClass(descToName(classDesc))) {
+//                    // for base classes, we must invoke the initInstance()
+//                    // method
+//                    mv.visitVarInsn(ALOAD, 0);
+//                    mv.visitMethodInsn(INVOKESPECIAL, classDesc, "initInstance", "()V");
+//                }
 
                 mv.visitInsn(RETURN);
                 mv.visitMaxs(2, 2);
