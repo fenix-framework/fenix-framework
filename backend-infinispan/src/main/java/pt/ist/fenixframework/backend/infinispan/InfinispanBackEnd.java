@@ -1,21 +1,23 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
-
+import eu.cloudtm.LocalityHints;
 import org.infinispan.Cache;
-import org.infinispan.manager.CacheContainer;
+import org.infinispan.configuration.cache.Configuration;
+import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.configuration.cache.GroupsConfiguration;
+import org.infinispan.configuration.global.GlobalConfiguration;
+import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
+import org.infinispan.configuration.parsing.ParserRegistry;
+import org.infinispan.dataplacement.c50.C50MLObjectLookupFactory;
+import org.infinispan.dataplacement.c50.keyfeature.KeyFeatureManager;
+import org.infinispan.dataplacement.lookup.ObjectLookupFactory;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.remoting.rpc.RpcManager;
 import org.infinispan.remoting.transport.Address;
+import org.infinispan.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
@@ -24,14 +26,18 @@ import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.BasicClusterInformation;
 import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.backend.OID;
-import pt.ist.fenixframework.core.AbstractDomainObject;
-import pt.ist.fenixframework.core.DomainObjectAllocator;
-import pt.ist.fenixframework.core.Externalization;
-import pt.ist.fenixframework.core.IdentityMap;
-import pt.ist.fenixframework.core.SharedIdentityMap;
+import pt.ist.fenixframework.core.*;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.Slot;
+
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
 public class InfinispanBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanBackEnd.class);
@@ -114,20 +120,68 @@ public class InfinispanBackEnd implements BackEnd {
 
     private void setupCache(InfinispanConfig config) {
         long start = System.currentTimeMillis();
-        CacheContainer cc = null;
         try {
-            cc = new DefaultCacheManager(config.getIspnConfigFile());
-        } catch (java.io.IOException ioe) {
+            Configuration defaultConfiguration;
+            GlobalConfiguration globalConfiguration;
+            if (config.getDefaultConfiguration() != null && config.getGlobalConfiguration() != null) {
+                defaultConfiguration = config.getDefaultConfiguration();
+                globalConfiguration = config.getGlobalConfiguration();
+            } else {
+                ConfigurationBuilderHolder holder = new ParserRegistry(Thread.currentThread().getContextClassLoader())
+                        .parseFile(config.getIspnConfigFile());
+                globalConfiguration = holder.getGlobalConfigurationBuilder().build();
+                defaultConfiguration = holder.getDefaultConfigurationBuilder().build();
+            }
+            EmbeddedCacheManager cacheManager = new DefaultCacheManager(globalConfiguration, defaultConfiguration);
+            Configuration domainCacheConfiguration = updateAndValidateConfiguration(defaultConfiguration, config);
+            cacheManager.defineConfiguration(DOMAIN_CACHE_NAME, domainCacheConfiguration);
+            domainCache = cacheManager.getCache(DOMAIN_CACHE_NAME);
+        } catch (IOException ioe) {
             String message = "Error creating Infinispan cache manager with configuration file: " + config.getIspnConfigFile();
             logger.error(message, ioe);
             throw new Error(message, ioe);
+        } catch (Exception e) {
+            String message = "Error creating Infinispan cache manager";
+            logger.error(message, e);
+            throw new Error(message, e);
         }
-        domainCache = cc.getCache(DOMAIN_CACHE_NAME);
+
         if (logger.isDebugEnabled()) {
             DateFormat df = new SimpleDateFormat("HH:mm.ss");
             df.setTimeZone(TimeZone.getTimeZone("GMT"));
             logger.debug("Infinispan initialization took " + df.format(new Date(System.currentTimeMillis() - start)));
         }
+    }
+
+    private Configuration updateAndValidateConfiguration(Configuration defaultConfiguration, InfinispanConfig config)
+            throws Exception {
+        ConfigurationBuilder builder = new ConfigurationBuilder().read(defaultConfiguration);
+
+        if (config.useGrouping()) {
+            builder.clustering().hash().groups().enabled().addGrouper(new FenixFrameworkGrouper());
+        } else if (defaultConfiguration.clustering().hash().groups().enabled()) {
+            GroupsConfiguration groupsConfiguration = defaultConfiguration.clustering().hash().groups();
+            int groupers = groupsConfiguration.groupers().size();
+            if (groupers == 0) {
+                builder.clustering().hash().groups().addGrouper(new FenixFrameworkGrouper());
+            } else if (groupers != 1 || !groupsConfiguration.groupers().get(0).getClass().equals(FenixFrameworkGrouper.class)) {
+                builder.clustering().hash().groups().clearGroupers().addGrouper(new FenixFrameworkGrouper());
+            }
+        }
+
+        if (defaultConfiguration.dataPlacement().enabled()) {
+            ObjectLookupFactory factory = defaultConfiguration.dataPlacement().objectLookupFactory();
+            if (factory != null && factory instanceof C50MLObjectLookupFactory) {
+                String managerClassName = defaultConfiguration.dataPlacement().properties()
+                        .getProperty(C50MLObjectLookupFactory.KEY_FEATURE_MANAGER);
+                KeyFeatureManager manager = Util.<KeyFeatureManager>loadClass(managerClassName,
+                        Thread.currentThread().getContextClassLoader())
+                        .newInstance();
+                LocalityHints.init(manager);
+            }
+        }
+
+        return builder.build();
     }
 
     private void setupTxManager(InfinispanConfig config) {

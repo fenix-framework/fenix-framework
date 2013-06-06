@@ -260,7 +260,7 @@ public abstract class Config {
     /**
      * Note: Either appNameFromString or domainModelURLsFromString should be used, but not both!
      */
-    protected void appNameFromString(String value) {
+    public void appNameFromString(String value) {
         this.appName = value;
 
         try {
