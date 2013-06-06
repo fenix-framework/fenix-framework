@@ -8,6 +8,7 @@ import org.infinispan.configuration.cache.GroupsConfiguration;
 import org.infinispan.configuration.global.GlobalConfiguration;
 import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
 import org.infinispan.configuration.parsing.ParserRegistry;
+import org.infinispan.context.Flag;
 import org.infinispan.dataplacement.c50.C50MLObjectLookupFactory;
 import org.infinispan.dataplacement.c50.keyfeature.KeyFeatureManager;
 import org.infinispan.dataplacement.lookup.ObjectLookupFactory;
@@ -48,7 +49,8 @@ public class InfinispanBackEnd implements BackEnd {
     private static final InfinispanBackEnd instance = new InfinispanBackEnd();
 
     protected final InfinispanTransactionManager transactionManager;
-    protected Cache<String, Object> domainCache;
+    protected Cache<String, Object> readCache;
+    protected Cache<String, Object> writeCache;
 
     private InfinispanBackEnd() {
         this.transactionManager = new InfinispanTransactionManager();
@@ -107,8 +109,8 @@ public class InfinispanBackEnd implements BackEnd {
     @Override
     public void shutdown() {
         // not sure whether is still safe, after a stop() to getCacheManager(), so I get it first
-        EmbeddedCacheManager manager = domainCache.getCacheManager();
-        domainCache.stop();
+        EmbeddedCacheManager manager = readCache.getCacheManager();
+        readCache.stop();
         manager.stop();
     }
 
@@ -135,7 +137,8 @@ public class InfinispanBackEnd implements BackEnd {
             EmbeddedCacheManager cacheManager = new DefaultCacheManager(globalConfiguration, defaultConfiguration);
             Configuration domainCacheConfiguration = updateAndValidateConfiguration(defaultConfiguration, config);
             cacheManager.defineConfiguration(DOMAIN_CACHE_NAME, domainCacheConfiguration);
-            domainCache = cacheManager.getCache(DOMAIN_CACHE_NAME);
+            readCache = cacheManager.getCache(DOMAIN_CACHE_NAME);
+            writeCache = readCache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
         } catch (IOException ioe) {
             String message = "Error creating Infinispan cache manager with configuration file: " + config.getIspnConfigFile();
             logger.error(message, ioe);
@@ -185,7 +188,7 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     private void setupTxManager(InfinispanConfig config) {
-        transactionManager.setDelegateTxManager(domainCache.getAdvancedCache().getTransactionManager());
+        transactionManager.setDelegateTxManager(readCache.getAdvancedCache().getTransactionManager());
     }
 
     protected IdentityMap getIdentityMap() {
@@ -197,7 +200,7 @@ public class InfinispanBackEnd implements BackEnd {
      * generated in the Domain Objects.
      */
     public final void cachePut(String key, Object value) {
-        domainCache.put(key, (value != null) ? value : Externalization.NULL_OBJECT);
+        writeCache.put(key, (value != null) ? value : Externalization.NULL_OBJECT);
     }
 
     /**
@@ -205,7 +208,7 @@ public class InfinispanBackEnd implements BackEnd {
      * the Domain Objects.
      */
     public final <T> T cacheGet(String key) {
-        Object obj = domainCache.get(key);
+        Object obj = readCache.get(key);
         return (T) (obj instanceof Externalization.NullClass ? null : obj);
     }
 
@@ -216,7 +219,7 @@ public class InfinispanBackEnd implements BackEnd {
      */
     @Deprecated
     public final Cache getInfinispanCache() {
-        return this.domainCache;
+        return this.readCache;
     }
 
     @Override
@@ -248,7 +251,7 @@ public class InfinispanBackEnd implements BackEnd {
 
     @Override
     public ClusterInformation getClusterInformation() {
-        RpcManager rpcManager = domainCache.getAdvancedCache().getRpcManager();
+        RpcManager rpcManager = readCache.getAdvancedCache().getRpcManager();
         //if the cache does not have the rpc manager, then the cache is configured in local mode only
         if (rpcManager == null) {
             return ClusterInformation.LOCAL_MODE;
