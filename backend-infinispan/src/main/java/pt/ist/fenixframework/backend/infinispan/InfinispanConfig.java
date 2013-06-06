@@ -1,5 +1,7 @@
 package pt.ist.fenixframework.backend.infinispan;
 
+import org.infinispan.configuration.cache.Configuration;
+import org.infinispan.configuration.global.GlobalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,18 @@ public class InfinispanConfig extends HibernateSearchConfig {
      */
     protected String ispnConfigFile = null;
 
+    /**
+     * See {@link #useGrouping()}.
+     */
+    protected boolean useGrouping = false;
+
+    /**
+     * for test only
+     */
+    protected Configuration defaultConfiguration;
+
+    protected GlobalConfiguration globalConfiguration;
+
     protected final InfinispanBackEnd backEnd;
 
 
@@ -71,8 +85,43 @@ public class InfinispanConfig extends HibernateSearchConfig {
     //     }
     // }
 
-    public String getIspnConfigFile() {
+    public final String getIspnConfigFile() {
         return this.ispnConfigFile;
+    }
+
+    public final void setIspnConfigFile(String ispnConfigFile) {
+        this.ispnConfigFile = ispnConfigFile;
+    }
+
+    /**
+     * The Infinispan grouping goal is to group some keys in the same node. A {@link pt.ist.fenixframework.DomainObject}
+     * belongs to a group if, when created, it is provided a {@link eu.cloudtm.LocalityHints} is provided with
+     * {@link eu.cloudtm.Constants#GROUP_ID}.
+     *
+     * @return {@code true} to use the grouping API.
+     */
+    public final boolean useGrouping() {
+        return useGrouping;
+    }
+
+    public final void setUseGrouping(boolean useGrouping) {
+        this.useGrouping = useGrouping;
+    }
+
+    public final Configuration getDefaultConfiguration() {
+        return defaultConfiguration;
+    }
+
+    public final void setDefaultConfiguration(Configuration defaultConfiguration) {
+        this.defaultConfiguration = defaultConfiguration;
+    }
+
+    public final GlobalConfiguration getGlobalConfiguration() {
+        return globalConfiguration;
+    }
+
+    public final void setGlobalConfiguration(GlobalConfiguration globalConfiguration) {
+        this.globalConfiguration = globalConfiguration;
     }
 
     @Override
@@ -90,7 +139,7 @@ public class InfinispanConfig extends HibernateSearchConfig {
     @Override
     protected void checkConfig() {
         super.checkConfig();
-        if (ispnConfigFile == null) {
+        if (ispnConfigFile == null && (defaultConfiguration == null || globalConfiguration == null)) {
             missingRequired("ispnConfigFile");
         }
     }

@@ -37,14 +37,14 @@ public class StringUtils {
 
       while (index < string.length()) {
          int sizeStartIndex = index;
-         while (SIZE_SEPARATOR != string.charAt(index)) {
+         while (index < string.length() && SIZE_SEPARATOR != string.charAt(index)) {
             index++;
          }
          if (sizeStartIndex == index) {
             //null string
             list.add(null);
             index++;
-         } else {
+         } else if (index != string.length()) {
             int length = Integer.parseInt(string.substring(sizeStartIndex, index));
             list.add(string.substring(index + 1, index + 1 + length));
             index += length + 1;
