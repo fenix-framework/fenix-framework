@@ -100,7 +100,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         checkFrameworkNotInitialized();
         setDomainClass(domainClass);
         DomainFenixFrameworkRoot.getInstance().addDomainMetaClass(this);
-        setExistingDomainMetaObjects(new DomainBPlusTree<DomainMetaObject>());
+        setExistingDomainMetaObjects(new DomainBPlusTreeJVSTM<DomainMetaObject>());
         setInitialized(false);
 
         logger.info("Creating new a DomainMetaClass: " + domainClass);
