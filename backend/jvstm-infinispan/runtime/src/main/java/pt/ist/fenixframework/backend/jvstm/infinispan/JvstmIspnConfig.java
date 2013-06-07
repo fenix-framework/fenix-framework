@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.cluster.JvstmClusterConfig;
 
-import com.hazelcast.config.ClasspathXmlConfig;
-
 /**
  * This is the configuration manager used by the fenix-framework-backend-jvstm-infinispan project.
  * 
@@ -44,14 +42,6 @@ public class JvstmIspnConfig extends JvstmClusterConfig {
     @Override
     public JvstmIspnBackEnd getBackEnd() {
         return (JvstmIspnBackEnd) this.backEnd;
-    }
-
-    @Override
-    public com.hazelcast.config.Config getHazelcastConfig() {
-        System.setProperty("hazelcast.logging.type", "slf4j");
-        com.hazelcast.config.Config hzlCfg = new ClasspathXmlConfig(getHazelcastConfigFile());
-        hzlCfg.getGroupConfig().setName(HAZELCAST_FF_GROUP_NAME);
-        return hzlCfg;
     }
 
 }
