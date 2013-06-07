@@ -10,7 +10,6 @@ package pt.ist.fenixframework.backend.jvstm;
 import java.io.PrintWriter;
 
 import pt.ist.fenixframework.dml.CompilerArgs;
-import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
 import pt.ist.fenixframework.dml.Role;
@@ -116,16 +115,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
         println(out, ";");
     }
 
-    /* smf: adds generateInitSlot to what the CodeGenerator already does.  Perhaps we should move this to the upper method... */
     @Override
-    protected void generateInitInstanceMethodBody(DomainClass domClass, PrintWriter out) {
-        for (Slot slot : domClass.getSlotsList()) {
-            generateInitSlot(slot, out);
-        }
-        super.generateInitInstanceMethodBody(domClass, out);
-    }
-
-    /* smf: It might make sense to define this method in the CodeGenerator class */
     protected void generateInitSlot(Slot slot, PrintWriter out) {
         onNewline(out);
         printWords(out, slot.getName());
