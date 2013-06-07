@@ -1,42 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <groupId>pt.ist</groupId>
-        <artifactId>fenix-framework-backend-jvstm-infinispan</artifactId>
+        <artifactId>fenix-framework-backend</artifactId>
         <!-- Perhaps in Maven 3.1 the version may be ommitted -->
         <version>2.2.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>fenix-framework-backend-jvstm-infinispan-runtime</artifactId>
-    <name>Fenix Framework JVSTM over Infinispan Backend Runtime</name>
+    <artifactId>fenix-framework-backend-jvstm-cluster</artifactId>
+    <name>Fenix Framework backend JVSTM cluster</name>
+    <url>http://fenix-ashes.ist.utl.pt</url>
+
     <description>
-        This project provides a JVSTM-based backend for the Fenix Framework.
-        Domain entities are stored in Infinispan.  The transactional system
-        uses a Software Transactional Memory: JVSTM.
+        This module extends the jvstm-common with support for a clustered
+        JVSTM.  It assumes that on each node of the cluster there is one JVSTM
+        instance and one repository instance.
     </description>
+
 
     <build>
         <plugins>
-            
+
             <!-- Process dml file class immediately before compiling -->
             <plugin>
                 <groupId>pt.ist</groupId>
-                <artifactId>dml-maven-plugin</artifactId>
+                <artifactId>ff-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>generate-domain</goal>
-                            <goal>post-compile</goal>
+                            <goal>ff-generate-domain</goal>
+                            <goal>ff-post-compile</goal>
+                            <goal>ff-process-atomic-annotations</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- setup jar maker not to include *_Base and ValueTypeSerializer -->
+            <!-- setup jar maker not to include generated classes -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -52,38 +55,17 @@
 
         </plugins>
     </build>
-    
+
     <dependencies>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-api</artifactId>
+            <artifactId>fenix-framework-backend-jvstm-common-runtime</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-adt-bplustree</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-jvstm-cluster</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.jbossts</groupId>
-            <artifactId>jbossjta</artifactId>
         </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
         </dependency>
     </dependencies>
+
 </project>

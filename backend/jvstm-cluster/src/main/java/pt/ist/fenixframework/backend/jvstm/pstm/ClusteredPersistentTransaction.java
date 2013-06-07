@@ -19,6 +19,8 @@ import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 import pt.ist.fenixframework.backend.jvstm.cluster.ClusterUtils;
 import pt.ist.fenixframework.backend.jvstm.cluster.RemoteCommit;
 import pt.ist.fenixframework.backend.jvstm.cluster.RemoteCommit.SpeculativeRemoteCommit;
+import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
+import pt.ist.fenixframework.backend.jvstm.pstm.PersistentTransaction;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class ClusteredPersistentTransaction extends PersistentTransaction {
