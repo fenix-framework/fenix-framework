@@ -10,6 +10,8 @@ package pt.ist.fenixframework.backend.jvstm.pstm;
 import jvstm.ActiveTransactionsRecord;
 import jvstm.VBoxBody;
 
+import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
+
 public class ClusteredPersistentReadOnlyTransaction extends ClusteredPersistentTransaction {
 
     public ClusteredPersistentReadOnlyTransaction(ActiveTransactionsRecord record) {

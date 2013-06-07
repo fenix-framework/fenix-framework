@@ -11,7 +11,6 @@
 
     <artifactId>fenix-framework-backend-jvstm-cluster</artifactId>
     <name>Fenix Framework backend JVSTM cluster</name>
-    <packaging>pom</packaging>
     <url>http://fenix-ashes.ist.utl.pt</url>
 
     <description>

@@ -57,7 +57,7 @@ public class JVSTMConfig extends HibernateSearchConfig {
 
     @Override
     public String getBackEndName() {
-        return JVSTMBackEnd.BACKEND_NAME;
+        return backEnd.getName();
     }
 
 }
