@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.infinispan.Cache;
+import org.infinispan.context.Flag;
 import org.infinispan.manager.CacheContainer;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
@@ -132,7 +133,8 @@ public class InfinispanBackEnd implements BackEnd {
      * generated in the Domain Objects.
      */
     public final void cachePut(String key, Object value) {
-        domainCache.put(key, (value != null) ? value : Externalization.NULL_OBJECT);
+        domainCache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES)
+                .put(key, (value != null) ? value : Externalization.NULL_OBJECT);
     }
 
     /**

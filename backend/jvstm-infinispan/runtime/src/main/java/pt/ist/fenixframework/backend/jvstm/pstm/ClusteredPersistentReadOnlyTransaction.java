@@ -1,13 +1,23 @@
+/*
+ * Fenix Framework, a framework to develop Java Enterprise Applications.
+ *
+ * Copyright (C) 2013 Fenix Framework Team and/or its affiliates and other contributors as indicated by the @author tags.
+ *
+ * This file is part of the Fenix Framework.  Read the file COPYRIGHT.TXT for more copyright and licensing information.
+ */
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.VBoxBody;
 
-public class PersistentReadOnlyTransaction extends PersistentTransaction {
+public class ClusteredPersistentReadOnlyTransaction extends ClusteredPersistentTransaction {
 
-    public PersistentReadOnlyTransaction(ActiveTransactionsRecord record) {
+    public ClusteredPersistentReadOnlyTransaction(ActiveTransactionsRecord record) {
         super(record);
     }
+
+    // repeats the code from PersistentReadOnlyTransaction. We definitely need
+    // to untangle the transaction hierarchy mess...
 
     @Override
     public <T> T getBoxValue(VBox<T> vbox) {
@@ -36,6 +46,7 @@ public class PersistentReadOnlyTransaction extends PersistentTransaction {
 
     @Override
     public void setReadOnly() {
-        // nothing to do, PersistentReadOnlyTransaction is already read-only :-)
+        // nothing to do, ClusteredPersistentReadOnlyTransaction is already read-only :-)
     }
+
 }
