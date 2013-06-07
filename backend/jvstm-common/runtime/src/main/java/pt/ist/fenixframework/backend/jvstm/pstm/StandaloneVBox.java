@@ -31,4 +31,14 @@ public class StandaloneVBox<E> extends VBox<E> {
         return this.id;
     }
 
+    @Override
+    protected void doReload() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+
+    public static StandaloneVBox lookupCachedVBox(String vboxId) {
+        return (StandaloneVBox) VBoxCache.getCache().lookup(vboxId);
+    }
+
 }

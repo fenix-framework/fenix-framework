@@ -105,9 +105,7 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
         return current;
     }
 
-    protected void doReload() {
-        throw new Error("Can't reload a simple VBox.  Use a PrimitiveBox or a ReferenceBox instead.");
-    }
+    protected abstract void doReload();
 
     // merge the versions kept in this vbox with those stored in vvalues. There might
     // be duplicates.

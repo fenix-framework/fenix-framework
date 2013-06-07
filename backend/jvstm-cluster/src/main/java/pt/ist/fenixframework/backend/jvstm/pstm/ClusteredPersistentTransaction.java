@@ -228,6 +228,8 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
                 if (newBody != null) {
                     newBodies = newBodies.cons(newBody);
                 }
+            } else {
+                logger.debug("Ignoring remote commit for vbox not found in local memory: {}", vboxId);
             }
         }
 

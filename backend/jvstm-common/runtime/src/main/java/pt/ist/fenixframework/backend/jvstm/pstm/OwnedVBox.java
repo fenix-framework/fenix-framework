@@ -52,8 +52,18 @@ public abstract class OwnedVBox<E> extends VBox<E> {
 
     public static OwnedVBox lookupCachedVBox(String vboxId) {
         String[] tokens = vboxId.split(":");
+
+        if (tokens.length != 2) {
+            return null;
+        }
+
         String slotName = tokens[0];
-        long oid = Long.parseLong(tokens[1], 16);
+        long oid;
+        try {
+            oid = Long.parseLong(tokens[1], 16);
+        } catch (NumberFormatException e) {
+            return null;
+        }
 
         JVSTMDomainObject obj = (JVSTMDomainObject) SharedIdentityMap.getCache().lookup(oid);
 
