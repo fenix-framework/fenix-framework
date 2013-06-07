@@ -17,11 +17,8 @@ import java.util.concurrent.Callable;
 import javax.transaction.TransactionManager;
 
 import org.infinispan.Cache;
-import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
-import org.infinispan.configuration.global.GlobalConfiguration;
-import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.eviction.EvictionStrategy;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.transaction.LockingMode;
@@ -60,9 +57,11 @@ public class InfinispanRepository extends Repository {
     private static final String MAX_COMMITTED_TX_ID = "maxTxId";
 
     // the name of the cache used to store system information
-    static final String SYSTEM_CACHE_NAME = "SystemCache";
+//    static final String SYSTEM_CACHE_NAME = "SystemCache";
+    static final String SYSTEM_CACHE_NAME = "FFCache";
     // the name of the cache used to store all instances of all domain classes
-    static final String DOMAIN_CACHE_NAME = "DomainCache";
+//    static final String DOMAIN_CACHE_NAME = "DomainCache";
+    static final String DOMAIN_CACHE_NAME = "FFCache";
 
     // this is a marker, so that when bootstrapping the repository, we can identify whether it already exists 
     private static final String CACHE_IS_NEW = "CacheAlreadExists";
@@ -80,7 +79,7 @@ public class InfinispanRepository extends Repository {
         try {
             if (ispnConfigFile == null || ispnConfigFile.isEmpty()) {
                 logger.info("Initializing CacheManager with defaults", ispnConfigFile);
-                this.cacheManager = new DefaultCacheManager(makeDefaultGlobalConfiguration());
+                this.cacheManager = new DefaultCacheManager();
             } else {
                 logger.info("Initializing CacheManager with default configuration provided in {}", ispnConfigFile);
                 this.cacheManager = new DefaultCacheManager(ispnConfigFile);
@@ -132,14 +131,6 @@ public class InfinispanRepository extends Repository {
         });
     }
 
-    // create the default global configuration
-    private GlobalConfiguration makeDefaultGlobalConfiguration() {
-        logger.debug("Creating default Infinispan global configuration");
-
-        return GlobalConfigurationBuilder.defaultClusteredBuilder().transport()
-                .addProperty("configurationFile", FenixFramework.getConfig().getJGroupsConfigFile()).build();
-    }
-
     // ensure the required configuration regardless of possible extra stuff in the configuration file
     private Configuration makeRequiredConfiguration() {
         logger.debug("Ensuring required Infinispan configuration");
@@ -153,8 +144,6 @@ public class InfinispanRepository extends Repository {
 
         /* enforce required configuration */
 
-        confBuilder.clustering().cacheMode(CacheMode.REPL_SYNC);
-
         // use REPEATABLE_READ
 //        confBuilder.locking().isolationLevel(IsolationLevel.REPEATABLE_READ).concurrencyLevel(32).writeSkewCheck(true)
 //                .useLockStriping(false).lockAcquisitionTimeout(10000);
@@ -162,13 +151,13 @@ public class InfinispanRepository extends Repository {
         confBuilder.locking().isolationLevel(IsolationLevel.READ_COMMITTED).concurrencyLevel(32).useLockStriping(false)
                 .lockAcquisitionTimeout(10000);
 
-        // detect DEALOCKS (is this needed?)
-//        confBuilder.deadlockDetection().enable();
-        confBuilder.deadlockDetection().disable();
+        // detect DEALOCKS (is this needed? it performs better when on... go figure)
+        confBuilder.deadlockDetection().enable();
+//        confBuilder.deadlockDetection().disable();
 
-        // transactional optimistic cache
+        // transactional optimistic cache (useSynchronization(true) provides better performance)
         confBuilder.transaction().transactionMode(TransactionMode.TRANSACTIONAL).syncRollbackPhase(false).cacheStopTimeout(30000)
-                .useSynchronization(false).syncCommitPhase(true).lockingMode(LockingMode.OPTIMISTIC)
+                .useSynchronization(true).syncCommitPhase(true).lockingMode(LockingMode.OPTIMISTIC)
                 .use1PcForAutoCommitTransactions(false).autoCommit(false);
 
         // use versioning (check if it's really needed, especially in READ_COMMITTED!) 
