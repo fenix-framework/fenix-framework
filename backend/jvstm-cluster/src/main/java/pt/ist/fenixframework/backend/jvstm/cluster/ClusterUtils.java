@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.backend.jvstm.infinispan.JvstmIspnConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.core.TransactionError;
 
@@ -39,7 +38,7 @@ public class ClusterUtils {
     private ClusterUtils() {
     }
 
-    public static void initializeGroupCommunication(JvstmIspnConfig thisConfig) {
+    public static void initializeGroupCommunication(JvstmClusterConfig thisConfig) {
         com.hazelcast.config.Config hzlCfg = thisConfig.getHazelcastConfig();
         HAZELCAST_INSTANCE = Hazelcast.newHazelcastInstance(hzlCfg);
 
