@@ -60,6 +60,10 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBo
         this.slotName = slotName;
     }
 
+    public String getId() {
+        return this.getSlotName() + ":" + this.getOwnerObject().getExternalId();
+    }
+
     public DomainObject getOwnerObject() {
         return this.ownerObj;
     }
