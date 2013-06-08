@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.backend.jvstm.FenixVBox;
 
-public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBox<E> {
+public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBox<E> {
 
     private static final Logger logger = LoggerFactory.getLogger(VBox.class);
 
