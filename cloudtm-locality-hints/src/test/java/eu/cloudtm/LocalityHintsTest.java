@@ -16,14 +16,23 @@ public class LocalityHintsTest {
         new LocalityHints(new String[] {"bla"});
     }
 
-    @Test(expectedExceptions = IllegalStateException.class)
-    public void testIfInitialized() {
-        LocalityHints hints = new LocalityHints(new String[] {Constants.GROUP_ID, "bla"});
-        hints.hints2String();
+    @Test
+    public void testEmptyParameters() {
+        new LocalityHints().hints2String();
     }
 
-    @Test(expectedExceptions = IllegalStateException.class)
-    public void testIfInitialized2() {
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testNullParameters() {
+        new LocalityHints(null).hints2String();
+    }
+
+    @Test
+    public void testIfInitialized() {
+        new LocalityHints(new String[] {Constants.GROUP_ID, "bla"}).hints2String();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testNotValidString() {
         LocalityHints.string2Hints("bla");
     }
 

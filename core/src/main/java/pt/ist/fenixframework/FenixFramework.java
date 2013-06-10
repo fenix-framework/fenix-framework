@@ -428,10 +428,13 @@ public class FenixFramework {
      * guarantee that the Fenix Framework is able to provide any more services.
      */
     public static synchronized void shutdown() {
-        if (barrier != null) {
-            barrier.shutdown();
+        synchronized (INIT_LOCK) {
+            initialized = false;
+            if (barrier != null) {
+                barrier.shutdown();
+            }
+            getConfig().shutdown();
         }
-        getConfig().shutdown();
     }
 
     private static synchronized NodeBarrier getNodeBarrier() throws Exception {

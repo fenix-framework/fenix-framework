@@ -24,6 +24,7 @@
         <module>test-indexes</module>
         <module>test-collections</module>
         <module>test-locality-hints</module>
+        <module>test-backend-ispn</module>
     </modules>
 
 </project>
