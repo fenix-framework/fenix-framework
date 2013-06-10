@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="urn:infinispan:config:5.2 http://www.infinispan.org/schemas/infinispan-config-5.2.xsd"
+            xmlns="urn:infinispan:config:5.2">
+    <global>
+        <globalJmxStatistics
+                enabled="true"
+                jmxDomain="org.infinispan"/>
+        <transport
+                clusterName="backend-ispn-test">
+            <properties>
+                <property
+                        name="configurationFile"
+                        value="jgroups.xml"/>
+            </properties>
+        </transport>
+    </global>
+    <default>
+        <locking
+                isolationLevel="REPEATABLE_READ"
+                concurrencyLevel="32"
+                writeSkewCheck="true"
+                useLockStriping="false"
+                lockAcquisitionTimeout="10000"/>
+        <jmxStatistics
+                enabled="true"/>
+        <deadlockDetection
+                enabled="true"/>
+        <transaction
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.JBossStandaloneJTAManagerLookup"
+                useEagerLocking="false"
+                transactionMode="TRANSACTIONAL"
+                syncRollbackPhase="false"
+                cacheStopTimeout="30000"
+                useSynchronization="false"
+                syncCommitPhase="false"
+                lockingMode="OPTIMISTIC"
+                eagerLockSingleNode="false"
+                use1PcForAutoCommitTransactions="false"
+                autoCommit="true">
+            <recovery enabled="false"/>
+        </transaction>
+        <clustering mode="r">
+            <sync
+                    replTimeout="15000"/>
+            <stateTransfer
+                    fetchInMemoryState="false"
+                    chunkSize="100"
+                    timeout="240000"/>
+        </clustering>
+        <versioning
+                enabled="true"
+                versioningScheme="SIMPLE"/>
+    </default>
+</infinispan>

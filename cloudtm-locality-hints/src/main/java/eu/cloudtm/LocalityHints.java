@@ -1,16 +1,16 @@
 package eu.cloudtm;
 
+import org.infinispan.dataplacement.c50.keyfeature.Feature;
+import org.infinispan.dataplacement.c50.keyfeature.KeyFeatureManager;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.infinispan.dataplacement.c50.keyfeature.Feature;
-import org.infinispan.dataplacement.c50.keyfeature.KeyFeatureManager;
-
 /**
  * // TODO: Document this
- * 
+ *
  * @author Pedro Ruivo
  * @since 2.3-cloudtm
  */
@@ -18,7 +18,7 @@ public class LocalityHints {
 
     private static final String WITHOUT_GROUP_HINTS = "&";
     private static final String WITH_GROUP_HINTS = "%";
-    private static volatile KeyFeatureManager cloudtmFeatureManager;
+    private static volatile KeyFeatureManager keyFeatureManager;
     private final Map<String, String> keyValues;
 
     public LocalityHints(String[] hints) {
@@ -43,25 +43,29 @@ public class LocalityHints {
     }
 
     public static synchronized void init(KeyFeatureManager manager) {
-        if (cloudtmFeatureManager == null) {
-            cloudtmFeatureManager = manager;
+        if (keyFeatureManager == null) {
+            keyFeatureManager = manager;
         }
     }
 
     public static LocalityHints string2Hints(String hints) {
-        checkIfInitialized();
         String[] decode = StringUtils.decode(hints);
-        Feature[] features = cloudtmFeatureManager.getAllKeyFeatures();
         Map<String, String> keyValues = new HashMap<String, String>();
 
         if (WITH_GROUP_HINTS.equals(decode[0])) {
             keyValues.put(Constants.GROUP_ID, decode[1]);
-            for (int i = 2; i < decode.length; ++i) {
-                keyValues.put(features[i - 2].getName(), decode[i]);
+            if (keyFeatureManager != null) {
+                Feature[] features = keyFeatureManager.getAllKeyFeatures();
+                for (int i = 2; i < decode.length; ++i) {
+                    keyValues.put(features[i - 2].getName(), decode[i]);
+                }
             }
         } else if (WITHOUT_GROUP_HINTS.equals(decode[0])) {
-            for (int i = 1; i < decode.length; ++i) {
-                keyValues.put(features[i - 1].getName(), decode[i]);
+            if (keyFeatureManager != null) {
+                Feature[] features = keyFeatureManager.getAllKeyFeatures();
+                for (int i = 1; i < decode.length; ++i) {
+                    keyValues.put(features[i - 1].getName(), decode[i]);
+                }
             }
         } else {
             throw new IllegalArgumentException("String " + hints + " is not a valid string");
@@ -73,14 +77,7 @@ public class LocalityHints {
         this.keyValues.put(key, value);
     }
 
-    private static void checkIfInitialized() {
-        if (cloudtmFeatureManager == null) {
-            throw new IllegalStateException("Locality Hints is not initialized. Please invoke init(CloudtmFeatureManager)");
-        }
-    }
-
     public final String hints2String() {
-        checkIfInitialized();
         List<String> list = new ArrayList<String>(keyValues.size() + 2);
 
         String groupId = keyValues.get(Constants.GROUP_ID);
@@ -91,8 +88,10 @@ public class LocalityHints {
             list.add(groupId);
         }
 
-        for (Feature feature : cloudtmFeatureManager.getAllKeyFeatures()) {
-            list.add(keyValues.get(feature.getName()));
+        if (keyFeatureManager != null) {
+            for (Feature feature : keyFeatureManager.getAllKeyFeatures()) {
+                list.add(keyValues.get(feature.getName()));
+            }
         }
 
         return StringUtils.encode(list.toArray(new String[list.size()]));
