@@ -26,7 +26,7 @@ import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.dml.ValueType;
 
-public class FenixCodeGenerator extends CodeGenerator {
+public abstract class FenixCodeGenerator extends CodeGenerator {
 
     protected static final String TO_SQL_CONVERTER_CLASS = ToSqlConverter.class.getName();
 
@@ -179,6 +179,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         }
     }
 
+    @Override
     protected void generateInitSlot(Slot slot, PrintWriter out) {
         onNewline(out);
         printWords(out, slot.getName());
