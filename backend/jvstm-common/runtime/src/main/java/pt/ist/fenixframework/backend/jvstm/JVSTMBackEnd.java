@@ -23,6 +23,7 @@ import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.FenixFrameworkData;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelReadOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -198,6 +199,17 @@ public class JVSTMBackEnd implements BackEnd {
         if (data == null) {
             FenixFramework.getDomainRoot().setFenixFrameworkData(new FenixFrameworkData());
         }
+    }
+
+    /**
+     * Looks up a cached VBox given its identifier.
+     * 
+     * @param vboxId The vbox identifier
+     * @return The VBox if it is available in memory. Otherwise, <code>null</code> (if either the VBox does not exist or is not in
+     *         cache).
+     */
+    public VBox lookupCachedVBox(String vboxId) {
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
     @Override

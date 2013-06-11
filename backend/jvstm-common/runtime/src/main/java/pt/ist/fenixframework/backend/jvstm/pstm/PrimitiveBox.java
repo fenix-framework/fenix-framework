@@ -5,18 +5,18 @@ import jvstm.VBoxBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
+import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 
-class PrimitiveBox<E> extends VBox<E> {
+class PrimitiveBox<E> extends OwnedVBox<E> {
 
     private static final Logger logger = LoggerFactory.getLogger(PrimitiveBox.class);
 
-    PrimitiveBox(DomainObject ownerObj, String slotName) {
+    PrimitiveBox(JVSTMDomainObject ownerObj, String slotName) {
         super(ownerObj, slotName);
     }
 
-    PrimitiveBox(DomainObject ownerObj, String slotName, VBoxBody<E> body) {
+    PrimitiveBox(JVSTMDomainObject ownerObj, String slotName, VBoxBody<E> body) {
         super(ownerObj, slotName, body);
     }
 

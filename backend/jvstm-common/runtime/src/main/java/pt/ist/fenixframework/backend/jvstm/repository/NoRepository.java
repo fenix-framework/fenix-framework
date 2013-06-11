@@ -10,7 +10,7 @@ import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 
-public class NoRepository extends Repository {
+public class NoRepository implements Repository {
 
     private static final Logger logger = LoggerFactory.getLogger(NoRepository.class);
 
@@ -27,6 +27,11 @@ public class NoRepository extends Repository {
     @Override
     public int getMaxCounterForClass(DomainClassInfo domainClassInfo) {
         return -1;
+    }
+
+    @Override
+    public void updateMaxCounterForClass(DomainClassInfo domainClassInfo, int newCounterValue) {
+        // no-op
     }
 
     @Override

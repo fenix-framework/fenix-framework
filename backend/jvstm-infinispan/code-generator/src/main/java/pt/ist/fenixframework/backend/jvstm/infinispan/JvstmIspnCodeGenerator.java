@@ -10,11 +10,6 @@ public class JvstmIspnCodeGenerator extends JVSTMCodeGenerator {
         super(compArgs, domainModel);
     }
 
-//    @Override
-//    protected String getDomainClassRoot() {
-//        return JVSTMDomainObject.class.getName();
-//    }
-
     @Override
     protected String getBackEndName() {
         return JvstmIspnBackEnd.BACKEND_NAME;
