@@ -11,6 +11,8 @@ import javax.transaction.SystemException;
 import javax.transaction.xa.XAResource;
 
 import pt.ist.fenixframework.FenixAbstractTransaction;
+import pt.ist.fenixframework.core.exception.FenixRollbackException;
+import pt.ist.fenixframework.core.exception.RecoverableRollbackException;
 
 /**
  * Abstract implementation of {@link pt.ist.fenixframework.Transaction}. This class provides life-cycle management for free.
@@ -54,17 +56,17 @@ public abstract class AbstractTransaction extends FenixAbstractTransaction {
              */
             rollback();
 
-            throw new RollbackException(e.getMessage());
+            throw new FenixRollbackException(e, "Exception in pre-commit hook.");
         }
         try {
             backendCommit();
             this.status = Status.STATUS_COMMITTED;
         } catch (Exception e) {
             rollback();
-            throw new RollbackException(e.getMessage());
+            throw new FenixRollbackException(e);
         } catch (TransactionError e) {
             rollback();
-            throw new RollbackException(e.getMessage());
+            throw new RecoverableRollbackException(e, e.getMessage());
         }
         notifyAfterCommit();
     }
