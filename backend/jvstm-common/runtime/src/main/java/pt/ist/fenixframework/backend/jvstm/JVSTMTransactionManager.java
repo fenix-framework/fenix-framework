@@ -22,6 +22,8 @@ import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.backend.jvstm.pstm.JvstmInFenixTransaction;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
 import pt.ist.fenixframework.core.WriteOnReadError;
+import pt.ist.fenixframework.core.exception.FenixRollbackException;
+import pt.ist.fenixframework.core.exception.RecoverableRollbackException;
 
 public class JVSTMTransactionManager extends AbstractTransactionManager {
 
@@ -207,8 +209,16 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
                     } else {
                         rollback();
                     }
-                } catch (RollbackException e) {
+                } catch (RecoverableRollbackException e) {
+                    // Restart the transaction if the rollback was recoverable
                     logger.debug("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (FenixRollbackException e) {
+                    // If the rollback isn't recoverable, attempt to unwrap
+                    // the exception and throw it.
+                    if (e.getCause() instanceof Exception) {
+                        throw (Exception) e.getCause();
+                    }
+                    throw e;
                 } catch (HeuristicMixedException e) {
                     logger.debug("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
                 } catch (HeuristicRollbackException e) {
