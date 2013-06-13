@@ -109,6 +109,25 @@ public class RemoteCommit implements DataSerializable {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("serverId=").append(getServerId());
+        str.append(", txNumber=").append(getTxNumber());
+        str.append(", changes={");
+        int size = getOids().length;
+        for (int i = 0; i < size; i++) {
+            if (i != 0) {
+                str.append(", ");
+            }
+            long oid = getOids()[i];
+            String slotName = getSlotNames()[i];
+            str.append('(').append(Long.toHexString(oid)).append(':').append(slotName).append(')');
+        }
+        str.append("}");
+        return str.toString();
+    }
+
     public static class SpeculativeRemoteCommit extends RemoteCommit {
         private static final long serialVersionUID = 1L;
 
@@ -176,6 +195,21 @@ public class RemoteCommit implements DataSerializable {
 
                 this.slotNames[i] = it.next().getAsString();
                 this.oids[i] = it.next().getAsLong();
+            }
+        }
+
+        @Override
+        public String toString() {
+            // if this is remote commit was received then the oids array is set.  Otherwise, we'll print the JSON array
+            if (getOids() != null) {
+                return super.toString();
+            } else {
+                StringBuilder str = new StringBuilder();
+                str.append("serverId=").append(getServerId());
+                str.append(", txNumber=").append(getTxNumber());
+                str.append(", changes=");
+                str.append(commitData);
+                return str.toString();
             }
         }
     }

@@ -204,23 +204,9 @@ public class ClusterUtils {
     }
 
     public static void sendCommitInfoToOthers(RemoteCommit remoteCommit) {
+        // test for debug, because computing remoteCommit.toString() is expensive
         if (logger.isDebugEnabled()) {
-            StringBuilder str = new StringBuilder();
-            str.append("serverId=").append(remoteCommit.getServerId());
-            str.append(", txNumber=").append(remoteCommit.getTxNumber());
-            str.append(", changes={");
-            int size = remoteCommit.getOids().length;
-            for (int i = 0; i < size; i++) {
-                if (i != 0) {
-                    str.append(", ");
-                }
-                long oid = remoteCommit.getOids()[i];
-                String slotName = remoteCommit.getSlotNames()[i];
-                str.append('(').append(Long.toHexString(oid)).append(':').append(slotName).append(')');
-            }
-            str.append("}");
-
-            logger.debug("Send commit info to others: {}", str.toString());
+            logger.debug("Send commit info to others: {}", remoteCommit);
         }
 
         ITopic<RemoteCommit> topic = getHazelcastInstance().getTopic(FF_COMMIT_TOPIC_NAME);
