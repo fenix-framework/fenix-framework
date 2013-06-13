@@ -274,7 +274,8 @@ public class DataGridRepository implements Repository {
         return String.valueOf(DomainClassInfo.getServerId()) + ":" + domainClassInfo.classId;
     }
 
-    private void reloadAttribute(VBox box) {
+    @Override
+    public void reloadAttribute(VBox box) {
         int txNumber = jvstm.Transaction.current().getNumber();
 
         List<VersionedValue> vvalues = getMostRecentVersions(box, txNumber);
