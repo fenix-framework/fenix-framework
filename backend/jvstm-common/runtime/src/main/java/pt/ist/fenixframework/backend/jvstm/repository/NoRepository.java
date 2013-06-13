@@ -45,6 +45,11 @@ public class NoRepository implements Repository {
     }
 
     @Override
+    public void reloadAttribute(VBox box) {
+        throw new UnsupportedOperationException("should not be invoked when using the NoRepository implementation");
+    }
+
+    @Override
     public void persistChanges(Set<Entry<jvstm.VBox, Object>> changes, int txNumber, Object nullObject) {
         // no-op
     }
