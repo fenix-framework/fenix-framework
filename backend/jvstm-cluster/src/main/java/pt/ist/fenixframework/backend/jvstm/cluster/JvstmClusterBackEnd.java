@@ -80,4 +80,7 @@ public abstract class JvstmClusterBackEnd extends JVSTMBackEnd {
         super.shutdown();
     }
 
+    public int getNumMembers() {
+        return ClusterUtils.getNumMembers();
+    }
 }
