@@ -4,25 +4,22 @@
 
     <parent>
         <groupId>pt.ist</groupId>
-        <artifactId>fenix-framework</artifactId>
+        <artifactId>fenix-framework-backend</artifactId>
         <!-- Perhaps in Maven 3.1 the version may be ommitted -->
         <version>2.2.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>fenix-framework-backend</artifactId>
-    <name>Fenix Framework Backends</name>
+    <artifactId>fenix-framework-backend-jvstm-datagrid</artifactId>
+    <name>Fenix Framework Backend JVSTM for Data Grids</name>
+    <description>
+        This project provides a JVSTM-based backend that stores VBoxes in a
+        pluggable Data Grid.
+    </description>
     <packaging>pom</packaging>
     <url>http://fenix-ashes.ist.utl.pt</url>
 
     <modules>
-        <module>infinispan</module>
-        <module>jvstm-cluster</module>
-        <module>jvstm-common</module>
-        <module>jvstm-datagrid</module>
-        <module>jvstm-infinispan</module>
-        <module>jvstm-mem</module>
-        <module>jvstm-ojb</module>
-        <module>mem</module>
-        <module>ogm</module>
+        <module>runtime</module>
+        <module>code-generator</module>
     </modules>
 </project>
