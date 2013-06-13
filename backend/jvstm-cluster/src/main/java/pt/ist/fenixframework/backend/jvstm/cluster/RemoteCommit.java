@@ -16,7 +16,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 
 import com.google.gson.JsonArray;
@@ -34,9 +33,7 @@ public class RemoteCommit implements DataSerializable {
     protected int serverId;
     protected int txNumber;
 
-    // these two arrays have a matching oid:slotName pair in each position 
-    protected long[] oids;
-    protected String[] slotNames;
+    protected String[] ids;
 
     public RemoteCommit() {
         // required by Hazelcast's DataSerializable
@@ -47,15 +44,13 @@ public class RemoteCommit implements DataSerializable {
         this.txNumber = txNumber;
 
         int writeSetSize = boxesWritten.size();
-        this.oids = new long[writeSetSize];
-        this.slotNames = new String[writeSetSize];
+        this.ids = new String[writeSetSize];
 
         // construir isto fora do lock e tb o byte array?
         int pos = 0;
         for (Map.Entry<jvstm.VBox, Object> entry : boxesWritten.entrySet()) {
             VBox<?> vbox = (VBox<?>) entry.getKey();
-            slotNames[pos] = vbox.getSlotName();
-            oids[pos++] = ((JVSTMDomainObject) vbox.getOwnerObject()).getOid();
+            ids[pos++] = vbox.getId();
         }
     }
 
@@ -67,12 +62,8 @@ public class RemoteCommit implements DataSerializable {
         return this.txNumber;
     }
 
-    public long[] getOids() {
-        return this.oids;
-    }
-
-    public String[] getSlotNames() {
-        return this.slotNames;
+    public String[] getIds() {
+        return this.ids;
     }
 
     @Override
@@ -80,16 +71,15 @@ public class RemoteCommit implements DataSerializable {
         out.writeInt(this.serverId);
         out.writeInt(this.txNumber);
 
-        int size = this.oids.length;
+        int size = this.ids.length;
         out.writeInt(size);
 
         int commitSize = 4 * 3; // debug
 
         for (int i = 0; i < size; i++) {
-            out.writeLong(oids[i]);
-            out.writeUTF(slotNames[i]);
+            out.writeUTF(ids[i]);
 
-            commitSize += 8 + slotNames[i].length(); // debug: UTF-8 simplification but good enough to get a debug figure
+            commitSize += ids[i].length(); // debug: UTF-8 simplification but good enough to get a debug figure
         }
 
         logger.debug("RemoteCommit approximate size: {} bytes", commitSize);
@@ -101,11 +91,9 @@ public class RemoteCommit implements DataSerializable {
         this.txNumber = in.readInt();
 
         int size = in.readInt();
-        this.oids = new long[size];
-        this.slotNames = new String[size];
+        this.ids = new String[size];
         for (int i = 0; i < size; i++) {
-            this.oids[i] = in.readLong();
-            this.slotNames[i] = in.readUTF();
+            this.ids[i] = in.readUTF();
         }
     }
 
@@ -115,14 +103,12 @@ public class RemoteCommit implements DataSerializable {
         str.append("serverId=").append(getServerId());
         str.append(", txNumber=").append(getTxNumber());
         str.append(", changes={");
-        int size = getOids().length;
+        int size = getIds().length;
         for (int i = 0; i < size; i++) {
             if (i != 0) {
                 str.append(", ");
             }
-            long oid = getOids()[i];
-            String slotName = getSlotNames()[i];
-            str.append('(').append(Long.toHexString(oid)).append(':').append(slotName).append(')');
+            str.append(getIds()[i]);
         }
         str.append("}");
         return str.toString();
@@ -155,8 +141,7 @@ public class RemoteCommit implements DataSerializable {
             int size = 0;
             for (Map.Entry<jvstm.VBox, Object> entry : boxesWritten.entrySet()) {
                 VBox<?> vbox = (VBox<?>) entry.getKey();
-                array.add(new JsonPrimitive(vbox.getSlotName()));
-                array.add(new JsonPrimitive(((JVSTMDomainObject) vbox.getOwnerObject()).getOid()));
+                array.add(new JsonPrimitive(vbox.getId()));
                 size++;
             }
 
@@ -187,21 +172,19 @@ public class RemoteCommit implements DataSerializable {
             JsonObject topLevel = parser.parse(commitData).getAsJsonObject();
 
             int size = topLevel.get("size").getAsInt();
-            this.slotNames = new String[size];
-            this.oids = new long[size];
+            this.ids = new String[size];
 
             Iterator<JsonElement> it = topLevel.get("data").getAsJsonArray().iterator();
             for (int i = 0; i < size; i++) {
 
-                this.slotNames[i] = it.next().getAsString();
-                this.oids[i] = it.next().getAsLong();
+                this.ids[i] = it.next().getAsString();
             }
         }
 
         @Override
         public String toString() {
             // if this is remote commit was received then the oids array is set.  Otherwise, we'll print the JSON array
-            if (getOids() != null) {
+            if (getIds() != null) {
                 return super.toString();
             } else {
                 StringBuilder str = new StringBuilder();

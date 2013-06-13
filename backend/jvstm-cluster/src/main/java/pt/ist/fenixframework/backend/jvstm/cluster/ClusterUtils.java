@@ -221,4 +221,18 @@ public class ClusterUtils {
         getHazelcastInstance().getLifecycleService().shutdown();
     }
 
+    /**
+     * Get the number of members in the cluster.
+     * 
+     * @return The number of members in the cluster or <code>-1</code> if the information is not available
+     */
+    public static int getNumMembers() {
+        if (!getHazelcastInstance().getLifecycleService().isRunning()) {
+            return -1;
+        } else {
+            return getHazelcastInstance().getCluster().getMembers().size();
+        }
+
+    }
+
 }

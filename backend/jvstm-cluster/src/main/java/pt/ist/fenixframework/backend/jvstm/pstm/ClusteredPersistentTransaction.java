@@ -15,13 +15,11 @@ import jvstm.util.Cons;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstm.cluster.ClusterUtils;
+import pt.ist.fenixframework.backend.jvstm.cluster.JvstmClusterBackEnd;
 import pt.ist.fenixframework.backend.jvstm.cluster.RemoteCommit;
 import pt.ist.fenixframework.backend.jvstm.cluster.RemoteCommit.SpeculativeRemoteCommit;
-import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
-import pt.ist.fenixframework.backend.jvstm.pstm.PersistentTransaction;
-import pt.ist.fenixframework.core.SharedIdentityMap;
 
 public class ClusteredPersistentTransaction extends PersistentTransaction {
 
@@ -213,19 +211,20 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
 
         Cons<VBoxBody> newBodies = Cons.empty();
 
-        int size = remoteCommit.getOids().length;
+        int size = remoteCommit.getIds().length;
         for (int i = 0; i < size; i++) {
-            long oid = remoteCommit.getOids()[i];
-            String slotName = remoteCommit.getSlotNames()[i];
+            String vboxId = remoteCommit.getIds()[i];
 
-            JVSTMDomainObject obj = (JVSTMDomainObject) SharedIdentityMap.getCache().lookup(oid);
+            JvstmClusterBackEnd backEnd = (JvstmClusterBackEnd) FenixFramework.getConfig().getBackEnd();
 
-            /* if the domain object is not cached, we don't need to update its
+            VBox vbox = backEnd.lookupCachedVBox(vboxId);
+
+            /* if the vbox is not found (not cached or reachable from a domain object), we don't need to update its
             slots. If a concurrent access to this objects causes it to be allocated
             and its slots reloaded, the most recent values will be fetched from
             the repository */
-            if (obj != null) {
-                VBoxBody newBody = obj.addNewVersion(slotName, txNumber);
+            if (vbox != null) {
+                VBoxBody newBody = vbox.addNewVersion(txNumber);
                 if (newBody != null) {
                     newBodies = newBodies.cons(newBody);
                 }

@@ -25,7 +25,7 @@ import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
  * <!-- It implements also a
  * interface for storing/retrieving key-value pairs from the underlying repository, which allows for storing generic data.-->
  */
-public abstract class Repository {
+public interface Repository {
 
 //    // the repository instance used to persist the changes
 //    private static Repository repository;
@@ -42,17 +42,17 @@ public abstract class Repository {
 //    }
 //
     // creates a repository bootstrap instance
-//    public abstract RepositoryBootstrap createRepositoryBootstrap(Config config);
+//    public RepositoryBootstrap createRepositoryBootstrap(Config config);
 
     // initialize this repository instance given a configuration
     // returns whether the repository is new, so that we know we need to create the DomainRoot
-    public abstract boolean init(JVSTMConfig jvstmConfig);
+    public boolean init(JVSTMConfig jvstmConfig);
 
     // get the stored information concerning the DomainClassInfo
-    public abstract DomainClassInfo[] getDomainClassInfos();
+    public DomainClassInfo[] getDomainClassInfos();
 
     // update the stored information concerning the DomainClassInfo adding the vector domainClassInfos
-    public abstract void storeDomainClassInfos(final DomainClassInfo[] domainClassInfos);
+    public void storeDomainClassInfos(final DomainClassInfo[] domainClassInfos);
 
     /**
      * Returns the counter stored for a given domain class.
@@ -61,38 +61,36 @@ public abstract class Repository {
      * @return The (non negative) counter value stored for the given domain class or a negative value if there is no stored
      *         information regarding this class's counter.
      */
-    public abstract int getMaxCounterForClass(DomainClassInfo domainClassInfo);
+    public int getMaxCounterForClass(DomainClassInfo domainClassInfo);
 
     /**
      * Invoked by the framework whenever a new OID is generated (i.e. a new DomainObject is created inside a transaction).
      * Depending on the concrete repository, this may be needed for maintaining the maximum id per class (and maybe per server).
-     * By default this method does nothing.
      * 
      * @param domainClassInfo Information about the instantiated class
      * @param newCounterValue The new value of the counter
      */
-    public void updateMaxCounterForClass(DomainClassInfo domainClassInfo, int newCounterValue) {
-    }
+    public void updateMaxCounterForClass(DomainClassInfo domainClassInfo, int newCounterValue);
 
     // reloads a primitive value from the storage for the specified box
-    public abstract void reloadPrimitiveAttribute(VBox box);
+    public void reloadPrimitiveAttribute(VBox box);
 
     // reloads a reference attribute from the storage for the specified box
-    public abstract void reloadReferenceAttribute(VBox box);
+    public void reloadReferenceAttribute(VBox box);
 
     // stores persistently a set of changes
     // the third arguments represents the reference used by the stm to represent null objects.
-    public abstract void persistChanges(Set<Entry<jvstm.VBox, Object>> changes, int txNumber, Object nullObject);
+    public void persistChanges(Set<Entry<jvstm.VBox, Object>> changes, int txNumber, Object nullObject);
 
     /**
      * Return the greatest committed transaction number, persisted in the Repository
      */
-    public abstract int getMaxCommittedTxNumber();
+    public int getMaxCommittedTxNumber();
 
     /**
      * Close the connection to the repository.
      */
-    public abstract void closeRepository();
+    public void closeRepository();
 
 //    /**
 //     * Store the given value using the given key.
@@ -100,7 +98,7 @@ public abstract class Repository {
 //     * @param key The key that uniquely identifies the value being stored.
 //     * @param value The value to store.
 //     */
-//    public abstract void storeKeyValue(Serializable key, Serializable value);
+//    public void storeKeyValue(Serializable key, Serializable value);
 //
 //    /**
 //     * Retrieve the value associated with the given key.
@@ -108,5 +106,5 @@ public abstract class Repository {
 //     * @param key The key to lookup
 //     * @return The value associated with the key.
 //     */
-//    public abstract Serializable getValue(Serializable key);
+//    public Serializable getValue(Serializable key);
 }

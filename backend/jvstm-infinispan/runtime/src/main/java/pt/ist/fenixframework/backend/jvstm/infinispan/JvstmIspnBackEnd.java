@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstm.cluster.JvstmClusterBackEnd;
+import pt.ist.fenixframework.backend.jvstm.pstm.OwnedVBox;
+import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 
 public class JvstmIspnBackEnd extends JvstmClusterBackEnd {
     private static final Logger logger = LoggerFactory.getLogger(JvstmIspnBackEnd.class);
@@ -31,4 +33,8 @@ public class JvstmIspnBackEnd extends JvstmClusterBackEnd {
         return BACKEND_NAME;
     }
 
+    @Override
+    public VBox lookupCachedVBox(String vboxId) {
+        return OwnedVBox.lookupCachedVBox(vboxId);
+    }
 }

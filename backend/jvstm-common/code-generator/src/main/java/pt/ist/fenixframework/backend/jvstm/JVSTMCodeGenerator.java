@@ -52,7 +52,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
         super.generateFilePreamble(subPackageName, out);
         println(out, "import pt.ist.fenixframework.FenixFramework;");
         println(out, "import pt.ist.fenixframework.backend.jvstm.pstm.VBox;");
-        newline(out);
+        println(out, "import pt.ist.fenixframework.backend.jvstm.pstm.OwnedVBox;");
     }
 
     //    // smf: maybe to delete? /replace with getboxtype or similar?
@@ -61,7 +61,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
 //    }
 //
     protected String getBoxBaseType() {
-        return "VBox";
+        return "OwnedVBox";
     }
 
     protected String getBoxType(String elemType) {
@@ -77,7 +77,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
     }
 
     protected String getNewSlotExpression(String slotName, boolean isReference) {
-        return "VBox.makeNew(this, \"" + slotName + "\", allocateOnly, " + isReference + ")";
+        return getBoxBaseType() + ".makeNew(this, \"" + slotName + "\", allocateOnly, " + isReference + ")";
     }
 
     protected String getNewSlotExpression(Slot slot) {

@@ -80,7 +80,7 @@ public abstract class JVSTMDomainObject extends AbstractDomainObjectAdapter {
         return null;
     }
 
-    VersionedSubject getSlotNamed(String attrName) {
+    public VersionedSubject getSlotNamed(String attrName) {
         Class myClass = this.getClass();
         while (myClass != Object.class) {
             try {
