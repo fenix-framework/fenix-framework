@@ -78,6 +78,9 @@ public interface Repository {
     // reloads a reference attribute from the storage for the specified box
     public void reloadReferenceAttribute(VBox box);
 
+    // reloads an attribute from the storage for the specified box
+    public void reloadAttribute(VBox box);
+
     // stores persistently a set of changes
     // the third arguments represents the reference used by the stm to represent null objects.
     public void persistChanges(Set<Entry<jvstm.VBox, Object>> changes, int txNumber, Object nullObject);

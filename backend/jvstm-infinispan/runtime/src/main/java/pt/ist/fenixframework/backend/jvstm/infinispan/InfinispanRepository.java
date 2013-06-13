@@ -110,9 +110,6 @@ public class InfinispanRepository implements Repository {
     }
 
     private boolean bootstrapIfNeeded() {
-        createSystemCache();
-        createDomainCache();
-
         return doWithinBackingTransactionIfNeeded(new Callable<Boolean>() {
             @Override
             public Boolean call() {
@@ -276,6 +273,8 @@ public class InfinispanRepository implements Repository {
 
         createCacheContainer(ispnConfigFile);
         initTransactionManager();
+        createSystemCache();
+        createDomainCache();
         return bootstrapIfNeeded();
     }
 
@@ -449,7 +448,8 @@ public class InfinispanRepository implements Repository {
 
     /* utility methods used by the implementation of the Repository interface methods */
 
-    private void reloadAttribute(VBox box) {
+    @Override
+    public void reloadAttribute(VBox box) {
         int txNumber = jvstm.Transaction.current().getNumber();
 
         List<VersionedValue> vvalues = getMostRecentVersions(box, txNumber);
