@@ -158,8 +158,7 @@ public class PersistentTransaction extends ConsistentTopLevelTransaction impleme
                 // body = vbox.body.getBody(number);
                 body = vbox.getBody(number);
                 if (body.value == VBox.NOT_LOADED_VALUE) {
-                    logger.error("Couldn't load the attribute {} for class {}", vbox.getSlotName(), vbox.getOwnerObject()
-                            .getClass());
+                    logger.error("Couldn't load the VBox: {}", vbox.getId());
                     throw new VersionNotAvailableException();
                 }
             }

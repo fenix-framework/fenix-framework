@@ -3,7 +3,12 @@ package pt.ist.fenixframework.backend.jvstm.pstm;
 import jvstm.ActiveTransactionsRecord;
 import jvstm.VBoxBody;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PersistentReadOnlyTransaction extends PersistentTransaction {
+
+    private static final Logger logger = LoggerFactory.getLogger(PersistentReadOnlyTransaction.class);
 
     public PersistentReadOnlyTransaction(ActiveTransactionsRecord record) {
         super(record);
@@ -20,8 +25,7 @@ public class PersistentReadOnlyTransaction extends PersistentTransaction {
             // body = vbox.body.getBody(number);
             body = vbox.getBody(number);
             if (body.value == VBox.NOT_LOADED_VALUE) {
-                System.out.println("Couldn't load the attribute " + vbox.getSlotName() + " for class "
-                        + vbox.getOwnerObject().getClass());
+                logger.error("Couldn't load the VBox: {}", vbox.getId());
                 throw new VersionNotAvailableException();
             }
         }

@@ -27,7 +27,6 @@ import org.infinispan.util.concurrent.IsolationLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
@@ -36,7 +35,6 @@ import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 import pt.ist.fenixframework.backend.jvstm.pstm.VersionedValue;
 import pt.ist.fenixframework.backend.jvstm.repository.PersistenceException;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
-import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.Externalization;
 
 //import jvstm.Transaction;
@@ -44,7 +42,7 @@ import pt.ist.fenixframework.core.Externalization;
 /**
  * This class implements the Repository interface using the Infinispan NoSQL key/value data store.
  */
-public class InfinispanRepository extends Repository {
+public class InfinispanRepository implements Repository {
 
     private static final Logger logger = LoggerFactory.getLogger(InfinispanRepository.class);
 
@@ -53,7 +51,6 @@ public class InfinispanRepository extends Repository {
     // the name of the key used to store the DomainClassInfo instances.
     private final String DOMAIN_CLASS_INFO = "DomainClassInfo";
 
-    private static final String SINGLE_BOX_SLOT_NAME = "$";
     private static final String MAX_COMMITTED_TX_ID = "maxTxId";
 
     // the name of the cache used to store system information
@@ -395,18 +392,17 @@ public class InfinispanRepository extends Repository {
 
                 for (Entry<jvstm.VBox, Object> entry : changes) {
                     VBox vbox = (VBox) entry.getKey();
-                    DomainObject owner = vbox.getOwnerObject();
                     Object newValue = entry.getValue();
 
                     newValue = (newValue == nullObject) ? null : newValue;
 
-                    String key = makeDomainKey(vbox.getSlotName(), owner);
+                    String key = makeKeyFor(vbox);
                     DataVersionHolder current = cache.get(key);
                     DataVersionHolder newVersion;
                     byte[] externalizedData = Externalization.externalizeObject(newValue);
 
                     if (current != null) {
-                        cache.put(makeVersionedDomainKey(key, current.version), current); // TODO: colocar aqui um timeout ?
+                        cache.put(makeVersionedKey(key, current.version), current); // TODO: colocar aqui um timeout ?
                         newVersion = new DataVersionHolder(txNumber, current.version, externalizedData);
                     } else {
                         newVersion = new DataVersionHolder(txNumber, -1, externalizedData);
@@ -456,13 +452,13 @@ public class InfinispanRepository extends Repository {
     private void reloadAttribute(VBox box) {
         int txNumber = jvstm.Transaction.current().getNumber();
 
-        List<VersionedValue> vvalues = getMostRecentVersions(box.getOwnerObject(), box.getSlotName(), txNumber);
+        List<VersionedValue> vvalues = getMostRecentVersions(box, txNumber);
         box.mergeVersions(vvalues);
     }
 
-    List<VersionedValue> getMostRecentVersions(final DomainObject owner, final String slotName, final int desiredVersion) {
+    List<VersionedValue> getMostRecentVersions(final VBox vbox, final int desiredVersion) {
         final Cache<String, DataVersionHolder> cache = getDomainCache();
-        final String key = makeDomainKey(slotName, owner);
+        final String key = makeKeyFor(vbox);
 
         return doWithinBackingTransactionIfNeeded(new Callable<List<VersionedValue>>() {
             @Override
@@ -485,11 +481,11 @@ public class InfinispanRepository extends Repository {
                             break;
                         }
 
-                        current = cache.get(makeVersionedDomainKey(key, current.previousVersion));
+                        current = cache.get(makeVersionedKey(key, current.previousVersion));
                     }
                 }
-                throw new PersistenceException("Version of domain object " + owner.getExternalId()
-                        + " not found for transaction number " + desiredVersion);
+                throw new PersistenceException("Version of vbox " + vbox.getId() + " not found for transaction number "
+                        + desiredVersion);
             }
         });
     }
@@ -537,21 +533,12 @@ public class InfinispanRepository extends Repository {
         }
     }
 
-    // computes and returns the key of a slotName of a domain object
-    private String makeDomainKey(String slotName, DomainObject domainObject) {
-        return convertSlotName(slotName) + ":" + ((AbstractDomainObject) domainObject).getOid();
+    private String makeKeyFor(VBox vbox) {
+        return vbox.getId();
     }
 
-    private String makeVersionedDomainKey(String domainKey, int version) {
-        return domainKey + ":" + version;
-    }
-
-    private final String convertSlotName(String slotName) {
-        if (slotName.equals("obj$state")) {
-            return SINGLE_BOX_SLOT_NAME;
-        } else {
-            return slotName;
-        }
+    private String makeVersionedKey(String key, int version) {
+        return key + ":" + version;
     }
 
     /* DataVersionHolder class. Ensures safe publication. */

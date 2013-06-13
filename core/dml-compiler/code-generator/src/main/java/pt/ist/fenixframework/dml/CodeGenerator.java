@@ -290,6 +290,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateBaseClass(DomainClass domClass, PrintWriter out) {
+        newline(out);
         printWords(out, "public", "abstract", "class", domClass.getBaseName(), "extends");
         String superclassName = getEntityFullName(domClass.getSuperclass());
         printWords(out, (superclassName == null) ? getDomainClassRoot() : superclassName);
