@@ -25,6 +25,8 @@ import pt.ist.fenixframework.backend.jvstmojb.pstm.TopLevelTransaction;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.TransactionSupport;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
 import pt.ist.fenixframework.core.WriteOnReadError;
+import pt.ist.fenixframework.core.exception.FenixRollbackException;
+import pt.ist.fenixframework.core.exception.RecoverableRollbackException;
 
 public class JvstmOJBTransactionManager extends AbstractTransactionManager {
 
@@ -218,9 +220,18 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
                             rollback();
                         }
                     }
-                } catch (RollbackException e) {
+                } catch (RecoverableRollbackException e) {
+                    // Restart the transaction if the rollback was recoverable
                     if (tries > 3) {
                         logTransactionRestart(commandName, e, tries);
+                    }
+                } catch (FenixRollbackException e) {
+                    // If the rollback isn't recoverable, attempt to unwrap
+                    // the exception and throw it.
+                    if (e.getCause() instanceof Exception) {
+                        throw (Exception) e.getCause();
+                    } else {
+                        throw e;
                     }
                 } catch (UnableToDetermineIdException e) {
                     if (tries > 3) {

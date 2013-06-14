@@ -22,6 +22,8 @@ import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.backend.jvstm.pstm.JvstmInFenixTransaction;
 import pt.ist.fenixframework.core.AbstractTransactionManager;
 import pt.ist.fenixframework.core.WriteOnReadError;
+import pt.ist.fenixframework.core.exception.FenixRollbackException;
+import pt.ist.fenixframework.core.exception.RecoverableRollbackException;
 
 public class JVSTMTransactionManager extends AbstractTransactionManager {
 
@@ -54,7 +56,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
     public void begin(boolean readOnly) throws NotSupportedException {
         JVSTMTransaction parent = transactions.get();
 
-        logger.trace("Begin {}Transaction. Read Only: {}", (parent != null ? "(nested)" : ""), readOnly);
+        logger.debug("Begin {}Transaction. Read Only: {}", (parent != null ? "(nested)" : ""), readOnly);
 
         JvstmInFenixTransaction underlying = (JvstmInFenixTransaction) Transaction.begin(readOnly);
 
@@ -71,7 +73,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
         JVSTMTransaction currentTx = transactions.get();
 
         try {
-            logger.trace("Committing Transaction");
+            logger.debug("Committing Transaction");
 
             // Note that no null check is needed, because a
             // check has been made in the super-class.
@@ -86,7 +88,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
         JVSTMTransaction currentTx = transactions.get();
 
         try {
-            logger.trace("Rolling Back Transaction");
+            logger.debug("Rolling Back Transaction");
 
             // Note that no null check is needed, because a
             // check has been made in the super-class.
@@ -156,7 +158,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
     public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception, NotSupportedException {
         final String commandName = command.getClass().getName();
 
-        logger.trace("Handling callable {}", commandName);
+        logger.debug("Handling callable {}", commandName);
 
         // preset based on atomic defaults
         boolean readOnly = false;
@@ -170,7 +172,7 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
         }
 
         if (flattenNested && getTransaction() != null) {
-            logger.trace("Using flattenNested=true");
+            logger.debug("Using flattenNested=true");
             return command.call();
         }
 
@@ -207,18 +209,26 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
                     } else {
                         rollback();
                     }
-                } catch (RollbackException e) {
-                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (RecoverableRollbackException e) {
+                    // Restart the transaction if the rollback was recoverable
+                    logger.debug("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                } catch (FenixRollbackException e) {
+                    // If the rollback isn't recoverable, attempt to unwrap
+                    // the exception and throw it.
+                    if (e.getCause() instanceof Exception) {
+                        throw (Exception) e.getCause();
+                    }
+                    throw e;
                 } catch (HeuristicMixedException e) {
-                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                    logger.debug("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
                 } catch (HeuristicRollbackException e) {
-                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                    logger.debug("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
                 } catch (SecurityException e) {
-                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                    logger.debug("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
                 } catch (IllegalStateException e) {
-                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                    logger.debug("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
                 } catch (SystemException e) {
-                    logger.trace("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
+                    logger.debug("Exception on transaction {}: {}", (commandFinished ? "commit" : "rollback"), e);
                 }
             }
         }

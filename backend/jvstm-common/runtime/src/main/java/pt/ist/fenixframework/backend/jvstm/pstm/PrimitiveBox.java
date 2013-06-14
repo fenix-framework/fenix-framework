@@ -1,16 +1,22 @@
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
 import jvstm.VBoxBody;
-import pt.ist.fenixframework.DomainObject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
+import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 
-class PrimitiveBox<E> extends VBox<E> {
+class PrimitiveBox<E> extends OwnedVBox<E> {
 
-    PrimitiveBox(DomainObject ownerObj, String slotName) {
+    private static final Logger logger = LoggerFactory.getLogger(PrimitiveBox.class);
+
+    PrimitiveBox(JVSTMDomainObject ownerObj, String slotName) {
         super(ownerObj, slotName);
     }
 
-    PrimitiveBox(DomainObject ownerObj, String slotName, VBoxBody<E> body) {
+    PrimitiveBox(JVSTMDomainObject ownerObj, String slotName, VBoxBody<E> body) {
         super(ownerObj, slotName, body);
     }
 
@@ -18,6 +24,10 @@ class PrimitiveBox<E> extends VBox<E> {
     // method is to ensure that the box gets properly loaded
     @Override
     protected void doReload(/*Object obj, String attr*/) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Reload PrimitiveVBox: {} for {}", this.slotName, this.ownerObj.getExternalId());
+        }
+
         JVSTMBackEnd.getInstance().getRepository().reloadPrimitiveAttribute(this);
     }
 

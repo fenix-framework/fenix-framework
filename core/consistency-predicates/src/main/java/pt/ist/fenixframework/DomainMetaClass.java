@@ -13,7 +13,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.adt.bplustree.BPlusTree;
+import pt.ist.fenixframework.adt.bplustree.DomainBPlusTree;
 import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicateSupport;
 import pt.ist.fenixframework.consistencyPredicates.DomainConsistencyPredicate;
@@ -100,7 +100,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
         checkFrameworkNotInitialized();
         setDomainClass(domainClass);
         DomainFenixFrameworkRoot.getInstance().addDomainMetaClass(this);
-        setExistingDomainMetaObjects(new BPlusTree<DomainMetaObject>());
+        setExistingDomainMetaObjects(new DomainBPlusTreeJVSTM<DomainMetaObject>());
         setInitialized(false);
 
         logger.info("Creating new a DomainMetaClass: " + domainClass);
@@ -171,7 +171,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     @Override
-    public BPlusTree<DomainMetaObject> getExistingDomainMetaObjects() {
+    public DomainBPlusTree<DomainMetaObject> getExistingDomainMetaObjects() {
         return super.getExistingDomainMetaObjects();
     }
 
@@ -180,7 +180,7 @@ public class DomainMetaClass extends DomainMetaClass_Base {
     }
 
     public void addExistingDomainMetaObject(DomainMetaObject metaObject) {
-        getExistingDomainMetaObjects().insert(metaObject.getOid(), metaObject);
+        getExistingDomainMetaObjects().insert(metaObject);
         metaObject.setDomainMetaClass(this);
     }
 

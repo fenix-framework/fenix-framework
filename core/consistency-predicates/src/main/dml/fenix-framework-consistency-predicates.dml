@@ -7,6 +7,19 @@ valueType java.lang.reflect.Method as PredicateMethod {
     internalizeWith pt.ist.fenixframework.consistencyPredicates.Externalization.internalizePredicateMethod();
 }
 
+/* JVSTM-Optimized DomainBPlusTree */
+
+class DomainBPlusTreeJVSTM extends .pt.ist.fenixframework.adt.bplustree.DomainBPlusTree { }
+
+class DomainBPlusTreeData {
+	int size;
+}
+
+relation DomainBPlusTreeJVSTMData {
+	DomainBPlusTreeJVSTM playsRole tree;
+	DomainBPlusTreeData playsRole treeData;
+}
+
 /* MetaObjects, MetaClasses and ConsistencyPredicates */
 
 class DomainFenixFrameworkRoot {
@@ -62,7 +75,7 @@ relation DomainMetaObjectsDomainMetaClass {
 }
 
 relation DomainMetaClassExistingDomainMetaObjects {
-    .pt.ist.fenixframework.adt.bplustree.BPlusTree playsRole existingDomainMetaObjects;
+    .pt.ist.fenixframework.adt.bplustree.DomainBPlusTree playsRole existingDomainMetaObjects;
 	DomainMetaClass playsRole;
 }
 

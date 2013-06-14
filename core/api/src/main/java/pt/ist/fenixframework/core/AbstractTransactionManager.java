@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.CommitListener;
 import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.TransactionManager;
+import pt.ist.fenixframework.core.exception.FenixRollbackException;
 
 /**
  * Abstract implementation of {@link TransactionManager}.
@@ -53,7 +54,7 @@ public abstract class AbstractTransactionManager implements TransactionManager {
              * exception will cause the transaction to be rolled back.
              */
             rollback();
-            throw new RollbackException(e.getMessage());
+            throw new FenixRollbackException(e, e.getMessage());
         }
 
         backendCommit();

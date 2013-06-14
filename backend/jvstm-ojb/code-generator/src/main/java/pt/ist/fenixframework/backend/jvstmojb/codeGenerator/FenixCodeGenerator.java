@@ -26,7 +26,7 @@ import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.dml.ValueType;
 
-public class FenixCodeGenerator extends CodeGenerator {
+public abstract class FenixCodeGenerator extends CodeGenerator {
 
     protected static final String TO_SQL_CONVERTER_CLASS = ToSqlConverter.class.getName();
 
@@ -179,6 +179,7 @@ public class FenixCodeGenerator extends CodeGenerator {
         }
     }
 
+    @Override
     protected void generateInitSlot(Slot slot, PrintWriter out) {
         onNewline(out);
         printWords(out, slot.getName());
@@ -359,7 +360,8 @@ public class FenixCodeGenerator extends CodeGenerator {
         while (!(vt.isBuiltin() || vt.isEnum())) {
             List<ExternalizationElement> extElems = vt.getExternalizationElements();
             if (extElems.size() != 1) {
-                throw new Error("Can't handle value-types with more than one externalization element yet...");
+                throw new Error("Can't handle value-types with more than one externalization element yet... ("
+                        + vt.getDomainName() + ")");
             }
 
             ExternalizationElement extElem = extElems.get(0);
@@ -424,7 +426,8 @@ public class FenixCodeGenerator extends CodeGenerator {
         while (!(vt.isBuiltin() || vt.isEnum())) {
             List<ExternalizationElement> extElems = vt.getExternalizationElements();
             if (extElems.size() != 1) {
-                throw new Error("Can't handle value-types with more than one externalization element yet...");
+                throw new Error("Can't handle value-types with more than one externalization element yet... ("
+                        + vt.getDomainName() + ")");
             }
 
             ExternalizationElement extElem = extElems.get(0);

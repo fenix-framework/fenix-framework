@@ -10,25 +10,23 @@ package pt.ist.fenixframework.backend.jvstm.infinispan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
+import pt.ist.fenixframework.backend.jvstm.cluster.JvstmClusterConfig;
 
 /**
  * This is the configuration manager used by the fenix-framework-backend-jvstm-infinispan project.
  * 
  * @see Config
  */
-public class JvstmIspnConfig extends JVSTMConfig {
+public class JvstmIspnConfig extends JvstmClusterConfig {
     private static final Logger logger = LoggerFactory.getLogger(JvstmIspnConfig.class);
 
     private static final String FAILED_INIT = "Failed to initialize Backend JVSTM-Infinispan";
 
     /**
-     * This <strong>required</strong> parameter specifies the location of the XML file used to configure Infinispan. This file
+     * This <strong>optional</strong> parameter specifies the location of the XML file used to configure Infinispan. This file
      * should be available in the application's classpath.
      */
     protected String ispnConfigFile = null;
-
-    // process this config's parameters
 
     public String getIspnConfigFile() {
         return this.ispnConfigFile;
@@ -44,11 +42,6 @@ public class JvstmIspnConfig extends JVSTMConfig {
     @Override
     public JvstmIspnBackEnd getBackEnd() {
         return (JvstmIspnBackEnd) this.backEnd;
-    }
-
-    @Override
-    public String getBackEndName() {
-        return JvstmIspnBackEnd.BACKEND_NAME;
     }
 
 }

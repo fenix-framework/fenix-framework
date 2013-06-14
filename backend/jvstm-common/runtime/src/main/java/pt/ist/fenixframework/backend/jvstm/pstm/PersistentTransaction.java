@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 import pt.ist.fenixframework.backend.jvstm.repository.PersistenceException;
+import pt.ist.fenixframework.core.TransactionError;
 import pt.ist.fenixframework.core.WriteOnReadError;
 
 public class PersistentTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction/*, TxIntrospector*/{
@@ -102,9 +103,19 @@ public class PersistentTransaction extends ConsistentTopLevelTransaction impleme
 
     @Override
     protected boolean validateCommit() {
+        ActiveTransactionsRecord mostRecentRecord = Transaction.mostRecentRecord;
+
         boolean result = super.validateCommit();
 
-        if (!result) {
+        if (result) {
+            // upgradeTx();
+            setNumber(mostRecentRecord.transactionNumber);
+            // the correct order is to increment first the
+            // new, and only then decrement the old
+            mostRecentRecord.incrementRunning();
+            this.activeTxRecord.decrementRunning();
+            this.activeTxRecord = mostRecentRecord;
+        } else {
             TransactionStatistics.STATISTICS.incConflicts();
         }
 
@@ -147,8 +158,7 @@ public class PersistentTransaction extends ConsistentTopLevelTransaction impleme
                 // body = vbox.body.getBody(number);
                 body = vbox.getBody(number);
                 if (body.value == VBox.NOT_LOADED_VALUE) {
-                    logger.error("Couldn't load the attribute {} for class {}", vbox.getSlotName(), vbox.getOwnerObject()
-                            .getClass());
+                    logger.error("Couldn't load the VBox: {}", vbox.getId());
                     throw new VersionNotAvailableException();
                 }
             }
@@ -194,10 +204,12 @@ public class PersistentTransaction extends ConsistentTopLevelTransaction impleme
             Cons<VBoxBody> temp = super.performValidCommit();
             return temp;
         } catch (PersistenceException pe) {
-            pe.printStackTrace();
-            logger.error("Error while commiting exception. Terminating server.");
-            System.exit(-1);
-            return null; // never reached, but required by the compiler
+//            pe.printStackTrace();
+//            logger.error("Error while commiting exception. Terminating server.");
+            logger.error("PersistentException while committing transaction.");
+            throw new TransactionError(pe);
+//            System.exit(-1);
+//            return null; // never reached, but required by the compiler
         }
 
     }

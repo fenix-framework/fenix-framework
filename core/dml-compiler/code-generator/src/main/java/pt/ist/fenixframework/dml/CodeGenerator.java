@@ -290,6 +290,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateBaseClass(DomainClass domClass, PrintWriter out) {
+        newline(out);
         printWords(out, "public", "abstract", "class", domClass.getBaseName(), "extends");
         String superclassName = getEntityFullName(domClass.getSuperclass());
         printWords(out, (superclassName == null) ? getDomainClassRoot() : superclassName);
@@ -674,7 +675,7 @@ public abstract class CodeGenerator {
     }
 
     /**
-     * The purpose of the initInstance method is to have the code needed to correctly initialize a
+     * The purpose of the init$Instance method is to have the code needed to correctly initialize a
      * domain object instance. There are two cases:
      * 
      * <ol>
@@ -685,19 +686,12 @@ public abstract class CodeGenerator {
      * <p>
      * In the first case the parameter 'allocateOnly' is false. Typically, we need to fully initialize the slots, e.g. create new
      * lists, etc. In the second case, the instance's attributes will be populated, so we should not create them anew.
-     * 
-     * <p>
-     * This method is responsible for: generating the <code>initInstance(boolean)</code> method; generate the call to this method
-     * as an instance initializer with the parameter <code>allocateInstance = false</code>.
      */
     protected void generateInitInstance(DomainClass domClass, PrintWriter out) {
         generateInitInstanceNoArg(domClass, out);
 
-        // generate initInstance method
+        // generate init$Instance method
         generateInitInstanceMethod(domClass, out);
-
-        // add instance initializer block that calls the initInstance method
-        generateInitInstanceInitializer(domClass, out);
     }
 
     protected void generateInitInstanceNoArg(DomainClass domClass, PrintWriter out) {
@@ -705,23 +699,24 @@ public abstract class CodeGenerator {
         newline(out);
         printMethod(out, "private", "void", "initInstance");
         startMethodBody(out);
-        print(out, "initInstance(true);");
+        print(out, "init$Instance(true);");
         endMethodBody(out);
     }
 
     protected void generateInitInstanceMethod(DomainClass domClass, PrintWriter out) {
-        onNewline(out);
         newline(out);
-        printMethod(out, "private", "void", "initInstance", makeArg("boolean", "allocateOnly"));
+        println(out, "@Override");
+        printMethod(out, "protected", "void", "init$Instance", makeArg("boolean", "allocateOnly"));
         startMethodBody(out);
         generateInitInstanceMethodBody(domClass, out);
         endMethodBody(out);
     }
 
     protected void generateInitInstanceMethodBody(DomainClass domClass, PrintWriter out) {
-        // for (Slot slot : domClass.getSlotsList()) {
-        //     generateInitSlot(slot, out);
-        // }
+        println(out, "super.init$Instance(allocateOnly);");
+        for (Slot slot : domClass.getSlotsList()) {
+            generateInitSlot(slot, out);
+        }
         onNewline(out);
 
         for (Role role : domClass.getRoleSlotsList()) {
@@ -731,11 +726,8 @@ public abstract class CodeGenerator {
         }
     }
 
-    protected void generateInitInstanceInitializer(DomainClass domClass, PrintWriter out) {
-        newline(out);
-        newBlock(out);
-        print(out, "initInstance(false);");
-        closeBlock(out);
+    protected void generateInitSlot(Slot slot, PrintWriter out) {
+        // do nothing by default
     }
 
     protected void generateInitRoleSlot(Role role, PrintWriter out) {

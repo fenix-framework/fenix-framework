@@ -11,11 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.FenixFramework;
-import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
-import pt.ist.fenixframework.backend.jvstm.pstm.PersistentReadOnlyTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.PersistentTransaction;
+import pt.ist.fenixframework.backend.jvstm.cluster.JvstmClusterBackEnd;
+import pt.ist.fenixframework.backend.jvstm.pstm.OwnedVBox;
+import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 
-public class JvstmIspnBackEnd extends JVSTMBackEnd {
+public class JvstmIspnBackEnd extends JvstmClusterBackEnd {
     private static final Logger logger = LoggerFactory.getLogger(JvstmIspnBackEnd.class);
 
     public static final String BACKEND_NAME = "jvstmispn";
@@ -34,27 +34,7 @@ public class JvstmIspnBackEnd extends JVSTMBackEnd {
     }
 
     @Override
-    protected void initializeTransactionFactory() {
-        jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
-            @Override
-            public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
-                return new PersistentTransaction(record);
-            }
-
-            @Override
-            public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
-                return new PersistentReadOnlyTransaction(record);
-            }
-        });
+    public VBox lookupCachedVBox(String vboxId) {
+        return OwnedVBox.lookupCachedVBox(vboxId);
     }
-
-    @Override
-    public void shutdown() {
-//        transactionManager.emf.close();
-    }
-
-//    protected void configJvstmIspn(JvstmIspnConfig config) throws Exception {
-//        transactionManager.setupTxManager(config);
-//    }
-
 }

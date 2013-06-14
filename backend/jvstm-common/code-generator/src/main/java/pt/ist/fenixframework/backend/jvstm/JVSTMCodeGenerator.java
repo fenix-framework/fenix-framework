@@ -10,7 +10,6 @@ package pt.ist.fenixframework.backend.jvstm;
 import java.io.PrintWriter;
 
 import pt.ist.fenixframework.dml.CompilerArgs;
-import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
 import pt.ist.fenixframework.dml.Role;
@@ -53,7 +52,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
         super.generateFilePreamble(subPackageName, out);
         println(out, "import pt.ist.fenixframework.FenixFramework;");
         println(out, "import pt.ist.fenixframework.backend.jvstm.pstm.VBox;");
-        newline(out);
+        println(out, "import pt.ist.fenixframework.backend.jvstm.pstm.OwnedVBox;");
     }
 
     //    // smf: maybe to delete? /replace with getboxtype or similar?
@@ -62,7 +61,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
 //    }
 //
     protected String getBoxBaseType() {
-        return "VBox";
+        return "OwnedVBox";
     }
 
     protected String getBoxType(String elemType) {
@@ -78,7 +77,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
     }
 
     protected String getNewSlotExpression(String slotName, boolean isReference) {
-        return "VBox.makeNew(this, \"" + slotName + "\", allocateOnly, " + isReference + ")";
+        return getBoxBaseType() + ".makeNew(this, \"" + slotName + "\", allocateOnly, " + isReference + ")";
     }
 
     protected String getNewSlotExpression(Slot slot) {
@@ -116,16 +115,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
         println(out, ";");
     }
 
-    /* smf: adds generateInitSlot to what the CodeGenerator already does.  Perhaps we should move this to the upper method... */
     @Override
-    protected void generateInitInstanceMethodBody(DomainClass domClass, PrintWriter out) {
-        for (Slot slot : domClass.getSlotsList()) {
-            generateInitSlot(slot, out);
-        }
-        super.generateInitInstanceMethodBody(domClass, out);
-    }
-
-    /* smf: It might make sense to define this method in the CodeGenerator class */
     protected void generateInitSlot(Slot slot, PrintWriter out) {
         onNewline(out);
         printWords(out, slot.getName());
@@ -140,9 +130,9 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
     // smf: It might make sense to define this method in the CodeGenerator class 
     protected void generateInitializePrimitiveIfNeeded(Slot slot, PrintWriter out) {
         PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(slot.getTypeName());
-        if (wrapperEntry != null) { // then it is a primitive type
-            generateNewSlotInitialization(slot.getName(), wrapperEntry.defaultPrimitiveValue, false, out);
-        }
+        String initialValue = wrapperEntry == null ? null : wrapperEntry.defaultPrimitiveValue;
+        // we always set the value to ensure that the box goes to the write-set.
+        generateNewSlotInitialization(slot.getName(), initialValue, false, out);
     }
 
     protected void generateNewSlotInitialization(String slotName, String slotValue, boolean bypassCheckAllocateOnly,
@@ -173,7 +163,8 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
 
     protected void generateInitRoleSlotMulOne(Role role, PrintWriter out) {
         // initialize slots with their default value
-//        generateNewSlotInitialization(role.getName(), "null", out);
+        // we always set the value to ensure that the box goes to the write-set.
+        generateNewSlotInitialization(role.getName(), "null", false, out);
 
     }
 

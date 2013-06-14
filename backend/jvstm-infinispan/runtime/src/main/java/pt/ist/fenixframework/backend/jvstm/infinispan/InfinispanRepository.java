@@ -8,14 +8,13 @@
 package pt.ist.fenixframework.backend.jvstm.infinispan;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.transaction.TransactionManager;
-
-import jvstm.Transaction;
 
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.Configuration;
@@ -28,20 +27,22 @@ import org.infinispan.util.concurrent.IsolationLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.Transaction;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 import pt.ist.fenixframework.backend.jvstm.pstm.VersionedValue;
 import pt.ist.fenixframework.backend.jvstm.repository.PersistenceException;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
-import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.Externalization;
+
+//import jvstm.Transaction;
 
 /**
  * This class implements the Repository interface using the Infinispan NoSQL key/value data store.
  */
-public class InfinispanRepository extends Repository {
+public class InfinispanRepository implements Repository {
 
     private static final Logger logger = LoggerFactory.getLogger(InfinispanRepository.class);
 
@@ -50,16 +51,19 @@ public class InfinispanRepository extends Repository {
     // the name of the key used to store the DomainClassInfo instances.
     private final String DOMAIN_CLASS_INFO = "DomainClassInfo";
 
-    private static final String SINGLE_BOX_SLOT_NAME = "$";
     private static final String MAX_COMMITTED_TX_ID = "maxTxId";
 
     // the name of the cache used to store system information
-    static final String SYSTEM_CACHE_NAME = "SystemCache";
+//    static final String SYSTEM_CACHE_NAME = "SystemCache";
+    static final String SYSTEM_CACHE_NAME = "FFCache";
     // the name of the cache used to store all instances of all domain classes
-    static final String DOMAIN_CACHE_NAME = "DomainCache";
+//    static final String DOMAIN_CACHE_NAME = "DomainCache";
+    static final String DOMAIN_CACHE_NAME = "FFCache";
 
     // this is a marker, so that when bootstrapping the repository, we can identify whether it already exists 
-    private static final String CACHE_IS_FULLY_INITIALZED = "CacheAlreadExists";
+    private static final String CACHE_IS_NEW = "CacheAlreadExists";
+
+    private static final String KEY_INSTANTIATED_CLASSES = "Set<DomainClassInfo>";
 
     Cache<String, Object> systemCache;
     Cache<String, DataVersionHolder> domainCache;
@@ -72,7 +76,7 @@ public class InfinispanRepository extends Repository {
         try {
             if (ispnConfigFile == null || ispnConfigFile.isEmpty()) {
                 logger.info("Initializing CacheManager with defaults", ispnConfigFile);
-                this.cacheManager = new DefaultCacheManager();  // smf: make ispnConfigFile optional???
+                this.cacheManager = new DefaultCacheManager();
             } else {
                 logger.info("Initializing CacheManager with default configuration provided in {}", ispnConfigFile);
                 this.cacheManager = new DefaultCacheManager(ispnConfigFile);
@@ -83,7 +87,7 @@ public class InfinispanRepository extends Repository {
         }
     }
 
-    // we need the transaction manager to init the caches (because we need preload, otherwise ispn as a bug. So, we just create a dummy cache to get its TxManager :-(
+    // we need the transaction manager to init the caches. So, we just create a dummy cache to get its TxManager :-(  There should be a better way to do this...
     private void initTransactionManager() {
         Configuration conf = makeRequiredConfiguration();
         // for the dummy cache disable, cache loaders if any was configured
@@ -106,14 +110,11 @@ public class InfinispanRepository extends Repository {
     }
 
     private boolean bootstrapIfNeeded() {
-        createSystemCache();
-        createDomainCache();
-
         return doWithinBackingTransactionIfNeeded(new Callable<Boolean>() {
             @Override
             public Boolean call() {
-                if (getSystemCache().get(CACHE_IS_FULLY_INITIALZED) == null) {
-                    getSystemCache().put(CACHE_IS_FULLY_INITIALZED, "true");
+                if (getSystemCache().get(CACHE_IS_NEW) == null) {
+                    getSystemCache().put(CACHE_IS_NEW, "false");
                     logger.info("Initialization marker not present. SystemCache is being initialized for the first time.");
                     return true; // repository is new
                 } else {
@@ -144,12 +145,13 @@ public class InfinispanRepository extends Repository {
         confBuilder.locking().isolationLevel(IsolationLevel.READ_COMMITTED).concurrencyLevel(32).useLockStriping(false)
                 .lockAcquisitionTimeout(10000);
 
-        // detect DEALOCKS (is this needed?)
+        // detect DEALOCKS (is this needed? it performs better when on... go figure)
         confBuilder.deadlockDetection().enable();
+//        confBuilder.deadlockDetection().disable();
 
-        // transactional optimistic cache
+        // transactional optimistic cache (useSynchronization(true) provides better performance)
         confBuilder.transaction().transactionMode(TransactionMode.TRANSACTIONAL).syncRollbackPhase(false).cacheStopTimeout(30000)
-                .useSynchronization(true).syncCommitPhase(false).lockingMode(LockingMode.OPTIMISTIC)
+                .useSynchronization(true).syncCommitPhase(true).lockingMode(LockingMode.OPTIMISTIC)
                 .use1PcForAutoCommitTransactions(false).autoCommit(false);
 
         // use versioning (check if it's really needed, especially in READ_COMMITTED!) 
@@ -271,6 +273,8 @@ public class InfinispanRepository extends Repository {
 
         createCacheContainer(ispnConfigFile);
         initTransactionManager();
+        createSystemCache();
+        createDomainCache();
         return bootstrapIfNeeded();
     }
 
@@ -321,22 +325,43 @@ public class InfinispanRepository extends Repository {
     }
 
     @Override
-    public long getMaxOidForClass(Class<? extends AbstractDomainObject> domainClass, long lowerLimitOid, final long upperLimitOid) {
-        final String key = domainClass.getName() + (upperLimitOid >> 48); // this is the serverOID
+    public int getMaxCounterForClass(DomainClassInfo domainClassInfo) {
+        final String key = makeKeyForMaxCounter(domainClassInfo);
 
-        return doWithinBackingTransactionIfNeeded(new Callable<Long>() {
+        return doWithinBackingTransactionIfNeeded(new Callable<Integer>() {
             @Override
-            public Long call() {
-                Long max = (Long) getSystemCache().get(key);
+            public Integer call() {
+                Integer max = (Integer) getSystemCache().get(key);
 
                 if (max == null) {
-                    return 0L;
+                    return -1;
                 }
 
                 return max;
             }
         });
 
+    }
+
+    // called when a new domain object is created inside a transaction and a new oid is assigned to the
+    // created object.  Register the class info to be updated upon commit
+    @Override
+    public void updateMaxCounterForClass(DomainClassInfo domainClassInfo, final int newCounterValue) {
+        Transaction current = FenixFramework.getTransaction();
+
+        Set<DomainClassInfo> infos = current.getFromContext(KEY_INSTANTIATED_CLASSES);
+        if (infos == null) {
+            infos = new HashSet<DomainClassInfo>();
+            current.putInContext(KEY_INSTANTIATED_CLASSES, infos);
+        }
+
+        if (infos.add(domainClassInfo)) {
+            logger.debug("Will update counter for instances of {} upon commit.", domainClassInfo.domainClassName);
+        }
+    }
+
+    private String makeKeyForMaxCounter(DomainClassInfo domainClassInfo) {
+        return String.valueOf(DomainClassInfo.getServerId()) + ":" + domainClassInfo.classId;
     }
 
     // reloads a primitive value from the storage for the specified box
@@ -361,22 +386,22 @@ public class InfinispanRepository extends Repository {
         doWithinBackingTransactionIfNeeded(new Callable<Void>() {
             @Override
             public Void call() {
+                updatePersistentInstanceCounters();
                 persistCommittedTransactionNumber(txNumber);
 
                 for (Entry<jvstm.VBox, Object> entry : changes) {
                     VBox vbox = (VBox) entry.getKey();
-                    DomainObject owner = vbox.getOwnerObject();
                     Object newValue = entry.getValue();
 
                     newValue = (newValue == nullObject) ? null : newValue;
 
-                    String key = getKey(vbox.getSlotName(), owner);
+                    String key = makeKeyFor(vbox);
                     DataVersionHolder current = cache.get(key);
                     DataVersionHolder newVersion;
                     byte[] externalizedData = Externalization.externalizeObject(newValue);
 
                     if (current != null) {
-                        cache.put(key + current.version, current); // TODO: colocar aqui um timeout
+                        cache.put(makeVersionedKey(key, current.version), current); // TODO: colocar aqui um timeout ?
                         newVersion = new DataVersionHolder(txNumber, current.version, externalizedData);
                     } else {
                         newVersion = new DataVersionHolder(txNumber, -1, externalizedData);
@@ -415,47 +440,25 @@ public class InfinispanRepository extends Repository {
     // close the connection to the repository
     @Override
     public void closeRepository() {
+        logger.info("closeRepository()");
         this.cacheManager.stop();
         this.cacheManager = null;
         maxCommittedTxId = -1;
     }
 
-    // called when a new domain object is created inside a transaction and a new oid is assigned to the
-    // created object.
-    @Override
-    public void createdNewOidFor(final long newOid, long serverOidBase, DomainClassInfo instantiatedClass) {
-        final String key = instantiatedClass.domainClassName + (serverOidBase >> 48);
-
-        synchronized (this) {
-
-            doWithinBackingTransactionIfNeeded(new Callable<Void>() {
-                @Override
-                public Void call() {
-                    Long max = (Long) getSystemCache().get(key);
-
-                    if (max == null || max < newOid) {
-                        getSystemCache().put(key, newOid);
-                    }
-
-                    return null;
-                }
-            });
-
-        }
-    }
-
     /* utility methods used by the implementation of the Repository interface methods */
 
-    private void reloadAttribute(VBox box) {
-        int txNumber = Transaction.current().getNumber();
+    @Override
+    public void reloadAttribute(VBox box) {
+        int txNumber = jvstm.Transaction.current().getNumber();
 
-        List<VersionedValue> vvalues = getMostRecentVersions(box.getOwnerObject(), box.getSlotName(), txNumber);
+        List<VersionedValue> vvalues = getMostRecentVersions(box, txNumber);
         box.mergeVersions(vvalues);
     }
 
-    List<VersionedValue> getMostRecentVersions(final DomainObject owner, final String slotName, final int desiredVersion) {
+    List<VersionedValue> getMostRecentVersions(final VBox vbox, final int desiredVersion) {
         final Cache<String, DataVersionHolder> cache = getDomainCache();
-        final String key = getKey(slotName, owner);
+        final String key = makeKeyFor(vbox);
 
         return doWithinBackingTransactionIfNeeded(new Callable<List<VersionedValue>>() {
             @Override
@@ -478,11 +481,11 @@ public class InfinispanRepository extends Repository {
                             break;
                         }
 
-                        current = cache.get(key + current.previousVersion);
+                        current = cache.get(makeVersionedKey(key, current.previousVersion));
                     }
                 }
-                throw new PersistenceException("Version of domain object " + owner.getExternalId()
-                        + " not found for transaction number " + desiredVersion);
+                throw new PersistenceException("Version of vbox " + vbox.getId() + " not found for transaction number "
+                        + desiredVersion);
             }
         });
     }
@@ -505,17 +508,37 @@ public class InfinispanRepository extends Repository {
         }
     }
 
-    // computes and returns the key of a slotName of a domain object
-    private String getKey(String slotName, DomainObject domainObject) {
-        return convertSlotName(slotName) + ((AbstractDomainObject) domainObject).getOid();
+    // only correct if invoked within a backing transaction.  Also this code
+    // assumes a single global commit lock. Otherwise the counter might be set
+    // backwards by a late-running thread.
+    private void updatePersistentInstanceCounters() {
+        Transaction current = FenixFramework.getTransaction();
+
+        Set<DomainClassInfo> infos = current.getFromContext(KEY_INSTANTIATED_CLASSES);
+
+        if (infos != null) {
+            for (DomainClassInfo info : infos) {
+                String key = makeKeyForMaxCounter(info);
+                Integer max = (Integer) getSystemCache().get(key);
+
+                int newCounterValue = info.getLastKey();
+
+                if (max == null || max < newCounterValue) {
+                    getSystemCache().put(key, newCounterValue);
+                    logger.debug("Update persistent counter for class {}: {}", info.domainClassName, newCounterValue);
+                }
+
+            }
+
+        }
     }
 
-    private final String convertSlotName(String slotName) {
-        if (slotName.equals("obj$state")) {
-            return SINGLE_BOX_SLOT_NAME;
-        } else {
-            return slotName;
-        }
+    private String makeKeyFor(VBox vbox) {
+        return vbox.getId();
+    }
+
+    private String makeVersionedKey(String key, int version) {
+        return key + ":" + version;
     }
 
     /* DataVersionHolder class. Ensures safe publication. */

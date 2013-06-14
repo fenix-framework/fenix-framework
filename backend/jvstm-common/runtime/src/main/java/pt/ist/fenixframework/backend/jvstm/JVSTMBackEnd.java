@@ -23,7 +23,7 @@ import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.FenixFrameworkData;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelReadOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.StatisticsThread;
+import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -78,15 +78,15 @@ public class JVSTMBackEnd implements BackEnd {
 
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
-        logger.trace("fromOid({})", oid);
+        logger.debug("fromOid({})", oid);
 
         AbstractDomainObject obj = SharedIdentityMap.getCache().lookup(oid);
 
         if (obj == null) {
             long longOid = ((Long) oid).longValue();
 
-            if (logger.isTraceEnabled()) {
-                logger.trace("Object not found in IdentityMap: " + longOid);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Object not found in IdentityMap: {}", Long.toHexString(longOid));
             }
 
             obj = DomainObjectAllocator.allocateObject(DomainClassInfo.mapOidToClass(longOid), oid);
@@ -101,13 +101,19 @@ public class JVSTMBackEnd implements BackEnd {
      * Initialize this backend. This method is invoked with the JVSTMConfig instance fully available.
      * 
      * @param jvstmConfig
+     * @throws Exception
      */
     public void init(JVSTMConfig jvstmConfig) {
+        int serverId = obtainNewServerId();
+        localInit(jvstmConfig, serverId);
+    }
+
+    protected void localInit(JVSTMConfig jvstmConfig, int serverId) {
         logger.info("initializeRepository()");
         boolean repositoryIsNew = initializeRepository(jvstmConfig);
 
         logger.info("initializeDomainClassInfos");
-        DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
+        initializeDomainClassInfos(serverId);
 
         logger.info("setupJVSTM");
         setupJVSTM();
@@ -122,13 +128,31 @@ public class JVSTMBackEnd implements BackEnd {
         logger.info("ensureFenixFrameworkDataExists");
         ensureFenixFrameworkDataExists();
 
-        logger.info("startStatisticsThread");
-        new StatisticsThread().start();
+//        logger.info("startStatisticsThread");
+//        new StatisticsThread().start();
+
+    }
+
+    /**
+     * Each concrete backend should override this method to provide a new server id when requested. Ideally this method could be
+     * abstract, but the default implementation always returns 0. This is so for two reasons: 1) It works well as a default value
+     * while this jvstm-common code does not wish enforce clustering support on all of its implementations; 2) The NoRepository is
+     * currently implemented at this level (some time in the future it should probably be moved to a 'jvstm-mem' backend). The
+     * Repository implementation does not support clustering, but still requires a serverId value.
+     * 
+     * @return
+     */
+    protected int obtainNewServerId() {
+        return 0;
     }
 
     // returns whether the repository is new, so that we know we need to create the DomainRoot
     protected boolean initializeRepository(JVSTMConfig jvstmConfig) {
         return this.repository.init(jvstmConfig);
+    }
+
+    protected void initializeDomainClassInfos(int serverId) {
+        DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), serverId);
     }
 
     protected void setupJVSTM() {
@@ -175,6 +199,17 @@ public class JVSTMBackEnd implements BackEnd {
         if (data == null) {
             FenixFramework.getDomainRoot().setFenixFrameworkData(new FenixFrameworkData());
         }
+    }
+
+    /**
+     * Looks up a cached VBox given its identifier.
+     * 
+     * @param vboxId The vbox identifier
+     * @return The VBox if it is available in memory. Otherwise, <code>null</code> (if either the VBox does not exist or is not in
+     *         cache).
+     */
+    public VBox lookupCachedVBox(String vboxId) {
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
     @Override

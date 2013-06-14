@@ -15,7 +15,7 @@ import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
  * 
  */
 public class InfinispanConfig extends HibernateSearchConfig {
-    private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
+    private static final Logger logger = LoggerFactory.getLogger(InfinispanConfig.class);
 
     private static final String FAILED_INIT = "Failed to initialize Backend Infinispan";
 

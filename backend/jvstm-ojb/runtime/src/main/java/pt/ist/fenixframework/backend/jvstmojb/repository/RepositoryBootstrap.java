@@ -37,7 +37,7 @@ public class RepositoryBootstrap {
             if (config.getCreateRepositoryStructureIfNotExists() || config.getUpdateRepositoryStructureIfNeeded()) {
                 boolean newInfrastructureCreated = false;
                 if (!infrastructureExists(connection) && config.getCreateRepositoryStructureIfNotExists()) {
-                    logger.trace("Updating Repository Infrastructure");
+                    logger.info("Updating Repository Infrastructure");
                     if (infrastructureNeedsUpdate(connection)) {
                         updateInfrastructure(connection);
                     } else {
@@ -46,13 +46,13 @@ public class RepositoryBootstrap {
                     }
                 }
                 if (newInfrastructureCreated || config.getUpdateRepositoryStructureIfNeeded()) {
-                    logger.trace("Updating Repository Structure");
+                    logger.info("Updating Repository Structure");
                     final String updates =
                             SQLUpdateGenerator.generateSqlUpdates(FenixFramework.getDomainModel(), connection, null, false);
                     executeSqlInstructions(connection, updates);
                 }
             }
-            logger.trace("Repository Structure update completed");
+            logger.info("Repository Structure update completed");
         } catch (SQLException ex) {
             ex.printStackTrace();
             throw new Error(ex);

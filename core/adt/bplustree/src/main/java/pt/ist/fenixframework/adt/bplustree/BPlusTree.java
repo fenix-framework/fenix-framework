@@ -43,7 +43,7 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
 
         @Override
         public String toString() {
-            return "LAST_KEY";
+            return "_$LAST_KEY$_";
         }
 
         // This object's serialization is special.  We need to ensure that two deserializations of
@@ -99,7 +99,7 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
         initRoot();
     }
 
-    private void initRoot() {
+    protected void initRoot() {
         this.setRoot(new LeafNode());
     }
 

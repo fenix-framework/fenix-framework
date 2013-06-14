@@ -9,9 +9,8 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
-import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class NoRepository extends Repository {
+public class NoRepository implements Repository {
 
     private static final Logger logger = LoggerFactory.getLogger(NoRepository.class);
 
@@ -26,8 +25,13 @@ public class NoRepository extends Repository {
     }
 
     @Override
-    public long getMaxOidForClass(Class<? extends AbstractDomainObject> domainClass, long lowerLimitOid, long upperLimitOid) {
-        return lowerLimitOid;
+    public int getMaxCounterForClass(DomainClassInfo domainClassInfo) {
+        return -1;
+    }
+
+    @Override
+    public void updateMaxCounterForClass(DomainClassInfo domainClassInfo, int newCounterValue) {
+        // no-op
     }
 
     @Override
@@ -37,6 +41,11 @@ public class NoRepository extends Repository {
 
     @Override
     public void reloadReferenceAttribute(VBox box) {
+        throw new UnsupportedOperationException("should not be invoked when using the NoRepository implementation");
+    }
+
+    @Override
+    public void reloadAttribute(VBox box) {
         throw new UnsupportedOperationException("should not be invoked when using the NoRepository implementation");
     }
 
