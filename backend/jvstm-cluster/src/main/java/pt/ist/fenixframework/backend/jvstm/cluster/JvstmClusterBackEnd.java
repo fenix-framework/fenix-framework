@@ -12,6 +12,7 @@ import jvstm.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.ClusteredPersistentReadOnlyTransaction;
@@ -23,6 +24,10 @@ public abstract class JvstmClusterBackEnd extends JVSTMBackEnd {
 
     protected JvstmClusterBackEnd(Repository repository) {
         super(repository);
+    }
+
+    public static JvstmClusterBackEnd getInstance() {
+        return (JvstmClusterBackEnd) FenixFramework.getConfig().getBackEnd();
     }
 
     @Override

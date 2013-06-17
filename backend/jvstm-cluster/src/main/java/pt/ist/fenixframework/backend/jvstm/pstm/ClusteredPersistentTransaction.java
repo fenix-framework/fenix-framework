@@ -45,7 +45,7 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
 
     @Override
     protected void tryCommit() {
-        if (isWriteTransaction() && this.perTxValues.isEmpty()) {
+        if ((JvstmClusterBackEnd.getInstance().getNumMembers() > 1) && isWriteTransaction() && this.perTxValues.isEmpty()) {
             makeSpeculativeRemoteCommit();
         }
         super.tryCommit();
@@ -86,11 +86,19 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
 
             Cons<VBoxBody> temp = super.performValidCommit();
 
+            /* It is safe to test the number of elements even if  */
             if (this.speculativeRemoteCommit != null) {
                 this.speculativeRemoteCommit.setTxNumber(this.getNumber());
                 logger.debug("Sending remote commit created before lock");
                 ClusterUtils.sendCommitInfoToOthers(this.speculativeRemoteCommit);
-            } else {
+            } else if (JvstmClusterBackEnd.getInstance().getNumMembers() > 1) {
+                /* Only send the remote commit if there is at least other member
+                in the cluster.  This test is safe: Even if another member joins
+                after the test detects only one member, then such new member
+                will not loose this commit, because it is already written to the
+                repository (and members register as remote commit listeners
+                **before** reading the last committed tx from the repository.*/
+
                 logger.debug("Creating remote commit (within lock) to send others");
                 ClusterUtils.sendCommitInfoToOthers(new RemoteCommit(DomainClassInfo.getServerId(), this.getNumber(),
                         this.boxesWritten));
