@@ -24,6 +24,7 @@ import pt.ist.fenixframework.backend.jvstm.pstm.FenixFrameworkData;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelReadOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
+import pt.ist.fenixframework.backend.jvstm.pstm.VBoxCache;
 import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -214,6 +215,7 @@ public class JVSTMBackEnd implements BackEnd {
 
     @Override
     public void shutdown() {
+        VBoxCache.getCache().shutdown();
     }
 
     public Repository getRepository() {

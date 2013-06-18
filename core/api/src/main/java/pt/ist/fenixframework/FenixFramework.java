@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.core.Project;
+import pt.ist.fenixframework.core.SharedIdentityMap;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.util.NodeBarrier;
 
@@ -417,10 +418,14 @@ public class FenixFramework {
      */
     public static synchronized void shutdown() {
         logger.info("Shutting down...");
-        if (barrier != null) {
-            barrier.shutdown();
+        synchronized (INIT_LOCK) {
+            initialized = false;
+            if (barrier != null) {
+                barrier.shutdown();
+            }
+            getConfig().shutdown();
+            SharedIdentityMap.getCache().shutdown();
         }
-        getConfig().shutdown();
         logger.info("Shutdown complete.");
     }
 
