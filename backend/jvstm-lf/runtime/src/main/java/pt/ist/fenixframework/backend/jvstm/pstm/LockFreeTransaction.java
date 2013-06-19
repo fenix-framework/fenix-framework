@@ -18,17 +18,17 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstm.lf.LockFreeClusterUtils;
 import pt.ist.fenixframework.backend.jvstm.lf.JvstmLockFreeBackEnd;
-import pt.ist.fenixframework.backend.jvstm.lf.LockFreeRemoteCommit;
-import pt.ist.fenixframework.backend.jvstm.lf.LockFreeRemoteCommit.SpeculativeRemoteCommit;
+import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest;
+import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest.SpeculativeCommitRequest;
 
 public class LockFreeTransaction extends PersistentTransaction {
 
     private static final Logger logger = LoggerFactory.getLogger(LockFreeTransaction.class);
-    private SpeculativeRemoteCommit speculativeRemoteCommit;
+    private SpeculativeCommitRequest speculativeCommitRequest;
 
     public LockFreeTransaction(ActiveTransactionsRecord record) {
         super(record);
-        ActiveTransactionsRecord newRecord = tryToApplyRemoteCommits(record);
+        ActiveTransactionsRecord newRecord = tryToApplyCommitRequests(record);
         if (newRecord != this.activeTxRecord) {
             // if a new record is returned, that means that this transaction
             // will belong
@@ -46,18 +46,18 @@ public class LockFreeTransaction extends PersistentTransaction {
     @Override
     protected void tryCommit() {
         if ((JvstmLockFreeBackEnd.getInstance().getNumMembers() > 1) && isWriteTransaction() && this.perTxValues.isEmpty()) {
-            makeSpeculativeRemoteCommit();
+            makeSpeculativeCommitRequest();
         }
         super.tryCommit();
     }
 
-    private void makeSpeculativeRemoteCommit() {
-        this.speculativeRemoteCommit = new SpeculativeRemoteCommit(DomainClassInfo.getServerId(), this.boxesWritten);
+    private void makeSpeculativeCommitRequest() {
+        this.speculativeCommitRequest = new SpeculativeCommitRequest(DomainClassInfo.getServerId(), this.boxesWritten);
     }
 
     @Override
     protected boolean validateCommit() {
-        applyRemoteCommits(this.activeTxRecord);
+        applyCommitRequests(this.activeTxRecord);
         return super.validateCommit();
     }
 
@@ -74,7 +74,7 @@ public class LockFreeTransaction extends PersistentTransaction {
                 updateToMostRecentCommit(myRecord, mostRecentGlobalTxNum);
 
                 // the cache may have been updated, so validate again
-                logger.debug("Need to re-validate tx due to remote commits");
+                logger.debug("Need to re-validate tx due to commit requests");
                 if (!validateCommit()) { // we may use a variation here, because we know we don't need to recheck the queue 
                     logger.warn("Invalid commit. Restarting.");
                     throw new jvstm.CommitException();
@@ -87,20 +87,20 @@ public class LockFreeTransaction extends PersistentTransaction {
             Cons<VBoxBody> temp = super.performValidCommit();
 
             /* It is safe to test the number of elements even if  */
-            if (this.speculativeRemoteCommit != null) {
-                this.speculativeRemoteCommit.setTxNumber(this.getNumber());
-                logger.debug("Sending remote commit created before lock");
-                LockFreeClusterUtils.sendCommitInfoToOthers(this.speculativeRemoteCommit);
+            if (this.speculativeCommitRequest != null) {
+                this.speculativeCommitRequest.setTxNumber(this.getNumber());
+                logger.debug("Sending commit request created before lock");
+                LockFreeClusterUtils.sendCommitInfoToOthers(this.speculativeCommitRequest);
             } else if (JvstmLockFreeBackEnd.getInstance().getNumMembers() > 1) {
-                /* Only send the remote commit if there is at least other member
+                /* Only send the commit request if there is at least other member
                 in the cluster.  This test is safe: Even if another member joins
                 after the test detects only one member, then such new member
                 will not loose this commit, because it is already written to the
-                repository (and members register as remote commit listeners
+                repository (and members register as commit request listeners
                 **before** reading the last committed tx from the repository.*/
 
-                logger.debug("Creating remote commit (within lock) to send others");
-                LockFreeClusterUtils.sendCommitInfoToOthers(new LockFreeRemoteCommit(DomainClassInfo.getServerId(), this.getNumber(),
+                logger.debug("Creating commit request (within lock) to send others");
+                LockFreeClusterUtils.sendCommitInfoToOthers(new CommitRequest(DomainClassInfo.getServerId(), this.getNumber(),
                         this.boxesWritten));
             }
             commitSuccess = true;
@@ -114,20 +114,20 @@ public class LockFreeTransaction extends PersistentTransaction {
 
     /* this is a debug feature. This counter should only increase (although it
     may skip some numbers, because local commits are not enqueued). If the order
-    of remote commits may become skewed then it's because the thread that processed
+    of commit requests may become skewed then it's because the thread that processed
     the messages is being allowed to execute after the global global lock has been
     released */
     private static int debug_hazelcast_last_commit_seen = Transaction.getMostRecentCommitedNumber();
 
-    /* this method only returns after having applied all remote commits up until
-    the mostRecentGlobalTxNum. This way we ensure that no earlier remote commit
+    /* this method only returns after having applied all commit requests up until
+    the mostRecentGlobalTxNum. This way we ensure that no earlier commit request
     is missing, which would cause us to commit a wrong tx version */
     public static ActiveTransactionsRecord updateToMostRecentCommit(ActiveTransactionsRecord currentCommitRecord,
             int mostRecentGlobalTxNum) {
         logger.debug("Must apply commits from {} up to {}", currentCommitRecord.transactionNumber, mostRecentGlobalTxNum);
 
         while (currentCommitRecord.transactionNumber < mostRecentGlobalTxNum) {
-            ActiveTransactionsRecord newCommitRecord = applyRemoteCommits(currentCommitRecord);
+            ActiveTransactionsRecord newCommitRecord = applyCommitRequests(currentCommitRecord);
             if (newCommitRecord == currentCommitRecord) {
                 logger.debug("There was nothing yet to process");
 //                try {
@@ -138,7 +138,7 @@ public class LockFreeTransaction extends PersistentTransaction {
 //                }
                 Thread.yield();
             } else {
-                logger.debug("Processed remote commits up to {}", newCommitRecord.transactionNumber);
+                logger.debug("Processed commit requests up to {}", newCommitRecord.transactionNumber);
             }
             currentCommitRecord = newCommitRecord;
         }
@@ -146,17 +146,17 @@ public class LockFreeTransaction extends PersistentTransaction {
         return currentCommitRecord;
     }
 
-    /* this method tries to apply as many remote commits as it finds in the queue. if it fails to get the lock it returns without doing anything */
-    public static ActiveTransactionsRecord tryToApplyRemoteCommits(ActiveTransactionsRecord record) {
-        logger.debug("Try to apply remote commits if any.");
+    /* this method tries to apply as many commit requests as it finds in the queue. if it fails to get the lock it returns without doing anything */
+    public static ActiveTransactionsRecord tryToApplyCommitRequests(ActiveTransactionsRecord record) {
+        logger.debug("Try to apply commit requests if any.");
         // avoid locking if queue is empty
-        if (LockFreeClusterUtils.getRemoteCommits().isEmpty()) {
-//            logger.debug("No remote commits to apply. Great.");
+        if (LockFreeClusterUtils.getCommitRequests().isEmpty()) {
+//            logger.debug("No commit requests to apply. Great.");
             /* we need to always return the most recent committed number:
 
             - if inside a commit (already holding the commit lock), this ensures
             that we're able to detect record advances caused by the processing
-            of the remote commits queue (e.g. while we were waiting to acquire
+            of the commit requests queue (e.g. while we were waiting to acquire
             the global lock) 
             
             - if starting a new transaction, it attempts to improve on the version
@@ -168,7 +168,7 @@ public class LockFreeTransaction extends PersistentTransaction {
 //        COMMIT_LOCK.lock(); // change to tryLock to allow the starting transactions to begin without waiting for a long commit (which in fact may already have processed the queue :-))  
         if (COMMIT_LOCK.tryLock()) {
             try {
-                return applyRemoteCommits(record);
+                return applyCommitRequests(record);
             } finally {
                 COMMIT_LOCK.unlock();
             }
@@ -178,50 +178,50 @@ public class LockFreeTransaction extends PersistentTransaction {
     }
 
     // must be called while holding the local commit lock
-    private static ActiveTransactionsRecord applyRemoteCommits(ActiveTransactionsRecord record) {
+    private static ActiveTransactionsRecord applyCommitRequests(ActiveTransactionsRecord record) {
         int currentCommittedNumber = Transaction.getMostRecentCommitedNumber();
 
-        LockFreeRemoteCommit lockFreeRemoteCommit;
-        while ((lockFreeRemoteCommit = LockFreeClusterUtils.getRemoteCommits().poll()) != null) {
-            int txNum = lockFreeRemoteCommit.getTxNumber();
+        CommitRequest commitRequest;
+        while ((commitRequest = LockFreeClusterUtils.getCommitRequests().poll()) != null) {
+            int txNum = commitRequest.getTxNumber();
 
-            /* this may occur only when booting.  It happens when remote
-            commit messages arrive between the time the topic channel is
+            /* this may occur only when booting.  It happens when commit
+            request messages arrive between the time the topic channel is
             established, but the most recent committed version hasn't been
             initialized yet.  When it gets initialized, it is typically to
             a greater value than the one from the txs that are enqueued. */
             if (txNum <= currentCommittedNumber) {
-                logger.info("Ignoring outdated remote commit txNum={} <= mostRecentNum={}.", txNum, currentCommittedNumber);
+                logger.info("Ignoring outdated commit request txNum={} <= mostRecentNum={}.", txNum, currentCommittedNumber);
                 continue;
             }
 
             if (txNum <= debug_hazelcast_last_commit_seen) {
-                logger.error("The remote commit has a number({}) <= last_seen({})", txNum, debug_hazelcast_last_commit_seen);
+                logger.error("The commit request has a number({}) <= last_seen({})", txNum, debug_hazelcast_last_commit_seen);
                 System.exit(-1);
-                throw new Error("Inconsistent remote commit. This should not happen");
+                throw new Error("Inconsistent commit request. This should not happen");
             } else {
                 logger.debug("remove me :-)");
                 debug_hazelcast_last_commit_seen = txNum;
             }
-            applyRemoteCommit(lockFreeRemoteCommit);
-            currentCommittedNumber = lockFreeRemoteCommit.getTxNumber();
+            applyCommitRequest(commitRequest);
+            currentCommittedNumber = commitRequest.getTxNumber();
         }
 
         return findActiveRecordForNumber(record, currentCommittedNumber);
     }
 
     // within commit lock
-    private static void applyRemoteCommit(LockFreeRemoteCommit lockFreeRemoteCommit) {
-        int serverId = lockFreeRemoteCommit.getServerId();
-        int txNumber = lockFreeRemoteCommit.getTxNumber();
+    private static void applyCommitRequest(CommitRequest commitRequest) {
+        int serverId = commitRequest.getServerId();
+        int txNumber = commitRequest.getTxNumber();
 
-        logger.debug("Applying remote commit: serverId={}, txNumber={}", serverId, txNumber);
+        logger.debug("Applying commit request: serverId={}, txNumber={}", serverId, txNumber);
 
         Cons<VBoxBody> newBodies = Cons.empty();
 
-        int size = lockFreeRemoteCommit.getIds().length;
+        int size = commitRequest.getIds().length;
         for (int i = 0; i < size; i++) {
-            String vboxId = lockFreeRemoteCommit.getIds()[i];
+            String vboxId = commitRequest.getIds()[i];
 
             JvstmLockFreeBackEnd backEnd = (JvstmLockFreeBackEnd) FenixFramework.getConfig().getBackEnd();
 
@@ -237,7 +237,7 @@ public class LockFreeTransaction extends PersistentTransaction {
                     newBodies = newBodies.cons(newBody);
                 }
             } else {
-                logger.debug("Ignoring remote commit for vbox not found in local memory: {}", vboxId);
+                logger.debug("Ignoring commit request for vbox not found in local memory: {}", vboxId);
             }
         }
 

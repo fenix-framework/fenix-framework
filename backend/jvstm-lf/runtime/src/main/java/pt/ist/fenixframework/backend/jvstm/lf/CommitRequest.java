@@ -25,21 +25,21 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.hazelcast.nio.DataSerializable;
 
-public class LockFreeRemoteCommit implements DataSerializable {
+public class CommitRequest implements DataSerializable {
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = LoggerFactory.getLogger(LockFreeRemoteCommit.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommitRequest.class);
 
     protected int serverId;
     protected int txNumber;
 
     protected String[] ids;
 
-    public LockFreeRemoteCommit() {
+    public CommitRequest() {
         // required by Hazelcast's DataSerializable
     }
 
-    public LockFreeRemoteCommit(int serverId, int txNumber, Map<jvstm.VBox, Object> boxesWritten) {
+    public CommitRequest(int serverId, int txNumber, Map<jvstm.VBox, Object> boxesWritten) {
         this.serverId = serverId;
         this.txNumber = txNumber;
 
@@ -82,7 +82,7 @@ public class LockFreeRemoteCommit implements DataSerializable {
             commitSize += ids[i].length(); // debug: UTF-8 simplification but good enough to get a debug figure
         }
 
-        logger.debug("LockFreeRemoteCommit approximate size: {} bytes", commitSize);
+        logger.debug("CommitRequest approximate size: {} bytes", commitSize);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class LockFreeRemoteCommit implements DataSerializable {
         return str.toString();
     }
 
-    public static class SpeculativeRemoteCommit extends LockFreeRemoteCommit {
+    public static class SpeculativeCommitRequest extends CommitRequest {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -126,12 +126,12 @@ public class LockFreeRemoteCommit implements DataSerializable {
         // prepared data to send so that during commit lock, things can go faster
         protected String commitData;
 
-        public SpeculativeRemoteCommit() {
+        public SpeculativeCommitRequest() {
             // required by Hazelcast's DataSerializable
         }
 
-        // makes a speculative LockFreeRemoteCommit (doesn't yet know the transaction number). Advantage: can be performed outside the locked code :-)
-        public SpeculativeRemoteCommit(int serverId, Map<jvstm.VBox, Object> boxesWritten) {
+        // makes a speculative CommitRequest (doesn't yet know the transaction number). Advantage: can be performed outside the locked code :-)
+        public SpeculativeCommitRequest(int serverId, Map<jvstm.VBox, Object> boxesWritten) {
             super();
 
             // get everything ready to 'just' send
@@ -183,7 +183,7 @@ public class LockFreeRemoteCommit implements DataSerializable {
 
         @Override
         public String toString() {
-            // if this is remote commit was received then the oids array is set.  Otherwise, we'll print the JSON array
+            // if this is commit request was received then the oids array is set.  Otherwise, we'll print the JSON array
             if (getIds() != null) {
                 return super.toString();
             } else {
