@@ -49,10 +49,21 @@
     </build>
 
     <dependencies>
+        <!--
+            Remove the dependency on jvstm:jvstm-fenix when getting
+            fenix-framework-backend-jvstm-common-runtime.  We're using a
+            different JVSTM here
+        -->
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-backend-jvstm-common-runtime</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>jvstm</groupId>
+                    <artifactId>jvstm-fenix</artifactId>
+                </exclusion>
+           </exclusions>
         </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
