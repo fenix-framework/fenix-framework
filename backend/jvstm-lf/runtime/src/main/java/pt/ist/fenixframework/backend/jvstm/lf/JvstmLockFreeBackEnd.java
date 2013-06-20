@@ -8,6 +8,7 @@
 package pt.ist.fenixframework.backend.jvstm.lf;
 
 import jvstm.Transaction;
+import jvstm.TransactionUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
             logger.info("This is the first node!");
             localInit(thisConfig, serverId);
             // initialize the global lock value to the most recent commit tx number
-            LockFreeClusterUtils.initGlobalLockNumber(Transaction.getMostRecentCommitedNumber());
+            LockFreeClusterUtils.initGlobalLockNumber(Transaction.mostRecentCommittedRecord.transactionNumber);
             // any necessary distributed communication infrastructures must be configured/set before notifying others to proceed
             LockFreeClusterUtils.notifyStartupComplete();
             /* alternatively we can now use the initGlobalLockNumber as the
@@ -87,6 +88,18 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
                 return new LockFreeReadOnlyTransaction(record);
             }
         });
+    }
+
+    // need to override because the API for this operation has changed in JVSTM 2
+    @Override
+    protected void initializeJvstmTxNumber() {
+        int maxTx = getRepository().getMaxCommittedTxNumber();
+        if (maxTx >= 0) {
+            logger.info("Setting the last committed TX number to {}", maxTx);
+            TransactionUtils.initializeTxNumber(maxTx);
+        } else {
+            throw new Error("Couldn't determine the last transaction number");
+        }
     }
 
     @Override
