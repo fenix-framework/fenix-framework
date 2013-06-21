@@ -7,11 +7,21 @@
  */
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.UUID;
+
 import jvstm.ActiveTransactionsRecord;
+import jvstm.TransactionSignaller;
 import jvstm.cps.ConsistentTopLevelTransaction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest;
+import pt.ist.fenixframework.backend.jvstm.lf.LockFreeClusterUtils;
+import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
+import pt.ist.fenixframework.backend.jvstm.lf.RemoteWriteSet;
 
 public class LockFreeTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction {
 
@@ -69,6 +79,137 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     @Override
     public int getNumBoxWrites() {
         return numBoxWrites;
+    }
+
+    @Override
+    protected void validate() {
+        UUID commitRequestId = broadcastCommitRequest();
+        boolean valid = processCommitRequestsUpTo(commitRequestId);
+        /* At this point, all transactions enqueued ahead are either valid and
+        enqueued-to-write-back or were found invalid and discarded. If our commit
+        request was valid, then we're also enqueued-to-write-back.  If not, just
+        get out.*/
+        if (!valid) {
+            TransactionSignaller.SIGNALLER.signalCommitFail();
+        }
+    }
+
+    public static CommitRequest cr;
+
+    private UUID broadcastCommitRequest() {
+        CommitRequest commitRequest = makeCommitRequest();
+        cr = commitRequest;
+        LockFreeClusterUtils.sendCommitRequest(commitRequest);
+        return commitRequest.getId();
+    }
+
+    private CommitRequest makeCommitRequest() {
+        return new CommitRequest(DomainClassInfo.getServerId(), makeRemoteReadSet(), makeRemoteWriteSet());
+    }
+
+    private RemoteReadSet makeRemoteReadSet() {
+        HashSet<String> vboxIds = new HashSet<String>();
+
+        if (!this.bodiesRead.isEmpty()) {
+            // the first may not be full
+            jvstm.VBox[] array = this.bodiesRead.first();
+            for (int i = next + 1; i < array.length; i++) {
+                String vboxId = ((VBox) array[i]).getId();
+                vboxIds.add(vboxId);
+            }
+
+            // the rest are full
+            for (jvstm.VBox[] ar : bodiesRead.rest()) {
+                for (int i = 0; i < ar.length; i++) {
+                    String vboxId = ((VBox) array[i]).getId();
+                    vboxIds.add(vboxId);
+                }
+            }
+        }
+
+        return new RemoteReadSet(vboxIds.toArray(new String[vboxIds.size()]));
+    }
+
+    private RemoteWriteSet makeRemoteWriteSet() {
+        // code adapted from jvstm.WriteSet. It's a bit redundant, and cumbersome to maintain if the original code happens to change :-/  This should be refactored
+
+        // CODE TO DEAL WITH PARALLEL NESTED TRANSACTIONS REMOVED FROM THE ORIGINAL
+
+        int maxRequiredSize = this.boxesWrittenInPlace.size() + this.boxesWritten.size();
+
+        String[] vboxIds = new String[maxRequiredSize];
+        Object[] values = new Object[maxRequiredSize];
+        int pos = 0;
+
+        // Deal with VBoxes written in place
+        for (jvstm.VBox vbox : this.boxesWrittenInPlace) {
+            vboxIds[pos] = ((VBox) vbox).getId();
+            values[pos++] = vbox.getInplace().tempValue;
+            vbox.getInplace().next = null;
+        }
+
+        // Deal with VBoxes written in the fallback write-set
+        for (Map.Entry<jvstm.VBox, Object> entry : boxesWritten.entrySet()) {
+            jvstm.VBox vbox = entry.getKey();
+            if (vbox.getInplace().orec.owner == this) {
+                // if we also wrote directly to the box, we just skip this value
+                continue;
+            }
+            vboxIds[pos] = ((VBox) vbox).getId();
+            values[pos++] = entry.getValue();
+        }
+        int writeSetLength = pos;
+
+        return new RemoteWriteSet(vboxIds, values, writeSetLength);
+    }
+
+    /**
+     * Process commit requests until either: (1) commitRequestId is seen and processed or (2) another helper deals with our
+     * request and we advance from this point
+     * 
+     * @param commitRequestId
+     * @return
+     */
+    private boolean processCommitRequestsUpTo(UUID commitRequestId) {
+        /* cuidado na forma como processamos os elementos da queue. deixamos sempre um
+        ou eliminamos o ultimo.  se formos eliminar o ultimo temos que reinicializar o
+        last = null antes para garantir que (1) quem vir nulo na ref vera o last a null
+        e (2) quem ainda NAO vir null na ref ... que?!? */
+
+        /* segundo cuidado: ver como notificar a thread que o seu pedido ja foi
+        tratado. um mapa de tx locais que indexa por uuid?  e como tratar das
+        outras? criar uma LockFreeRemoteTx?  Ver como isto se desenrola e depois
+        agir em conformidade aqui no ciclo que trata remote commits na fila.
+        Será o mapa de <UUID, localtx>  ou <UUID, local-remotecommit>? */
+
+        do {
+            CommitRequest commitRequest = LockFreeClusterUtils.getCommitRequestAtHead();
+
+            if (commitRequest != null) {
+                UUID lastProcessed = processCommitRequest(commitRequest);
+            }
+        } while (isMyRequestPending(commitRequestId));
+
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+
+    /**
+     * Process the next commitRequest in line.
+     * 
+     * @return
+     */
+    private UUID processCommitRequest(CommitRequest commitRequest) {
+        /* Decide if this request is valid. Do so by running the local validation algorithm */
+//        RemoteTransaction rt = makeLockFreeTransaction
+
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+
+    private boolean isMyRequestPending(UUID commitRequestId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
 //// LOCK-BASED STUFF BELOW
@@ -136,7 +277,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 //                **before** reading the last committed tx from the repository.*/
 //
 //                logger.debug("Creating commit request (within lock) to send others");
-//                LockFreeClusterUtils.sendCommitInfoToOthers(new CommitRequest(DomainClassInfo.getServerId(), this.getNumber(),
+//                LockFreeClusterUtils.sendCommitInfoToOthers(new OldCommitRequest(DomainClassInfo.getServerId(), this.getNumber(),
 //                        this.boxesWritten));
 //            }
 //            commitSuccess = true;
@@ -217,7 +358,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 //    private static ActiveTransactionsRecord applyCommitRequests(ActiveTransactionsRecord record) {
 //        int currentCommittedNumber = Transaction.getMostRecentCommitedNumber();
 //
-//        CommitRequest commitRequest;
+//        OldCommitRequest commitRequest;
 //        while ((commitRequest = LockFreeClusterUtils.getCommitRequests().poll()) != null) {
 //            int txNum = commitRequest.getTxNumber();
 //
@@ -247,7 +388,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 //    }
 //
 //    // within commit lock
-//    private static void applyCommitRequest(CommitRequest commitRequest) {
+//    private static void applyCommitRequest(OldCommitRequest commitRequest) {
 //        int serverId = commitRequest.getServerId();
 //        int txNumber = commitRequest.getTxNumber();
 //

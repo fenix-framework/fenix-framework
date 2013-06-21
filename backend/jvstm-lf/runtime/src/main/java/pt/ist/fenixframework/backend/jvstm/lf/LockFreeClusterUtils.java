@@ -7,13 +7,10 @@
  */
 package pt.ist.fenixframework.backend.jvstm.lf;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
-import pt.ist.fenixframework.core.TransactionError;
 
 import com.hazelcast.core.AtomicNumber;
 import com.hazelcast.core.Hazelcast;
@@ -33,7 +30,14 @@ public class LockFreeClusterUtils {
     private static HazelcastInstance HAZELCAST_INSTANCE;
 
     // commit requests that have not been applied yet
-    private static final ConcurrentLinkedQueue<CommitRequest> COMMIT_REQUESTS = new ConcurrentLinkedQueue<CommitRequest>();
+    private static final AtomicReference<CommitRequest> commitRequestsHead = new AtomicReference<CommitRequest>();
+    // avoids iterating from the head every time a commit request arrives
+    private static CommitRequest lastKnownCommitRequestsTail = null;
+
+//    // where to append commit requests. may be outdated due to concurrency, so we need to be careful when updating this reference 
+//    private static volatile AtomicReference<CommitRequest> commitRequestTail = new AtomicReference<CommitRequest>(null);
+
+//    private static final ConcurrentLinkedQueue<CommitRequest> COMMIT_REQUESTS = new ConcurrentLinkedQueue<CommitRequest>();
 
     private LockFreeClusterUtils() {
     }
@@ -52,27 +56,55 @@ public class LockFreeClusterUtils {
         topic.addMessageListener(new MessageListener<CommitRequest>() {
 
             @Override
-            public void onMessage(Message<CommitRequest> message) {
+            public final void onMessage(Message<CommitRequest> message) {
                 CommitRequest commitRequest = message.getMessageObject();
 
-                if (commitRequest.getServerId() == DomainClassInfo.getServerId()) {
-                    logger.debug("Ignoring self commit message.");
-                } else {
-                    logger.debug("Received commit request message. serverId={}, tx={}", commitRequest.getServerId(),
-                            commitRequest.getTxNumber());
-//                    logger.debug("lets take a break");
-//                    try {
-//                        Thread.sleep(5000);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                        System.exit(-1);
-//                    }
-                    COMMIT_REQUESTS.offer(commitRequest);
-//                    logger.debug("Enqueued commit request: serverId={}, tx={}", commitRequest.getServerId(),
-//                            commitRequest.getTxNumber());
-                }
-
+                logger.debug("Received commit request message. id={}, serverId={}", commitRequest.getId(),
+                        commitRequest.getServerId());
+//                COMMIT_REQUESTS.offer(commitRequest);
+                enqueueCommitRequest(commitRequest);
             }
+
+            private final void enqueueCommitRequest(CommitRequest commitRequest) {
+                CommitRequest current = commitRequestsHead.get();
+                if (current == null) {
+                    // according to Hazelcast onMessage runs on a single thread, so this CAS should never fail
+                    if (!commitRequestsHead.compareAndSet(null, commitRequest)) {
+                        enqueueFailed();
+                    }
+                } else {
+                    /* THIS IS BUGGY. Solution will depend on what LFTx.processCommitRequestsUpTo does()... */
+
+                    /* Find last element and enqueue it.  It may happen that
+                    after the previous test (current == null => false) occurs
+                    (and we get here) another thread processes the entire queue
+                    and sets the commitRequestsHead = null.  In that case, we
+                    need to ensure that after setting last.next = commitRequest,
+                    we put it, if needed, at the head. */
+
+                    CommitRequest last = (lastKnownCommitRequestsTail == null ? current : lastKnownCommitRequestsTail);
+                    CommitRequest next = last.getNext();
+                    for (; next != null; last = next, next = next.getNext()) {
+                        ;
+                    }
+                    // according to Hazelcast, onMessage() runs on a single thread, so this CAS should never fail
+                    if (!last.setNext(commitRequest)) {
+                        enqueueFailed();
+                    }
+                    // update last known tail
+                    lastKnownCommitRequestsTail = commitRequest;
+
+                    // in case the queue got cleared, let's not miss this request
+
+                }
+            }
+
+            private void enqueueFailed() throws AssertionError {
+                String message = "Impossible condition: failed to enqueue commit request";
+                logger.error(message);
+                throw new AssertionError(message);
+            }
+
         });
     }
 
@@ -132,7 +164,7 @@ public class LockFreeClusterUtils {
         return intId;
     }
 
-    public static void sendCommitInfoToOthers(CommitRequest commitRequest) {
+    public static void sendCommitRequest(CommitRequest commitRequest) {
         // test for debug, because computing commitRequest.toString() is expensive
         if (logger.isDebugEnabled()) {
             logger.debug("Send commit info to others: {}", commitRequest);
@@ -142,8 +174,18 @@ public class LockFreeClusterUtils {
         topic.publish(commitRequest);
     }
 
-    public static ConcurrentLinkedQueue<CommitRequest> getCommitRequests() {
-        return COMMIT_REQUESTS;
+//    public static ConcurrentLinkedQueue<CommitRequest> getCommitRequests() {
+//        return COMMIT_REQUESTS;
+//    }
+
+    /**
+     * Get the first commit request enqueued still to process. It may be null if there is no commit request left to handle.
+     * 
+     * @return The {@link CommitRequest} at the head of the queue or <code>null</code> if there is not pending request to process
+     *         at the moment.
+     */
+    public static CommitRequest getCommitRequestAtHead() {
+        return commitRequestsHead.get();
     }
 
     public static void shutdown() {
@@ -170,51 +212,51 @@ public class LockFreeClusterUtils {
     //////////////// TO DELETE BELOW THIS ///////////////////////
     //////////////// TO DELETE BELOW THIS ///////////////////////
 
-    public static int globalLock() {
-        logger.debug("Will get global cluster lock...");
-
-        try {
-            AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
-
-//            int ourLockValue = 0 - DomainClassInfo.getServerId();
-            do {
-                long currentValue = lockNumber.get();
-                boolean unlocked = currentValue != FF_GLOBAL_LOCK_LOCKED_VALUE;
-
-                if (unlocked && lockNumber.compareAndSet(currentValue, FF_GLOBAL_LOCK_LOCKED_VALUE)) {
-                    logger.debug("Acquired global cluster lock. ({} -> {})", currentValue, FF_GLOBAL_LOCK_LOCKED_VALUE);
-
-                    return (int) currentValue;  // transaction counters fit into an integer
-                } else {
-                    logger.debug("Global lock taken. Retrying...");
-
-                    globalLockIsNotYetAvailable();
-                }
-            } while (true);
-        } catch (RuntimeException e) {
-            logger.error("Failed to acquire global lock");
-            throw new TransactionError(e);
-        }
-    }
-
-    /* We'll retry later. Several mechanisms can be used here.  Which is the
-    best? For now we try to help a little by spending time checking if the
-    COMMIT_REQUESTS queue requires any processing.  Also, this may help other
-    transactions that are starting to go ahead */
-    private static void globalLockIsNotYetAvailable() {
-        // first naive version. just burn cpu
-        Thread.yield();
-    }
-
-    public static void globalUnlock(int txNum) {
-        logger.debug("Will release global cluster lock ( -> {})", txNum);
-        try {
-            AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
-            lockNumber.set(txNum);
-        } catch (RuntimeException e) {
-            logger.error("Failed to release global lock");
-            throw new TransactionError(e);
-        }
-    }
+//    public static int globalLock() {
+//        logger.debug("Will get global cluster lock...");
+//
+//        try {
+//            AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
+//
+////            int ourLockValue = 0 - DomainClassInfo.getServerId();
+//            do {
+//                long currentValue = lockNumber.get();
+//                boolean unlocked = currentValue != FF_GLOBAL_LOCK_LOCKED_VALUE;
+//
+//                if (unlocked && lockNumber.compareAndSet(currentValue, FF_GLOBAL_LOCK_LOCKED_VALUE)) {
+//                    logger.debug("Acquired global cluster lock. ({} -> {})", currentValue, FF_GLOBAL_LOCK_LOCKED_VALUE);
+//
+//                    return (int) currentValue;  // transaction counters fit into an integer
+//                } else {
+//                    logger.debug("Global lock taken. Retrying...");
+//
+//                    globalLockIsNotYetAvailable();
+//                }
+//            } while (true);
+//        } catch (RuntimeException e) {
+//            logger.error("Failed to acquire global lock");
+//            throw new TransactionError(e);
+//        }
+//    }
+//
+//    /* We'll retry later. Several mechanisms can be used here.  Which is the
+//    best? For now we try to help a little by spending time checking if the
+//    COMMIT_REQUESTS queue requires any processing.  Also, this may help other
+//    transactions that are starting to go ahead */
+//    private static void globalLockIsNotYetAvailable() {
+//        // first naive version. just burn cpu
+//        Thread.yield();
+//    }
+//
+//    public static void globalUnlock(int txNum) {
+//        logger.debug("Will release global cluster lock ( -> {})", txNum);
+//        try {
+//            AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
+//            lockNumber.set(txNum);
+//        } catch (RuntimeException e) {
+//            logger.error("Failed to release global lock");
+//            throw new TransactionError(e);
+//        }
+//    }
 
 }

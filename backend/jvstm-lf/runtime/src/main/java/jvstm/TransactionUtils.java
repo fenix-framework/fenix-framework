@@ -14,7 +14,4 @@ public class TransactionUtils {
         Transaction.setMostRecentCommittedRecord(initialRecord);
     }
 
-    public static void signalCommitFail() {
-        TransactionSignaller.SIGNALLER.signalCommitFail();
-    }
 }
