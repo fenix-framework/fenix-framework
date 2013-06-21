@@ -50,7 +50,7 @@
         <version.jta>1.1</version.jta>
         <version.junit>4.10</version.junit>
         <version.jvstm-fenix>1.4</version.jvstm-fenix>
-        <version.jvstm-lock-free>2.0</version.jvstm-lock-free>
+        <version.jvstm-lock-free>2.1</version.jvstm-lock-free>
         <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
         <version.maven.build-helper-plugin>1.7</version.maven.build-helper-plugin>
         <version.maven.core>3.0.3</version.maven.core>
