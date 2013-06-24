@@ -13,11 +13,11 @@ import jvstm.VBoxBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LockFreeReadOnlyTransaction extends LockFreeTransaction {
+public class DistributedLockFreeReadOnlyTransaction extends DistributedLockFreeTransaction {
 
-    private static final Logger logger = LoggerFactory.getLogger(LockFreeReadOnlyTransaction.class);
+    private static final Logger logger = LoggerFactory.getLogger(DistributedLockFreeReadOnlyTransaction.class);
 
-    public LockFreeReadOnlyTransaction(ActiveTransactionsRecord record) {
+    public DistributedLockFreeReadOnlyTransaction(ActiveTransactionsRecord record) {
         super(record);
     }
 
@@ -50,7 +50,7 @@ public class LockFreeReadOnlyTransaction extends LockFreeTransaction {
 
     @Override
     public void setReadOnly() {
-        // nothing to do, LockFreeReadOnlyTransaction is already read-only :-)
+        // nothing to do, DistributedLockFreeReadOnlyTransaction is already read-only :-)
     }
 
 }

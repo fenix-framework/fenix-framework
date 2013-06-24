@@ -30,9 +30,10 @@ public class LockFreeClusterUtils {
     private static HazelcastInstance HAZELCAST_INSTANCE;
 
     // commit requests that have not been applied yet
-    private static final AtomicReference<CommitRequest> commitRequestsHead = new AtomicReference<CommitRequest>();
-    // avoids iterating from the head every time a commit request arrives
-    private static CommitRequest lastKnownCommitRequestsTail = null;
+    private static final AtomicReference<CommitRequest> commitRequestsHead = new AtomicReference<CommitRequest>(
+            CommitRequest.SENTINEL);
+    // this avoids iterating from the head every time a commit request arrives.  Is only used by the (single) thread that enqueues requests
+    private static CommitRequest commitRequestsTail = commitRequestsHead.get();
 
 //    // where to append commit requests. may be outdated due to concurrency, so we need to be careful when updating this reference 
 //    private static volatile AtomicReference<CommitRequest> commitRequestTail = new AtomicReference<CommitRequest>(null);
@@ -59,44 +60,22 @@ public class LockFreeClusterUtils {
             public final void onMessage(Message<CommitRequest> message) {
                 CommitRequest commitRequest = message.getMessageObject();
 
+                commitRequest.assignTransaction();
+
                 logger.debug("Received commit request message. id={}, serverId={}", commitRequest.getId(),
                         commitRequest.getServerId());
-//                COMMIT_REQUESTS.offer(commitRequest);
                 enqueueCommitRequest(commitRequest);
             }
 
             private final void enqueueCommitRequest(CommitRequest commitRequest) {
-                CommitRequest current = commitRequestsHead.get();
-                if (current == null) {
-                    // according to Hazelcast onMessage runs on a single thread, so this CAS should never fail
-                    if (!commitRequestsHead.compareAndSet(null, commitRequest)) {
-                        enqueueFailed();
-                    }
-                } else {
-                    /* THIS IS BUGGY. Solution will depend on what LFTx.processCommitRequestsUpTo does()... */
+                CommitRequest last = commitRequestsTail;
 
-                    /* Find last element and enqueue it.  It may happen that
-                    after the previous test (current == null => false) occurs
-                    (and we get here) another thread processes the entire queue
-                    and sets the commitRequestsHead = null.  In that case, we
-                    need to ensure that after setting last.next = commitRequest,
-                    we put it, if needed, at the head. */
-
-                    CommitRequest last = (lastKnownCommitRequestsTail == null ? current : lastKnownCommitRequestsTail);
-                    CommitRequest next = last.getNext();
-                    for (; next != null; last = next, next = next.getNext()) {
-                        ;
-                    }
-                    // according to Hazelcast, onMessage() runs on a single thread, so this CAS should never fail
-                    if (!last.setNext(commitRequest)) {
-                        enqueueFailed();
-                    }
-                    // update last known tail
-                    lastKnownCommitRequestsTail = commitRequest;
-
-                    // in case the queue got cleared, let's not miss this request
-
+                // according to Hazelcast, onMessage() runs on a single thread, so this CAS should never fail
+                if (!last.setNext(commitRequest)) {
+                    enqueueFailed();
                 }
+                // update last known tail
+                commitRequestsTail = commitRequest;
             }
 
             private void enqueueFailed() throws AssertionError {
@@ -108,7 +87,7 @@ public class LockFreeClusterUtils {
         });
     }
 
-    public static void initGlobalLockNumber(int value) {
+    public static void initGlobalCommittedNumber(int value) {
         AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
         lockNumber.compareAndSet(0, value);
     }
@@ -174,18 +153,41 @@ public class LockFreeClusterUtils {
         topic.publish(commitRequest);
     }
 
-//    public static ConcurrentLinkedQueue<CommitRequest> getCommitRequests() {
-//        return COMMIT_REQUESTS;
-//    }
-
     /**
-     * Get the first commit request enqueued still to process. It may be null if there is no commit request left to handle.
+     * Get the first element in the commit requests queue.
      * 
-     * @return The {@link CommitRequest} at the head of the queue or <code>null</code> if there is not pending request to process
-     *         at the moment.
+     * @return The {@link CommitRequest} at the head of the queue.
      */
     public static CommitRequest getCommitRequestAtHead() {
         return commitRequestsHead.get();
+    }
+
+    /**
+     * Clears the given commit request from the head of the remote commits queue if: (1) there is a next one; AND (2) the head is
+     * still the given request. This method should only be invoked when the commit request to remove is already handled (either
+     * committed or marked as invalid).
+     * 
+     * @param commitRequest The commitRequest to remove from head
+     * @return The commit request left at the head. This can be either: (1) The commit request given as argument (if it could not
+     *         be removed); (2) the commit request following the one given in the argument; or (3) any other commit request (if
+     *         the one given as argument was no longer at the head (which means it had been removed already by another thread.
+     */
+    public static CommitRequest tryToRemoveCommitRequest(CommitRequest commitRequest) {
+        CommitRequest next = commitRequest.getNext();
+
+        if (next == null) {
+            logger.debug("Commit request {} has no next yet.  Must remain at the head", commitRequest.getId());
+            return commitRequest;
+        }
+
+        if (commitRequestsHead.compareAndSet(commitRequest, next)) {
+            logger.debug("Removed commit request {} from the head.", commitRequest.getId());
+            return next;
+        } else {
+            logger.debug("Commit request {} was no longer at the head.", commitRequest.getId());
+            return commitRequestsHead.get();
+        }
+
     }
 
     public static void shutdown() {

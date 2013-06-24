@@ -13,26 +13,58 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import pt.ist.fenixframework.backend.jvstm.pstm.AbstractLockFreeTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.RemoteLockFreeTransaction;
+
 import com.hazelcast.nio.DataSerializable;
 
 public class CommitRequest implements DataSerializable {
 
     private static final long serialVersionUID = 1L;
 
+    private static final Logger logger = LoggerFactory.getLogger(CommitRequest.class);
+
+    /* The sentinel has a null transaction attribute. It is only used to ensure
+    that there is a beginning to the commit requests queue */
+    public final static CommitRequest SENTINEL = new CommitRequest();
+
+    /**
+     * A unique request ID.
+     */
     private UUID id;
+
+    /**
+     * The serverId from where the request originates.
+     */
     private int serverId;
+
+    /**
+     * The current version of the transaction that creates this commit request.
+     */
+    private int txVersion;
+
     private RemoteReadSet readSet;
     private RemoteWriteSet writeSet;
-    // The next commit request to process when they are queued.
+
+    /* The following fields are set only by the receiver of the commit request. */
+
+    // The next commit request to process in the queue.
     private final AtomicReference<CommitRequest> next = new AtomicReference<CommitRequest>();
+    // The corresponding LockFreeTransaction
+    private LockFreeTransaction transaction;
 
     public CommitRequest() {
         // required by Hazelcast's DataSerializable
     }
 
-    public CommitRequest(int serverId, RemoteReadSet readSet, RemoteWriteSet writeSet) {
-        this.serverId = serverId;
+    public CommitRequest(int serverId, int txVersion, RemoteReadSet readSet, RemoteWriteSet writeSet) {
         this.id = UUID.randomUUID();
+        this.serverId = serverId;
+        this.txVersion = txVersion;
         this.readSet = readSet;
         this.writeSet = writeSet;
     }
@@ -45,6 +77,10 @@ public class CommitRequest implements DataSerializable {
         return this.serverId;
     }
 
+    public int getTxVersion() {
+        return this.txVersion;
+    }
+
     public CommitRequest getNext() {
         return this.next.get();
     }
@@ -53,9 +89,30 @@ public class CommitRequest implements DataSerializable {
         return this.next.compareAndSet(null, next);
     }
 
+    public LockFreeTransaction getTransaction() {
+        return this.transaction;
+    }
+
+    /**
+     * Set this request's {@link LockFreeTransaction}. It does so based on whether its a local or a remote commit. This method
+     * must be called before making the CommitRequest visible to others: This way there is no race in the assignment of this
+     * request's transaction.
+     */
+    public void assignTransaction() {
+        AbstractLockFreeTransaction tx = AbstractLockFreeTransaction.commitsMap.get(this.id);
+        if (this.transaction != null) {
+            logger.debug("Assigning LocalLockFreeTransaction to CommitRequest");
+            this.transaction = new LocalLockFreeTransaction(this, tx);
+        } else {
+            logger.debug("Assigning new RemoteLockFreeTransaction to CommitRequest");
+            this.transaction = new RemoteLockFreeTransaction(this);
+        }
+    }
+
     @Override
     public void writeData(DataOutput out) throws IOException {
         out.writeInt(this.serverId);
+        out.writeInt(this.txVersion);
         out.writeLong(this.id.getMostSignificantBits());
         out.writeLong(this.id.getLeastSignificantBits());
         this.readSet.writeTo(out);
@@ -65,6 +122,7 @@ public class CommitRequest implements DataSerializable {
     @Override
     public void readData(DataInput in) throws IOException {
         this.serverId = in.readInt();
+        this.txVersion = in.readInt();
         this.id = new UUID(in.readLong(), in.readLong());
         this.readSet = RemoteReadSet.readFrom(in);
         this.writeSet = RemoteWriteSet.readFrom(in);
@@ -74,6 +132,7 @@ public class CommitRequest implements DataSerializable {
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("id=").append(this.getId());
+        str.append(", txVersion=").append(this.getTxVersion());
         str.append(", serverId=").append(this.getServerId());
         str.append(", readset={");
         str.append(this.readSet.toString());
@@ -83,4 +142,43 @@ public class CommitRequest implements DataSerializable {
         return str.toString();
     }
 
+    /**
+     * Handles a commit request. This method is responsible for all the operations required to commit this request. In the end the
+     * request will be marked either as committed or invalid. It may then be removed from the queue of commit requests. It will
+     * not be removed from the queue if there is no 'next' request. This is to ensure the invariant: There is always at least one
+     * request in the queue.
+     * 
+     * @return The next request to process, or <code>null</code> if there are no more records in line.
+     */
+    public CommitRequest handle() {
+        CommitRequest next = null;
+        try {
+            if (this != SENTINEL) {
+                this.commit();
+            }
+        } finally {
+            next = advanceToNext();
+        }
+        return next;
+    }
+
+    private void commit() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+
+    /**
+     * Attempts to remove the current commit request from the head of the queue. It always returns the commit request following
+     * this one, which may be <code>null</code> if there is no next request.
+     * 
+     * @return The commit request following this one (may be <code>null</code> if there is no next request).
+     */
+    private CommitRequest advanceToNext() {
+        /* If we were to return the result of this method we could skip over
+        some commits, in particular, the one we're interested in committing. */
+        LockFreeClusterUtils.tryToRemoveCommitRequest(this);
+
+        // Always return the commit that really follows
+        return this.getNext();
+    }
 }
