@@ -365,8 +365,8 @@ public abstract class Config {
      * orderly shutdown the framework.
      */
     protected void shutdown() {
-        getBackEnd().shutdown();
         FenixFrameworkThread.shutdownAllThreads();
+        getBackEnd().shutdown();
     }
 
     /* UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - BEGIN */
