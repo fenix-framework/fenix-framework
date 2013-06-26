@@ -1,4 +1,4 @@
-package pt.ist.fenixframework.backend.jvstm.lf;
+package pt.ist.fenixframework.backend.jvstm.pstm;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.TransactionSignaller;
@@ -7,10 +7,10 @@ import jvstm.WriteSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest;
 import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest.ValidationStatus;
-import pt.ist.fenixframework.backend.jvstm.pstm.AbstractLockFreeTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.DistributedLockFreeTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
+import pt.ist.fenixframework.backend.jvstm.lf.JvstmLockFreeBackEnd;
+import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
 
 public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
 

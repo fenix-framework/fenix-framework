@@ -7,7 +7,6 @@
  */
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
-import pt.ist.fenixframework.backend.jvstm.lf.LocalLockFreeTransaction;
 
 public interface LockFreeTransaction {
 

@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.pstm.AbstractLockFreeTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.DistributedLockFreeTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.LocalLockFreeTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.RemoteLockFreeTransaction;
 
 import com.hazelcast.nio.DataSerializable;
