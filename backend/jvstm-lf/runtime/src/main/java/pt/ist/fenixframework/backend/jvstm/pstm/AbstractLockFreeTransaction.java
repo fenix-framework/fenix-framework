@@ -9,31 +9,15 @@ import jvstm.cps.ConsistentTopLevelTransaction;
 public abstract class AbstractLockFreeTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction,
         LockFreeTransaction {
 
-    private enum ValidationStatus {
-        UNSET, VALID, INVALID;
-    };
-
-    // smf: may need to add here a ref to the commitrecord.  It'd similar to the commitTxRecord in TLTransaction, except that this would be for txs not yet validaded :-) 
+    // smf: may need to add here a ref to the commitrecord.  It'd be similar to the commitTxRecord in TLTransaction, except that this would be for txs not yet validaded :-) 
 
     /**
      * Maps all {@link DistributedLockFreeTransaction}s using their id as key. Whoever completes the processing is required to
-     * remove
-     * the entry from this map, lest it grow indefinitely with the number of transactions.
+     * remove the entry from this map, lest it grow indefinitely with the number of transactions.
      * 
      */
-//    /**
-//     * Maps all {@link CommitRequest}s using their id as key. Whoever completes the processing is required to remove
-//     * the entry from this map, lest it grow indefinitely with the number of transactions.
-//     * 
-//     */
-    public final static ConcurrentHashMap<UUID, AbstractLockFreeTransaction> commitsMap =
-            new ConcurrentHashMap<UUID, AbstractLockFreeTransaction>();
-
-    /* for any transaction instance this will always change deterministically
-    from UNSET to either VALID or INVALID, i.e. if concurrent helpers try to
-    decide, they will conclude the same and the value will never revert back to
-    UNSET. */
-    private volatile ValidationStatus validationStatus = ValidationStatus.UNSET;
+    public final static ConcurrentHashMap<UUID, DistributedLockFreeTransaction> commitsMap =
+            new ConcurrentHashMap<UUID, DistributedLockFreeTransaction>();
 
     private boolean readOnly = false;
 
@@ -78,7 +62,6 @@ public abstract class AbstractLockFreeTransaction extends ConsistentTopLevelTran
 
     @Override
     public void localCommit() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
+        this.commitTx(true);  // TODO follow the 'normal' commit path and override as needed
     }
 }

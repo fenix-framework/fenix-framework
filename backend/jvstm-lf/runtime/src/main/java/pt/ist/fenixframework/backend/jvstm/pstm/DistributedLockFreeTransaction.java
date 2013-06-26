@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import jvstm.ActiveTransactionsRecord;
+import jvstm.TransactionSignaller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,18 +43,32 @@ public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction 
 //        }
     }
 
-    /* This is the main entrance point for the lock-free commit. We override try
-    commit, and we do not call super.trycommit().  This way we reuse such hierarchy
-    from LocalLockFreeTransaction, which is the instance that we create to
-    decorate DistributedTransactions from the local node.  In short, here we
+    /* This is the main entrance point for the lock-free commit. We override
+    tryCommit, and we do not call super.trycommit().  This way we reuse such
+    hierarchy from LocalLockFreeTransaction, which is the instance that we create
+    to decorate DistributedTransactions from the local node.  In short, here we
     just broadcast a commit request and go process the queue until we're either
     committed or found invalid. */
     @Override
     protected void tryCommit() {
         if (isWriteTransaction()) {
+
+            if (this.perTxValues != EMPTY_MAP) {
+                logger.error("PerTxValues are not supported in distributed transactions yet.");
+                TransactionSignaller.SIGNALLER.signalCommitFail();
+                throw new AssertionError("Impossible condition - Commit fail signalled!");
+            }
+
+// From ConsistentTopLevelTransaction
+            alreadyChecked = new HashSet();
+            checkConsistencyPredicates();
+            alreadyChecked = null; // allow gc of set
+
+// From TopLevelTransaction
 //            validate();
 //            ensureCommitStatus();
-//            upgradeTx(this.commitTxRecord);
+
+            // smf TODO IMPORTANT: we may consider a local validation before broadcasting the commit request!
 
             CommitRequest myRequest = makeCommitRequest();
 
@@ -62,12 +77,16 @@ public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction 
 
             UUID myRequestId = broadcastCommitRequest(myRequest);
 
-            // the myRequest instance is different, because it was deserialized and serialized againd
+            // the myRequest instance is different, because it was serialized and deserialized. So, update it
             myRequest = tryCommit(currentRequest, myRequestId);
+
             /* Throw an exception if the validation of our commit request failed.  Otherwise, we're done! */
             throw new UnsupportedOperationException("MISSING: if (!myRequest.getSucceeded()) {"
                     + "  TransactionUtils.signalCommitFail(); "
                     + "  throw new AssertionError(\"Impossible condition - Commit fail signalled!\");}");
+
+// From TopLevelTransaction
+//            upgradeTx(this.commitTxRecord);
         }
     }
 

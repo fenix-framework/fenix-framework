@@ -12,6 +12,10 @@ public class RemoteReadSet {
         this.vboxIds = vboxIds;
     }
 
+    public String[] getVBoxIds() {
+        return this.vboxIds;
+    }
+
     public void writeTo(DataOutput out) throws IOException {
         // write number of ids
         out.writeInt(this.vboxIds.length);

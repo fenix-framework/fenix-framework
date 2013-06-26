@@ -59,7 +59,7 @@ public class TransactionUtils {
         }
 
         @Override
-        protected boolean trySetNext(ActiveTransactionsRecord next) {
+        public boolean trySetNext(ActiveTransactionsRecord next) {
             throw new UnsupportedOperationException("not yet implemented");
             /* might be used to set a pointer to a valid 'local' record? or maybe
             even to another RemoteActiveTransactionsRecord before eventually
