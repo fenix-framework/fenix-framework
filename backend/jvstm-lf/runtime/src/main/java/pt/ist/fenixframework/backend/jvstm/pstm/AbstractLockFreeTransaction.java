@@ -6,8 +6,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import jvstm.ActiveTransactionsRecord;
 import jvstm.cps.ConsistentTopLevelTransaction;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class AbstractLockFreeTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction,
         LockFreeTransaction {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractLockFreeTransaction.class);
 
     // smf: may need to add here a ref to the commitrecord.  It'd be similar to the commitTxRecord in TLTransaction, except that this would be for txs not yet validaded :-) 
 
@@ -62,6 +67,6 @@ public abstract class AbstractLockFreeTransaction extends ConsistentTopLevelTran
 
     @Override
     public void localCommit() {
-        this.commitTx(true);  // TODO follow the 'normal' commit path and override as needed
+        this.commitTx(false); // smf TODO: double-check whether we want to mess with ActiveTxRecords, thread-locals, etc.  I guess 'false' is the way to go...
     }
 }

@@ -41,12 +41,33 @@ public class CommitRequest implements DataSerializable {
 
     /* The sentinel has a null transaction attribute. It is only used to ensure
     that there is a beginning to the commit requests queue */
-    public final static CommitRequest SENTINEL = new CommitRequest();
+    public final static CommitRequest SENTINEL = new CommitRequest() {
+        private static final long serialVersionUID = 2L;
+
+        {
+            this.id = new UUID(0, 0);
+        }
+
+        @Override
+        public ValidationStatus getValidationStatus() {
+            return ValidationStatus.UNSET;
+        };
+
+        @Override
+        public void internalHandle() {
+            // no-op
+        };
+
+        @Override
+        public String toString() {
+            return "SENTINEL";
+        };
+    };
 
     /**
      * A unique request ID.
      */
-    private UUID id;
+    protected UUID id;
 
     /**
      * The serverId from where the request originates.
@@ -115,11 +136,11 @@ public class CommitRequest implements DataSerializable {
      */
     public void assignTransaction() {
         DistributedLockFreeTransaction tx = AbstractLockFreeTransaction.commitsMap.remove(this.id);
-        if (this.transaction != null) {
-            logger.debug("Assigning LocalLockFreeTransaction to CommitRequest");
+        if (tx != null) {
+            logger.debug("Assigning LocalLockFreeTransaction to CommitRequest: {}", this.id);
             this.transaction = new LocalLockFreeTransaction(this, tx);
         } else {
-            logger.debug("Assigning new RemoteLockFreeTransaction to CommitRequest");
+            logger.debug("Assigning new RemoteLockFreeTransaction to CommitRequest: {}", this.id);
             this.transaction = new RemoteLockFreeTransaction(this);
         }
     }
@@ -170,9 +191,7 @@ public class CommitRequest implements DataSerializable {
     public CommitRequest handle() {
         CommitRequest next = null;
         try {
-            if (this != SENTINEL) {
-                this.getTransaction().localCommit();
-            }
+            internalHandle();
         } catch (Throwable e) {
             logger.debug("Handling localCommit for request {} threw {}.  It will be obfuscated by the return of this method.",
                     this.getId(), e);
@@ -180,6 +199,10 @@ public class CommitRequest implements DataSerializable {
             next = advanceToNext();
             return next;
         }
+    }
+
+    protected void internalHandle() {
+        this.getTransaction().localCommit();
     }
 
     public ValidationStatus getValidationStatus() {

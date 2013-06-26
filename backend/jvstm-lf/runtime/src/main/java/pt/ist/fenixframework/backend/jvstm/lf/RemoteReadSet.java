@@ -37,8 +37,11 @@ public class RemoteReadSet {
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
-        str.append("vboxIds={");
         int size = this.vboxIds.length;
+
+        str.append("size=").append(size);
+        str.append(", vboxIds={");
+
         for (int i = 0; i < size; i++) {
             if (i != 0) {
                 str.append(", ");

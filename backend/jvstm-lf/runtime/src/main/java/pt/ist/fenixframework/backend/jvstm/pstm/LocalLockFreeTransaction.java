@@ -18,16 +18,24 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
 
     private final CommitRequest commitRequest;
 
+    private final DistributedLockFreeTransaction decoratedTransaction;
+
     public LocalLockFreeTransaction(CommitRequest commitRequest, DistributedLockFreeTransaction tx) {
         super(tx.getActiveTxRecord());
+        this.decoratedTransaction = tx;
         this.commitRequest = commitRequest;
 
     }
 
     @Override
+    public boolean isWriteTransaction() {
+        return true;
+    }
+
+    @Override
     public int getNumber() {
         // smf: TODO check this
-        /* using this.commitRequest.getTransaction().getNumber(); is safer, but
+        /* using this.decoratedTransaction.getNumber(); is safer, but
         only works for LocalLockFreeTransaction.  On the other hand. can getNumber()
         here always run the code below safely? Yes, if we don't upgrade the
         transaction's version. */
@@ -66,7 +74,8 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
         boolean alreadyValidated = validationStatus != ValidationStatus.UNSET;
 
         if (alreadyValidated) {
-            logger.debug("This commit request is already {}", (validationStatus == validationStatus.VALID ? "VALID" : "INVALID"));
+            logger.debug("Commit request {} is already {}", this.commitRequest.getId(),
+                    (validationStatus == validationStatus.VALID ? "VALID" : "INVALID"));
             return;
         }
         super.validate();
@@ -122,11 +131,16 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
 
     @Override
     public WriteSet makeWriteSet() {
-        return this.commitRequest.getTransaction().makeWriteSet();
+        return this.decoratedTransaction.makeWriteSet();
     }
 
     @Override
     protected void enqueueValidCommit(ActiveTransactionsRecord lastCheck, WriteSet writeSet) {
+        /* This commitTxRecord was set during validateCommitAndEnqueue, and we
+        need to pass it to the decorated tx, so that it can use it later after
+        the helped commit phase. */
+        this.decoratedTransaction.setCommitTxRecord(this.commitTxRecord);
+
         if (lastCheck.trySetNext(this.commitTxRecord)) {
             logger.debug("Enqueued record for valid transaction {} of commit request {}", this.commitTxRecord.transactionNumber,
                     this.commitRequest.getId());
@@ -134,6 +148,13 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
             logger.debug("Transaction {} of commit request {} was already enqueued by another helper.",
                     this.commitTxRecord.transactionNumber, this.commitRequest.getId());
         }
+    }
 
+    @Override
+    protected void upgradeTx(ActiveTransactionsRecord newRecord) {
+        // no op.  
+        /* This is not a required step in this type of transaction.  The
+        corresponding DistributedLockFreeTransaction will do this on its own
+        node, after all the helping is done. */
     }
 }

@@ -12,12 +12,14 @@ import java.util.Map;
 import java.util.UUID;
 
 import jvstm.ActiveTransactionsRecord;
+import jvstm.CommitException;
 import jvstm.TransactionSignaller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest;
+import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest.ValidationStatus;
 import pt.ist.fenixframework.backend.jvstm.lf.LockFreeClusterUtils;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteWriteSet;
@@ -59,35 +61,34 @@ public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction 
                 throw new AssertionError("Impossible condition - Commit fail signalled!");
             }
 
-// From ConsistentTopLevelTransaction
+// From ConsistentTopLevelTransaction:
             alreadyChecked = new HashSet();
             checkConsistencyPredicates();
             alreadyChecked = null; // allow gc of set
 
-// From TopLevelTransaction
+// From TopLevelTransaction:
 //            validate();
 //            ensureCommitStatus();
+// replaced with:
+            helpedTryCommit();
 
-            // smf TODO IMPORTANT: we may consider a local validation before broadcasting the commit request!
-
-            CommitRequest myRequest = makeCommitRequest();
-
-            // start by reading the current commit queue's head.  This is to ensure that we don't miss our own commit request
-            CommitRequest currentRequest = LockFreeClusterUtils.getCommitRequestAtHead();
-
-            UUID myRequestId = broadcastCommitRequest(myRequest);
-
-            // the myRequest instance is different, because it was serialized and deserialized. So, update it
-            myRequest = tryCommit(currentRequest, myRequestId);
-
-            /* Throw an exception if the validation of our commit request failed.  Otherwise, we're done! */
-            throw new UnsupportedOperationException("MISSING: if (!myRequest.getSucceeded()) {"
-                    + "  TransactionUtils.signalCommitFail(); "
-                    + "  throw new AssertionError(\"Impossible condition - Commit fail signalled!\");}");
-
-// From TopLevelTransaction
-//            upgradeTx(this.commitTxRecord);
+// From TopLevelTransaction:
+            upgradeTx(this.commitTxRecord);  // it was set by the helper LocalLockFreeTransaction 
         }
+    }
+
+    protected void helpedTryCommit() throws UnsupportedOperationException {
+        // smf TODO IMPORTANT: we may consider a local validation before broadcasting the commit request!
+
+        CommitRequest myRequest = makeCommitRequest();
+
+        // start by reading the current commit queue's head.  This is to ensure that we don't miss our own commit request
+        CommitRequest currentRequest = LockFreeClusterUtils.getCommitRequestAtHead();
+
+        UUID myRequestId = broadcastCommitRequest(myRequest);
+
+        // the myRequest instance is different, because it was serialized and deserialized. So, just use its id.
+        tryCommit(currentRequest, myRequestId);
     }
 
     private UUID broadcastCommitRequest(CommitRequest commitRequest) {
@@ -164,19 +165,31 @@ public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction 
      * @param requestToProcess Head of the remote commits queue
      * @param myRequestId My commit request's ID
      * @return The {@link CommitRequest} that corresponds to myRequestId
+     * @throws CommitException if the validation of my request failed
      */
-    private CommitRequest tryCommit(CommitRequest requestToProcess, UUID myRequestId) {
+    private CommitRequest tryCommit(CommitRequest requestToProcess, UUID myRequestId) throws CommitException {
         // get a transaction and invoke its commit.
 
         CommitRequest current = requestToProcess;
 
         while (true) {
-            logger.debug("Will handle commit request: {}", current.getId().toString());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Will handle commit request: {}", current);
+            }
 
             CommitRequest next = current.handle();
             if (current.getId().equals(myRequestId)) {
-                logger.debug("Processed my commit request: {}", myRequestId.toString());
-                return current;  // we're done!
+                logger.debug("Processed my commit request: {}. ValidationStatus: {}", myRequestId.toString(),
+                        current.getValidationStatus());
+
+                boolean valid = current.getValidationStatus() == ValidationStatus.VALID;
+                if (!valid) {
+                    TransactionSignaller.SIGNALLER.signalCommitFail();
+                    throw new AssertionError("Impossible condition - Commit fail signalled!");
+                }
+
+                // we know that a valid commit request was written back. we're done
+                return current;
             }
 
             if (next == null) {

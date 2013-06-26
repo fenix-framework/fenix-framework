@@ -60,10 +60,10 @@ public class LockFreeClusterUtils {
             public final void onMessage(Message<CommitRequest> message) {
                 CommitRequest commitRequest = message.getMessageObject();
 
-                commitRequest.assignTransaction();
-
                 logger.debug("Received commit request message. id={}, serverId={}", commitRequest.getId(),
                         commitRequest.getServerId());
+
+                commitRequest.assignTransaction();
                 enqueueCommitRequest(commitRequest);
             }
 
