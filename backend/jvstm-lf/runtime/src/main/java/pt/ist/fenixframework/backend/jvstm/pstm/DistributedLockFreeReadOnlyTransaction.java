@@ -19,6 +19,7 @@ public class DistributedLockFreeReadOnlyTransaction extends DistributedLockFreeT
 
     public DistributedLockFreeReadOnlyTransaction(ActiveTransactionsRecord record) {
         super(record);
+        setReadOnly();
     }
 
     // repeats the code from PersistentReadOnlyTransaction. We definitely need

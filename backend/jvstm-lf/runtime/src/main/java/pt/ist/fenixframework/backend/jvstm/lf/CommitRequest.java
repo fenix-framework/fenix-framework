@@ -37,7 +37,9 @@ public class CommitRequest implements DataSerializable {
     from UNSET to either VALID or INVALID, i.e. if concurrent helpers try to
     decide, they will conclude the same and the value will never revert back to
     UNSET. */
-    private volatile ValidationStatus validationStatus = ValidationStatus.UNSET; // AtomicReference?
+//    private volatile ValidationStatus validationStatus = ValidationStatus.UNSET; // AtomicReference?
+    private final AtomicReference<ValidationStatus> validationStatus = new AtomicReference<ValidationStatus>(
+            ValidationStatus.UNSET); // AtomicReference?
 
     /* The sentinel has a null transaction attribute. It is only used to ensure
     that there is a beginning to the commit requests queue */
@@ -193,8 +195,12 @@ public class CommitRequest implements DataSerializable {
         try {
             internalHandle();
         } catch (Throwable e) {
-            logger.debug("Handling localCommit for request {} threw {}.  It will be obfuscated by the return of this method.",
-                    this.getId(), e);
+            if (logger.isDebugEnabled()) {
+                logger.debug(
+                        "Handling localCommit for request {} threw {}.  It will be obfuscated by the return of this method.",
+                        this.getId(), e);
+                e.printStackTrace();
+            }
         } finally {
             next = advanceToNext();
             return next;
@@ -206,7 +212,8 @@ public class CommitRequest implements DataSerializable {
     }
 
     public ValidationStatus getValidationStatus() {
-        return this.validationStatus;
+//        return this.validationStatus;
+        return this.validationStatus.get();
     }
 
     /**
@@ -214,7 +221,13 @@ public class CommitRequest implements DataSerializable {
      * attempt it will have the same opinion.
      */
     public void setInvalid() {
-        this.validationStatus = ValidationStatus.INVALID;
+//        this.validationStatus = ValidationStatus.INVALID;
+        ValidationStatus previous = this.validationStatus.getAndSet(ValidationStatus.INVALID);
+        if (previous == ValidationStatus.VALID) {
+            String msg = "This is a bug! Validation status must be deterministic!";
+            logger.error("msg");
+            System.exit(-1);
+        }
     }
 
     /**
@@ -222,7 +235,13 @@ public class CommitRequest implements DataSerializable {
      * attempt it will have the same opinion.
      */
     public void setValid() {
-        this.validationStatus = ValidationStatus.VALID;
+//        this.validationStatus = ValidationStatus.VALID;
+        ValidationStatus previous = this.validationStatus.getAndSet(ValidationStatus.VALID);
+        if (previous == ValidationStatus.INVALID) {
+            String msg = "This is a bug! Validation status must be deterministic!";
+            logger.error("msg");
+            System.exit(-1);
+        }
     }
 
     /**

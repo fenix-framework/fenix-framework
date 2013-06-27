@@ -86,7 +86,7 @@ public class TransactionUtils {
         }
 
         @Override
-        protected WriteSet getWriteSet() {
+        public WriteSet getWriteSet() {
             throw new AssertionFailure("Should be used on a RemoteActiveTransactionsRecord instance.");
         }
 

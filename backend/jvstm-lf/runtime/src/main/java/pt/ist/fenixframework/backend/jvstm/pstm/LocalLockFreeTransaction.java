@@ -1,7 +1,11 @@
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
+import static jvstm.UtilUnsafe.UNSAFE;
 import jvstm.ActiveTransactionsRecord;
+import jvstm.TopLevelTransaction;
 import jvstm.TransactionSignaller;
+import jvstm.UtilUnsafe;
+import jvstm.VBox;
 import jvstm.WriteSet;
 
 import org.slf4j.Logger;
@@ -16,14 +20,19 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
 
     private static final Logger logger = LoggerFactory.getLogger(LocalLockFreeTransaction.class);
 
+    private static final long commitTxRecordOffset = UtilUnsafe.objectFieldOffset(TopLevelTransaction.class, "commitTxRecord");
+
     private final CommitRequest commitRequest;
 
     private final DistributedLockFreeTransaction decoratedTransaction;
+
+    private final WriteSet writeSet;
 
     public LocalLockFreeTransaction(CommitRequest commitRequest, DistributedLockFreeTransaction tx) {
         super(tx.getActiveTxRecord());
         this.decoratedTransaction = tx;
         this.commitRequest = commitRequest;
+        this.writeSet = this.decoratedTransaction.makeWriteSet();
 
     }
 
@@ -78,15 +87,38 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
                     (validationStatus == validationStatus.VALID ? "VALID" : "INVALID"));
             return;
         }
+
         super.validate();
     }
 
     @Override
     protected void snapshotValidation(int lastSeenCommittedTxNumber) {
-        int myNumber = getNumber();
+        /* Notice that someone may have already enqueued this tx, in which case
+        I may happen to have seen it already committed! But in that case the
+        validation status must have been set already! So, the following test is
+        a double take: it is necessary for correctness (to avoid enqueueing the
+        same record twice), but it may also bring in the lucky benefit of the
+        validation status for this tx already being set (either valid or invalid).
+        */
+        ValidationStatus currentStatus = this.commitRequest.getValidationStatus();
+        if (currentStatus != ValidationStatus.UNSET) {
+            if (currentStatus == ValidationStatus.VALID) {
+                logger.debug("Commit request {} was found already VALID", this.commitRequest.getId());
+                return;
+            } else {
+                logger.debug("Commit request {} was found already INVALID", this.commitRequest.getId());
+                /* Still, we throw exception to ensure that our own flow does not proceed to enqueueing */
+                TransactionSignaller.SIGNALLER.signalCommitFail();
+                throw new AssertionError("Impossible condition - Commit fail signalled!");
+            }
+        }
 
-        if (lastSeenCommittedTxNumber == myNumber) {
-            logger.debug("Commit request {} is VALID", this.commitRequest.getId());
+        int myReadVersion = getNumber();
+
+        if (lastSeenCommittedTxNumber == myReadVersion) {
+            logger.debug("Commit request {} is immediately VALID", this.commitRequest.getId());
+            // Must set the correct commit number **BEFORE** setting the valid status
+            assignCommitRecord(lastSeenCommittedTxNumber + 1, this.writeSet);
             this.commitRequest.setValid();
             return;
         }
@@ -100,12 +132,12 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
         for (String vboxId : readSet.getVBoxIds()) {
             VBox vbox = backend.lookupCachedVBox(vboxId);
             if (vbox == null) {
-                // smf: TODO this vbox is not cached locally. deal with this latter
+                // smf: TODO this vbox is not cached locally. deal with this later
                 logger.error("not implemented yet. must deal with uncached vboxes in this node. cannot continue to commit deterministically. exiting");
                 System.exit(-1);
             } else {
                 // check whether the read was valid
-                if (vbox.body.version > myNumber) {
+                if (vbox.body.version > myReadVersion) {
                     /* caution: it could be our own commit that we're seeing!
                     But, in that case, validation must have finished! */
 
@@ -120,34 +152,83 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
                         this.commitRequest.setInvalid();
                         TransactionSignaller.SIGNALLER.signalCommitFail();
                         throw new AssertionError("Impossible condition - Commit fail signalled!");
+                    } else {
+                        // whatever the result, validation has finished already
+                        if (this.commitRequest.getValidationStatus() == ValidationStatus.VALID) {
+                            logger.debug("Some helper already found commit request {} to be VALID", this.commitRequest.getId());
+                            return;
+                        } else {
+                            logger.debug("Some helper already found commit request {} to be INVALID", this.commitRequest.getId());
+                            TransactionSignaller.SIGNALLER.signalCommitFail();
+                            throw new AssertionError("Impossible condition - Commit fail signalled!");
+                        }
                     }
                 }
             }
         }
 
         logger.debug("Commit request {} is VALID", this.commitRequest.getId());
+        // Must set the correct commit number **BEFORE** setting the valid status
+        assignCommitRecord(lastSeenCommittedTxNumber + 1, this.writeSet);
         this.commitRequest.setValid();
     }
 
     @Override
-    public WriteSet makeWriteSet() {
-        return this.decoratedTransaction.makeWriteSet();
+    protected void validateCommitAndEnqueue(ActiveTransactionsRecord lastCheck) {
+        enqueueValidCommit(lastCheck, this.decoratedTransaction.getCommitTxRecord().getWriteSet());
+
+        updateOrecVersion();
+    }
+
+    @Override
+    public void updateOrecVersion() {
+        this.decoratedTransaction.updateOrecVersion();
     }
 
     @Override
     protected void enqueueValidCommit(ActiveTransactionsRecord lastCheck, WriteSet writeSet) {
-        /* This commitTxRecord was set during validateCommitAndEnqueue, and we
-        need to pass it to the decorated tx, so that it can use it later after
-        the helped commit phase. */
-        this.decoratedTransaction.setCommitTxRecord(this.commitTxRecord);
+        ActiveTransactionsRecord commitRecord = this.decoratedTransaction.getCommitTxRecord();
 
-        if (lastCheck.trySetNext(this.commitTxRecord)) {
-            logger.debug("Enqueued record for valid transaction {} of commit request {}", this.commitTxRecord.transactionNumber,
+        /* Here we know that our commit is valid.  However, we may have concluded
+        such result via some helper AND even have seen already our record enqueued
+        and commit. So we need to check for that to skip enqueuing. */
+        if (lastCheck.transactionNumber >= commitRecord.transactionNumber) {
+            logger.debug("Transaction {} of commit request {} was already enqueued AND even committed by another helper.",
+                    commitRecord.transactionNumber, this.commitRequest.getId());
+            return;
+        }
+
+        if (lastCheck.trySetNext(commitRecord)) {
+            logger.debug("Enqueued record for valid transaction {} of commit request {}", commitRecord.transactionNumber,
                     this.commitRequest.getId());
         } else {
             logger.debug("Transaction {} of commit request {} was already enqueued by another helper.",
-                    this.commitTxRecord.transactionNumber, this.commitRequest.getId());
+                    commitRecord.transactionNumber, this.commitRequest.getId());
         }
+    }
+
+    @Override
+    public WriteSet makeWriteSet() {
+        String msg = "Making a writeset is not a thread-safe operation. It was already done safely when creating this instance.";
+        logger.error(msg);
+        throw new UnsupportedOperationException(msg);
+    }
+
+    /* The commitTxRecord can only be set once */
+    @Override
+    public void setCommitTxRecord(ActiveTransactionsRecord record) {
+        if (UNSAFE.compareAndSwapObject(this.decoratedTransaction, this.commitTxRecordOffset, null, record)) {
+            logger.debug("set commitTxRecord with version {}", record.transactionNumber);
+        } else {
+            logger.debug("commitTxRecord was already set with version {}",
+                    this.decoratedTransaction.getCommitTxRecord().transactionNumber);
+        }
+
+    }
+
+    @Override
+    public ActiveTransactionsRecord getCommitTxRecord() {
+        return this.decoratedTransaction.getCommitTxRecord();
     }
 
     @Override

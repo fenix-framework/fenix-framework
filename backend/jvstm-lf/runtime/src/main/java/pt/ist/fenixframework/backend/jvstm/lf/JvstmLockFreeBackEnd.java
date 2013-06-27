@@ -87,6 +87,11 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
             public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
                 return new DistributedLockFreeReadOnlyTransaction(record);
             }
+
+            @Override
+            public boolean reuseTopLevelReadOnlyTransactions() {
+                return false;
+            }
         });
     }
 

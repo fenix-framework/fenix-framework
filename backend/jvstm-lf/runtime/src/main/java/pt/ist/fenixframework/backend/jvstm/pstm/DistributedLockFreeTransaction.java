@@ -46,11 +46,11 @@ public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction 
     }
 
     /* This is the main entrance point for the lock-free commit. We override
-    tryCommit, and we do not call super.trycommit().  This way we reuse such
-    hierarchy from LocalLockFreeTransaction, which is the instance that we create
-    to decorate DistributedTransactions from the local node.  In short, here we
-    just broadcast a commit request and go process the queue until we're either
-    committed or found invalid. */
+    tryCommit, and we do not call super.trycommit().  This way we reuse the
+    commitTx hierarchy from LocalLockFreeTransaction, which is the instance that
+    we create to decorate DistributedTransactions from the local node.  In short,
+    here we just broadcast a commit request and go process the queue until we're
+    either committed or found invalid. */
     @Override
     protected void tryCommit() {
         if (isWriteTransaction()) {
@@ -73,11 +73,11 @@ public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction 
             helpedTryCommit();
 
 // From TopLevelTransaction:
-            upgradeTx(this.commitTxRecord);  // it was set by the helper LocalLockFreeTransaction 
+            upgradeTx(getCommitTxRecord());  // it was set by the helper LocalLockFreeTransaction 
         }
     }
 
-    protected void helpedTryCommit() throws UnsupportedOperationException {
+    protected void helpedTryCommit() throws CommitException {
         // smf TODO IMPORTANT: we may consider a local validation before broadcasting the commit request!
 
         CommitRequest myRequest = makeCommitRequest();
