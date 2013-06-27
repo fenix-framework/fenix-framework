@@ -31,7 +31,7 @@ public class LockFreeClusterUtils {
 
     // commit requests that have not been applied yet
     private static final AtomicReference<CommitRequest> commitRequestsHead = new AtomicReference<CommitRequest>(
-            CommitRequest.SENTINEL);
+            CommitRequest.makeSentinelRequest());
     // this avoids iterating from the head every time a commit request arrives.  Is only used by the (single) thread that enqueues requests
     private static CommitRequest commitRequestsTail = commitRequestsHead.get();
 

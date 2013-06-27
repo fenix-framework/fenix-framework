@@ -31,7 +31,7 @@ public class CommitRequest implements DataSerializable {
 
     public enum ValidationStatus {
         UNSET, VALID, INVALID;
-    };
+    }
 
     /* for any transaction instance this will always change deterministically
     from UNSET to either VALID or INVALID, i.e. if concurrent helpers try to
@@ -41,30 +41,38 @@ public class CommitRequest implements DataSerializable {
     private final AtomicReference<ValidationStatus> validationStatus = new AtomicReference<ValidationStatus>(
             ValidationStatus.UNSET); // AtomicReference?
 
-    /* The sentinel has a null transaction attribute. It is only used to ensure
-    that there is a beginning to the commit requests queue */
-    public final static CommitRequest SENTINEL = new CommitRequest() {
-        private static final long serialVersionUID = 2L;
+//    /* The sentinel has a null transaction attribute. It is only used to ensure
+//    that there is a beginning to the commit requests queue */
+    private static boolean sentinelRequestCreated = false;
 
-        {
-            this.id = new UUID(0, 0);
+    public static synchronized CommitRequest makeSentinelRequest() {
+        if (sentinelRequestCreated) {
+            throw new Error("CommitRequest::makeSentinelRequest() invoked more than once!");
         }
+        sentinelRequestCreated = true;
+        return new CommitRequest() {
+            private static final long serialVersionUID = 2L;
 
-        @Override
-        public ValidationStatus getValidationStatus() {
-            return ValidationStatus.UNSET;
-        };
+            {
+                this.id = new UUID(0, 0);
+            }
 
-        @Override
-        public void internalHandle() {
-            // no-op
-        };
+            @Override
+            public ValidationStatus getValidationStatus() {
+                return ValidationStatus.UNSET;
+            };
 
-        @Override
-        public String toString() {
-            return "SENTINEL";
+            @Override
+            public void internalHandle() {
+                // no-op
+            };
+
+            @Override
+            public String toString() {
+                return "SENTINEL";
+            };
         };
-    };
+    }
 
     /**
      * A unique request ID.
