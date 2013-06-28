@@ -68,11 +68,13 @@ public abstract class JvstmClusterBackEnd extends JVSTMBackEnd {
         jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
             @Override
             public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                logger.debug("Creating a new top-level transaction");
                 return new ClusteredPersistentTransaction(record);
             }
 
             @Override
             public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                logger.debug("Creating a new top-level READ-ONLY transaction");
                 return new ClusteredPersistentReadOnlyTransaction(record);
             }
         });

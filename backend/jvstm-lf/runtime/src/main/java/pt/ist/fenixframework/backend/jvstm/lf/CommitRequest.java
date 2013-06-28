@@ -16,10 +16,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.backend.jvstm.pstm.AbstractLockFreeTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.CommitOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.DistributedLockFreeTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.LocalLockFreeTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.RemoteLockFreeTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.LocalCommitOnlyTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.RemoteCommitOnlyTransaction;
 
 import com.hazelcast.nio.DataSerializable;
 
@@ -96,8 +96,8 @@ public class CommitRequest implements DataSerializable {
 
     // The next commit request to process in the queue.
     private final AtomicReference<CommitRequest> next = new AtomicReference<CommitRequest>();
-    // The corresponding LockFreeTransaction
-    private AbstractLockFreeTransaction transaction;
+    // The corresponding CommitOnlyTransaction
+    private CommitOnlyTransaction transaction;
 
     public CommitRequest() {
         // required by Hazelcast's DataSerializable
@@ -135,23 +135,23 @@ public class CommitRequest implements DataSerializable {
         return this.next.compareAndSet(null, next);
     }
 
-    public AbstractLockFreeTransaction getTransaction() {
+    public CommitOnlyTransaction getTransaction() {
         return this.transaction;
     }
 
     /**
-     * Set this request's {@link AbstractLockFreeTransaction}. It does so based on whether its a local or a remote commit. This
+     * Set this request's {@link CommitOnlyTransaction}. It does so based on whether its a local or a remote commit. This
      * method must be called before making the CommitRequest visible to others: This way there is no race in the assignment of
      * this request's transaction.
      */
     public void assignTransaction() {
-        DistributedLockFreeTransaction tx = AbstractLockFreeTransaction.commitsMap.remove(this.id);
+        DistributedLockFreeTransaction tx = CommitOnlyTransaction.commitsMap.remove(this.id);
         if (tx != null) {
-            logger.debug("Assigning LocalLockFreeTransaction to CommitRequest: {}", this.id);
-            this.transaction = new LocalLockFreeTransaction(this, tx);
+            logger.debug("Assigning LocalCommitOnlyTransaction to CommitRequest: {}", this.id);
+            this.transaction = new LocalCommitOnlyTransaction(this, tx);
         } else {
-            logger.debug("Assigning new RemoteLockFreeTransaction to CommitRequest: {}", this.id);
-            this.transaction = new RemoteLockFreeTransaction(this);
+            logger.debug("Assigning new RemoteCommitOnlyTransaction to CommitRequest: {}", this.id);
+            this.transaction = new RemoteCommitOnlyTransaction(this);
         }
     }
 

@@ -80,11 +80,13 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
         jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
             @Override
             public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                logger.debug("Creating a new top-level transaction");
                 return new DistributedLockFreeTransaction(record);
             }
 
             @Override
             public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                logger.debug("Creating a new top-level READ-ONLY transaction");
                 return new DistributedLockFreeReadOnlyTransaction(record);
             }
 

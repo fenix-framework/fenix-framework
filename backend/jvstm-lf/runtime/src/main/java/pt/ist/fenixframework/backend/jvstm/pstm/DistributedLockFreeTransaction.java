@@ -14,6 +14,7 @@ import java.util.UUID;
 import jvstm.ActiveTransactionsRecord;
 import jvstm.CommitException;
 import jvstm.TransactionSignaller;
+import jvstm.cps.ConsistentTopLevelTransaction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,30 +25,54 @@ import pt.ist.fenixframework.backend.jvstm.lf.LockFreeClusterUtils;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteWriteSet;
 
-public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction {
+public class DistributedLockFreeTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction {
 
     private static final Logger logger = LoggerFactory.getLogger(DistributedLockFreeTransaction.class);
 
-//    private SpeculativeCommitRequest speculativeCommitRequest;
+    private boolean readOnly = false;
+
+    // for statistics
+    protected int numBoxReads = 0;
+    protected int numBoxWrites = 0;
 
     public DistributedLockFreeTransaction(ActiveTransactionsRecord record) {
         super(record);
-//        ActiveTransactionsRecord newRecord = tryToApplyCommitRequests(record);
-//        if (newRecord != this.activeTxRecord) {
-//            // if a new record is returned, that means that this transaction
-//            // will belong
-//            // to that new record, so we must take it off from its current
-//            // record and set
-//            // it properly
-//
-//            // TODO ver como se faz isto 
-//            upgradeTx(newRecord);
-//        }
+    }
+
+    @Override
+    public void setReadOnly() {
+        this.readOnly = true;
+    }
+
+    @Override
+    public boolean txAllowsWrite() {
+        return !this.readOnly;
+    }
+
+    @Override
+    public <T> T getBoxValue(VBox<T> vbox) {
+        return super.getBoxValue(vbox);
+    }
+
+    @Override
+    public boolean isBoxValueLoaded(VBox vbox) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+
+    @Override
+    public int getNumBoxReads() {
+        return numBoxReads;
+    }
+
+    @Override
+    public int getNumBoxWrites() {
+        return numBoxWrites;
     }
 
     /* This is the main entrance point for the lock-free commit. We override
     tryCommit, and we do not call super.trycommit().  This way we reuse the
-    commitTx hierarchy from LocalLockFreeTransaction, which is the instance that
+    commitTx hierarchy from LocalCommitOnlyTransaction, which is the instance that
     we create to decorate DistributedTransactions from the local node.  In short,
     here we just broadcast a commit request and go process the queue until we're
     either committed or found invalid. */
@@ -73,7 +98,7 @@ public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction 
             helpedTryCommit();
 
 // From TopLevelTransaction:
-            upgradeTx(getCommitTxRecord());  // it was set by the helper LocalLockFreeTransaction 
+            upgradeTx(getCommitTxRecord());  // it was set by the helper LocalCommitOnlyTransaction 
         }
     }
 
@@ -93,7 +118,7 @@ public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction 
 
     private UUID broadcastCommitRequest(CommitRequest commitRequest) {
         // for later recovering this transaction
-        commitsMap.put(commitRequest.getId(), this);
+        CommitOnlyTransaction.commitsMap.put(commitRequest.getId(), this);
 
         LockFreeClusterUtils.sendCommitRequest(commitRequest);
         return commitRequest.getId();
@@ -204,36 +229,6 @@ public class DistributedLockFreeTransaction extends AbstractLockFreeTransaction 
                 current = next;
             }
         }
-    }
-
-    /**
-     * Process the next commitRequest in line.
-     */
-    private void processCommitRequest(CommitRequest commitRequest) {
-        /* Decide if this request is valid. Do so by running the local validation algorithm */
-        LockFreeTransaction tx = makeLockFreeTransaction(commitRequest);
-
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-
-    /**
-     * Creates a {@link LockFreeTransaction} from a {@link CommitRequest}. If the request refers to a commit that started from
-     * this node, it will look up and return a {@link DistributedLockFreeTransaction}. Otherwise, a
-     * {@link RemoteLockFreeTransaction} is
-     * created.
-     * 
-     * @param commitRequest
-     * @return a {@link LockFreeTransaction} transaction corresponding to the given request
-     */
-    private LockFreeTransaction makeLockFreeTransaction(CommitRequest commitRequest) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-
-    private boolean isMyRequestPending(UUID commitRequestId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
     }
 
 //// LOCK-BASED STUFF BELOW

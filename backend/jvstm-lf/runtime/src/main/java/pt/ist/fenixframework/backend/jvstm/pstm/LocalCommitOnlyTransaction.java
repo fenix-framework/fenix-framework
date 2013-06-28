@@ -16,9 +16,9 @@ import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest.ValidationStatus;
 import pt.ist.fenixframework.backend.jvstm.lf.JvstmLockFreeBackEnd;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
 
-public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
+public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
 
-    private static final Logger logger = LoggerFactory.getLogger(LocalLockFreeTransaction.class);
+    private static final Logger logger = LoggerFactory.getLogger(LocalCommitOnlyTransaction.class);
 
     private static final long commitTxRecordOffset = UtilUnsafe.objectFieldOffset(TopLevelTransaction.class, "commitTxRecord");
 
@@ -28,7 +28,7 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
 
     private final WriteSet writeSet;
 
-    public LocalLockFreeTransaction(CommitRequest commitRequest, DistributedLockFreeTransaction tx) {
+    public LocalCommitOnlyTransaction(CommitRequest commitRequest, DistributedLockFreeTransaction tx) {
         super(tx.getActiveTxRecord());
         this.decoratedTransaction = tx;
         this.commitRequest = commitRequest;
@@ -45,7 +45,7 @@ public class LocalLockFreeTransaction extends AbstractLockFreeTransaction {
     public int getNumber() {
         // smf: TODO check this
         /* using this.decoratedTransaction.getNumber(); is safer, but
-        only works for LocalLockFreeTransaction.  On the other hand. can getNumber()
+        only works for LocalCommitOnlyTransaction.  On the other hand. can getNumber()
         here always run the code below safely? Yes, if we don't upgrade the
         transaction's version. */
         return this.commitRequest.getTxVersion();

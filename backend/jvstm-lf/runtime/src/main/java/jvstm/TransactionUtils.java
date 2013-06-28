@@ -24,7 +24,7 @@ public class TransactionUtils {
     }
 
     /**
-     * An instance of this class is used whenever we need to create a RemoteLockFreeTransaction. It provides a way to pass the
+     * An instance of this class is used whenever we need to create a RemoteCommitOnlyTransaction. It provides a way to pass the
      * transaction number up to the jvstm.Transaction constructor.
      */
 
