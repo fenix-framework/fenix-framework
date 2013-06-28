@@ -261,7 +261,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
         }
         int writeSetLength = pos;
 
-        return new RemoteWriteSet(vboxIds, values, writeSetLength);
+        return new RemoteWriteSet(vboxIds,/* values, */writeSetLength);
     }
 
     /**
