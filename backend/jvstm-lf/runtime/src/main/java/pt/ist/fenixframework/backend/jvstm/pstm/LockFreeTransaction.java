@@ -13,7 +13,9 @@ import java.util.UUID;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.CommitException;
+import jvstm.Transaction;
 import jvstm.TransactionSignaller;
+import jvstm.VBoxBody;
 import jvstm.cps.ConsistentTopLevelTransaction;
 
 import org.slf4j.Logger;
@@ -24,10 +26,14 @@ import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest.ValidationStatus;
 import pt.ist.fenixframework.backend.jvstm.lf.LockFreeClusterUtils;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteWriteSet;
+import pt.ist.fenixframework.core.WriteOnReadError;
 
 public class LockFreeTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction {
 
     private static final Logger logger = LoggerFactory.getLogger(LockFreeTransaction.class);
+
+    private static int NUM_READS_THRESHOLD = 10000000;
+    private static int NUM_WRITES_THRESHOLD = 100000;
 
     private boolean readOnly = false;
 
@@ -45,13 +51,73 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     }
 
     @Override
+    public int getNumBoxReads() {
+        return numBoxReads;
+    }
+
+    @Override
+    public int getNumBoxWrites() {
+        return numBoxWrites;
+    }
+
+    @Override
     public boolean txAllowsWrite() {
         return !this.readOnly;
+
+    }
+
+    @Override
+    public <T> void setBoxValue(jvstm.VBox<T> vbox, T value) {
+        if (!txAllowsWrite()) {
+            throw new WriteOnReadError();
+        } else {
+            numBoxWrites++;
+            super.setBoxValue(vbox, value);
+        }
+    }
+
+    @Override
+    public <T> void setPerTxValue(jvstm.PerTxBox<T> box, T value) {
+        if (!txAllowsWrite()) {
+            throw new WriteOnReadError();
+        } else {
+            super.setPerTxValue(box, value);
+        }
     }
 
     @Override
     public <T> T getBoxValue(VBox<T> vbox) {
+        numBoxReads++;
         return super.getBoxValue(vbox);
+    }
+
+    @Override
+    protected <T> T getValueFromBody(jvstm.VBox<T> vbox, VBoxBody<T> body) {
+        if (body.value == VBox.NOT_LOADED_VALUE) {
+            VBox<T> ffVBox = (VBox<T>) vbox;
+
+            ffVBox.reload();
+            // after the reload, the (new) body should have the required loaded value
+            // if not, then something gone wrong and its better to abort
+            // body = vbox.body.getBody(number);
+            body = ffVBox.getBody(number);
+
+            if (body.value == VBox.NOT_LOADED_VALUE) {
+                logger.error("Couldn't load the VBox: {}", ffVBox.getId());
+                throw new VersionNotAvailableException();
+            }
+        }
+
+        // notice that body has changed if we went into the previous condition 
+        return super.getValueFromBody(vbox, body);
+    }
+
+    // called when a read from a box detects there is already a newer version.
+    @Override
+    protected void newerVersionDetected() {
+        if (!this.boxesWritten.isEmpty() || !this.boxesWrittenInPlace.isEmpty()) {
+            super.newerVersionDetected();
+        }
     }
 
     @Override
@@ -61,13 +127,27 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     }
 
     @Override
-    public int getNumBoxReads() {
-        return numBoxReads;
+    public Transaction makeNestedTransaction(boolean readOnly) {
+        throw new Error("Nested transactions not supported yet...");
     }
 
     @Override
-    public int getNumBoxWrites() {
-        return numBoxWrites;
+    protected void doCommit() {
+        if (isWriteTransaction()) {
+            TransactionStatistics.STATISTICS.incWrites(this);
+        } else {
+            TransactionStatistics.STATISTICS.incReads(this);
+        }
+
+        if ((numBoxReads > NUM_READS_THRESHOLD) || (numBoxWrites > NUM_WRITES_THRESHOLD)) {
+            logger.warn("Very-large transaction (reads = {}, writes = {})", numBoxReads, numBoxWrites);
+        }
+
+        // reset statistics counters
+        numBoxReads = 0;
+        numBoxWrites = 0;
+
+        super.doCommit();
     }
 
     /* This is the main entrance point for the lock-free commit. We override

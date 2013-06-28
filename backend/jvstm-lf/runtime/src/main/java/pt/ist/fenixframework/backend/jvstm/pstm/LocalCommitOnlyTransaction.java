@@ -37,11 +37,6 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
     }
 
     @Override
-    public boolean isWriteTransaction() {
-        return true;
-    }
-
-    @Override
     public int getNumber() {
         // smf: TODO check this
         /* using this.decoratedTransaction.getNumber(); is safer, but
