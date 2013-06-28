@@ -71,11 +71,11 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     }
 
     /* This is the main entrance point for the lock-free commit. We override
-    tryCommit, and we do not call super.trycommit().  This way we reuse the
-    commitTx hierarchy from LocalCommitOnlyTransaction, which is the instance that
-    we create to decorate DistributedTransactions from the local node.  In short,
-    here we just broadcast a commit request and go process the queue until we're
-    either committed or found invalid. */
+    tryCommit, and we do not call super.trycommit().  We reuse the commitTx
+    machinery in LocalCommitOnlyTransaction, which is the instance that we create
+    to decorate DistributedTransactions from the local node.  In short, here we
+    just broadcast a commit request and go process the queue until our
+    LocalCommitOnlyTransction is either committed or found invalid. */
     @Override
     protected void tryCommit() {
         if (isWriteTransaction()) {
