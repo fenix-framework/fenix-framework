@@ -174,10 +174,11 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             alreadyChecked = null; // allow gc of set
 
             // locally validate before continuing
-//            ActiveTransactionsRecord lastSeenCommitted = helpCommitAll();
-//            snapshotValidation(lastSeenCommitted.transactionNumber);
+            ActiveTransactionsRecord lastSeenCommitted = helpCommitAll();
+            snapshotValidation(lastSeenCommitted.transactionNumber);
+            upgradeTx(lastSeenCommitted);
 
-            // persist the write set before  
+            // persist the write set ahead of sending the commit request  
 //            persistWriteSet();
 
 // From TopLevelTransaction:
