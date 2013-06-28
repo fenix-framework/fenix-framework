@@ -114,9 +114,11 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 
     // called when a read from a box detects there is already a newer version.
     @Override
-    protected void newerVersionDetected() {
+    protected <T> VBoxBody<T> newerVersionDetected(VBoxBody<T> body) {
         if (!this.boxesWritten.isEmpty() || !this.boxesWrittenInPlace.isEmpty()) {
-            super.newerVersionDetected();
+            return super.newerVersionDetected(body);
+        } else {
+            return body.getBody(number);
         }
     }
 
@@ -171,6 +173,13 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             checkConsistencyPredicates();
             alreadyChecked = null; // allow gc of set
 
+            // locally validate before continuing
+//            ActiveTransactionsRecord lastSeenCommitted = helpCommitAll();
+//            snapshotValidation(lastSeenCommitted.transactionNumber);
+
+            // persist the write set before  
+//            persistWriteSet();
+
 // From TopLevelTransaction:
 //            validate();
 //            ensureCommitStatus();
@@ -180,6 +189,11 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 // From TopLevelTransaction:
             upgradeTx(getCommitTxRecord());  // it was set by the helper LocalCommitOnlyTransaction 
         }
+    }
+
+    private void persistWriteSet() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
     protected void helpedTryCommit() throws CommitException {
