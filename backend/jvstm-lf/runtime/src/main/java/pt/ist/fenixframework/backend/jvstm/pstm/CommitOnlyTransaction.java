@@ -16,12 +16,12 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
     // smf: may need to add here a ref to the commitrecord.  It'd be similar to the commitTxRecord in TLTransaction, except that this would be for txs not yet validaded :-) 
 
     /**
-     * Maps all node local {@link DistributedLockFreeTransaction}s using their id as key. Whoever completes the processing is
+     * Maps all node local {@link LockFreeTransaction}s using their id as key. Whoever completes the processing is
      * required to remove the entry from this map, lest it grow indefinitely with the number of transactions.
      * 
      */
-    public final static ConcurrentHashMap<UUID, DistributedLockFreeTransaction> commitsMap =
-            new ConcurrentHashMap<UUID, DistributedLockFreeTransaction>();
+    public final static ConcurrentHashMap<UUID, LockFreeTransaction> commitsMap =
+            new ConcurrentHashMap<UUID, LockFreeTransaction>();
 
 //    private boolean readOnly = false;
 
@@ -68,7 +68,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
     /**
      * This is the commit algorithm that each CommitOnlyTransaction performs on each node, regardless of whether it is a
      * {@link LocalCommitOnlyTransaction} or a {@link RemoteCommitOnlyTransaction}. Note that
-     * {@link DistributedLockFreeTransaction}s
+     * {@link LockFreeTransaction}s
      * are decorated by {@link CommitOnlyTransaction}s.
      */
     public void localCommit() {

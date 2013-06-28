@@ -24,11 +24,11 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
 
     private final CommitRequest commitRequest;
 
-    private final DistributedLockFreeTransaction decoratedTransaction;
+    private final LockFreeTransaction decoratedTransaction;
 
     private final WriteSet writeSet;
 
-    public LocalCommitOnlyTransaction(CommitRequest commitRequest, DistributedLockFreeTransaction tx) {
+    public LocalCommitOnlyTransaction(CommitRequest commitRequest, LockFreeTransaction tx) {
         super(tx.getActiveTxRecord());
         this.decoratedTransaction = tx;
         this.commitRequest = commitRequest;
@@ -235,7 +235,7 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
     protected void upgradeTx(ActiveTransactionsRecord newRecord) {
         // no op.  
         /* This is not a required step in this type of transaction.  The
-        corresponding DistributedLockFreeTransaction will do this on its own
+        corresponding LockFreeTransaction will do this on its own
         node, after all the helping is done. */
     }
 }

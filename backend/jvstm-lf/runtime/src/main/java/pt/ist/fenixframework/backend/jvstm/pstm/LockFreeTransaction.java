@@ -25,9 +25,9 @@ import pt.ist.fenixframework.backend.jvstm.lf.LockFreeClusterUtils;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteWriteSet;
 
-public class DistributedLockFreeTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction {
+public class LockFreeTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction {
 
-    private static final Logger logger = LoggerFactory.getLogger(DistributedLockFreeTransaction.class);
+    private static final Logger logger = LoggerFactory.getLogger(LockFreeTransaction.class);
 
     private boolean readOnly = false;
 
@@ -35,7 +35,7 @@ public class DistributedLockFreeTransaction extends ConsistentTopLevelTransactio
     protected int numBoxReads = 0;
     protected int numBoxWrites = 0;
 
-    public DistributedLockFreeTransaction(ActiveTransactionsRecord record) {
+    public LockFreeTransaction(ActiveTransactionsRecord record) {
         super(record);
     }
 

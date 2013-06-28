@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
-import pt.ist.fenixframework.backend.jvstm.pstm.DistributedLockFreeReadOnlyTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.DistributedLockFreeTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeReadOnlyTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.OwnedVBox;
 import pt.ist.fenixframework.backend.jvstm.pstm.StandaloneVBox;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
@@ -81,13 +81,13 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
             @Override
             public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
                 logger.debug("Creating a new top-level transaction");
-                return new DistributedLockFreeTransaction(record);
+                return new LockFreeTransaction(record);
             }
 
             @Override
             public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
                 logger.debug("Creating a new top-level READ-ONLY transaction");
-                return new DistributedLockFreeReadOnlyTransaction(record);
+                return new LockFreeReadOnlyTransaction(record);
             }
 
             @Override

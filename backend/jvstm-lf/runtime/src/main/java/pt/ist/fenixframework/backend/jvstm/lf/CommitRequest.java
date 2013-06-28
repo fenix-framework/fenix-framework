@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.pstm.CommitOnlyTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.DistributedLockFreeTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.LocalCommitOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.RemoteCommitOnlyTransaction;
 
@@ -145,7 +145,7 @@ public class CommitRequest implements DataSerializable {
      * this request's transaction.
      */
     public void assignTransaction() {
-        DistributedLockFreeTransaction tx = CommitOnlyTransaction.commitsMap.remove(this.id);
+        LockFreeTransaction tx = CommitOnlyTransaction.commitsMap.remove(this.id);
         if (tx != null) {
             logger.debug("Assigning LocalCommitOnlyTransaction to CommitRequest: {}", this.id);
             this.transaction = new LocalCommitOnlyTransaction(this, tx);
