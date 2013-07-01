@@ -24,6 +24,7 @@
     <modules>
         <module>runtime</module>
         <module>code-generator</module>
+        <module>infinispan</module>
     </modules>
 
     <dependencies>
