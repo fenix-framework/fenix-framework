@@ -22,7 +22,8 @@ import pt.ist.fenixframework.backend.jvstm.pstm.OwnedVBox;
 import pt.ist.fenixframework.backend.jvstm.pstm.StandaloneVBox;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBoxCache;
-import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
+import pt.ist.fenixframework.backend.jvstm.repository.ExtendedRepository;
+import pt.ist.fenixframework.backend.jvstm.repository.LockFreeRepository;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
 
 public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
@@ -31,7 +32,7 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
     public static final String BACKEND_NAME = "jvstm-lf";
 
     protected JvstmLockFreeBackEnd() {
-        super(new NoRepository());
+        super(new LockFreeRepository());
     }
 
     protected JvstmLockFreeBackEnd(Repository repository) {
@@ -145,6 +146,11 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
         getRepository().closeRepository();
         LockFreeClusterUtils.shutdown();
         super.shutdown();
+    }
+
+    @Override
+    public ExtendedRepository getRepository() {
+        return (ExtendedRepository) super.getRepository();
     }
 
     public int getNumMembers() {

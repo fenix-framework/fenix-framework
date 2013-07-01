@@ -7,6 +7,7 @@
  */
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest;
 import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest.ValidationStatus;
+import pt.ist.fenixframework.backend.jvstm.lf.JvstmLockFreeBackEnd;
 import pt.ist.fenixframework.backend.jvstm.lf.LockFreeClusterUtils;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
 import pt.ist.fenixframework.backend.jvstm.lf.RemoteWriteSet;
@@ -178,36 +180,34 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             snapshotValidation(lastSeenCommitted.transactionNumber);
             upgradeTx(lastSeenCommitted);
 
-            // persist the write set ahead of sending the commit request  
-//            persistWriteSet();
+            // persist the write set ahead of sending the commit request
+            CommitRequest myRequest = makeCommitRequest();
+            persistWriteSet(myRequest);
 
 // From TopLevelTransaction:
 //            validate();
 //            ensureCommitStatus();
 // replaced with:
-            helpedTryCommit();
+            helpedTryCommit(myRequest);
 
 // From TopLevelTransaction:
             upgradeTx(getCommitTxRecord());  // it was set by the helper LocalCommitOnlyTransaction 
         }
     }
 
-    private void persistWriteSet() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
+    private static void persistWriteSet(CommitRequest commitRequest) {
+        JvstmLockFreeBackEnd.getInstance().getRepository()
+                .persistWriteSet(commitRequest.getId(), commitRequest.getWriteSet(), NULL_VALUE);
     }
 
-    protected void helpedTryCommit() throws CommitException {
-        // smf TODO IMPORTANT: we may consider a local validation before broadcasting the commit request!
-
-        CommitRequest myRequest = makeCommitRequest();
+    protected void helpedTryCommit(CommitRequest myRequest) throws CommitException {
 
         // start by reading the current commit queue's head.  This is to ensure that we don't miss our own commit request
         CommitRequest currentRequest = LockFreeClusterUtils.getCommitRequestAtHead();
 
         UUID myRequestId = broadcastCommitRequest(myRequest);
 
-        // the myRequest instance is different, because it was serialized and deserialized. So, just use its id.
+        // the myRequest instance is different, because it was serialized and deserialized. So, just use its ID.
         tryCommit(currentRequest, myRequestId);
     }
 
@@ -274,9 +274,9 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             vboxIds[pos] = ((VBox) vbox).getId();
             values[pos++] = entry.getValue();
         }
-        int writeSetLength = pos;
 
-        return new RemoteWriteSet(vboxIds,/* values, */writeSetLength);
+        int writeSetLength = pos;
+        return new RemoteWriteSet(Arrays.copyOf(vboxIds, writeSetLength), Arrays.copyOf(values, writeSetLength));
     }
 
     /**

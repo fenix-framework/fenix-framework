@@ -17,8 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.pstm.CommitOnlyTransaction;
-import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.LocalCommitOnlyTransaction;
+import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.RemoteCommitOnlyTransaction;
 
 import com.hazelcast.nio.DataSerializable;
@@ -127,6 +127,10 @@ public class CommitRequest implements DataSerializable {
         return this.readSet;
     }
 
+    public RemoteWriteSet getWriteSet() {
+        return this.writeSet;
+    }
+
     public CommitRequest getNext() {
         return this.next.get();
     }
@@ -207,7 +211,7 @@ public class CommitRequest implements DataSerializable {
                 logger.debug(
                         "Handling localCommit for request {} threw {}.  It will be obfuscated by the return of this method.",
                         this.getId(), e);
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         } finally {
             next = advanceToNext();

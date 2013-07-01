@@ -7,6 +7,9 @@
  */
 package pt.ist.fenixframework.backend.jvstm.lf;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +27,8 @@ public class JvstmLockFreeConfig extends JVSTMConfig {
 
     protected static final String HAZELCAST_FF_GROUP_NAME = "FenixFrameworkGroup";
 
+    public static final String DATAGRID_PARAM_PREFIX = "dataGrid.";
+
     /**
      * This <strong>optional</strong> parameter specifies the Hazelcast configuration file. This
      * configuration will used to create a group communication system between Fenix Framework nodes. The default value
@@ -36,11 +41,51 @@ public class JvstmLockFreeConfig extends JVSTMConfig {
         return hazelcastConfigFile;
     }
 
+    /**
+     * This <strong>required</strong> parameter specifies the classname of the datagrid implementation.
+     */
+    protected String dataGridClassName = null;
+
+    /**
+     * This {@link Map} contains datagrid-specific properties. Any property found in the FF configuration starting with
+     * <code>DATAGRID_PARAM_PREIFX</code> will be stored in this map (striped of the prefix). It is up to the concrete datagrid
+     * implementation to make sense of these properties.
+     */
+    protected HashMap<String, String> dataGridPropertiesMap = new HashMap<String, String>();
+
+    public String getDatagridClassName() {
+        return this.dataGridClassName;
+    }
+
+    public String getDataGridProperty(String propName) {
+        return this.dataGridPropertiesMap.get(propName);
+    }
+
+    private void setDataGridProperty(String propName, String value) {
+        this.dataGridPropertiesMap.put(propName, value);
+    }
+
     @Override
     protected void init() {
         JvstmLockFreeBackEnd thisBackEnd = new JvstmLockFreeBackEnd();
         super.backEnd = thisBackEnd;
         super.init(); // this will in turn initialize our backend
+    }
+
+    @Override
+    protected void setProperty(String propName, String value) {
+        if (propName.startsWith(DATAGRID_PARAM_PREFIX)) {
+            logger.info("Intercepting datagrid-specific property: {}={}", propName, value);
+            setDataGridProperty(propName.substring(DATAGRID_PARAM_PREFIX.length()), value);
+        } else {
+            super.setProperty(propName, value);
+        }
+    }
+
+    @Override
+    protected void checkConfig() {
+        super.checkConfig();
+        checkRequired(this.dataGridClassName, "dataGridClassName");
     }
 
     @Override

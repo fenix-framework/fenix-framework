@@ -4,26 +4,47 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RemoteWriteSet {
 
-    /* WARNING: Because of the algorithm used to create these arrays, the may
-    be created larger than necessary. As such, their length is meaningless, and
-    we should use the value of writeSetLength instead */
-    private final String[] vboxIds;
-//    private final Object[] values;
-    private final int writeSetLength;
+    private static final Logger logger = LoggerFactory.getLogger(RemoteWriteSet.class);
 
-//    public RemoteWriteSet(String[] vboxIds, Object[] values, int writeSetLength) {
-    public RemoteWriteSet(String[] vboxIds,/* Object[] values, */int writeSetLength) {
+    private static final String INVALID_WRITE_SET = "when provided, values must be the same length as vboxIds";
+
+    private final String[] vboxIds;
+    private final Object[] values;
+
+    public RemoteWriteSet(String[] vboxIds) {
+        this(vboxIds, null);
+    }
+
+    public RemoteWriteSet(String[] vboxIds, Object[] values) {
+        if (values != null && (vboxIds.length != values.length)) {
+            logger.error(INVALID_WRITE_SET);
+            throw new IllegalArgumentException(INVALID_WRITE_SET);
+        }
         this.vboxIds = vboxIds;
-//        this.values = values;
-        this.writeSetLength = writeSetLength;
+        this.values = values;
+    }
+
+    public String[] getVboxIds() {
+        return this.vboxIds;
+    }
+
+    public Object[] getValues() {
+        return this.values;
+    }
+
+    public int getNumElements() {
+        return this.vboxIds.length;
     }
 
     public void writeTo(DataOutput out) throws IOException {
-        out.writeInt(writeSetLength);
-        for (int i = 0; i < writeSetLength; i++) {
-            out.writeUTF(this.vboxIds[i]);
+        out.writeInt(this.vboxIds.length);
+        for (String vboxId : this.vboxIds) {
+            out.writeUTF(vboxId);
 
             // The values are written to the repository before broadcasting the remote commit
 //            byte[] externalValue = Externalization.externalizeObject(this.values[i]);
@@ -35,7 +56,7 @@ public class RemoteWriteSet {
     public static RemoteWriteSet readFrom(DataInput in) throws IOException {
         int size = in.readInt();
         String ids[] = new String[size];
-        Object[] values = new Object[size];
+//        Object[] values = new Object[size];
         for (int i = 0; i < size; i++) {
             ids[i] = in.readUTF();
 
@@ -44,27 +65,34 @@ public class RemoteWriteSet {
 //            in.readFully(externalValue);
 //            values[i] = Externalization.internalizeObject(externalValue);
         }
-        return new RemoteWriteSet(ids,/* null,*/size);
+//        return new RemoteWriteSet(ids,/* null,*/size);
+        return new RemoteWriteSet(ids);
     }
 
     @Override
     public String toString() {
+        int size = this.vboxIds.length;
         StringBuilder str = new StringBuilder();
-        str.append("writeSetLength=").append(writeSetLength);
+
+        str.append("length=").append(size);
         str.append(", vboxIds={");
-        for (int i = 0; i < writeSetLength; i++) {
+        for (int i = 0; i < size; i++) {
             if (i != 0) {
                 str.append(", ");
             }
             str.append(this.vboxIds[i]);
         }
-//        str.append(", values={");
-//        for (int i = 0; i < writeSetLength; i++) {
-//            if (i != 0) {
-//                str.append(", ");
-//            }
-//            str.append("(").append(this.values[i]).append(")");
-//        }
+
+        if (this.values != null) {
+            str.append(", values={");
+            for (int i = 0; i < size; i++) {
+                if (i != 0) {
+                    str.append(", ");
+                }
+                str.append(this.values[i]);
+            }
+        }
+
         str.append("}");
         return str.toString();
     }
