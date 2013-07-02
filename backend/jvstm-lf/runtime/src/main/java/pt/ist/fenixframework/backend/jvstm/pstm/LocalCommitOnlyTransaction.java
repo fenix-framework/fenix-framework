@@ -1,6 +1,10 @@
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
 import static jvstm.UtilUnsafe.UNSAFE;
+
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import jvstm.ActiveTransactionsRecord;
 import jvstm.TopLevelTransaction;
 import jvstm.TransactionSignaller;
@@ -27,6 +31,8 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
     private final LockFreeTransaction decoratedTransaction;
 
     private final WriteSet writeSet;
+
+    private final ConcurrentHashMap<Integer, UUID> txVersionToCommitIdMap = new ConcurrentHashMap<Integer, UUID>();
 
     public LocalCommitOnlyTransaction(CommitRequest commitRequest, LockFreeTransaction tx) {
         super(tx.getActiveTxRecord());
@@ -170,7 +176,7 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
 
     @Override
     protected void validateCommitAndEnqueue(ActiveTransactionsRecord lastCheck) {
-        enqueueValidCommit(lastCheck, this.decoratedTransaction.getCommitTxRecord().getWriteSet());
+        enqueueValidCommit(lastCheck, this.getCommitTxRecord().getWriteSet());
 
         updateOrecVersion();
     }
@@ -182,11 +188,11 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
 
     @Override
     protected void enqueueValidCommit(ActiveTransactionsRecord lastCheck, WriteSet writeSet) {
-        ActiveTransactionsRecord commitRecord = this.decoratedTransaction.getCommitTxRecord();
+        ActiveTransactionsRecord commitRecord = this.getCommitTxRecord();
 
         /* Here we know that our commit is valid.  However, we may have concluded
         such result via some helper AND even have seen already our record enqueued
-        and commit. So we need to check for that to skip enqueuing. */
+        and committed. So we need to check for that to skip enqueuing. */
         if (lastCheck.transactionNumber >= commitRecord.transactionNumber) {
             logger.debug("Transaction {} of commit request {} was already enqueued AND even committed by another helper.",
                     commitRecord.transactionNumber, this.commitRequest.getId());
@@ -200,6 +206,7 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
             logger.debug("Transaction {} of commit request {} was already enqueued by another helper.",
                     commitRecord.transactionNumber, this.commitRequest.getId());
         }
+        txVersionToCommitIdMap.putIfAbsent(commitRecord.transactionNumber, this.commitRequest.getId());
     }
 
     @Override
@@ -215,8 +222,7 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
         if (UNSAFE.compareAndSwapObject(this.decoratedTransaction, this.commitTxRecordOffset, null, record)) {
             logger.debug("set commitTxRecord with version {}", record.transactionNumber);
         } else {
-            logger.debug("commitTxRecord was already set with version {}",
-                    this.decoratedTransaction.getCommitTxRecord().transactionNumber);
+            logger.debug("commitTxRecord was already set with version {}", this.getCommitTxRecord().transactionNumber);
         }
 
     }
@@ -224,6 +230,21 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
     @Override
     public ActiveTransactionsRecord getCommitTxRecord() {
         return this.decoratedTransaction.getCommitTxRecord();
+    }
+
+    @Override
+    protected void helpCommit(ActiveTransactionsRecord recordToCommit) {
+        if (!recordToCommit.isCommitted()) {
+            int txVersion = this.getCommitTxRecord().transactionNumber;
+            UUID commitId = this.txVersionToCommitIdMap.get(txVersion);
+
+            if (commitId != null) { // may be null if it was already persisted 
+                JvstmLockFreeBackEnd.getInstance().getRepository().mapTxVersionToCommitId(txVersion, commitId);
+                this.txVersionToCommitIdMap.remove(txVersion);
+            }
+        }
+
+        super.helpCommit(recordToCommit);
     }
 
     @Override

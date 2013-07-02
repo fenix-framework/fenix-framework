@@ -399,6 +399,21 @@ public class LockFreeRepository implements ExtendedRepository {
         });
     }
 
+    @Override
+    public void mapTxVersionToCommitId(final int txVersion, final UUID commitId) {
+        /* Store txVersion --> commitId */
+
+        logger.debug("mapTxVersionToCommitId: {{}}->{{}}", txVersion, commitId);
+
+        doWithinBackingTransactionIfNeeded(new Callable<Void>() {
+            @Override
+            public Void call() {
+                LockFreeRepository.this.dataGrid.putIfAbsent(txVersion, commitId.toString());
+                return null;
+            }
+        });
+    }
+
     List<VersionedValue> getMostRecentVersions(final VBox vbox, final int desiredVersion) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("not yet implemented");

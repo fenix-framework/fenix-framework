@@ -8,4 +8,6 @@ public interface ExtendedRepository extends Repository {
 
     void persistWriteSet(UUID commitId, RemoteWriteSet writeSet, Object nullObject);
 
+    void mapTxVersionToCommitId(int txVersion, UUID commitId);
+
 }
