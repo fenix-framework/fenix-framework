@@ -69,7 +69,22 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
 
     // synchronized here processes reloads of the same box one at a time, thus avoiding concurrent accesses to the persistence to
     // load the same box
-    synchronized boolean reload() {
+    /* removed synchronized.
+
+    It is not strictly necessary.  It only existed to prevent two reload
+    requests regarding the same vbox to hit the repository.  However, the
+    actual required synchronization is performed in the mergeVersions method.
+
+    Now that VBox is used also in the lock-free implementation, the extraneous
+    synchronized was removed so that it does not prevent the lock-free
+    behavior.
+     */
+    /*synchronized */boolean reload() {
+        return reload(Transaction.current().getNumber());
+    }
+
+    /* Reloads this box ensuring that it can provide at least information about 'requiredVersion'. */
+    boolean reload(int requiredVersion) {
         if (logger.isDebugEnabled()) {
             logger.debug("Reload VBox: {}", this.getId());
         }
@@ -79,7 +94,7 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
             //This also requires the body's value slot to be final.
 
             //VBoxBody<E> body = this.body.getBody(Transaction.current().getNumber());
-            VBoxBody<E> body = getBody(Transaction.current().getNumber());
+            VBoxBody<E> body = getBody(requiredVersion);
             if (body.value == VBox.NOT_LOADED_VALUE) {
                 doReload();
             }

@@ -47,7 +47,7 @@ public class StandaloneVBox<E> extends VBox<E> {
                 logger.debug("VBox is new. Setting null in body with version 0.");
                 body.value = null;
             } else {
-                String message = "BUG: After reload body is " + (body == null ? "null" : "not null");
+                String message = "BUG: After reload, body is " + (body == null ? "null" : "not null");
                 if (body != null) {
                     message += ". version=" + body.version;
                 }
