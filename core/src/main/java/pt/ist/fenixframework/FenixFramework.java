@@ -4,16 +4,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import pt.ist.fenixframework.messaging.RequestProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.BackEndId;
-import pt.ist.fenixframework.backend.BasicClusterInformation;
 import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.dml.DmlCompilerException;
 import pt.ist.fenixframework.dml.DomainModel;
+import pt.ist.fenixframework.messaging.MessagingQueue;
 import pt.ist.fenixframework.util.NodeBarrier;
 
 /**
@@ -96,7 +99,7 @@ import pt.ist.fenixframework.util.NodeBarrier;
  * possible to get an instance of the {@link DomainModel} class representing the structure of the application's domain.
  * 
  * @see Config
- * @see dml.DomainModel
+ * @see pt.ist.fenixframework.dml.DomainModel
  */
 public class FenixFramework {
     private static final Logger logger = LoggerFactory.getLogger(FenixFramework.class);
@@ -114,6 +117,11 @@ public class FenixFramework {
     private static boolean initialized = false;
 
     private static Config config;
+
+    private static final ConcurrentMap<String, MessagingQueue> APPLICATION_LOAD_BALANCER = new ConcurrentHashMap<String, MessagingQueue>();
+
+    private static final Object REQUEST_PROCESSOR_LOCK = new Object();
+    private static RequestProcessor receiver;
 
     /**
      * This is initialized on first invocation of {@link FenixFramework#getDomainModel()}, which
@@ -325,6 +333,19 @@ public class FenixFramework {
                 logger.error("Could not initialize Fenix Framework", e);
                 e.printStackTrace();
                 throw e;
+            } catch (Exception e) {
+                logger.error("Could not initialize Fenix Framework", e);
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+            try {
+                getMessagingQueue(getConfig().getAppName());
+            } catch (UnsupportedOperationException e) {
+                //ignored!
+            } catch (Exception e) {
+                logger.error("Could not initialize Fenix Framework", e);
+                e.printStackTrace();
+                throw new RuntimeException(e);
             }
             // DataAccessPatterns.init(FenixFramework.config);
             initialized = true;
@@ -393,7 +414,6 @@ public class FenixFramework {
      * 
      * This method is Cloud-TM platform-specific.
      * 
-     * @param storageKey
      * @return the {@link DomainObject} that owns the storageKey provided.
      */
     public static <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
@@ -434,6 +454,7 @@ public class FenixFramework {
                 barrier.shutdown();
             }
             getConfig().shutdown();
+            shutdownMessagingQueue(getConfig().getAppName());
         }
     }
 
@@ -456,5 +477,67 @@ public class FenixFramework {
      */
     public static ClusterInformation getClusterInformation() {
         return getConfig().getBackEnd().getClusterInformation();
+    }
+
+    private static MessagingQueue getMessagingQueue(String appName) throws Exception {
+        MessagingQueue messagingQueue = APPLICATION_LOAD_BALANCER.get(appName);
+        if (messagingQueue == null) {
+            messagingQueue = getConfig().getBackEnd().createMessagingQueue(appName);
+            MessagingQueue existing = APPLICATION_LOAD_BALANCER.putIfAbsent(appName, messagingQueue);
+            if (existing != null) {
+                messagingQueue = existing;
+            } else {
+                messagingQueue.init();
+            }
+        }
+        return messagingQueue;
+    }
+
+    private static void shutdownMessagingQueue(String appName) {
+        MessagingQueue messagingQueue = APPLICATION_LOAD_BALANCER.remove(appName);
+        if (messagingQueue != null) {
+            messagingQueue.shutdown();
+        }
+    }
+
+    public static void shutdownAllLoadBalancer() {
+        for (MessagingQueue messagingQueue : APPLICATION_LOAD_BALANCER.values()) {
+            messagingQueue.shutdown();
+        }
+        APPLICATION_LOAD_BALANCER.clear();
+    }
+
+    public static void registerReceiver(RequestProcessor r) {
+        synchronized (REQUEST_PROCESSOR_LOCK) {
+            if (receiver == null) {
+                receiver = r;
+            } else {
+                logger.error("Request processor already registered.");
+            }
+        }
+    }
+
+    public static Object handleRequest(String request) {
+        RequestProcessor processor;
+        synchronized (REQUEST_PROCESSOR_LOCK) {
+            processor = receiver;
+        }
+        if (processor == null) {
+            throw new IllegalStateException("No Request processor registered");
+        }
+        return processor.onRequest(request);
+    }
+
+    public static Object sendRequest(String request, String localityHint, String application, boolean sync) throws Exception {
+        MessagingQueue queue = getMessagingQueue(application);
+        if (queue == null) {
+            logger.error("Message Queue for " + application + " not found!");
+            throw new RuntimeException("Message Queue for " + application + " not found!");
+        }
+        return queue.sendRequest(request, localityHint, sync);
+    }
+
+    public static void initConnection(String application) throws Exception {
+        getMessagingQueue(application);
     }
 }
