@@ -106,10 +106,10 @@ public class JVSTMBackEnd implements BackEnd {
      */
     public void init(JVSTMConfig jvstmConfig) {
         int serverId = obtainNewServerId();
-        localInit(jvstmConfig, serverId);
+        localInit(jvstmConfig, serverId, true);
     }
 
-    protected void localInit(JVSTMConfig jvstmConfig, int serverId) {
+    protected void localInit(JVSTMConfig jvstmConfig, int serverId, boolean firstNode) {
         logger.info("initializeRepository()");
         boolean repositoryIsNew = initializeRepository(jvstmConfig);
 
@@ -117,7 +117,7 @@ public class JVSTMBackEnd implements BackEnd {
         initializeDomainClassInfos(serverId);
 
         logger.info("setupJVSTM");
-        setupJVSTM();
+        setupJVSTM(firstNode);
 
         // We need to ensure that the DomainRoot instance exists and is correctly initialized BEFORE the execution of any code that may need it.
         logger.info("createDomainRootIfNeeded");
@@ -156,7 +156,7 @@ public class JVSTMBackEnd implements BackEnd {
         DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), serverId);
     }
 
-    protected void setupJVSTM() {
+    protected void setupJVSTM(boolean firstNode) {
         // by default use JVSTM's transaction classes
         initializeTransactionFactory();
 

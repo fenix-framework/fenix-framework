@@ -42,7 +42,7 @@ public abstract class JvstmClusterBackEnd extends JVSTMBackEnd {
 
         if (firstNode) {
             logger.info("This is the first node!");
-            localInit(thisConfig, serverId);
+            localInit(thisConfig, serverId, firstNode);
             // initialize the global lock value to the most recent commit tx number
             ClusterUtils.initGlobalLockNumber(Transaction.getMostRecentCommitedNumber());
             // any necessary distributed communication infrastructures must be configured/set before notifying others to proceed
@@ -54,7 +54,7 @@ public abstract class JvstmClusterBackEnd extends JVSTMBackEnd {
         } else {
             logger.info("This is NOT the first node.");
             ClusterUtils.waitForStartupFromFirstNode();
-            localInit(thisConfig, serverId);
+            localInit(thisConfig, serverId, firstNode);
         }
     }
 

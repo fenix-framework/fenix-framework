@@ -7,6 +7,7 @@
  */
 package pt.ist.fenixframework.backend.jvstm.lf;
 
+import jvstm.ActiveTransactionsRecord;
 import jvstm.Transaction;
 import jvstm.TransactionUtils;
 
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
+import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeReadOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.OwnedVBox;
@@ -47,6 +49,12 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
     public void init(JVSTMConfig jvstmConfig) {
         JvstmLockFreeConfig thisConfig = (JvstmLockFreeConfig) jvstmConfig;
 
+        logger.info("initializeTransactionFactory()");
+        initializeTransactionFactory();
+
+        /* When commit requests start coming in, we need to have the jvstm.Transaction
+        class inited.  We ensure that by setting up the transaction factory above. */
+
         logger.info("initializeGroupCommunication()");
         LockFreeClusterUtils.initializeGroupCommunication(thisConfig);
 
@@ -55,9 +63,9 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
 
         if (firstNode) {
             logger.info("This is the first node!");
-            localInit(thisConfig, serverId);
-            // initialize the global lock value to the most recent commit tx number
-            LockFreeClusterUtils.initGlobalCommittedNumber(Transaction.mostRecentCommittedRecord.transactionNumber);
+            localInit(thisConfig, serverId, firstNode);
+//            // initialize the global lock value to the most recent commit tx number
+//            LockFreeClusterUtils.initGlobalCommittedNumber(Transaction.mostRecentCommittedRecord.transactionNumber);
             // any necessary distributed communication infrastructures must be configured/set before notifying others to proceed
             LockFreeClusterUtils.notifyStartupComplete();
             /* alternatively we can now use the initGlobalCommittedNumber as the
@@ -67,8 +75,32 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
         } else {
             logger.info("This is NOT the first node.");
             LockFreeClusterUtils.waitForStartupFromFirstNode();
-            localInit(thisConfig, serverId);
+            localInit(thisConfig, serverId, firstNode);
         }
+    }
+
+    @Override
+    protected void setupJVSTM(boolean firstNode) {
+        // no op
+        /* disable this step from the init sequence.  It is performed differently.  See init(...). */
+
+        // initialize transaction system
+        if (firstNode) {
+            initializeJvstmTxNumber();
+        } else {
+            synchronizeJvstmState(DomainClassInfo.getServerId());
+        }
+    }
+
+    protected void synchronizeJvstmState(int serverId) {
+        ActiveTransactionsRecord activeRecord = Transaction.getRecordForNewTransaction();
+        Transaction tx = new InitTransaction(activeRecord);
+        tx.start();
+        VBox<Integer> initBox = StandaloneVBox.makeNew("SERVER" + serverId, false);
+        initBox.put(serverId);
+        tx.commitTx(true);
+
+        logger.info("Set the last committed TX number to {}", Transaction.mostRecentCommittedRecord.transactionNumber);
     }
 
     @Override

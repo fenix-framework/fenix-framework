@@ -263,8 +263,9 @@ public class CommitRequest implements DataSerializable {
      * @return The commit request following this one (may be <code>null</code> if there is no next request).
      */
     private CommitRequest advanceToNext() {
-        /* If we were to return the result of this method we could skip over
-        some commits, in particular, the one we're interested in committing. */
+        /* If we were to return the result of the following method we could skip
+        over some commits, in particular, the one we're interested in committing.
+        */
         LockFreeClusterUtils.tryToRemoveCommitRequest(this);
 
         // Always return the commit that really follows

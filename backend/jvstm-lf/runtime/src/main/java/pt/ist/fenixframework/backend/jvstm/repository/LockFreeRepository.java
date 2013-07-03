@@ -7,11 +7,18 @@
  */
 package pt.ist.fenixframework.backend.jvstm.repository;
 
+import static jvstm.UtilUnsafe.UNSAFE;
+
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+
+import jvstm.Transaction;
+import jvstm.UtilUnsafe;
+import jvstm.VBox.Offsets;
+import jvstm.VBoxBody;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -350,15 +357,42 @@ public class LockFreeRepository implements ExtendedRepository {
         return String.valueOf(DomainClassInfo.getServerId()) + ":" + domainClassInfo.classId;
     }
 
+    /* Algorithm: when reloadAttribute is invoked we know that at some point in
+    the list of bodies there was a ref to <0,NOT_LOADED_VALUE,null>. Such ref
+    will have to change to point to <requiredVersion,somevalue>--><0,NOT_LOADED_VALUE>.
+    The invariant is:  the existing list of bodies never contains gaps between
+    its elements; the last element is <0,NOT_LOADED_VALUE> to represent that
+    from the last-but-one down to this, the values are not loaded. (Corollary,
+    If <0,NOT_LOADED_VALUE> is at the head, then nothing is actually loaded).
+    So, to maintain the invariant it is not enough to load the missing value:
+    we also need to load all values from the last known down to the missing one.
+    Only then can this newly created list be CAS-ed onto the previous ref to
+    <0,NOT_LOADED_VALUE>. */
     @Override
     public void reloadAttribute(VBox box) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("not yet implemented");
+        int txNumber = jvstm.Transaction.current().getNumber();
 
-//        int txNumber = jvstm.Transaction.current().getNumber();
-//
-//        List<VersionedValue> vvalues = getMostRecentVersions(box, txNumber);
-//        box.mergeVersions(vvalues);
+        boolean success = false;
+
+        VBoxBody oldestLoadedBody = box.getOldestLoadedBody();
+
+        int highestVersionToLoad;
+        if (oldestLoadedBody == null) {
+            highestVersionToLoad = Transaction.mostRecentCommittedRecord.transactionNumber;
+        } else {
+            highestVersionToLoad = oldestLoadedBody.version - 1;
+        }
+
+        if (txNumber > highestVersionToLoad) {
+            logger.debug("Version {} for vbox {} is already loaded", txNumber, box.getId());
+            return;
+        }
+
+        logger.debug("Will load versions [{};{}] for vbox {}", highestVersionToLoad, txNumber, box.getId());
+
+        VBoxBody tail = loadVersionsInRange(box, highestVersionToLoad, txNumber);
+
+        replaceTail(box, oldestLoadedBody, tail);
     }
 
     @Override
@@ -386,7 +420,7 @@ public class LockFreeRepository implements ExtendedRepository {
                     String vboxId = vBoxIds[i];
                     Object newValue = (values[i] == nullObject) ? null : values[i];
 
-                    String key = makeKeyWithCommitId(vboxId, commitId);
+                    String key = makeKeyWithCommitId(vboxId, commitId.toString());
 
                     byte[] externalizedValue = Externalization.externalizeObject(newValue);
                     DataVersionHolder newVersion = new DataVersionHolder(externalizedValue);
@@ -413,6 +447,18 @@ public class LockFreeRepository implements ExtendedRepository {
             }
         });
     }
+
+    @Override
+    public String getCommitIdFromVersion(final int txVersion) {
+        return doWithinBackingTransactionIfNeeded(new Callable<String>() {
+            @Override
+            public String call() {
+                String commitId = LockFreeRepository.this.dataGrid.get(txVersion);
+                logger.debug("getCommitIdFromVersion: {{}}->{{}}", txVersion, commitId);
+                return commitId;
+            }
+        });
+    };
 
     List<VersionedValue> getMostRecentVersions(final VBox vbox, final int desiredVersion) {
         // TODO Auto-generated method stub
@@ -500,6 +546,124 @@ public class LockFreeRepository implements ExtendedRepository {
 //        }
     }
 
+    /* Load existing versions between versionToLoad and txNumber.  The box may
+    not have been written in the given versions.  Thus, if it is necessary to
+    satisfy the requirements, the returned list of bodies must include a version
+    lower than txNumber. */
+    @SuppressWarnings("unchecked")
+    private VBoxBody loadVersionsInRange(VBox box, int versionToLoad, int txNumber) {
+        // find the commitId of this committed version
+        String commitId = LockFreeRepository.this.dataGrid.get(versionToLoad);
+
+//        logger.debug("version {} as commitId {}", versionToLoad, commitId);
+
+        // lookup an entry for this box in the given version
+        String key = makeKeyWithCommitId(makeKeyFor(box), commitId);
+
+        logger.debug("looking up key {} (tx version={})", key, versionToLoad);
+
+        DataVersionHolder entry = LockFreeRepository.this.dataGrid.get(key);
+        if (entry != null) {
+            logger.debug("Adding to list the value for key: {}", key);
+
+            VBoxBody nextBody;
+
+            if (versionToLoad <= txNumber) { // end recursion
+                nextBody = VBox.NOT_LOADED_BODY;
+            } else {
+                nextBody = loadVersionsInRange(box, versionToLoad - 1, txNumber);
+            }
+
+            return VBox.makeNewBody(Externalization.internalizeObject(entry.data), versionToLoad, nextBody);
+        } else {
+            if (versionToLoad == 0) {
+                throw new PersistenceException("Version of vbox " + box.getId() + " not found for transaction number " + txNumber);
+            }
+            logger.debug("No such key: {}", key);
+            return loadVersionsInRange(box, versionToLoad - 1, txNumber);
+        }
+    }
+
+    /* merge the given tail into the given body.  This method changes the final
+    field that points to a VBody (either in the VBox.body or in VBoxBody.next.
+    However, it only does so when the reference is to the NOT_LOADED_BODY.  In
+    the worst case, if someone misses the change it will trigger a potentially
+    unnecessary reload of the box. This method could be in the VBox class.  It's
+    here because we're using JVSTM2 and pstm.VBox isn't aware of it.*/
+    /**
+     * Replace the reference to {@link VBox#NOT_LOADED_BODY} with a reference to the given tail. This method will only succeed
+     * when replacing references to <code>null</code> or {@link VBox#NOT_LOADED_BODY} with some other tail.
+     * 
+     * @param body The body whose tail we need to replace. If it is null then, replace this VBox's body instead.
+     * @param tail The reference to replace. Should end with {@link VBox#NOT_LOADED_BODY} (this method does not check for it).
+     */
+    public void replaceTail(VBox box, VBoxBody body, VBoxBody tail) {
+        if (body == null) {
+            replaceTailInVBox(box, tail);
+        } else {
+            replaceTailInBody(body, tail);
+        }
+    }
+
+    private void replaceTailInVBox(VBox box, VBoxBody tail) {
+        VBoxBody current = box.body;
+
+        if (isBodyLoaded(current)) {
+            updateAndReplaceTailInBody(current, tail);
+        } else if (!UNSAFE.compareAndSwapObject(box, Offsets.bodyOffset, current, tail)) {
+            updateAndReplaceTailInBody(current, tail);
+        }
+    }
+
+    private boolean isBodyLoaded(VBoxBody body) {
+        return body != null && body != VBox.NOT_LOADED_BODY;
+    }
+
+    private static final long nextOffset = UtilUnsafe.objectFieldOffset(VBoxBody.class, "next");
+
+    private void replaceTailInBody(VBoxBody body, VBoxBody tail) {
+        VBoxBody current = body.next;
+
+        if (isBodyLoaded(current)) {
+            updateAndReplaceTailInBody(current, tail);
+        } else if (!UNSAFE.compareAndSwapObject(body, nextOffset, current, tail)) {
+            updateAndReplaceTailInBody(current, tail);
+        }
+    }
+
+    private void updateAndReplaceTailInBody(VBoxBody current, VBoxBody tail) {
+        current = getOldestLoadedBody(current);
+        tail = findSubTail(current, tail);
+
+        if (isBodyLoaded(tail)) {
+            replaceTailInBody(current, tail);
+        }
+        // otherwise, everything from the tail was already found in the body 
+    }
+
+    /* Given a non-null reference to a single body, return the first element in
+    tail that is not in the body list (the single body can have at most a next
+    that is the NOT_LOADED_BODY. */
+    private VBoxBody findSubTail(VBoxBody head, VBoxBody tail) {
+        while (isBodyLoaded(tail)) {
+            if (tail.version >= head.version) {
+                tail = tail.next;
+            } else {
+                return tail;
+            }
+        }
+        return null;
+    }
+
+    // Should never be invoked with head == null or head == VBox.NOT_LOADED_BODY
+    public VBoxBody getOldestLoadedBody(VBoxBody head) {
+        VBoxBody oldest = head;
+        while ((oldest.next != VBox.NOT_LOADED_BODY) && (oldest.next != null)) {
+            oldest = oldest.next;
+        }
+        return oldest;
+    }
+
     private static String makeKeyFor(UUID uuid) {
         return ":" + uuid.toString() + ":";
     }
@@ -508,13 +672,13 @@ public class LockFreeRepository implements ExtendedRepository {
         return vbox.getId();
     }
 
-    private static String makeKeyWithCommitId(String key, UUID commitId) {
-        return key + ":" + commitId.toString();
+    private static String makeKeyWithCommitId(String key, String commitId) {
+        return key + ":" + commitId;
     }
 
-    private static String makeVersionedKey(String key, int version) {
-        return key + ":" + version;
-    }
+//    private static String makeVersionedKey(String key, int version) {
+//        return key + ":" + version;
+//    }
 
     /* DataVersionHolder class. Ensures safe publication. */
 
@@ -535,13 +699,13 @@ public class LockFreeRepository implements ExtendedRepository {
         private static final long serialVersionUID = 1L;
         public int version;
         public int previousVersion;
-        public final Object data;
+        public final byte[] data;
 
-        DataVersionHolder(Object data) {
+        DataVersionHolder(byte[] data) {
             this(-1, -1, data);
         }
 
-        DataVersionHolder(int version, int previousVersion, Object data) {
+        DataVersionHolder(int version, int previousVersion, byte[] data) {
             this.version = version;
             this.previousVersion = previousVersion;
             this.data = data;

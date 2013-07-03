@@ -13,7 +13,7 @@ import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 // would be a more appropriate name.
 class ReferenceBox<E> extends OwnedVBox<E> {
 
-    private static final Logger logger = LoggerFactory.getLogger(PrimitiveBox.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReferenceBox.class);
 
     ReferenceBox(JVSTMDomainObject ownerObj, String slotName) {
         super(ownerObj, slotName);
@@ -30,7 +30,7 @@ class ReferenceBox<E> extends OwnedVBox<E> {
     @Override
     protected void doReload(/*Object obj, String attr*/) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Reload ReferenceVBox: {} for {}", this.slotName, this.ownerObj.getExternalId());
+            logger.debug("Reload ReferenceVBox: slot {} for id {}", this.slotName, this.ownerObj.getExternalId());
         }
 
         JVSTMBackEnd.getInstance().getRepository().reloadReferenceAttribute(this);

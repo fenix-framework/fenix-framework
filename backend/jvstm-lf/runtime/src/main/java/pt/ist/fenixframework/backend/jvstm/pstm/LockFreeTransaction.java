@@ -157,9 +157,9 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     /* This is the main entrance point for the lock-free commit. We override
     tryCommit, and we do not call super.trycommit().  We reuse the commitTx
     machinery in LocalCommitOnlyTransaction, which is the instance that we create
-    to decorate DistributedTransactions from the local node.  In short, here we
+    to decorate LockFreeTransactions from the local node.  In short, here we
     just broadcast a commit request and go process the queue until our
-    LocalCommitOnlyTransction is either committed or found invalid. */
+    LocalCommitOnlyTransaction is either committed or found invalid. */
     @Override
     protected void tryCommit() {
         if (isWriteTransaction()) {
@@ -191,7 +191,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             helpedTryCommit(myRequest);
 
 // From TopLevelTransaction:
-            upgradeTx(getCommitTxRecord());  // it was set by the helper LocalCommitOnlyTransaction 
+            upgradeTx(getCommitTxRecord());  // commitTxRecord was set by the helper LocalCommitOnlyTransaction 
         }
     }
 
@@ -287,7 +287,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
      * @return The {@link CommitRequest} that corresponds to myRequestId
      * @throws CommitException if the validation of my request failed
      */
-    private CommitRequest tryCommit(CommitRequest requestToProcess, UUID myRequestId) throws CommitException {
+    protected CommitRequest tryCommit(CommitRequest requestToProcess, UUID myRequestId) throws CommitException {
         // get a transaction and invoke its commit.
 
         CommitRequest current = requestToProcess;

@@ -22,9 +22,9 @@ import com.hazelcast.core.MessageListener;
 public class LockFreeClusterUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(LockFreeClusterUtils.class);
-    private static final String FF_GLOBAL_LOCK_NAME = "ff.hzl.global.lock";
-    private static final String FF_GLOBAL_LOCK_NUMBER_NAME = "ff.hzl.global.lock.number";
-    private static final long FF_GLOBAL_LOCK_LOCKED_VALUE = -1;
+//    private static final String FF_GLOBAL_LOCK_NAME = "ff.hzl.global.lock";
+//    private static final String FF_GLOBAL_LOCK_NUMBER_NAME = "ff.hzl.global.lock.number";
+//    private static final long FF_GLOBAL_LOCK_LOCKED_VALUE = -1;
     private static final String FF_COMMIT_TOPIC_NAME = "ff.hzl.commits";
 
     private static HazelcastInstance HAZELCAST_INSTANCE;
@@ -87,10 +87,10 @@ public class LockFreeClusterUtils {
         });
     }
 
-    public static void initGlobalCommittedNumber(int value) {
-        AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
-        lockNumber.compareAndSet(0, value);
-    }
+//    public static void initGlobalCommittedNumber(int value) {
+//        AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
+//        lockNumber.compareAndSet(0, value);
+//    }
 
     // the instance should have been initialized in a single thread within the
     // FenixFramework static initializer's lock (via the invocation of the method

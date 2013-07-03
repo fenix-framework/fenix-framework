@@ -16,7 +16,7 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
     private static final Logger logger = LoggerFactory.getLogger(VBox.class);
 
     static final Object NOT_LOADED_VALUE = new Object();
-    static final VBoxBody NOT_LOADED_BODY = new VBoxBody(notLoadedValue(), 0, null);
+    public static final VBoxBody NOT_LOADED_BODY = new VBoxBody(notLoadedValue(), 0, null);
 
     public static <T> T notLoadedValue() {
         return (T) NOT_LOADED_VALUE;
@@ -65,6 +65,18 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
     @Override
     public Object getCurrentValue() {
         return this.get();
+    }
+
+    public VBoxBody<E> getOldestLoadedBody() {
+        if (this.body == VBox.NOT_LOADED_BODY || this.body == null) {
+            return null;
+        } else {
+            VBoxBody<E> oldest = this.body;
+            while ((oldest.next != VBox.NOT_LOADED_BODY) && (oldest.next != null)) {
+                oldest = oldest.next;
+            }
+            return oldest;
+        }
     }
 
     // synchronized here processes reloads of the same box one at a time, thus avoiding concurrent accesses to the persistence to
