@@ -48,6 +48,9 @@ public class JDBCTypeMap {
         BUILT_IN_JDBC_MAP.put("Partial", "LONGVARCHAR");
 
         BUILT_IN_JDBC_MAP.put("Serializable", "BLOB");
+
+        // JsonElement serializes to String
+        BUILT_IN_JDBC_MAP.put("JsonElement", "LONGVARCHAR");
     }
 
     public static String getJdbcTypeFor(DomainModel model, String valueType) {
