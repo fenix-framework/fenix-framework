@@ -19,6 +19,7 @@ import javax.transaction.TransactionManager;
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.context.Flag;
 import org.infinispan.eviction.EvictionStrategy;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.transaction.LockingMode;
@@ -227,7 +228,7 @@ public class InfinispanDataGrid implements DataGrid {
         this.cache = doWithinBackingTransactionIfNeeded(new Callable<Cache<Object, Object>>() {
             @Override
             public Cache<Object, Object> call() {
-                return finalCacheManager.getCache(CACHE_NAME);
+                return finalCacheManager.getCache(CACHE_NAME).getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
             }
         });
     }
