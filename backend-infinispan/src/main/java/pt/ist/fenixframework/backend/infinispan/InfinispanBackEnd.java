@@ -168,14 +168,14 @@ public class InfinispanBackEnd implements BackEnd {
         ConfigurationBuilder builder = new ConfigurationBuilder().read(defaultConfiguration);
 
         if (config.useGrouping()) {
-            builder.clustering().hash().groups().enabled().addGrouper(new FenixFrameworkGrouper());
+            builder.clustering().hash().groups().enabled().addGrouper(new FenixFrameworkGrouper(this));
         } else if (defaultConfiguration.clustering().hash().groups().enabled()) {
             GroupsConfiguration groupsConfiguration = defaultConfiguration.clustering().hash().groups();
             int groupers = groupsConfiguration.groupers().size();
             if (groupers == 0) {
-                builder.clustering().hash().groups().addGrouper(new FenixFrameworkGrouper());
+                builder.clustering().hash().groups().addGrouper(new FenixFrameworkGrouper(this));
             } else if (groupers != 1 || !groupsConfiguration.groupers().get(0).getClass().equals(FenixFrameworkGrouper.class)) {
-                builder.clustering().hash().groups().clearGroupers().addGrouper(new FenixFrameworkGrouper());
+                builder.clustering().hash().groups().clearGroupers().addGrouper(new FenixFrameworkGrouper(this));
             }
         }
 
