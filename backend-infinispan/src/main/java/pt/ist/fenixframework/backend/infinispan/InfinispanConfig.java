@@ -104,7 +104,7 @@ public class InfinispanConfig extends HibernateSearchConfig {
         this.useGrouping = useGrouping;
     }
 
-    public final void userGroupingFromString(String value) {
+    public final void useGroupingFromString(String value) {
         setUseGrouping(Boolean.valueOf(value));
     }
 
