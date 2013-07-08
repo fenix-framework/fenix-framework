@@ -8,10 +8,11 @@ import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.Config;
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
+
+import static pt.ist.fenixframework.adt.bplustree.BPlusTree.DEFAULT_LOWER_BOUND;
+import static pt.ist.fenixframework.adt.bplustree.BPlusTree.LOWER_BOUND_PROPERTY;
 
 /**
  * Implementation of a persistence-independent B+Tree. This implementation is modelled in DML and
@@ -86,8 +87,7 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
     static int MAX_NUMBER_OF_ELEMENTS = MAX_NUMBER_OF_KEYS + 1;
 
     static {
-        Config config = FenixFramework.getConfig();
-        setLowerBound(config.getBtreeLowerBound());
+        setLowerBound(Integer.parseInt(System.getProperty(LOWER_BOUND_PROPERTY, DEFAULT_LOWER_BOUND)));
     }
 
     static void setLowerBound(int lowerBound) {
