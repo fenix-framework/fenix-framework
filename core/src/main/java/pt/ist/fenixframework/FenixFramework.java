@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import pt.ist.fenixframework.jmx.JmxUtil;
 import pt.ist.fenixframework.messaging.RequestProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -455,6 +456,7 @@ public class FenixFramework {
             }
             getConfig().shutdown();
             shutdownMessagingQueue(getConfig().getAppName());
+            JmxUtil.unregisterAllMBeans(getConfig().getAppName());
         }
     }
 
