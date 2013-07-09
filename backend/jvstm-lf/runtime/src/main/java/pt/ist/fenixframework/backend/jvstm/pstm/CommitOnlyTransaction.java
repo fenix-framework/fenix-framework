@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest;
 import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest.ValidationStatus;
 import pt.ist.fenixframework.backend.jvstm.lf.JvstmLockFreeBackEnd;
-import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
+import pt.ist.fenixframework.backend.jvstm.lf.SimpleReadSet;
 
 //import jvstm.VBox;
 
@@ -187,7 +187,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
             return;
         }
 
-        RemoteReadSet readSet = this.commitRequest.getReadSet();
+        SimpleReadSet readSet = this.commitRequest.getReadSet();
 
         // smf: TODO implement the helping mechanism here. For now, just iterate all.
 

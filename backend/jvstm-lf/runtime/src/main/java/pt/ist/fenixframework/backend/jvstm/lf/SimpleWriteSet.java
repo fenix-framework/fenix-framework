@@ -7,20 +7,20 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RemoteWriteSet {
+public class SimpleWriteSet {
 
-    private static final Logger logger = LoggerFactory.getLogger(RemoteWriteSet.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleWriteSet.class);
 
     private static final String INVALID_WRITE_SET = "when provided, values must be the same length as vboxIds";
 
     private final String[] vboxIds;
     private final Object[] values;
 
-    public RemoteWriteSet(String[] vboxIds) {
+    public SimpleWriteSet(String[] vboxIds) {
         this(vboxIds, null);
     }
 
-    public RemoteWriteSet(String[] vboxIds, Object[] values) {
+    public SimpleWriteSet(String[] vboxIds, Object[] values) {
         if (values != null && (vboxIds.length != values.length)) {
             logger.error(INVALID_WRITE_SET);
             throw new IllegalArgumentException(INVALID_WRITE_SET);
@@ -53,7 +53,7 @@ public class RemoteWriteSet {
         }
     }
 
-    public static RemoteWriteSet readFrom(DataInput in) throws IOException {
+    public static SimpleWriteSet readFrom(DataInput in) throws IOException {
         int size = in.readInt();
         String ids[] = new String[size];
 //        Object[] values = new Object[size];
@@ -65,8 +65,8 @@ public class RemoteWriteSet {
 //            in.readFully(externalValue);
 //            values[i] = Externalization.internalizeObject(externalValue);
         }
-//        return new RemoteWriteSet(ids,/* null,*/size);
-        return new RemoteWriteSet(ids);
+//        return new SimpleWriteSet(ids,/* null,*/size);
+        return new SimpleWriteSet(ids);
     }
 
     @Override

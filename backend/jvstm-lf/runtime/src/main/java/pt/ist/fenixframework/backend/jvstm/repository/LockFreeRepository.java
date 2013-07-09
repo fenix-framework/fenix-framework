@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.lf.JvstmLockFreeConfig;
-import pt.ist.fenixframework.backend.jvstm.lf.RemoteWriteSet;
+import pt.ist.fenixframework.backend.jvstm.lf.SimpleWriteSet;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
 import pt.ist.fenixframework.backend.jvstm.pstm.VersionedValue;
@@ -396,7 +396,7 @@ public class LockFreeRepository implements ExtendedRepository {
     }
 
     @Override
-    public void persistWriteSet(final UUID commitId, final RemoteWriteSet writeSet, final Object nullObject) {
+    public void persistWriteSet(final UUID commitId, final SimpleWriteSet writeSet, final Object nullObject) {
         /* Store CommitId-->List<VBoxId> and VBoxId:CommitId-->Value */
 
         logger.debug("persistWriteSet with commitId={{}}, writeSet={{}}", commitId, writeSet);

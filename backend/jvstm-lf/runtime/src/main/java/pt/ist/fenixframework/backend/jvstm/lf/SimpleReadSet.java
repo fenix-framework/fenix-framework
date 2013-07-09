@@ -4,11 +4,11 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class RemoteReadSet {
+public class SimpleReadSet {
 
     private final String[] vboxIds;
 
-    public RemoteReadSet(String[] vboxIds) {
+    public SimpleReadSet(String[] vboxIds) {
         this.vboxIds = vboxIds;
     }
 
@@ -25,13 +25,13 @@ public class RemoteReadSet {
         }
     }
 
-    public static RemoteReadSet readFrom(DataInput in) throws IOException {
+    public static SimpleReadSet readFrom(DataInput in) throws IOException {
         int size = in.readInt();
         String ids[] = new String[size];
         for (int i = 0; i < size; i++) {
             ids[i] = in.readUTF();
         }
-        return new RemoteReadSet(ids);
+        return new SimpleReadSet(ids);
     }
 
     @Override

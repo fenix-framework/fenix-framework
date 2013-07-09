@@ -72,7 +72,7 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
 //            return;
 //        }
 //
-//        RemoteReadSet readSet = this.commitRequest.getReadSet();
+//        SimpleReadSet readSet = this.commitRequest.getReadSet();
 //
 //        // smf: TODO implement the helping mechanism here. For now, just iterate all.
 //

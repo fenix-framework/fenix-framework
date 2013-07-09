@@ -89,8 +89,8 @@ public class CommitRequest implements DataSerializable {
      */
     private int txVersion;
 
-    private RemoteReadSet readSet;
-    private RemoteWriteSet writeSet;
+    private SimpleReadSet readSet;
+    private SimpleWriteSet writeSet;
 
     /* The following fields are set only by the receiver of the commit request. */
 
@@ -103,7 +103,7 @@ public class CommitRequest implements DataSerializable {
         // required by Hazelcast's DataSerializable
     }
 
-    public CommitRequest(int serverId, int txVersion, RemoteReadSet readSet, RemoteWriteSet writeSet) {
+    public CommitRequest(int serverId, int txVersion, SimpleReadSet readSet, SimpleWriteSet writeSet) {
         this.id = UUID.randomUUID();
         this.serverId = serverId;
         this.txVersion = txVersion;
@@ -123,11 +123,11 @@ public class CommitRequest implements DataSerializable {
         return this.txVersion;
     }
 
-    public RemoteReadSet getReadSet() {
+    public SimpleReadSet getReadSet() {
         return this.readSet;
     }
 
-    public RemoteWriteSet getWriteSet() {
+    public SimpleWriteSet getWriteSet() {
         return this.writeSet;
     }
 
@@ -174,8 +174,8 @@ public class CommitRequest implements DataSerializable {
         this.serverId = in.readInt();
         this.txVersion = in.readInt();
         this.id = new UUID(in.readLong(), in.readLong());
-        this.readSet = RemoteReadSet.readFrom(in);
-        this.writeSet = RemoteWriteSet.readFrom(in);
+        this.readSet = SimpleReadSet.readFrom(in);
+        this.writeSet = SimpleWriteSet.readFrom(in);
     }
 
     @Override

@@ -26,8 +26,8 @@ import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest;
 import pt.ist.fenixframework.backend.jvstm.lf.CommitRequest.ValidationStatus;
 import pt.ist.fenixframework.backend.jvstm.lf.JvstmLockFreeBackEnd;
 import pt.ist.fenixframework.backend.jvstm.lf.LockFreeClusterUtils;
-import pt.ist.fenixframework.backend.jvstm.lf.RemoteReadSet;
-import pt.ist.fenixframework.backend.jvstm.lf.RemoteWriteSet;
+import pt.ist.fenixframework.backend.jvstm.lf.SimpleReadSet;
+import pt.ist.fenixframework.backend.jvstm.lf.SimpleWriteSet;
 import pt.ist.fenixframework.core.WriteOnReadError;
 
 public class LockFreeTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction {
@@ -220,10 +220,10 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     }
 
     private CommitRequest makeCommitRequest() {
-        return new CommitRequest(DomainClassInfo.getServerId(), getNumber(), makeRemoteReadSet(), makeRemoteWriteSet());
+        return new CommitRequest(DomainClassInfo.getServerId(), getNumber(), makeSimpleReadSet(), makeSimpleWriteSet());
     }
 
-    private RemoteReadSet makeRemoteReadSet() {
+    private SimpleReadSet makeSimpleReadSet() {
         HashSet<String> vboxIds = new HashSet<String>();
 
         if (!this.bodiesRead.isEmpty()) {
@@ -243,10 +243,10 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             }
         }
 
-        return new RemoteReadSet(vboxIds.toArray(new String[vboxIds.size()]));
+        return new SimpleReadSet(vboxIds.toArray(new String[vboxIds.size()]));
     }
 
-    private RemoteWriteSet makeRemoteWriteSet() {
+    private SimpleWriteSet makeSimpleWriteSet() {
         // code adapted from jvstm.WriteSet. It's a bit redundant, and cumbersome to maintain if the original code happens to change :-/  This should be refactored
 
         // CODE TO DEAL WITH PARALLEL NESTED TRANSACTIONS WAS REMOVED FROM THE ORIGINAL VERSION
@@ -276,7 +276,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
         }
 
         int writeSetLength = pos;
-        return new RemoteWriteSet(Arrays.copyOf(vboxIds, writeSetLength), Arrays.copyOf(values, writeSetLength));
+        return new SimpleWriteSet(Arrays.copyOf(vboxIds, writeSetLength), Arrays.copyOf(values, writeSetLength));
     }
 
     /**
