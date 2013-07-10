@@ -26,8 +26,17 @@ public class LockFreeReadOnlyTransaction extends LockFreeTransaction {
 
     @Override
     public <T> T getBoxValue(VBox<T> vbox) {
-        numBoxReads++;
-        return getValueFromBody(vbox, vbox.getBody(number));
+        this.numBoxReads++;
+        logger.debug("getBoxValue for '{}' in version '{}'", vbox.getId(), getNumber());
+
+        return readFromBody(vbox);
+
+//        return getValueFromBody(vbox, vbox.getBody(number));
+    }
+
+    @Override
+    protected <T> void addToReadSet(jvstm.VBox<T> vbox) {
+        // no-op for read-only tx
     }
 
     @Override

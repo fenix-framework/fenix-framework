@@ -146,7 +146,7 @@ public class LockFreeClusterUtils {
     public static void sendCommitRequest(CommitRequest commitRequest) {
         // test for debug, because computing commitRequest.toString() is expensive
         if (logger.isDebugEnabled()) {
-            logger.debug("Send commit info to others: {}", commitRequest);
+            logger.debug("Send commit request to others: {}", commitRequest);
         }
 
         ITopic<CommitRequest> topic = getHazelcastInstance().getTopic(FF_COMMIT_TOPIC_NAME);
@@ -160,6 +160,10 @@ public class LockFreeClusterUtils {
      */
     public static CommitRequest getCommitRequestAtHead() {
         return commitRequestsHead.get();
+    }
+
+    public static CommitRequest getCommitRequestsTail() {
+        return commitRequestsTail;
     }
 
     /**

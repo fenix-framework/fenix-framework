@@ -1,6 +1,8 @@
 package pt.ist.fenixframework.backend.jvstm.pstm;
 
+import jvstm.ActiveTransactionsRecord;
 import jvstm.TopLevelTransaction;
+import jvstm.WriteSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,16 +17,21 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
 
     private final LockFreeTransaction decoratedTransaction;
 
-//    private final WriteSet writeSet;
+    private final WriteSet writeSet;
 
 //    private final ConcurrentHashMap<Integer, UUID> txVersionToCommitIdMap = new ConcurrentHashMap<Integer, UUID>();
 
     public LocalCommitOnlyTransaction(CommitRequest commitRequest, LockFreeTransaction tx) {
-        super(tx.getActiveTxRecord(), commitRequest, tx.makeWriteSet());
+        super(tx.getActiveTxRecord(), commitRequest);
         this.decoratedTransaction = tx;
 //        this.commitRequest = commitRequest;
-//        this.writeSet = this.decoratedTransaction.makeWriteSet();
+        this.writeSet = this.decoratedTransaction.makeWriteSet();
 
+    }
+
+    @Override
+    public int getNumber() {
+        return this.getUnderlyingTransaction().getNumber();
     }
 
 //    @Override
@@ -40,6 +47,18 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
     @Override
     public TopLevelTransaction getUnderlyingTransaction() {
         return this.decoratedTransaction;
+    }
+
+    @Override
+    protected WriteSet getWriteSet() {
+        return this.writeSet;
+    }
+
+    @Override
+    public WriteSet makeWriteSet() {
+        String msg = "Making a writeset is not a thread-safe operation.  It was already done safely when creating this instance.";
+        logger.error(msg);
+        throw new UnsupportedOperationException(msg);
     }
 
 //    @Override
@@ -136,10 +155,10 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
 //
 //    }
 
-//    @Override
-//    public ActiveTransactionsRecord getCommitTxRecord() {
-//        return this.decoratedTransaction.getCommitTxRecord();
-//    }
+    @Override
+    public ActiveTransactionsRecord getCommitTxRecord() {
+        return this.decoratedTransaction.getCommitTxRecord();
+    }
 
 //    @Override
 //    protected void helpCommit(ActiveTransactionsRecord recordToCommit) {

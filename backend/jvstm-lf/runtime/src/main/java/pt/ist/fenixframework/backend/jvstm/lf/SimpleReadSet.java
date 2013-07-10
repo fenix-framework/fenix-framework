@@ -1,3 +1,10 @@
+/*
+ * Fenix Framework, a framework to develop Java Enterprise Applications.
+ *
+ * Copyright (C) 2013 Fenix Framework Team and/or its affiliates and other contributors as indicated by the @author tags.
+ *
+ * This file is part of the Fenix Framework.  Read the file COPYRIGHT.TXT for more copyright and licensing information.
+ */
 package pt.ist.fenixframework.backend.jvstm.lf;
 
 import java.io.DataInput;

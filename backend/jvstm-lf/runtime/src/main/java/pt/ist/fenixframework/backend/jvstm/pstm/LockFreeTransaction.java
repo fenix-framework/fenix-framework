@@ -45,6 +45,18 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 
     public LockFreeTransaction(ActiveTransactionsRecord record) {
         super(record);
+        upgradeWithPendingCommits(record);
+    }
+
+    protected void upgradeWithPendingCommits(ActiveTransactionsRecord record) {
+        logger.debug("Initial read version is {}", record.transactionNumber);
+        ActiveTransactionsRecord newRecord = processCommitRequests(record);
+        logger.debug("Done processing pending commit requests.  Most recent version is {}", record.transactionNumber);
+
+        if (newRecord != this.activeTxRecord) {
+            logger.debug("Upgrading read version to {}", newRecord.transactionNumber);
+            upgradeTx(newRecord);
+        }
     }
 
     @Override
@@ -98,11 +110,13 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
         if (body.value == VBox.NOT_LOADED_VALUE) {
             VBox<T> ffVBox = (VBox<T>) vbox;
 
+//            logger.debug("Value for vbox {} is: NOT_LOADED_VALUE", ((VBox) vbox).getId());
+
             ffVBox.reload();
             // after the reload, the (new) body should have the required loaded value
             // if not, then something gone wrong and its better to abort
             // body = vbox.body.getBody(number);
-            body = ffVBox.getBody(number);
+            body = ffVBox.getBody(getNumber());
 
             if (body.value == VBox.NOT_LOADED_VALUE) {
                 logger.error("Couldn't load the VBox: {}", ffVBox.getId());
@@ -110,7 +124,10 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             }
         }
 
-        // notice that body has changed if we went into the previous condition 
+        // notice that body has changed if we went into the previous if 
+
+        logger.debug("Value for vbox {} is: {{}}", ((VBox) vbox).getId(), body.value);
+
         return super.getValueFromBody(vbox, body);
     }
 
@@ -133,6 +150,29 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     @Override
     public Transaction makeNestedTransaction(boolean readOnly) {
         throw new Error("Nested transactions not supported yet...");
+    }
+
+    /* this method processes the commit requests queue helping to apply as many
+    commits as it finds in the queue. This ensures that: (1) eventually the queue
+    gets processed even if there are only read-only transactions; (2) the
+    transactions make an effort to begin in the most up to date state of the
+    world, which improves the chances of a write transaction committing successfully
+    */
+    private ActiveTransactionsRecord processCommitRequests(ActiveTransactionsRecord record) {
+        /* by reading tail only after reading head, we ensure that tail is greater
+        than or equal to the current Request*/
+        CommitRequest currentRequest = LockFreeClusterUtils.getCommitRequestAtHead();
+        CommitRequest tail = LockFreeClusterUtils.getCommitRequestsTail();
+
+//        if (currentRequest != tail) {
+        tryCommit(currentRequest, tail.getId());
+//        }
+
+        /* return the newest record there is. This is safe, and we don't really
+        need to invoke Transaction.getRecordForNewTransaction(), because the
+        current transaction is already holding another record (the same or an
+        older one) from which we will upgrade to this one */
+        return Transaction.mostRecentCommittedRecord;
     }
 
     @Override
@@ -299,7 +339,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 
             CommitRequest next = current.handle();
             if (current.getId().equals(myRequestId)) {
-                logger.debug("Processed my commit request: {}. ValidationStatus: {}", myRequestId.toString(),
+                logger.debug("Processed up to commit request: {}. ValidationStatus: {}", myRequestId.toString(),
                         current.getValidationStatus());
 
                 boolean valid = current.getValidationStatus() == ValidationStatus.VALID;

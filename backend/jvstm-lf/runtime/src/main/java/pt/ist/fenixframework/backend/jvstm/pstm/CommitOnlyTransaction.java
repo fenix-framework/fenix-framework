@@ -37,7 +37,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
 
     protected final CommitRequest commitRequest;
 
-    private final WriteSet writeSet;
+//    private final WriteSet writeSet = STUB_WRITE_SET;
 
     private final ConcurrentHashMap<Integer, UUID> txVersionToCommitIdMap = new ConcurrentHashMap<Integer, UUID>();
 
@@ -47,10 +47,9 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
 //    protected int numBoxReads = 0;
 //    protected int numBoxWrites = 0;
 
-    public CommitOnlyTransaction(ActiveTransactionsRecord record, CommitRequest commitRequest, WriteSet writeSet) {
+    public CommitOnlyTransaction(ActiveTransactionsRecord record, CommitRequest commitRequest) {
         super(record);
         this.commitRequest = commitRequest;
-        this.writeSet = writeSet;
     }
 
     @Override
@@ -99,10 +98,10 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         this.commitTx(false); // smf TODO: double-check whether we want to mess with ActiveTxRecords, thread-locals, etc.  I guess 'false' is the way to go...
     }
 
-    @Override
-    public int getNumber() {
-        return this.getUnderlyingTransaction().getNumber();
-    }
+//    @Override
+//    public int getNumber() {
+//        return this.getUnderlyingTransaction().getNumber();
+//    }
 
     /**
      * Get the concrete transaction that will be committed. For local commits this should be the local tx instance, help by the
@@ -117,15 +116,16 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         this.commitRequest.setValid();
     }
 
-    /*
-     The validation for commit-only transactions follows the usual protocol: (1)
-    helpCommitAll, (2) snapshotValidation, and (3) validateAndEnqueue.  The
+    /* The validation for commit-only transactions follows the usual protocol:
+    (1) helpCommitAll, (2) snapshotValidation, and (3) validateAndEnqueue.  The
     difference is that now others may also be helping with the validation. So:
 
     - initially, check if validation already completed.  This is also useful to
     avoid starting the validation when there is only one (already validated)
     entry in the commit requests queue, and we're just waiting until more requests
-    arrive.
+    arrive.  Actually, I think that doing this would skip enqueuing if needed,
+    so we should be doing the normal validation and just skipping when we really
+    see them done.  In short, if already valid just move along to enqueueing.
 
     - snapshot validation is a helped phase (split into buckets).  if it fails
     the request is marked as failed.  however, care must be taken to check that
@@ -134,7 +134,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
     case, the whole commit for this transaction is done! :-)  As usual, a more
     recent write by another to a VBox that was read, will cause validation to
     fail.
-    
+
     - validateCommitAndEnqueue only needs to be attempted once.  Given that
     snapshotValidation passed, then if enqueue fails it's because someone else
     did it already.  Moving along...
@@ -144,15 +144,15 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
     protected void validate() {
         logger.debug("Validating commit request: {}", this.commitRequest.getId());
 
-        // some other helper may have already done the work for us
-        ValidationStatus validationStatus = this.commitRequest.getValidationStatus();
-        boolean alreadyValidated = validationStatus != ValidationStatus.UNSET;
-
-        if (alreadyValidated) {
-            logger.debug("Commit request {} is already {}", this.commitRequest.getId(),
-                    (validationStatus == ValidationStatus.VALID ? "VALID" : "INVALID"));
-            return;
-        }
+//        // some other helper may have already done the work for us
+//        ValidationStatus validationStatus = this.commitRequest.getValidationStatus();
+//        boolean alreadyValidated = validationStatus != ValidationStatus.UNSET;
+//
+//        if (alreadyValidated) {
+//            logger.debug("Commit request {} is already {}", this.commitRequest.getId(),
+//                    (validationStatus == ValidationStatus.VALID ? "VALID" : "INVALID"));
+//            return;
+//        }
 
         super.validate();
     }
@@ -166,9 +166,11 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         same record twice and to throw an exception if already invalid), but it
         may also bring in the lucky benefit of the validation status for this
         tx already being set (either valid or invalid).  */
-        ValidationStatus currentStatus = this.commitRequest.getValidationStatus();
-        if (currentStatus != ValidationStatus.UNSET) {
-            if (currentStatus == ValidationStatus.VALID) {
+        ValidationStatus validationStatus = this.commitRequest.getValidationStatus();
+        boolean alreadyValidated = validationStatus != ValidationStatus.UNSET;
+
+        if (alreadyValidated) {
+            if (validationStatus == ValidationStatus.VALID) {
                 logger.debug("Commit request {} was found already VALID", this.commitRequest.getId());
                 return;
             } else {
@@ -183,7 +185,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
 
         if (lastSeenCommittedTxNumber == myReadVersion) {
             logger.debug("Commit request {} is immediately VALID", this.commitRequest.getId());
-            assignCommitRecord(lastSeenCommittedTxNumber + 1, this.writeSet);
+            assignCommitRecord(lastSeenCommittedTxNumber + 1, getWriteSet());
             return;
         }
 
@@ -194,40 +196,45 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         JvstmLockFreeBackEnd backend = JvstmLockFreeBackEnd.getInstance();
 
         for (String vboxId : readSet.getVBoxIds()) {
-            VBox vbox = backend.lookupCachedVBox(vboxId);
-            if (vbox == null) {
-                // smf: TODO this vbox is not cached locally. deal with this later
-                logger.error("not implemented yet. must deal with uncached vboxes in this node. cannot continue to commit deterministically. exiting");
-                System.exit(-1);
-                /* We know that if this tx is valid then it will commit with
-                commitNumber=lastSeenCommittedTxNumber+1. So we need to check
-                if there is some version committed greater than this.getNumber()
-                and less than commitNumber.  If it exists, this transaction is
-                invalid. If it doesn't exists, we may continue validation.
-                However, we can speed up the conclusion bu also checking whether
-                there is a commit for commitNumber.  If so, then this transaction
-                is immediately valid or invalid depending on whether such
-                commitNumber's commitId is ours.  Question: do we need to reload
-                everything from the most recent down to the lastSeenCommittedTxNumber?
-                Probably yes to ensure the invariant of the reload. Then we only
-                need to check the most recent loaded version :-).
+            VBox vbox = backend.vboxFromId(vboxId);
+//            if (vbox == null) {
+//                // smf: TODO this vbox is not cached locally. deal with this later
+//                logger.error("not implemented yet. must deal with uncached vboxes in this node. cannot continue to commit deterministically. exiting");
+//                System.exit(-1);
+//                /* We know that if this tx is valid then it will commit with
+//                commitNumber=lastSeenCommittedTxNumber+1. So we need to check
+//                if there is some version committed greater than this.getNumber()
+//                and less than commitNumber.  If it exists, this transaction is
+//                invalid. If it doesn't exists, we may continue validation.
+//                However, we can speed up the conclusion bu also checking whether
+//                there is a commit for commitNumber.  If so, then this transaction
+//                is immediately valid or invalid depending on whether such
+//                commitNumber's commitId is ours.  Question: do we need to reload
+//                everything from the most recent down to the lastSeenCommittedTxNumber?
+//                Probably yes to ensure the invariant of the reload. Then we only
+//                need to check the most recent loaded version :-).
+//
+//                Another note: a simple reload here is not enough, because reloads
+//                only load up to the mostRecentCommit seen by this node.  We need
+//                to know whether THIS request may have been already committed by
+//                another node!
+//
+//                NOTE: We never enter this branch of the if in a
+//                LocalCommitOnlyTransaction, but it doesn't hurt to have this
+//                code in the common CommitOnlyTransaction.
+//
+//                In summary: If I'm not mistaken, after asking for a reload of
+//                version mostRecentCommitted (whatever that may be), I'll be able
+//                to run (exactly?) the same code as the one that runs when the
+//                box is loaded...  */
+//                // it is enough to reload the most recent version in order to decide about validation
+//                vbox.reload(lastSeenCommittedTxNumber);
+//            } /*else {*/
 
-                Another note: a simple reload here is not enough, because reloads
-                only load up to the mostRecentCommit seen by this node.  We need
-                to know whether THIS request may have been already committed by
-                another node!
-
-                NOTE: We never enter this branch of the if in a
-                LocalCommitOnlyTransaction, but it doesn't hurt to have this
-                code in the common CommitOnlyTransaction.
-
-                In summary: If I'm not mistaken, after asking for a reload of
-                version mostRecentCommitted (whatever that may be), I'll be able
-                to run (exactly?) the same code as the one that runs when the
-                box is loaded...  */
-                // it is enough to reload the most recent version in order to decide about validation
+            if (vbox.body.version == 0) {
                 vbox.reload(lastSeenCommittedTxNumber);
-            } /*else {*/
+            }
+
             // check whether the read was valid
             if (vbox.body.version > myReadVersion) {
                 /* caution: it could be our own commit that we're seeing!
@@ -283,15 +290,17 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         }
 
         logger.debug("Commit request {} is VALID", this.commitRequest.getId());
-        assignCommitRecord(lastSeenCommittedTxNumber + 1, this.writeSet);
+        assignCommitRecord(lastSeenCommittedTxNumber + 1, getWriteSet());
     }
 
+    /**
+     * Get the {@link WriteSet} for this transaction.
+     * 
+     */
+    protected abstract WriteSet getWriteSet();
+
     @Override
-    public WriteSet makeWriteSet() {
-        String msg = "Making a writeset is not a thread-safe operation. It was already done safely when creating this instance.";
-        logger.error(msg);
-        throw new UnsupportedOperationException(msg);
-    }
+    public abstract WriteSet makeWriteSet();
 
     @Override
     protected void validateCommitAndEnqueue(ActiveTransactionsRecord lastCheck) {
@@ -300,10 +309,10 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         updateOrecVersion();
     }
 
-    @Override
-    public void updateOrecVersion() {
-        this.getUnderlyingTransaction().updateOrecVersion();
-    }
+//    @Override
+//    public void updateOrecVersion() {
+//        this.getUnderlyingTransaction().updateOrecVersion();
+//    }
 
     @Override
     protected void enqueueValidCommit(ActiveTransactionsRecord lastCheck, WriteSet writeSet) {
@@ -336,13 +345,12 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         } else {
             logger.debug("commitTxRecord was already set with version {}", this.getCommitTxRecord().transactionNumber);
         }
-
     }
 
-    @Override
-    public ActiveTransactionsRecord getCommitTxRecord() {
-        return this.getUnderlyingTransaction().getCommitTxRecord();
-    }
+//    @Override
+//    public ActiveTransactionsRecord getCommitTxRecord() {
+//        return this.getUnderlyingTransaction().getCommitTxRecord();
+//    }
 
     @Override
     protected void helpCommit(ActiveTransactionsRecord recordToCommit) {
