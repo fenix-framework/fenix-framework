@@ -163,13 +163,29 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
             }
 
             /* we assume that well-written programs write to data grid entries
-            before reading from them.  As such, when a StandaloneVBox is not
-            cached, we simply allocate it. */
-            vbox = StandaloneVBox.makeNew(vboxId, true);
-            // cache vbox and return the canonical vbox
-            vbox = VBoxCache.getCache().cache(vbox);
+            before reading from them.  As such, when a VBox is not cached, we
+            simply allocate it. This is especially relevant for StandaloneVBoxes
+            as OwnedVBoxes are correctly created before being accessed. */
+//            vbox = StandaloneVBox.makeNew(vboxId, true);
+            vbox = allocateVBox(vboxId);
         }
 
+        return vbox;
+    }
+
+    private static VBox allocateVBox(String vboxId) {
+
+        // try an owned vbox first in case the id is valid.
+        VBox vbox = OwnedVBox.fromId(vboxId);
+
+        if (vbox == null) {
+            // make a standalone one
+            logger.debug("Allocating a StandaloneVBox for id {}", vboxId);
+
+            vbox = StandaloneVBox.makeNew(vboxId, true);
+            // cache vbox and return the canonical vbox
+            vbox = VBoxCache.getCache().cache((StandaloneVBox) vbox);
+        }
         return vbox;
     }
 
