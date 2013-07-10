@@ -8,6 +8,7 @@ import pt.ist.fenixframework.jmx.annotations.ManagedOperation;
 import pt.ist.fenixframework.util.Util;
 
 import javax.management.*;
+import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -48,7 +49,7 @@ public class JmxUtil {
         }
 
         Class<?> clazz = instance.getClass();
-        MBean mBean = clazz.getAnnotation(MBean.class);
+        MBean mBean = findAnnotation(clazz, MBean.class);
         if (mBean == null) {
             logger.error("Trying to analyze object " + instance + " but it does not have the MBean annotation");
             return;
@@ -136,17 +137,34 @@ public class JmxUtil {
         return null;
     }
 
+    private static <T extends Annotation> T findAnnotation(Class clazz, Class<T> annotationClass) {
+        if (clazz == null) {
+            return null;
+        }
+        T annotation = (T) clazz.getAnnotation(annotationClass);
+        if (annotation != null) {
+            return annotation;
+        }
+        if (clazz == Object.class) {
+            return null;
+        }
+        annotation = findAnnotation(clazz.getSuperclass(), annotationClass);
+        if (annotation == null) {
+            for (Class interfaceClass : clazz.getInterfaces()) {
+                annotation = findAnnotation(interfaceClass, annotationClass);
+                if (annotation != null) {
+                    return annotation;
+                }
+            }
+        }
+        return annotation;
+    }
+
     private static ComponentMBean process(Object instance, Class<?> clazz, MBean mBean) {
         Map<String, ManagedAttributeInfo> attributeInfoMap = new HashMap<String, ManagedAttributeInfo>();
         Set<MBeanOperationInfo> operationInfoMap = new HashSet<MBeanOperationInfo>();
 
-        for (Method method : clazz.getDeclaredMethods()) {
-            if (method.getAnnotation(ManagedAttribute.class) != null) {
-                processAttribute(method, attributeInfoMap);
-            } else if (method.getAnnotation(ManagedOperation.class) != null) {
-                processOperation(method, operationInfoMap);
-            }
-        }
+        internalProcess(clazz, attributeInfoMap, operationInfoMap);
 
         try {
             ComponentMBean componentMBean = new ComponentMBean(instance, mBean.description(),
@@ -157,6 +175,27 @@ public class JmxUtil {
             logger.error("Error creating MBean for object " + instance, e);
         }
         return null;
+    }
+
+    private static void internalProcess(Class clazz, Map<String, ManagedAttributeInfo> attributeInfoMap,
+                                        Set<MBeanOperationInfo> operationInfoMap) {
+        if (clazz == null) {
+            return;
+        }
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.getAnnotation(ManagedAttribute.class) != null) {
+                processAttribute(method, attributeInfoMap);
+            } else if (method.getAnnotation(ManagedOperation.class) != null) {
+                processOperation(method, operationInfoMap);
+            }
+        }
+        if (clazz == Object.class) {
+            return;
+        }
+        internalProcess(clazz.getSuperclass(), attributeInfoMap, operationInfoMap);
+        for (Class interfaceClass : clazz.getInterfaces()) {
+            internalProcess(interfaceClass, attributeInfoMap, operationInfoMap);
+        }
     }
 
     private static void processOperation(Method method, Set<MBeanOperationInfo> operationInfoMap) {
