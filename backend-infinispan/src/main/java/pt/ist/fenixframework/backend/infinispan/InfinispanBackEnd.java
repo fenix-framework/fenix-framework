@@ -299,7 +299,7 @@ public class InfinispanBackEnd implements BackEnd {
             }
             return localMessagingQueue;
         } else {
-            return new RemoteMessagingQueue(appName, jgroupsMessagingConfigurationFile,
+            return new RemoteMessagingQueue(appName, localName, jgroupsMessagingConfigurationFile,
                     readCache.getAdvancedCache().getComponentRegistry().getCacheMarshaller());
         }
     }
