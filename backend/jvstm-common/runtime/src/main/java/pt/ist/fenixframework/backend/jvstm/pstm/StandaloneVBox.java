@@ -47,7 +47,7 @@ public class StandaloneVBox<E> extends VBox<E> {
                 logger.debug("VBox is new. Setting null in body with version 0.");
                 body.value = null;
             } else {
-                String message = "BUG: After reload body is " + (body == null ? "null" : "not null");
+                String message = "BUG: After reload, body is " + (body == null ? "null" : "not null");
                 if (body != null) {
                     message += ". version=" + body.version;
                 }
@@ -64,7 +64,7 @@ public class StandaloneVBox<E> extends VBox<E> {
     public static <T> StandaloneVBox<T> makeNew(String vboxId, boolean allocateOnly) {
         if (allocateOnly) {
             // when a box is allocated, it is safe to say that the version number is 0
-            return new StandaloneVBox<T>(vboxId, makeNewBody((T) NOT_LOADED_VALUE, 0, null));
+            return new StandaloneVBox<T>(vboxId, NOT_LOADED_BODY);
         } else {
             StandaloneVBox<T> vbox = new StandaloneVBox<T>(vboxId);
             vbox.put(null); // this is required to add the vbox to the writeset

@@ -175,7 +175,7 @@ public abstract class Config {
         }
     }
 
-    protected final void setProperty(String propName, String value) {
+    protected void setProperty(String propName, String value) {
         // first check if it really exists
         Field field = null;
         try {

@@ -10,13 +10,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.FenixVBox;
+import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 
 public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBox<E> {
 
     private static final Logger logger = LoggerFactory.getLogger(VBox.class);
 
-    static final Object NOT_LOADED_VALUE = new Object();
-    static final VBoxBody NOT_LOADED_BODY = new VBoxBody(notLoadedValue(), 0, null);
+    static final Object NOT_LOADED_VALUE = new Object() {
+        @Override
+        public String toString() {
+            return "NOT_LOADED_VALUE";
+        };
+    };
+
+    public static final VBoxBody NOT_LOADED_BODY = new VBoxBody(notLoadedValue(), 0, null);
 
     public static <T> T notLoadedValue() {
         return (T) NOT_LOADED_VALUE;
@@ -67,9 +74,36 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
         return this.get();
     }
 
+    public VBoxBody<E> getOldestLoadedBody() {
+        if (this.body == VBox.NOT_LOADED_BODY || this.body == null) {
+            return null;
+        } else {
+            VBoxBody<E> oldest = this.body;
+            while ((oldest.next != VBox.NOT_LOADED_BODY) && (oldest.next != null)) {
+                oldest = oldest.next;
+            }
+            return oldest;
+        }
+    }
+
     // synchronized here processes reloads of the same box one at a time, thus avoiding concurrent accesses to the persistence to
     // load the same box
-    synchronized boolean reload() {
+    /* removed synchronized.
+
+    It is not strictly necessary.  It only existed to prevent two reload
+    requests regarding the same vbox to hit the repository.  However, the
+    actual required synchronization is performed in the mergeVersions method.
+
+    Now that VBox is used also in the lock-free implementation, the extraneous
+    synchronized was removed so that it does not prevent the lock-free
+    behavior.
+     */
+    /*synchronized */boolean reload() {
+        return reload(Transaction.current().getNumber());
+    }
+
+    /* Reloads this box ensuring that it can provide at least information about 'requiredVersion'. */
+    boolean reload(int requiredVersion) {
         if (logger.isDebugEnabled()) {
             logger.debug("Reload VBox: {}", this.getId());
         }
@@ -79,33 +113,50 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
             //This also requires the body's value slot to be final.
 
             //VBoxBody<E> body = this.body.getBody(Transaction.current().getNumber());
-            VBoxBody<E> body = getBody(Transaction.current().getNumber());
+            VBoxBody<E> body = getBody(requiredVersion);
             if (body.value == VBox.NOT_LOADED_VALUE) {
-                doReload();
+                if (body.version == 0) {
+                    doReload();
+                } else {
+                    reloadBody(body);
+                }
             }
             return true;
         } catch (Throwable e) {
             // what to do?
-            logger.warn("Couldn't reload vbox '" + getId() + "': " + e.getMessage());
+            logger.warn("Couldn't reload vbox {}. Throwable:{}. Message:{}", getId(), e.getClass(), e.getMessage());
             //e.printStackTrace();
             return false;
         }
     }
 
     public final VBoxBody<E> getBody(int maxVersion) {
+//        logger.debug("looking up {} for version {}", this.getId(), maxVersion);
+
         VBoxBody<E> current = body;
 
         while (current != null && current.version > maxVersion) {
             current = current.next;
         }
         if (current == null) {
+//            logger.debug("Returning NOT_LOADED_BODY due to null.");
             return NOT_LOADED_BODY; // VBox.NOT_LOADED_VALUE;
         }
+
+//        logger.debug("In VBox {}, found version {} with '{}'", this.getId(), current.version, current.value);
 
         return current;
     }
 
     protected abstract void doReload();
+
+    protected void reloadBody(VBoxBody<E> body) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Reload VBoxBody version {} of vbox {}", body.version, this.getId());
+        }
+
+        JVSTMBackEnd.getInstance().getRepository().reloadAttributeSingleVersion(this, body);
+    }
 
     // merge the versions kept in this vbox with those stored in vvalues. There might
     // be duplicates.

@@ -456,6 +456,11 @@ public class InfinispanRepository implements Repository {
         box.mergeVersions(vvalues);
     }
 
+    @Override
+    public void reloadAttributeSingleVersion(VBox box, jvstm.VBoxBody body) {
+        throw new UnsupportedOperationException("not supported");
+    }
+
     List<VersionedValue> getMostRecentVersions(final VBox vbox, final int desiredVersion) {
         final Cache<String, DataVersionHolder> cache = getDomainCache();
         final String key = makeKeyFor(vbox);
