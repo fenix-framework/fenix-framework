@@ -63,6 +63,11 @@ public class LockFreeRepository implements ExtendedRepository {
      */
     private static final String LAST_CONSOLIDATED_VERSION = ":LCV:";
 
+    /**
+     * Number of attempts to perform a repository transaction
+     */
+    private static final int MAX_TX_ATEMPTS = 10;
+
     /* this is replaced with a method that needs to search the existing entries to decide the nonCommitted tx id*/
 //    // the key used to store the nonCommitted committed transaction number
 //    private static final String MAX_COMMITTED_TX_ID = "maxTxId";
@@ -296,35 +301,57 @@ public class LockFreeRepository implements ExtendedRepository {
 
     /* methods used by the implementation of the Repository interface methods */
 
-    // used to wrap every access to the dataGrid in a transaction
+    /* This method is used to wrap every access to the dataGrid in a transaction.
+    There should never be a (transactional) conflict when trying to write to the
+    repository.  However, transactions may fail spuriously, e.g. in Infinispan
+    when a node leaves a tx may fail to commit.  So we retry a few times, before
+    deciding to fail. */
     private <T> T doWithinBackingTransactionIfNeeded(Callable<T> command) {
-        boolean inTopLevel = false;
-        boolean commandFinished = false;
+        int attempts = 1;
 
-        try {
-            if (!dataGrid.inTransaction()) {
-                dataGrid.beginTransaction();
-                inTopLevel = true;
-            }
+        while (true) {
 
-            T result = command.call();
-            commandFinished = true;
+            boolean inTopLevel = false;
+            boolean commandFinished = false;
+            try {
+                if (!dataGrid.inTransaction()) {
+                    dataGrid.beginTransaction();
+                    inTopLevel = true;
+                }
 
-            return result;
-        } catch (Exception e) {
-            throw new PersistenceException(e);
-        } finally {
-            if (inTopLevel) {
-                try {
-                    if (commandFinished) {
-                        dataGrid.commitTransaction();
-                    } else {
-                        dataGrid.rollbackTransaction();
-                    }
-                } catch (Exception e) {
+                T result = command.call();
+                commandFinished = true;
+
+                return result;
+            } catch (Exception e) {
+                if (attempts++ < MAX_TX_ATEMPTS) {
+                    logger.warn("Will retry (attemp {}) failed transaction: {}", attempts, e);
+                } else {
+                    logger.error("Giving up. Could not perform data grid operation.");
                     throw new PersistenceException(e);
                 }
+            } finally {
+                if (inTopLevel) {
+                    try {
+                        if (commandFinished) {
+                            dataGrid.commitTransaction();
+                        } else {
+                            dataGrid.rollbackTransaction();
+                        }
+                    } catch (Exception e) {
+                        String op = (commandFinished ? "commit" : "rollback");
+
+                        // don't increment attempts if they were already incremented in command's catch
+                        if (commandFinished && (attempts++ < MAX_TX_ATEMPTS)) {
+                            logger.warn("Will retry (attempt {}) failed {}: {}", attempts, op, e);
+                        } else {
+                            logger.error("Giving up. Could not {} to data grid", op);
+                            throw new PersistenceException(e);
+                        }
+                    }
+                }
             }
+
         }
     }
 
