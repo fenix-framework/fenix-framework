@@ -4,9 +4,9 @@ import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
-import pt.ist.fenixframework.backend.BasicClusterInformation;
 import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.core.SharedIdentityMap;
+import pt.ist.fenixframework.messaging.MessagingQueue;
 
 public class JVSTMMemBackEnd implements BackEnd {
     protected static final String BACKEND_NAME = "jvstmmem";
@@ -71,6 +71,11 @@ public class JVSTMMemBackEnd implements BackEnd {
     public ClusterInformation getClusterInformation() {
         //if I'm not mistaken, JVSTM only works in non-cluster environment
         return ClusterInformation.LOCAL_MODE;
+    }
+
+    @Override
+    public MessagingQueue createMessagingQueue(String appName) {
+        throw new UnsupportedOperationException();
     }
 
 }

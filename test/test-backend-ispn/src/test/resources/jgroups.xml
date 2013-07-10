@@ -35,8 +35,8 @@
             />
 
     <PING
-            timeout="500"
-            num_initial_members="3"
+            timeout="100"
+            num_initial_members="1"
             break_on_coord_rsp="true"
             />
     <MERGE2

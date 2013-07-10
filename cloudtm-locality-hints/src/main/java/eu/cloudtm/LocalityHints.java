@@ -67,8 +67,6 @@ public class LocalityHints {
                     keyValues.put(features[i - 1].getName(), decode[i]);
                 }
             }
-        } else {
-            throw new IllegalArgumentException("String " + hints + " is not a valid string");
         }
         return new LocalityHints(keyValues);
     }
@@ -124,5 +122,9 @@ public class LocalityHints {
     @Override
     public String toString() {
         return "LocalityHints{" + "keyValues=" + keyValues + '}';
+    }
+
+    public final boolean isEmpty() {
+        return keyValues.isEmpty();
     }
 }
