@@ -8,6 +8,7 @@ import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.core.AbstractDomainObject;
+import pt.ist.fenixframework.messaging.MessagingQueue;
 
 public class OgmBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(OgmBackEnd.class);
@@ -88,6 +89,11 @@ public class OgmBackEnd implements BackEnd {
     @Override
     public ClusterInformation getClusterInformation() {
         return ClusterInformation.NOT_AVAILABLE;
+    }
+
+    @Override
+    public MessagingQueue createMessagingQueue(String appName) {
+        throw new UnsupportedOperationException();
     }
 
     // protected IdentityMap getIdentityMap() {

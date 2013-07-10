@@ -126,12 +126,6 @@ public abstract class Config {
      */
     protected String jGroupsConfigFile = "fenix-framework-udp-jgroups.xml";
 
-    /**
-     * This <strong>optional</strong> parameter specifies the LOWER_BOUND constant used by B+Trees. The default value is 100. The
-     * minimum value is 2.
-     */
-    protected int btreeLowerBound = 100;
-
     protected void checkRequired(Object obj, String fieldName) {
         if (obj == null) {
             missingRequired(fieldName);
@@ -322,14 +316,6 @@ public abstract class Config {
         }
     }
 
-    public void btreeLowerBoundFromString(String value) {
-        try {
-            btreeLowerBound = Integer.parseInt(value.trim());
-        } catch (NumberFormatException e) {
-            throw new ConfigError(e);
-        }
-    }
-
     protected abstract void init();
 
     /**
@@ -363,10 +349,6 @@ public abstract class Config {
 
     public String getAppName() {
         return appName;
-    }
-
-    public int getBtreeLowerBound() {
-        return btreeLowerBound;
     }
 
     /**

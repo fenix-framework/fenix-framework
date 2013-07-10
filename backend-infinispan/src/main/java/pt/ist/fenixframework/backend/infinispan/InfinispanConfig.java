@@ -4,7 +4,6 @@ import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.global.GlobalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
 import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
@@ -12,13 +11,11 @@ import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
 /**
  * This is the infinispan configuration manager used by the fenix-framework-backend-infinispan
  * project.
- * 
- * @see Config
  *
+ * @see Config
  */
 public class InfinispanConfig extends HibernateSearchConfig {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
-
     private static final String FAILED_INIT = "Failed to initialize Backend Infinispan";
 
     // /**
@@ -46,26 +43,25 @@ public class InfinispanConfig extends HibernateSearchConfig {
     //  * scope.  The default value for this parameter is {@link MapType#SHARED}.
     //  */
     // protected MapType identityMap = MapType.SHARED;
-
+    protected final InfinispanBackEnd backEnd;
     /**
      * This <strong>required</strong> parameter specifies the location of the XML file used to
      * configure Infinispan.  This file should be available in the application's classpath.
      */
     protected String ispnConfigFile = null;
-
     /**
      * See {@link #useGrouping()}.
      */
     protected boolean useGrouping = false;
-
+    protected int coreThreadPoolSize = 1;
+    protected int maxThreadPoolSize = 8;
+    protected int keepAliveTime = 60000;
+    protected String messagingJgroupsFile = "jgrp-messaging.xml";
     /**
      * for test only
      */
     protected Configuration defaultConfiguration;
-
     protected GlobalConfiguration globalConfiguration;
-
-    protected final InfinispanBackEnd backEnd;
 
 
     public InfinispanConfig() {
@@ -108,6 +104,10 @@ public class InfinispanConfig extends HibernateSearchConfig {
         this.useGrouping = useGrouping;
     }
 
+    public final void useGroupingFromString(String value) {
+        setUseGrouping(Boolean.valueOf(value));
+    }
+
     public final Configuration getDefaultConfiguration() {
         return defaultConfiguration;
     }
@@ -122,6 +122,51 @@ public class InfinispanConfig extends HibernateSearchConfig {
 
     public final void setGlobalConfiguration(GlobalConfiguration globalConfiguration) {
         this.globalConfiguration = globalConfiguration;
+    }
+
+    @Override
+    public InfinispanBackEnd getBackEnd() {
+        return this.backEnd;
+    }
+
+    public final int coreThreadPoolSize() {
+        return coreThreadPoolSize;
+    }
+
+    public final void setCoreThreadPoolSize(int coreThreadPoolSize) {
+        this.coreThreadPoolSize = coreThreadPoolSize;
+    }
+
+    public final void coreThreadPoolSizeFromString(String value) {
+        setCoreThreadPoolSize(Integer.valueOf(value));
+    }
+
+    public final int maxThreadPoolSize() {
+        return maxThreadPoolSize;
+    }
+
+    public final void setMaxThreadPoolSize(int maxThreadPoolSize) {
+        this.maxThreadPoolSize = maxThreadPoolSize;
+    }
+
+    public final void maxThreadPoolSizeFromString(String value) {
+        setMaxThreadPoolSize(Integer.valueOf(value));
+    }
+
+    public final int keepAliveTime() {
+        return keepAliveTime;
+    }
+
+    public final void setKeepAliveTime(int keepAliveTime) {
+        this.keepAliveTime = keepAliveTime;
+    }
+
+    public final void keepAliveTimeFromString(String value) {
+        setKeepAliveTime(Integer.valueOf(value));
+    }
+
+    public final String messagingJgroupsFile() {
+        return messagingJgroupsFile;
     }
 
     @Override
@@ -142,10 +187,5 @@ public class InfinispanConfig extends HibernateSearchConfig {
         if (ispnConfigFile == null && (defaultConfiguration == null || globalConfiguration == null)) {
             missingRequired("ispnConfigFile");
         }
-    }
-
-    @Override
-    public InfinispanBackEnd getBackEnd() {
-        return this.backEnd;
     }
 }

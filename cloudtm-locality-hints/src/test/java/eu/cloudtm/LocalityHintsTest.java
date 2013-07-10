@@ -1,6 +1,9 @@
 package eu.cloudtm;
 
+import junit.framework.Assert;
 import org.testng.annotations.Test;
+
+import static junit.framework.Assert.assertTrue;
 
 /**
  * // TODO: Document this
@@ -31,9 +34,10 @@ public class LocalityHintsTest {
         new LocalityHints(new String[] {Constants.GROUP_ID, "bla"}).hints2String();
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void testNotValidString() {
-        LocalityHints.string2Hints("bla");
+        LocalityHints hints = LocalityHints.string2Hints("bla");
+        assertTrue(hints.isEmpty());
     }
 
 }
