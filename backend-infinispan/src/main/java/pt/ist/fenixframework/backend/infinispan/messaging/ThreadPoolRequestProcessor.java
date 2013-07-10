@@ -14,6 +14,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 /**
  * @author Pedro Ruivo
  * @since 2.8
@@ -24,12 +26,17 @@ public class ThreadPoolRequestProcessor {
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(0);
     private final ThreadPoolExecutor executorService;
     private final Queue<RequestRunnable> pendingRequests;
+    private final Object statLock = new Object();
     private final AtomicInteger taskExecutedCounter;
     private final AtomicLong lastReset;
+    private final AtomicLong syncServiceTime;
+    private final AtomicLong asyncServiceTime;
 
     public ThreadPoolRequestProcessor(int coreThreads, int maxThreads, int keepAliveTime, final String applicationName) {
         taskExecutedCounter = new AtomicInteger(0);
         lastReset = new AtomicLong(System.nanoTime());
+        syncServiceTime = new AtomicLong(0);
+        asyncServiceTime = new AtomicLong(0);
         JmxUtil.processInstance(this, applicationName, InfinispanBackEnd.BACKEND_NAME, null);
         this.pendingRequests = new LinkedBlockingDeque<RequestRunnable>();
         executorService = new ThreadPoolExecutor(coreThreads, maxThreads, keepAliveTime, TimeUnit.MILLISECONDS,
@@ -116,22 +123,50 @@ public class ThreadPoolRequestProcessor {
 
     @ManagedAttribute(description = "Return the time elapsed in seconds since last reset.")
     public final long getTimeElapsedSinceLastReset() {
-        return TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - lastReset.get());
+        return NANOSECONDS.toSeconds(System.nanoTime() - lastReset.get());
     }
 
     @ManagedAttribute(description = "Returns the average number of tasks executed per second since last reset")
     public final double getAverageTasksExecutedPerSecond() {
-        long timeElapsed = getTimeElapsedSinceLastReset();
-        if (timeElapsed > 0) {
-            return taskExecutedCounter.get() * 1.0 / timeElapsed;
+        synchronized (statLock) {
+            long timeElapsed = getTimeElapsedSinceLastReset();
+            if (timeElapsed > 0) {
+                return taskExecutedCounter.get() * 1.0 / timeElapsed;
+            }
+            return 0;
         }
-        return 0;
+    }
+
+    @ManagedAttribute(description = "Returns the average synchronous service time in milliseconds")
+    public final double getAverageSyncServiceTime() {
+        synchronized (statLock) {
+            long tasks = taskExecutedCounter.get();
+            if (tasks > 0) {
+                return NANOSECONDS.toMillis(syncServiceTime.get()) * 1.0 / tasks;
+            }
+            return 0;
+        }
+    }
+
+    @ManagedAttribute(description = "Returns the average synchronous service time in milliseconds")
+    public final double getAverageAsyncServiceTime() {
+        synchronized (statLock) {
+            long tasks = taskExecutedCounter.get();
+            if (tasks > 0) {
+                return NANOSECONDS.toMillis(asyncServiceTime.get()) * 1.0 / tasks;
+            }
+            return 0;
+        }
     }
 
     @ManagedOperation(description = "Reset the thread counter")
     public final void reset() {
-        taskExecutedCounter.set(0);
-        lastReset.set(System.nanoTime());
+        synchronized (statLock) {
+            taskExecutedCounter.set(0);
+            lastReset.set(System.nanoTime());
+            syncServiceTime.set(0);
+            asyncServiceTime.set(0);
+        }
     }
 
     private class RequestRunnable implements Runnable {
@@ -154,15 +189,27 @@ public class ThreadPoolRequestProcessor {
         }
 
         public void execute() {
+            long start = 0;
+            long end = 0;
             try {
-                taskExecutedCounter.getAndIncrement();
+                start = System.nanoTime();
                 Object reply = FenixFramework.handleRequest(data);
+                end = System.nanoTime();
                 if (response != null) {
                     response.send(reply, false);
                 }
             } catch (Throwable throwable) {
+                end = System.nanoTime();
                 if (response != null) {
                     response.send(throwable, true);
+                }
+            } finally {
+                synchronized (statLock) {
+                    taskExecutedCounter.incrementAndGet();
+                    if (start != 0 && end != 0) {
+                        AtomicLong duration = response == null ? asyncServiceTime : syncServiceTime;
+                        duration.addAndGet(end - start);
+                    }
                 }
             }
         }
