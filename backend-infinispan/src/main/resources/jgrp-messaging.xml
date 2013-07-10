@@ -2,18 +2,18 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/JGroups-3.3.xsd">
     <UDP
-            mcast_addr="${jgroups.udp.mcast_addr:224.0.0.2}"
-            mcast_port="${jgroups.udp.mcast_port:46655}"
+            mcast_addr="${jgroups.udp.mcast_addr:224.0.0.10}"
+            mcast_port="${jgroups.udp.mcast_port:47654}"
             tos="8"
             ucast_recv_buf_size="20m"
             ucast_send_buf_size="640k"
             mcast_recv_buf_size="25m"
             mcast_send_buf_size="640k"
-            loopback="false"
+            loopback="true"
             discard_incompatible_packets="true"
             max_bundle_size="64k"
-            ip_ttl="${jgroups.udp.ip_ttl:2}"
-            enable_bundling="false"
+            ip_ttl="${jgroups.udp.ip_ttl:8}"
+            enable_bundling="true"
             enable_diagnostics="false"
             thread_naming_pattern="cl"
 
@@ -22,21 +22,21 @@
             thread_pool.max_threads="64"
             thread_pool.keep_alive_time="30000"
             thread_pool.queue_enabled="true"
-            thread_pool.queue_max_size="100"
+            thread_pool.queue_max_size="10"
             thread_pool.rejection_policy="discard"
 
             oob_thread_pool.enabled="true"
             oob_thread_pool.min_threads="2"
-            oob_thread_pool.max_threads="128"
+            oob_thread_pool.max_threads="16"
             oob_thread_pool.keep_alive_time="30000"
             oob_thread_pool.queue_enabled="true"
-            oob_thread_pool.queue_max_size="100"
+            oob_thread_pool.queue_max_size="10"
             oob_thread_pool.rejection_policy="discard"
             />
 
     <PING
-            timeout="100"
-            num_initial_members="1"
+            timeout="5000"
+            num_initial_members="3"
             break_on_coord_rsp="true"
             />
     <MERGE2
@@ -55,7 +55,7 @@
     <pbcast.STABLE
             stability_delay="1000"
             desired_avg_gossip="50000"
-            max_bytes="10m"
+            max_bytes="1m"
             />
     <pbcast.GMS
             print_local_addr="true"
@@ -63,15 +63,13 @@
             max_bundling_time="500"
             view_bundling="true"
             />
-    <SEQUENCER/>
-    <tom.TOA/>
     <UFC
             max_credits="5m"
-            min_threshold="0.20"
+            min_threshold="0.30"
             />
     <MFC
             max_credits="5m"
-            min_threshold="0.20"
+            min_threshold="0.30"
             />
     <FRAG2
             frag_size="60k"

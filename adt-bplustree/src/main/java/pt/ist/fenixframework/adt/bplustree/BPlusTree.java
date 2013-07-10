@@ -10,8 +10,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.Config;
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 /**
@@ -24,6 +22,8 @@ import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
  */
 public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements DomainBasedMap<T> {
 
+    public static final String LOWER_BOUND_PROPERTY = "btreeLowerBound";
+    public static final String DEFAULT_LOWER_BOUND = "100";
     private static final Logger logger = LoggerFactory.getLogger(BPlusTree.class);
 
     /* Special last key */
@@ -87,8 +87,7 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     static int MAX_NUMBER_OF_ELEMENTS = MAX_NUMBER_OF_KEYS + 1;
 
     static {
-        Config config = FenixFramework.getConfig();
-        setLowerBound(config.getBtreeLowerBound());
+        setLowerBound(Integer.parseInt(System.getProperty(LOWER_BOUND_PROPERTY, DEFAULT_LOWER_BOUND)));
     }
 
     static void setLowerBound(int lowerBound) {

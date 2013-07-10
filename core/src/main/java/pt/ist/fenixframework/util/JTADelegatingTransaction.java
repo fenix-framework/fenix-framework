@@ -64,4 +64,8 @@ public class JTADelegatingTransaction extends FenixAbstractTransaction {
         getDelegateTx().setRollbackOnly();
     }
 
+    @Override
+    public String toString() {
+        return getDelegateTx().toString();
+    }
 }

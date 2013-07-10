@@ -1,108 +1,101 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.InvalidTransactionException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-
 import org.infinispan.CacheException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.CommitListener;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.util.TxMap;
 
+import javax.transaction.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 public class InfinispanTransactionManager implements TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanTransactionManager.class);
-
     private static javax.transaction.TransactionManager delegateTxManager;
-
+    private static final RollBackOnlyException ROLL_BACK_ONLY_EXCEPTION = new RollBackOnlyException();
     private final ConcurrentLinkedQueue<CommitListener> listeners = new ConcurrentLinkedQueue<CommitListener>();
-
-    void setDelegateTxManager(javax.transaction.TransactionManager delegate) {
-	delegateTxManager = delegate;
-    }
 
     @Override
     public void begin() throws NotSupportedException, SystemException {
-	begin(false);
+        begin(false);
     }
 
     @Override
     public void begin(boolean readOnly) throws NotSupportedException, SystemException {
-	if (readOnly) {
-	    logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
-	}
-	logger.trace("Begin transaction");
-	delegateTxManager.begin();
+        if (readOnly) {
+            logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
+        }
+        delegateTxManager.begin();
+        if (logger.isTraceEnabled()) {
+            logger.trace("Begin transaction: " + getTransaction());
+        }
     }
 
     @Override
     public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
-	logger.trace("Commit transaction");
+        pt.ist.fenixframework.Transaction tx = getTransaction();
+        if (logger.isTraceEnabled()) {
+            logger.trace("Commit transaction: " + tx);
+        }
 
-	pt.ist.fenixframework.Transaction tx = getTransaction();
-
-	try {
-	    for (CommitListener listener : listeners) {
-		listener.beforeCommit(tx);
-	    }
-	} catch (RuntimeException e) {
-	    /**
-	     * As specified in CommitListener.beforeCommit(), any unchecked
-	     * exception will cause the transaction to be rolled back.
-	     */
-	    rollback();
-	    throw new RollbackException(e.getMessage());
-	}
-	try {
-	    delegateTxManager.commit();
-	} finally {
-	    for (CommitListener listener : listeners) {
-		listener.afterCommit(tx);
-	    }
-	}
+        try {
+            for (CommitListener listener : listeners) {
+                listener.beforeCommit(tx);
+            }
+        } catch (RuntimeException e) {
+            /**
+             * As specified in CommitListener.beforeCommit(), any unchecked
+             * exception will cause the transaction to be rolled back.
+             */
+            logger.warn("RuntimeException received. Rollback transaction");
+            rollback();
+            throw new RollbackException(e.getMessage());
+        }
+        try {
+            delegateTxManager.commit();
+        } finally {
+            for (CommitListener listener : listeners) {
+                listener.afterCommit(tx);
+            }
+        }
     }
 
     @Override
     public pt.ist.fenixframework.Transaction getTransaction() {
         Transaction tx;
-	try {
-	    tx = delegateTxManager.getTransaction();
-	} catch (SystemException e) {
-	    return null;
-	}
+        try {
+            tx = delegateTxManager.getTransaction();
+        } catch (SystemException e) {
+            return null;
+        }
 
         return (tx == null) ? null : TxMap.getTx(tx);
     }
 
     @Override
     public void rollback() throws SystemException {
-	logger.trace("Rollback transaction");
-	delegateTxManager.rollback();
+        if (logger.isTraceEnabled()) {
+            logger.trace("Rollback transaction: " + getTransaction());
+        }
+        delegateTxManager.rollback();
     }
 
     @Override
     public <T> T withTransaction(CallableWithoutException<T> command) {
-	try {
-	    return withTransaction(command, null);
-	} catch (Exception e) {
-	    throw new RuntimeException(e);
-	}
+        try {
+            return withTransaction(command, null);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
     }
 
     @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {
-	return withTransaction(command, null);
+        return withTransaction(command, null);
     }
 
     /**
@@ -110,114 +103,68 @@ public class InfinispanTransactionManager implements TransactionManager {
      */
     @Override
     public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
-	T result = null;
-	boolean txFinished = false;
-	while (!txFinished) {
-	    try {
-		boolean inTopLevelTransaction = false;
-		// the purpose of this test is to enable reuse of the existing
-		// transaction
-		if (getTransaction() == null) {
-		    logger.trace("No previous transaction.  Will begin a new one.");
-		    begin();
-		    inTopLevelTransaction = true;
-		} else {
-		    logger.trace("Already inside a transaction. Not nesting.");
-		}
-		// do some work
-		result = command.call();
-		if (inTopLevelTransaction) {
-		    logger.trace("Will commit a top-level transaction.");
-		    commit();
-		} else {
-		    logger.trace("Leaving an inner transaction.");
-		}
-		txFinished = true;
-		return result;
-	    } catch (CacheException ce) {
-		// If the execution fails
-		logException(ce);
-	    } catch (RollbackException re) {
-		// If the transaction was marked for rollback only, the
-		// transaction is rolled back and this exception is thrown.
-		logException(re);
-	    } catch (HeuristicMixedException hme) {
-		// If a heuristic decision was made and some some parts of the
-		// transaction have been committed while other parts have been
-		// rolled back.
-		// Pedro -- most of the time, happens when some nodes fails...
-		logException(hme);
-	    } catch (HeuristicRollbackException hre) {
-		// If a heuristic decision to roll back the transaction was made
-		logException(hre);
-	    } catch (Exception e) { // any other exception out
-		logger.debug("Exception within transaction", e);
-		throw e;
-	    } finally {
-		if (!txFinished) {
-		    try {
-			rollback();
-		    } catch (IllegalStateException ise) {
-			// If the transaction is in a state where it cannot be
-			// rolled back.
-			// Pedro -- happen when the commit fails. When commit
-			// fails, it invokes the rollback().
-			// so rollback() will be invoked again, but the
-			// transaction no longer exists
-			// Pedro -- just ignore it
-		    } catch (Exception ex) {
-			logger.error("Exception while aborting transaction");
-			ex.printStackTrace();
-		    }
-		}
-	    }
-	    // Pedro had this wait here. Why?
-	    // waitingBeforeRetry();
+        while (true) {
+            boolean started = tryBegin();
+            boolean success = false;
+            boolean canRetry = false;
+            boolean finished;
+            T result = null;
+            try {
+                // do some work
+                result = command.call();
+                success = true;
+            } catch (CacheException e) {
+                logger.error("Error executing transaction " + getTransaction(), e);
+                canRetry = true;
+            } catch (RollBackOnlyException e) {
+                logger.error("Rollback only exception caught! An inner transaction wants to rollback: " +
+                        getTransaction());
+                canRetry = true;
+            } catch (RuntimeException e) {
+                logger.error("Unexpected error executing transaction " + getTransaction(), e);
+                throw e;
+            } catch (Exception e) {
+                logger.error("Application error executing transaction " + getTransaction(), e);
+                throw e;
+            } catch (Throwable t) {
+                logger.error("Unexpected error executing transaction " + getTransaction(), t);
+                throw new RuntimeException(t);
+            } finally {
+                finished = tryCommit(started, success, canRetry);
+            }
+            if (finished) {
+                return result;
+            }
 
-	    logger.debug("Retrying transaction: " + command);
-	}
-	// never reached
-	throw new RuntimeException("code never reached");
-    }
-
-    // private static final Random rand = new Random();
-    // private void waitingBeforeRetry() {
-    // try {
-    // //smf: why so long?!
-    // Thread.sleep(rand.nextInt(10000));
-    // } catch(InterruptedException ie) {
-    // //do nothing
-    // }
-    // }
-
-    private void logException(Exception e) {
-	logger.info("Exception caught in transaction: " + e.getLocalizedMessage());
-	logger.trace("Exception caught in transaction:", e);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Retrying transaction: " + command);
+            }
+        }
     }
 
     @Override
     public int getStatus() throws SystemException {
-	return delegateTxManager.getStatus();
+        return delegateTxManager.getStatus();
     }
 
     @Override
     public void resume(Transaction tx) throws InvalidTransactionException, IllegalStateException, SystemException {
-	delegateTxManager.resume(tx);
+        delegateTxManager.resume(tx);
     }
 
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {
-	delegateTxManager.setRollbackOnly();
+        delegateTxManager.setRollbackOnly();
     }
 
     @Override
     public void setTransactionTimeout(int timeout) throws SystemException {
-	delegateTxManager.setTransactionTimeout(timeout);
+        delegateTxManager.setTransactionTimeout(timeout);
     }
 
     @Override
     public Transaction suspend() throws SystemException {
-	return delegateTxManager.suspend();
+        return delegateTxManager.suspend();
     }
 
     /**
@@ -225,7 +172,7 @@ public class InfinispanTransactionManager implements TransactionManager {
      */
     @Override
     public void addCommitListener(CommitListener listener) {
-	listeners.add(listener);
+        listeners.add(listener);
     }
 
     /**
@@ -233,7 +180,84 @@ public class InfinispanTransactionManager implements TransactionManager {
      */
     @Override
     public void removeCommitListener(CommitListener listener) {
-	listeners.remove(listener);
+        listeners.remove(listener);
+    }
+
+    /**
+     * @return {@code true} if the transaction is finished, {@code false} otherwise.
+     */
+    private boolean tryCommit(boolean started, boolean success, boolean canRetry) {
+        if (!started) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("Finishing inner transaction. Success? " + success);
+            }
+            //nested transaction. Don't even try to commit neither retrying if aborted. However, we nee to notify
+            //the top-level transaction if we abort.
+            if (!success && canRetry) {
+                throw ROLL_BACK_ONLY_EXCEPTION;
+            }
+            return true;
+        }
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("Finishing top-level transaction. Success? " + success);
+        }
+
+        try {
+            if (success) {
+                commit();
+            } else {
+                rollback();
+            }
+            return success;
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error finishing transaction", e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error finishing transaction", e);
+        } catch (Throwable t) {
+            logger.error("Unexpected error finishing transaction", t);
+            throw new RuntimeException(t);
+        }
+
+        return false;
+    }
+
+    /**
+     * @return {@code true} if the begin has succeed, {@code false} otherwise.
+     */
+    private boolean tryBegin() {
+        if (getTransaction() == null) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("No previous transaction. Will begin a new one.");
+            }
+            try {
+                begin();
+            } catch (RuntimeException e) {
+                logger.error("Error beginning transaction", e);
+                throw e;
+            } catch (Exception e) {
+                logger.error("Error beginning transaction", e);
+                throw new RuntimeException(e);
+            } catch (Throwable t) {
+                logger.error("Unexpected error beginning transaction", t);
+                throw new RuntimeException(t);
+            }
+            return true;
+        } else {
+            if (logger.isTraceEnabled()) {
+                logger.trace("Already inside a transaction. Not nesting.");
+            }
+        }
+        return false;
+    }
+
+    void setDelegateTxManager(javax.transaction.TransactionManager delegate) {
+        delegateTxManager = delegate;
+    }
+
+    private static class RollBackOnlyException extends RuntimeException {
+
     }
 
 }

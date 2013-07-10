@@ -27,10 +27,14 @@ import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.BasicClusterInformation;
 import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.backend.OID;
+import pt.ist.fenixframework.backend.infinispan.messaging.LocalMessagingQueue;
+import pt.ist.fenixframework.backend.infinispan.messaging.RemoteMessagingQueue;
+import pt.ist.fenixframework.backend.infinispan.messaging.ThreadPoolRequestProcessor;
 import pt.ist.fenixframework.core.*;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.Slot;
+import pt.ist.fenixframework.messaging.MessagingQueue;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -44,13 +48,14 @@ public class InfinispanBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanBackEnd.class);
 
     public static final String BACKEND_NAME = "ispn";
-    private static final String DOMAIN_CACHE_NAME = "DomainCache";
 
     private static final InfinispanBackEnd instance = new InfinispanBackEnd();
 
     protected final InfinispanTransactionManager transactionManager;
     protected Cache<String, Object> readCache;
     protected Cache<String, Object> writeCache;
+    private LocalMessagingQueue localMessagingQueue;
+    private String jgroupsMessagingConfigurationFile;
 
     private InfinispanBackEnd() {
         this.transactionManager = new InfinispanTransactionManager();
@@ -116,13 +121,15 @@ public class InfinispanBackEnd implements BackEnd {
 
     protected void configInfinispan(InfinispanConfig config) throws Exception {
         setupCache(config);
-        setupTxManager(config);
+        setupTxManager();
+        setupMessaging(config);
         config.waitForExpectedInitialNodes("backend-infinispan-init-barrier");
     }
 
     private void setupCache(InfinispanConfig config) {
         long start = System.currentTimeMillis();
         try {
+            String applicationName = config.getAppName();
             Configuration defaultConfiguration;
             GlobalConfiguration globalConfiguration;
             if (config.getDefaultConfiguration() != null && config.getGlobalConfiguration() != null) {
@@ -136,8 +143,8 @@ public class InfinispanBackEnd implements BackEnd {
             }
             EmbeddedCacheManager cacheManager = new DefaultCacheManager(globalConfiguration, defaultConfiguration);
             Configuration domainCacheConfiguration = updateAndValidateConfiguration(defaultConfiguration, config);
-            cacheManager.defineConfiguration(DOMAIN_CACHE_NAME, domainCacheConfiguration);
-            readCache = cacheManager.getCache(DOMAIN_CACHE_NAME);
+            cacheManager.defineConfiguration(applicationName, domainCacheConfiguration);
+            readCache = cacheManager.getCache(applicationName);
             writeCache = readCache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
         } catch (IOException ioe) {
             String message = "Error creating Infinispan cache manager with configuration file: " + config.getIspnConfigFile();
@@ -161,14 +168,14 @@ public class InfinispanBackEnd implements BackEnd {
         ConfigurationBuilder builder = new ConfigurationBuilder().read(defaultConfiguration);
 
         if (config.useGrouping()) {
-            builder.clustering().hash().groups().enabled().addGrouper(new FenixFrameworkGrouper());
+            builder.clustering().hash().groups().enabled().addGrouper(new FenixFrameworkGrouper(this));
         } else if (defaultConfiguration.clustering().hash().groups().enabled()) {
             GroupsConfiguration groupsConfiguration = defaultConfiguration.clustering().hash().groups();
             int groupers = groupsConfiguration.groupers().size();
             if (groupers == 0) {
-                builder.clustering().hash().groups().addGrouper(new FenixFrameworkGrouper());
+                builder.clustering().hash().groups().addGrouper(new FenixFrameworkGrouper(this));
             } else if (groupers != 1 || !groupsConfiguration.groupers().get(0).getClass().equals(FenixFrameworkGrouper.class)) {
-                builder.clustering().hash().groups().clearGroupers().addGrouper(new FenixFrameworkGrouper());
+                builder.clustering().hash().groups().clearGroupers().addGrouper(new FenixFrameworkGrouper(this));
             }
         }
 
@@ -187,8 +194,20 @@ public class InfinispanBackEnd implements BackEnd {
         return builder.build();
     }
 
-    private void setupTxManager(InfinispanConfig config) {
+    private void setupTxManager() {
         transactionManager.setDelegateTxManager(readCache.getAdvancedCache().getTransactionManager());
+    }
+
+    private void setupMessaging(InfinispanConfig config) throws Exception {
+        int coreThreads = config.coreThreadPoolSize();
+        int maxThreads = config.maxThreadPoolSize();
+        int keepAlive = config.keepAliveTime();
+        this.jgroupsMessagingConfigurationFile = config.messagingJgroupsFile();
+        String applicationName = config.getAppName();
+        ThreadPoolRequestProcessor threadPoolRequestProcessor = new ThreadPoolRequestProcessor(coreThreads, maxThreads,
+                keepAlive, applicationName);
+        localMessagingQueue = new LocalMessagingQueue(applicationName, readCache, jgroupsMessagingConfigurationFile,
+                threadPoolRequestProcessor);
     }
 
     protected IdentityMap getIdentityMap() {
@@ -263,5 +282,25 @@ public class InfinispanBackEnd implements BackEnd {
         }
 
         return new BasicClusterInformation(members.size(), thisMemberIndex);
+    }
+
+    @Override
+    public synchronized MessagingQueue createMessagingQueue(String appName) throws Exception {
+        if (appName == null || appName.isEmpty()) {
+            throw new IllegalArgumentException("Application name should be not null neither empty");
+        }
+        if (readCache == null) {
+            throw new IllegalStateException("Infinispan backend is not initialized!");
+        }
+        String localName = readCache.getName();
+        if (localName.equals(appName)) {
+            if (localMessagingQueue == null) {
+                throw new IllegalStateException("Local Message Queue is not initialized!");
+            }
+            return localMessagingQueue;
+        } else {
+            return new RemoteMessagingQueue(appName, jgroupsMessagingConfigurationFile,
+                    readCache.getAdvancedCache().getComponentRegistry().getCacheMarshaller());
+        }
     }
 }

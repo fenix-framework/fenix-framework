@@ -3,6 +3,7 @@ package pt.ist.fenixframework.backend;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
+import pt.ist.fenixframework.messaging.MessagingQueue;
 
 /**
  * Each concrete back end should implement this interface. The framework's core already provides a
@@ -13,7 +14,7 @@ public interface BackEnd {
     /**
      * Get the unique name of this BackEnd. The String returned by this method should contain only
      * valid characters in a filename (because it can be used for configuration by convention
-     * 
+     *
      * @see pt.ist.fenixframework.FenixFramework
      */
     public String getName();
@@ -36,7 +37,7 @@ public interface BackEnd {
     /**
      * Backend-specific method to get a {@link DomainObject} given its OID. Callers of this method
      * are responsible for providing a valid OID.
-     * 
+     *
      * @param oid The backend-specific identifier of the object to get
      */
     public <T extends DomainObject> T fromOid(Object oid);
@@ -60,14 +61,21 @@ public interface BackEnd {
 
     /**
      * Special values:
-     *
+     * <p/>
      * <ul>
-     *     <li>{@link ClusterInformation#LOCAL_MODE}: if Fénix Framework is used in local-mode only</li>
-     *     <li>{@link ClusterInformation#NOT_AVAILABLE}: if no information is available</li>
+     * <li>{@link ClusterInformation#LOCAL_MODE}: if Fénix Framework is used in local-mode only</li>
+     * <li>{@link ClusterInformation#NOT_AVAILABLE}: if no information is available</li>
      * </ul>
      *
      * @return the cluster information in which this node belong to.
      */
     public ClusterInformation getClusterInformation();
+
+    /**
+     *
+     * @param appName
+     * @return an uninitialized MessagingQueue for the application name.
+     */
+    MessagingQueue createMessagingQueue(String appName) throws Exception;
 
 }

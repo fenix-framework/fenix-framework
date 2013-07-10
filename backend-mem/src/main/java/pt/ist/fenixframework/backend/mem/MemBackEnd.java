@@ -7,9 +7,9 @@ import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
-import pt.ist.fenixframework.backend.BasicClusterInformation;
 import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.core.SharedIdentityMap;
+import pt.ist.fenixframework.messaging.MessagingQueue;
 
 public class MemBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(MemBackEnd.class);
@@ -78,5 +78,10 @@ public class MemBackEnd implements BackEnd {
     public ClusterInformation getClusterInformation() {
         //local-only back end
         return ClusterInformation.LOCAL_MODE;
+    }
+
+    @Override
+    public MessagingQueue createMessagingQueue(String appName) {
+        throw new UnsupportedOperationException();
     }
 }
