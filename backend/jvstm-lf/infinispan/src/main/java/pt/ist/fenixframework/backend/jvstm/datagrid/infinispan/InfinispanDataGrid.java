@@ -68,16 +68,37 @@ public class InfinispanDataGrid implements DataGrid {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T get(Object key) {
+        if (logger.isDebugEnabled() && !inTransaction()) {
+            logger.error("==========================================");
+            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
+            logger.error("==========================================");
+            new Exception().printStackTrace();
+            logger.error("==========================================");
+        }
         return (T) this.cache.get(key);
     }
 
     @Override
     public void put(Object key, Object value) {
+        if (logger.isDebugEnabled() && !inTransaction()) {
+            logger.error("==========================================");
+            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
+            logger.error("==========================================");
+            new Exception().printStackTrace();
+            logger.error("==========================================");
+        }
         this.cache.put(key, value);
     }
 
     @Override
     public void putIfAbsent(Object key, Object value) {
+        if (logger.isDebugEnabled() && !inTransaction()) {
+            logger.error("==========================================");
+            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
+            logger.error("==========================================");
+            new Exception().printStackTrace();
+            logger.error("==========================================");
+        }
         this.cache.putIfAbsent(key, value);
     }
 
