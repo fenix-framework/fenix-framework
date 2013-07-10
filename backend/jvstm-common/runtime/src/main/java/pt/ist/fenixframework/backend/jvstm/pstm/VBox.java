@@ -112,7 +112,7 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
     /* Reloads this box ensuring that it can provide at least information about 'requiredVersion'. */
     boolean reload(int requiredVersion) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Reload VBox: {}", this.getId());
+            logger.debug("Reload VBox {} for version {}", this.getId(), requiredVersion);
         }
 
         try {
