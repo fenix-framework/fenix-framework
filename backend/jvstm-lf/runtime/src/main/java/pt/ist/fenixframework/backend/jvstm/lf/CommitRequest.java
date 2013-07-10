@@ -59,7 +59,7 @@ public class CommitRequest implements DataSerializable {
 
             @Override
             public ValidationStatus getValidationStatus() {
-                return ValidationStatus.UNSET;
+                return ValidationStatus.VALID;
             };
 
             @Override
