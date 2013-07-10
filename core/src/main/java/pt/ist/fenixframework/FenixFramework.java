@@ -531,6 +531,9 @@ public class FenixFramework {
     }
 
     public static Object sendRequest(String request, String localityHint, String application, boolean sync) throws Exception {
+        if (application == null || application.isEmpty()) {
+            throw new IllegalArgumentException("Application cannot be null or empty");
+        }
         MessagingQueue queue = getMessagingQueue(application);
         if (queue == null) {
             logger.error("Message Queue for " + application + " not found!");
