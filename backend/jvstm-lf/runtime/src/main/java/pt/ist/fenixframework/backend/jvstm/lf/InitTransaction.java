@@ -32,6 +32,12 @@ public class InitTransaction extends LockFreeTransaction {
     }
 
     @Override
+    protected void upgradeWithPendingCommits(ActiveTransactionsRecord record) {
+        // no-op
+        /* we cannot help while initializing... :-) */
+    }
+
+    @Override
     protected void helpedTryCommit(CommitRequest myRequest) throws CommitException {
         this.existingVersion = JvstmLockFreeBackEnd.getInstance().getRepository().getMaxCommittedTxNumber();
 
