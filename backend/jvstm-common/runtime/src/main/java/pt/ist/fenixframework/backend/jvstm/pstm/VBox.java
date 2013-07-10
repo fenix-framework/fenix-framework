@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.backend.jvstm.FenixVBox;
+import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 
 public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject, FenixVBox<E> {
 
@@ -114,7 +115,11 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
             //VBoxBody<E> body = this.body.getBody(Transaction.current().getNumber());
             VBoxBody<E> body = getBody(requiredVersion);
             if (body.value == VBox.NOT_LOADED_VALUE) {
-                doReload();
+                if (body.version == 0) {
+                    doReload();
+                } else {
+                    reloadBody(body);
+                }
             }
             return true;
         } catch (Throwable e) {
@@ -144,6 +149,14 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
     }
 
     protected abstract void doReload();
+
+    protected void reloadBody(VBoxBody<E> body) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Reload VBoxBody version {} of vbox {}", body.version, this.getId());
+        }
+
+        JVSTMBackEnd.getInstance().getRepository().reloadAttributeSingleVersion(this, body);
+    }
 
     // merge the versions kept in this vbox with those stored in vvalues. There might
     // be duplicates.

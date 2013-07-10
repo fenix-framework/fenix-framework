@@ -68,6 +68,8 @@ public class LockFreeRepository implements ExtendedRepository {
      */
     private static final int MAX_TX_ATEMPTS = 10;
 
+    private static final long bodyValueOffset = UtilUnsafe.objectFieldOffset(VBoxBody.class, "value");
+
     /* this is replaced with a method that needs to search the existing entries to decide the nonCommitted tx id*/
 //    // the key used to store the nonCommitted committed transaction number
 //    private static final String MAX_COMMITTED_TX_ID = "maxTxId";
@@ -423,6 +425,23 @@ public class LockFreeRepository implements ExtendedRepository {
     }
 
     @Override
+    public void reloadAttributeSingleVersion(VBox box, jvstm.VBoxBody body) {
+        int versionToLoad = body.version;
+
+        // find the commitId of this committed version
+        String commitId = getCommitIdForVersion(versionToLoad);
+
+        // lookup an entry for this box in the given version
+        String key = makeKeyWithCommitId(makeKeyFor(box), commitId);
+
+        logger.debug("looking up key {} (tx version={})", key, versionToLoad);
+
+        DataVersionHolder entry = LockFreeRepository.this.dataGrid.get(key);
+
+        replaceBodyValue(body, Externalization.internalizeObject(entry.data));
+    }
+
+    @Override
     public void persistWriteSet(final UUID commitId, final SimpleWriteSet writeSet, final Object nullObject) {
         /* Store CommitId-->List<VBoxId> and VBoxId:CommitId-->Value */
 
@@ -480,7 +499,7 @@ public class LockFreeRepository implements ExtendedRepository {
         return doWithinBackingTransactionIfNeeded(new Callable<String>() {
             @Override
             public String call() {
-                String commitId = LockFreeRepository.this.dataGrid.get(txVersion);
+                String commitId = getCommitIdForVersion(txVersion);
                 logger.debug("getCommitIdFromVersion: {{}}->{{}}", txVersion, commitId);
                 return commitId;
             }
@@ -580,7 +599,7 @@ public class LockFreeRepository implements ExtendedRepository {
     @SuppressWarnings("unchecked")
     private VBoxBody loadVersionsInRange(VBox box, int versionToLoad, int txNumber) {
         // find the commitId of this committed version
-        String commitId = LockFreeRepository.this.dataGrid.get(versionToLoad);
+        String commitId = getCommitIdForVersion(versionToLoad);
 
 //        logger.debug("version {} as commitId {}", versionToLoad, commitId);
 
@@ -611,6 +630,11 @@ public class LockFreeRepository implements ExtendedRepository {
         }
     }
 
+    private String getCommitIdForVersion(int versionToLoad) {
+        String commitId = LockFreeRepository.this.dataGrid.get(versionToLoad);
+        return commitId;
+    }
+
     /* merge the given tail into the given body.  This method changes the final
     field that points to a VBody (either in the VBox.body or in VBoxBody.next.
     However, it only does so when the reference is to the NOT_LOADED_BODY.  In
@@ -624,11 +648,19 @@ public class LockFreeRepository implements ExtendedRepository {
      * @param body The body whose tail we need to replace. If it is null then, replace this VBox's body instead.
      * @param tail The reference to replace. Should end with {@link VBox#NOT_LOADED_BODY} (this method does not check for it).
      */
-    public void replaceTail(VBox box, VBoxBody body, VBoxBody tail) {
+    protected void replaceTail(VBox box, VBoxBody body, VBoxBody tail) {
         if (body == null) {
             replaceTailInVBox(box, tail);
         } else {
             replaceTailInBody(body, tail);
+        }
+    }
+
+    protected void replaceBodyValue(VBoxBody body, Object value) {
+        if (UNSAFE.compareAndSwapObject(body, bodyValueOffset, VBox.notLoadedValue(), value)) {
+            logger.debug("Set value for body in version {}", body.version);
+        } else {
+            logger.debug("Value for body in version {} was already set", body.version);
         }
     }
 
