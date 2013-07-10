@@ -2,6 +2,7 @@ package pt.ist.fenixframework.backend.infinispan.messaging;
 
 import org.jgroups.blocks.Response;
 import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.backend.infinispan.InfinispanBackEnd;
 import pt.ist.fenixframework.jmx.JmxUtil;
 import pt.ist.fenixframework.jmx.MethodType;
 import pt.ist.fenixframework.jmx.annotations.MBean;
@@ -29,7 +30,7 @@ public class ThreadPoolRequestProcessor {
     public ThreadPoolRequestProcessor(int coreThreads, int maxThreads, int keepAliveTime, final String applicationName) {
         taskExecutedCounter = new AtomicInteger(0);
         lastReset = new AtomicLong(System.nanoTime());
-        JmxUtil.processInstance(this, applicationName);
+        JmxUtil.processInstance(this, applicationName, InfinispanBackEnd.BACKEND_NAME, null);
         this.pendingRequests = new LinkedBlockingDeque<RequestRunnable>();
         executorService = new ThreadPoolExecutor(coreThreads, maxThreads, keepAliveTime, TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>(),
