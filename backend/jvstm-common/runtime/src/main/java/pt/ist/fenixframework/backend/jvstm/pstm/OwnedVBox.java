@@ -5,6 +5,7 @@ import jvstm.VBoxBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 import pt.ist.fenixframework.backend.jvstm.JVSTMDomainObject;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
@@ -50,7 +51,36 @@ public abstract class OwnedVBox<E> extends VBox<E> {
         return slotName + ":" + ownerObj.getExternalId();
     }
 
+    /**
+     * Get the vbox with the given id from the cache.
+     * 
+     * @param vboxId
+     * @return The OwnedVBox if it is cached or <code>null</code> when either (1) the vboxId is not a valid {@link OwnedVBox} id
+     *         or (2) the owner is not cached.
+     */
     public static OwnedVBox lookupCachedVBox(String vboxId) {
+        return tryGet(vboxId, true);
+    }
+
+    /**
+     * Get the vbox with the given Id. It fails if the id is not a valid {@link OwnedVBox} id. If needed, if may allocate the
+     * owner.
+     * 
+     * @param vboxId
+     * @return The {@link OwnedVBox} or <code>null</code> if the Id is not valid
+     */
+    public static OwnedVBox fromId(String vboxId) {
+        return tryGet(vboxId, false);
+    }
+
+    /**
+     * Try to obtain an OwnedVBox if the given id is valid.
+     * 
+     * @param vboxId The vboxId to try
+     * @param lookupOnly When the id is valid, whether to return the vbox only if the owner is cached
+     * @return An {@link OwnedVBox} if the vboxId corresponds to a valid OwnedVBox id or <code>null</code> otherwise.
+     */
+    private static OwnedVBox tryGet(String vboxId, boolean lookupOnly) {
         String[] tokens = vboxId.split(":");
 
         if (tokens.length != 2) {
@@ -65,9 +95,20 @@ public abstract class OwnedVBox<E> extends VBox<E> {
             return null;
         }
 
-        JVSTMDomainObject obj = (JVSTMDomainObject) SharedIdentityMap.getCache().lookup(oid);
+        JVSTMDomainObject obj = null;
 
-        // vbox is only available if the object was cached
+        if (lookupOnly) {
+            obj = (JVSTMDomainObject) SharedIdentityMap.getCache().lookup(oid);
+        } else {
+            try {
+                obj = JVSTMBackEnd.getInstance().fromOid(oid);
+            } catch (Exception e) {
+                // empty
+                // e.g. oid was not valid after all
+            }
+        }
+
+        // vbox is only available if the object was obtained (either was cache or correctly allocated 
         if (obj == null) {
             return null;
         }

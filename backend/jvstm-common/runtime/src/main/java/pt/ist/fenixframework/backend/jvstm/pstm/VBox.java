@@ -15,7 +15,13 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
 
     private static final Logger logger = LoggerFactory.getLogger(VBox.class);
 
-    static final Object NOT_LOADED_VALUE = new Object();
+    static final Object NOT_LOADED_VALUE = new Object() {
+        @Override
+        public String toString() {
+            return "NOT_LOADED_VALUE";
+        };
+    };
+
     public static final VBoxBody NOT_LOADED_BODY = new VBoxBody(notLoadedValue(), 0, null);
 
     public static <T> T notLoadedValue() {
@@ -113,21 +119,26 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
             return true;
         } catch (Throwable e) {
             // what to do?
-            logger.warn("Couldn't reload vbox '" + getId() + "': " + e.getMessage());
+            logger.warn("Couldn't reload vbox {}. Throwable:{}. Message:{}", getId(), e.getClass(), e.getMessage());
             //e.printStackTrace();
             return false;
         }
     }
 
     public final VBoxBody<E> getBody(int maxVersion) {
+//        logger.debug("looking up {} for version {}", this.getId(), maxVersion);
+
         VBoxBody<E> current = body;
 
         while (current != null && current.version > maxVersion) {
             current = current.next;
         }
         if (current == null) {
+//            logger.debug("Returning NOT_LOADED_BODY due to null.");
             return NOT_LOADED_BODY; // VBox.NOT_LOADED_VALUE;
         }
+
+//        logger.debug("In VBox {}, found version {} with '{}'", this.getId(), current.version, current.value);
 
         return current;
     }
