@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import jvstm.CommitException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,12 +208,14 @@ public class CommitRequest implements DataSerializable {
         CommitRequest next = null;
         try {
             internalHandle();
+        } catch (CommitException e) {
+            logger.debug("Commit Request {} throw CommitException. Exception will be discarded.", this.getId());
         } catch (Throwable e) {
             if (logger.isDebugEnabled()) {
                 logger.debug(
                         "Handling localCommit for request {} threw {}.  It will be obfuscated by the return of this method.",
                         this.getId(), e);
-//                e.printStackTrace();
+                e.printStackTrace();
             }
         } finally {
             next = advanceToNext();
