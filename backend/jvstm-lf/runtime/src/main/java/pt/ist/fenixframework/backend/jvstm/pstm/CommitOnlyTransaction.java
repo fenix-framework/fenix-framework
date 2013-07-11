@@ -322,18 +322,19 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         such result via some helper AND even have seen already our record enqueued
         and committed. So we need to check for that to skip enqueuing. */
         if (lastCheck.transactionNumber >= commitRecord.transactionNumber) {
-            logger.debug("Transaction {} of commit request {} was already enqueued AND even committed by another helper.",
+            logger.debug("Transaction {} for commit request {} was already enqueued AND even committed by another helper.",
                     commitRecord.transactionNumber, this.commitRequest.getId());
-            return;
+        } else {
+            if (lastCheck.trySetNext(commitRecord)) {
+                logger.debug("Enqueued record for valid transaction {} of commit request {}", commitRecord.transactionNumber,
+                        this.commitRequest.getId());
+            } else {
+                logger.debug("Transaction {} of commit request {} was already enqueued by another helper.",
+                        commitRecord.transactionNumber, this.commitRequest.getId());
+            }
         }
 
-        if (lastCheck.trySetNext(commitRecord)) {
-            logger.debug("Enqueued record for valid transaction {} of commit request {}", commitRecord.transactionNumber,
-                    this.commitRequest.getId());
-        } else {
-            logger.debug("Transaction {} of commit request {} was already enqueued by another helper.",
-                    commitRecord.transactionNumber, this.commitRequest.getId());
-        }
+        // EVERYONE MUST TRY THIS! To ensure visibility when looking it up ahead.
         txVersionToCommitIdMap.putIfAbsent(commitRecord.transactionNumber, this.commitRequest.getId());
     }
 
@@ -362,9 +363,8 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
                 JvstmLockFreeBackEnd.getInstance().getRepository().mapTxVersionToCommitId(txVersion, commitId);
                 this.txVersionToCommitIdMap.remove(txVersion);
             }
+            super.helpCommit(recordToCommit);
         }
-
-        super.helpCommit(recordToCommit);
     }
 
     @Override
