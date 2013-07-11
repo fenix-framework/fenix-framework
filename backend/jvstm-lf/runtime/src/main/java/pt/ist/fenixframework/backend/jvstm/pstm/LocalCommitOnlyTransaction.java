@@ -139,10 +139,10 @@ public class LocalCommitOnlyTransaction extends CommitOnlyTransaction {
 //        assignCommitRecord(lastSeenCommittedTxNumber + 1, this.writeSet);
 //    }
 
-//    @Override
-//    public void updateOrecVersion() {
-//        this.decoratedTransaction.updateOrecVersion();
-//    }
+    @Override
+    public void updateOrecVersion() {
+        this.decoratedTransaction.updateOrecVersion();
+    }
 
 //    /* The commitTxRecord can only be set once */
 //    @Override
