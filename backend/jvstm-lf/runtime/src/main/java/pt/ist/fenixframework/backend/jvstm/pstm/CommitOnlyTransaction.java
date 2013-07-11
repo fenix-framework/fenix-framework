@@ -40,7 +40,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
 
 //    private final WriteSet writeSet = STUB_WRITE_SET;
 
-    private final ConcurrentHashMap<Integer, UUID> txVersionToCommitIdMap = new ConcurrentHashMap<Integer, UUID>();
+    public static final ConcurrentHashMap<Integer, UUID> txVersionToCommitIdMap = new ConcurrentHashMap<Integer, UUID>();
 
 //    private boolean readOnly = false;
 
@@ -100,10 +100,13 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         Transaction savedTx = Transaction.current();
         // set current
         Transaction.current.set(this);
-        // enact the commit
-        this.commitTx(false); // smf TODO: double-check whether we want to mess with ActiveTxRecords, thread-locals, etc.  I guess 'false' is the way to go...
-        // restore current
-        Transaction.current.set(savedTx);
+        try {
+            // enact the commit
+            this.commitTx(false); // smf TODO: double-check whether we want to mess with ActiveTxRecords, thread-locals, etc.  I guess 'false' is the way to go...
+        } finally {
+            // restore current
+            Transaction.current.set(savedTx);
+        }
     }
 
 //    @Override
@@ -342,7 +345,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
             }
         }
 
-        // EVERYONE MUST TRY THIS! To ensure visibility when looking it up ahead.
+        // EVERYONE MUST TRY THIS, to ensure visibility when looking it up ahead.
         txVersionToCommitIdMap.putIfAbsent(commitRecord.transactionNumber, this.commitRequest.getId());
     }
 
@@ -364,14 +367,18 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
     @Override
     protected void helpCommit(ActiveTransactionsRecord recordToCommit) {
         if (!recordToCommit.isCommitted()) {
+            logger.debug("Helping to commit version {}", recordToCommit.transactionNumber);
+
             int txVersion = this.getCommitTxRecord().transactionNumber;
-            UUID commitId = this.txVersionToCommitIdMap.get(txVersion);
+            UUID commitId = CommitOnlyTransaction.txVersionToCommitIdMap.get(txVersion);
 
             if (commitId != null) { // may be null if it was already persisted 
                 JvstmLockFreeBackEnd.getInstance().getRepository().mapTxVersionToCommitId(txVersion, commitId);
-                this.txVersionToCommitIdMap.remove(txVersion);
+                CommitOnlyTransaction.txVersionToCommitIdMap.remove(txVersion);
             }
             super.helpCommit(recordToCommit);
+        } else {
+            logger.debug("Version {} was already fully committed", recordToCommit.transactionNumber);
         }
     }
 

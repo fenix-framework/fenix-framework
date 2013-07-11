@@ -51,7 +51,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     protected void upgradeWithPendingCommits(ActiveTransactionsRecord record) {
         logger.debug("Initial read version is {}", record.transactionNumber);
         ActiveTransactionsRecord newRecord = processCommitRequests(record);
-        logger.debug("Done processing pending commit requests.  Most recent version is {}", record.transactionNumber);
+        logger.debug("Done processing pending commit requests.  Most recent version is {}", newRecord.transactionNumber);
 
         if (newRecord != this.activeTxRecord) {
             logger.debug("Upgrading read version to {}", newRecord.transactionNumber);
@@ -126,7 +126,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 
         // notice that body has changed if we went into the previous if 
 
-        logger.debug("Value for vbox {} is: {{}}", ((VBox) vbox).getId(), body.value);
+        logger.debug("Value for vbox {} is: '{}'", ((VBox) vbox).getId(), body.value);
 
         return super.getValueFromBody(vbox, body);
     }
@@ -165,7 +165,12 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
         CommitRequest tail = LockFreeClusterUtils.getCommitRequestsTail();
 
 //        if (currentRequest != tail) {
-        tryCommit(currentRequest, tail.getId());
+        try {
+            tryCommit(currentRequest, tail.getId());
+        } catch (CommitException e) {
+            /* just the ignore the possibility that the tail transaction that
+            I'm helping to commit may be invalid */
+        }
 //        }
 
         /* return the newest record there is. This is safe, and we don't really
@@ -216,9 +221,11 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             alreadyChecked = null; // allow gc of set
 
             // locally validate before continuing
+            logger.debug("Validating locally before broadcasting commit request");
             ActiveTransactionsRecord lastSeenCommitted = helpCommitAll();
             snapshotValidation(lastSeenCommitted.transactionNumber);
             upgradeTx(lastSeenCommitted);
+            logger.debug("Tx is locally valid");
 
             // persist the write set ahead of sending the commit request
             CommitRequest myRequest = makeCommitRequest();
@@ -363,6 +370,28 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             } else {
                 current = next;
             }
+        }
+    }
+
+    /* When this tx is performing local validation before sending its commit
+    record, it will helpcommit those in front of itself that are waiting for
+    write-back.  But, those need to persist their map txversion->commitId also,
+    so we override helpCommit here for that reason. */
+    @Override
+    protected void helpCommit(ActiveTransactionsRecord recordToCommit) {
+        if (!recordToCommit.isCommitted()) {
+            logger.debug("Helping to commit version {}", recordToCommit.transactionNumber);
+
+            int txVersion = this.getCommitTxRecord().transactionNumber;
+            UUID commitId = CommitOnlyTransaction.txVersionToCommitIdMap.get(txVersion);
+
+            if (commitId != null) { // may be null if it was already persisted 
+                JvstmLockFreeBackEnd.getInstance().getRepository().mapTxVersionToCommitId(txVersion, commitId);
+                CommitOnlyTransaction.txVersionToCommitIdMap.remove(txVersion);
+            }
+            super.helpCommit(recordToCommit);
+        } else {
+            logger.debug("Version {} was already fully committed", recordToCommit.transactionNumber);
         }
     }
 
