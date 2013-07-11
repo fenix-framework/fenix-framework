@@ -19,6 +19,8 @@ import jvstm.Transaction;
 import jvstm.UtilUnsafe;
 import jvstm.VBox.Offsets;
 import jvstm.VBoxBody;
+import jvstm.util.Cons;
+import jvstm.util.Pair;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,15 +204,15 @@ public class LockFreeRepository implements ExtendedRepository {
 //                    newValue = (newValue == nullObject) ? null : newValue;
 //
 //                    String key = makeKeyFor(vbox);
-//                    DataVersionHolder current = (DataVersionHolder) dataGrid.get(key);
-//                    DataVersionHolder newVersion;
+//                    DataHolder current = (DataHolder) dataGrid.get(key);
+//                    DataHolder newVersion;
 //                    byte[] externalizedData = Externalization.externalizeObject(newValue);
 //
 //                    if (current != null) {
 //                        dataGrid.put(makeVersionedKey(key, current.version), current); // TODO: colocar aqui um timeout ?
-//                        newVersion = new DataVersionHolder(txNumber, current.version, externalizedData);
+//                        newVersion = new DataHolder(txNumber, current.version, externalizedData);
 //                    } else {
-//                        newVersion = new DataVersionHolder(txNumber, -1, externalizedData);
+//                        newVersion = new DataHolder(txNumber, -1, externalizedData);
 //                    }
 //
 //                    dataGrid.put(key, newVersion); // TODO: colocar aqui um timeout
@@ -438,9 +440,9 @@ public class LockFreeRepository implements ExtendedRepository {
 
         logger.debug("looking up key {} (tx version={})", key, versionToLoad);
 
-        DataVersionHolder entry = LockFreeRepository.this.dataGrid.get(key);
+        DataHolder entry = LockFreeRepository.this.dataGrid.get(key);
 
-        replaceBodyValue(body, Externalization.internalizeObject(entry.data));
+        replaceBodyValue(body, entry.getData());
     }
 
     @Override
@@ -470,8 +472,7 @@ public class LockFreeRepository implements ExtendedRepository {
 
                     String key = makeKeyWithCommitId(vboxId, commitId.toString());
 
-                    byte[] externalizedValue = Externalization.externalizeObject(newValue);
-                    DataVersionHolder newVersion = new DataVersionHolder(externalizedValue);
+                    DataHolder newVersion = new DataHolder(newValue);
 
                     LockFreeRepository.this.dataGrid.put(key, newVersion);
                 }
@@ -518,9 +519,9 @@ public class LockFreeRepository implements ExtendedRepository {
 //            @Override
 //            public List<VersionedValue> call() {
 //                ArrayList<VersionedValue> result = new ArrayList<VersionedValue>();
-//                DataVersionHolder current;
+//                DataHolder current;
 //
-//                current = (DataVersionHolder) dataGrid.get(key);
+//                current = (DataHolder) dataGrid.get(key);
 //
 //                if (current != null) {
 //
@@ -535,7 +536,7 @@ public class LockFreeRepository implements ExtendedRepository {
 //                            break;
 //                        }
 //
-//                        current = (DataVersionHolder) dataGrid.get(makeVersionedKey(key, current.previousVersion));
+//                        current = (DataHolder) dataGrid.get(makeVersionedKey(key, current.previousVersion));
 //                    }
 //                }
 //                throw new PersistenceException("Version of vbox " + vbox.getId() + " not found for transaction number "
@@ -600,36 +601,53 @@ public class LockFreeRepository implements ExtendedRepository {
     lower than txNumber. */
     @SuppressWarnings("unchecked")
     private VBoxBody loadVersionsInRange(VBox box, int versionToLoad, int txNumber) {
-        // find the commitId of this committed version
-        String commitId = getCommitIdForVersion(versionToLoad);
+
+        Cons<Pair<DataHolder, Integer>> entries = Cons.<Pair<DataHolder, Integer>> empty();
+
+        while (true) {
+            // find the commitId of this committed version
+            String commitId = getCommitIdForVersion(versionToLoad);
 
 //        logger.debug("version {} as commitId {}", versionToLoad, commitId);
 
-        // lookup an entry for this box in the given version
-        String key = makeKeyWithCommitId(makeKeyFor(box), commitId);
+            // lookup an entry for this box in the given version
+            String key = makeKeyWithCommitId(makeKeyFor(box), commitId);
 
-        logger.debug("looking up key {} (tx version={})", key, versionToLoad);
+            logger.debug("looking up key {} (tx version={})", key, versionToLoad);
 
-        DataVersionHolder entry = LockFreeRepository.this.dataGrid.get(key);
-        if (entry != null) {
-            logger.debug("Adding to list the value for key: {}", key);
+            DataHolder entry = LockFreeRepository.this.dataGrid.get(key);
 
-            VBoxBody nextBody;
+            if (entry != null) {
+                Pair<DataHolder, Integer> pair = new Pair<DataHolder, Integer>(entry, versionToLoad);
+                entries = entries.cons(pair);
 
-            if (versionToLoad <= txNumber) { // end recursion
-                nextBody = VBox.notLoadedBody();
+                if (versionToLoad <= txNumber) {
+                    logger.debug("Leaving load loop at version {} <= txNumber {}", versionToLoad, txNumber);
+                    break;
+                }
             } else {
-                nextBody = loadVersionsInRange(box, versionToLoad - 1, txNumber);
+                logger.debug("No such key: {}", key);
+                if (versionToLoad == 0) {
+                    throw new PersistenceException("Version of vbox " + box.getId() + " not found for transaction number "
+                            + txNumber);
+                }
             }
 
-            return VBox.makeNewBody(Externalization.internalizeObject(entry.data), versionToLoad, nextBody);
-        } else {
-            if (versionToLoad == 0) {
-                throw new PersistenceException("Version of vbox " + box.getId() + " not found for transaction number " + txNumber);
-            }
-            logger.debug("No such key: {}", key);
-            return loadVersionsInRange(box, versionToLoad - 1, txNumber);
+            versionToLoad--;
         }
+
+        logger.debug("Found {} version(s) to load", entries.size());
+
+        logger.debug("Adding NOT_LOADED_BODY");
+        VBoxBody bodies = VBox.notLoadedBody();
+
+        // build the bodies
+        for (Pair<DataHolder, Integer> pair : entries) {
+            logger.debug("Adding version {}", pair.second);
+            bodies = VBox.makeNewBody(pair.first.getData(), pair.second, bodies);
+        }
+
+        return bodies;
     }
 
     private String getCommitIdForVersion(int versionToLoad) {
@@ -744,35 +762,20 @@ public class LockFreeRepository implements ExtendedRepository {
 //        return key + ":" + version;
 //    }
 
-    /* DataVersionHolder class. Ensures safe publication. */
-
-//    private static class DataVersionHolder implements java.io.Serializable {
-//        private static final long serialVersionUID = 1L;
-//        public final int version;
-//        public final int previousVersion;
-//        public final byte[] data;
-//
-//        DataVersionHolder(int version, int previousVersion, byte[] data) {
-//            this.version = version;
-//            this.previousVersion = previousVersion;
-//            this.data = data;
-//        }
-//    }
-
-    private static class DataVersionHolder implements java.io.Serializable {
+    private static class DataHolder implements java.io.Serializable {
         private static final long serialVersionUID = 1L;
-        public int version;
-        public int previousVersion;
-        public final byte[] data;
+        private final byte[] data2;
 
-        DataVersionHolder(byte[] data) {
-            this(-1, -1, data);
+        DataHolder(Object data) {
+            this.data2 = Externalization.externalizeObject(data);
         }
 
-        DataVersionHolder(int version, int previousVersion, byte[] data) {
-            this.version = version;
-            this.previousVersion = previousVersion;
-            this.data = data;
+//        byte[] getRawData() {
+//            return this.data;
+//        }
+
+        Object getData() {
+            return Externalization.internalizeObject(this.data2);
         }
     }
 
