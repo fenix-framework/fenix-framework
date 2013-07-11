@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.TopLevelTransaction;
+import jvstm.Transaction;
 import jvstm.TransactionSignaller;
 import jvstm.UtilUnsafe;
 import jvstm.WriteSet;
@@ -95,7 +96,14 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
      * are decorated by {@link CommitOnlyTransaction}s.
      */
     public void localCommit() {
+        // save current
+        Transaction savedTx = Transaction.current();
+        // set current
+        Transaction.current.set(this);
+        // enact the commit
         this.commitTx(false); // smf TODO: double-check whether we want to mess with ActiveTxRecords, thread-locals, etc.  I guess 'false' is the way to go...
+        // restore current
+        Transaction.current.set(savedTx);
     }
 
 //    @Override
