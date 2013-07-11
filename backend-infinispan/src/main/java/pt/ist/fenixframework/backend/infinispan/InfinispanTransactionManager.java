@@ -15,8 +15,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class InfinispanTransactionManager implements TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanTransactionManager.class);
-    private static javax.transaction.TransactionManager delegateTxManager;
     private static final RollBackOnlyException ROLL_BACK_ONLY_EXCEPTION = new RollBackOnlyException();
+    private static javax.transaction.TransactionManager delegateTxManager;
     private final ConcurrentLinkedQueue<CommitListener> listeners = new ConcurrentLinkedQueue<CommitListener>();
 
     @Override
@@ -26,7 +26,7 @@ public class InfinispanTransactionManager implements TransactionManager {
 
     @Override
     public void begin(boolean readOnly) throws NotSupportedException, SystemException {
-        if (readOnly) {
+        if (readOnly && logger.isWarnEnabled()) {
             logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
         }
         delegateTxManager.begin();
@@ -51,7 +51,9 @@ public class InfinispanTransactionManager implements TransactionManager {
              * As specified in CommitListener.beforeCommit(), any unchecked
              * exception will cause the transaction to be rolled back.
              */
-            logger.warn("RuntimeException received. Rollback transaction");
+            if (logger.isWarnEnabled()) {
+                logger.warn("RuntimeException received. Rollback transaction");
+            }
             rollback();
             throw new RollbackException(e.getMessage());
         }
@@ -114,20 +116,31 @@ public class InfinispanTransactionManager implements TransactionManager {
                 result = command.call();
                 success = true;
             } catch (CacheException e) {
-                logger.error("Error executing transaction " + getTransaction(), e);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Error executing transaction " + getTransaction(), e);
+                }
                 canRetry = true;
             } catch (RollBackOnlyException e) {
-                logger.error("Rollback only exception caught! An inner transaction wants to rollback: " +
-                        getTransaction());
+                if (logger.isErrorEnabled()) {
+                    logger.error("Rollback only exception caught! An inner transaction wants to rollback: " +
+                            getTransaction());
+                }
                 canRetry = true;
             } catch (RuntimeException e) {
-                logger.error("Unexpected error executing transaction " + getTransaction(), e);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Unexpected error executing transaction " + getTransaction(), e);
+                }
                 throw e;
             } catch (Exception e) {
-                logger.error("Application error executing transaction " + getTransaction(), e);
+
+                if (logger.isErrorEnabled()) {
+                    logger.error("Application error executing transaction " + getTransaction(), e);
+                }
                 throw e;
             } catch (Throwable t) {
-                logger.error("Unexpected error executing transaction " + getTransaction(), t);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Unexpected error executing transaction " + getTransaction(), t);
+                }
                 throw new RuntimeException(t);
             } finally {
                 finished = tryCommit(started, success, canRetry);
@@ -211,12 +224,18 @@ public class InfinispanTransactionManager implements TransactionManager {
             }
             return success;
         } catch (RuntimeException e) {
-            logger.error("Unexpected error finishing transaction", e);
+            if (logger.isErrorEnabled()) {
+                logger.error("Unexpected error finishing transaction", e);
+            }
             throw e;
         } catch (Exception e) {
-            logger.error("Error finishing transaction", e);
+            if (logger.isErrorEnabled()) {
+                logger.error("Error finishing transaction", e);
+            }
         } catch (Throwable t) {
-            logger.error("Unexpected error finishing transaction", t);
+            if (logger.isErrorEnabled()) {
+                logger.error("Unexpected error finishing transaction", t);
+            }
             throw new RuntimeException(t);
         }
 
@@ -234,13 +253,19 @@ public class InfinispanTransactionManager implements TransactionManager {
             try {
                 begin();
             } catch (RuntimeException e) {
-                logger.error("Error beginning transaction", e);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Error beginning transaction", e);
+                }
                 throw e;
             } catch (Exception e) {
-                logger.error("Error beginning transaction", e);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Error beginning transaction", e);
+                }
                 throw new RuntimeException(e);
             } catch (Throwable t) {
-                logger.error("Unexpected error beginning transaction", t);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Unexpected error beginning transaction", t);
+                }
                 throw new RuntimeException(t);
             }
             return true;

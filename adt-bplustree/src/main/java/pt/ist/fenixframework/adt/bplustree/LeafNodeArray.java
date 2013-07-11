@@ -46,7 +46,9 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     }
     
     private DoubleArray<Serializable> justInsert(Comparable key, Serializable value) {
-        logger.trace("Getting 'entries' slot");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Getting 'entries' slot");
+        }
         DoubleArray<Serializable> localEntries = this.getEntries();
 
 	// this test is performed because we need to return a new structure in
@@ -54,10 +56,14 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 	Serializable currentValue = localEntries.get(key);
 	// this check suffices because we do not allow null values
 	if (currentValue == value ) {
+        if (logger.isTraceEnabled()) {
             logger.trace("Existing key. No change required");
-	    return null;
+        }
+        return null;
 	} else {
+        if (logger.isTraceEnabled()) {
             logger.trace("Will add new entry. Must duplicate 'entries'.");
+        }
             DoubleArray<Serializable> newArr = localEntries.addKeyValue(key, value);
             setEntries(newArr);
             return newArr;

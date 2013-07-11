@@ -44,7 +44,9 @@ public abstract class OgmDomainObject extends AbstractDomainObjectAdapter {
 
         this.oid = new OgmOID(this.getClass(), this.hibernate$primaryKey);
         OgmBackEnd.getInstance().save(this);
-        logger.debug("Saved " + this);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Saved " + this);
+        }
     }
 
     // dealing with domain object identifiers

@@ -42,25 +42,29 @@ public class OID implements Comparable<OID>, Serializable {
      * Create a new Object IDentifier for the given class. For the special class {@link DomainRoot}, it will always return the
      * same ROOT_OBJECT_ID. Any {@link LocalityHints} for the {@link DomainRoot} object are ignored, as this object always
      * exists.
-     * 
+     *
      * @param objClass The Class of the {@link DomainObject} for which to create a new OID.
      * @param hints The {@link LocalityHints} if any.
      * @return A unique identifier for an object of the given type.
      */
     public static OID makeNew(Class objClass, LocalityHints hints) {
         if (objClass.equals(DomainRoot.class)) {
-            logger.debug("Returning well-known fixed OID for singleton DomainRoot instance: " + ROOT_OBJECT_ID);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Returning well-known fixed OID for singleton DomainRoot instance: " + ROOT_OBJECT_ID);
+            }
             return ROOT_OBJECT_ID;
         } else {
             OID oid = new OID(objClass, UUID.randomUUID().toString(), hints);
-            logger.debug("Making new oid: " + oid.toString());
+            if (logger.isTraceEnabled()) {
+                logger.trace("Making new oid: " + oid.toString());
+            }
             return oid;
         }
     }
 
     /**
      * Calls {@link #makeNew(Class, LocalityHints)} with <code>null</code> {@link LocalityHints}.
-     * 
+     *
      * @see #makeNew(Class, LocalityHints)
      */
     public static OID makeNew(Class objClass) {
@@ -79,24 +83,30 @@ public class OID implements Comparable<OID>, Serializable {
     /**
      * Creates an OID from the given external representation. If the external representation as been tampered with, the results of
      * this method are undefined.
-     * 
+     *
      * @param externalId The external representation of the object's identifier.
      * @return the OID that corresponds to the given external representation
      */
     public static OID fromExternalId(String externalId) {
-        logger.debug("Building OID from externalId: " + externalId);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Building OID from externalId: " + externalId);
+        }
 
         String className = extractClassNameFromExtenalId(externalId);
         try {
             return new OID(Class.forName(className), externalId);
         } catch (Exception e) {
-            logger.error(EXTERNAL_ID_ERROR + externalId);
+            if (logger.isErrorEnabled()) {
+                logger.error(EXTERNAL_ID_ERROR + externalId);
+            }
             throw new MissingObjectException(EXTERNAL_ID_ERROR + externalId, e);
         }
     }
 
     public static OID recoverFromFullId(String fullId) {
-        logger.debug("Building OID from fullId: " + fullId);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Building OID from fullId: " + fullId);
+        }
         // currently the same as an externalId
         return fromExternalId(fullId);
     }
@@ -156,7 +166,7 @@ public class OID implements Comparable<OID>, Serializable {
 
     /**
      * Get the LocalityHints of this OID.
-     * 
+     *
      * @return The {@link LocalityHints} instance or <code>null</code> is this OID does not have {@link LocalityHints}
      */
     public LocalityHints getLocalityHints() {

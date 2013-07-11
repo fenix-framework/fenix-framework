@@ -72,7 +72,9 @@ public class OgmBackEnd implements BackEnd {
     }
 
     public void save(AbstractDomainObject obj) {
-        logger.debug("Saving " + obj.getClass());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Saving " + obj.getClass());
+        }
         transactionManager.getEntityManager().persist(obj);
     }
 

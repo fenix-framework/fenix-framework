@@ -9,7 +9,6 @@ import pt.ist.fenixframework.core.SharedIdentityMap;
 import eu.cloudtm.LocalityHints;
 
 public class MemDomainObject extends AbstractDomainObjectAdapter {
-    private static final Logger logger = LoggerFactory.getLogger(MemDomainObject.class);
 
     // this should be final, but the ensureOid and restoreOid methods prevent it
     private long oid;

@@ -43,7 +43,9 @@ public class OgmOID implements Comparable<OgmOID>, Serializable {
             // this.primaryKey = Long.valueOf(tokens[1]);
         } catch (Exception e) {
             // e.g. index out of bounds, class not found, etc.
-            logger.error(EXTERNAL_ID_ERROR + externalId);
+            if (logger.isErrorEnabled()) {
+                logger.error(EXTERNAL_ID_ERROR + externalId);
+            }
             throw new MissingObjectException(EXTERNAL_ID_ERROR + externalId, e);
         }
     }

@@ -13,7 +13,6 @@ import eu.cloudtm.LocalityHints;
  * of DomainObject.
  */
 public class AbstractDomainObjectAdapter extends AbstractDomainObject {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractDomainObjectAdapter.class);
 
     protected AbstractDomainObjectAdapter() {
         this((LocalityHints) null);

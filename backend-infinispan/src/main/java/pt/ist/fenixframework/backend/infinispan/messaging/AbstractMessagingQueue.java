@@ -81,7 +81,9 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         MessageType type = MessageType.from(buffer.readByte());
         if (type == MessageType.WORK_REQUEST) {
             if (!canHandleRequests()) {
-                logger.error("Work request received but this queue cannot handle it!");
+                if (logger.isErrorEnabled()) {
+                    logger.error("Work request received but this queue cannot handle it!");
+                }
                 throw new IllegalStateException("Cannot handle request because it does not have access to the cache");
             }
             threadPoolRequestProcessor.execute(buffer.readUTF(), response);
@@ -98,7 +100,9 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
     @Override
     public final Object sendRequest(String data, String localityHint, boolean sync) throws Exception {
         if (getState() != State.RUNNING) {
-            logger.error("Tried to send a work request but the queue is not running. State=" + getState());
+            if (logger.isErrorEnabled()) {
+                logger.error("Tried to send a work request but the queue is not running. State=" + getState());
+            }
             throw new IllegalStateException("Messaging Queue was stopped!");
         }
         Address destination = locate(localityHint);

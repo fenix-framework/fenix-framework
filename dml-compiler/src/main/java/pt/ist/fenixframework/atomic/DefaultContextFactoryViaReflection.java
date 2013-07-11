@@ -27,7 +27,9 @@ public final class DefaultContextFactoryViaReflection extends ContextFactory {
     // This code uses reflection, but it only runs once per occurrence of the @Atomic annotation in
     // the code, regardless of the number of times that such method runs.
     public static AtomicContext newContext(Atomic atomic) {
-        logger.trace("Creating a new AtomicContext via reflection");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Creating a new AtomicContext via reflection");
+        }
 
         try {
             // GOAL: currentBackendId = BackEndId.getInstance();
