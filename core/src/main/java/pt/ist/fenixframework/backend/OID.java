@@ -9,6 +9,8 @@ package pt.ist.fenixframework.backend;
 
 import java.io.Serializable;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,14 @@ public class OID implements Comparable<OID>, Serializable {
     private static final String EXTERNAL_ID_ERROR = "Could not process externalId: ";
 
     public static final String ROOT_PK = "ROOT_OBJECT";
-    public static final OID ROOT_OBJECT_ID = new OID(DomainRoot.class, DomainRoot.class.getName() + OID_SEPARATOR + ROOT_PK);
+    public static final OID ROOT_OBJECT_ID;
+
+    private static final ConcurrentMap<String, Class<?>> CACHED_CLASSES;
+
+    static {
+        CACHED_CLASSES = new ConcurrentHashMap<String, Class<?>>();
+        ROOT_OBJECT_ID = new OID(DomainRoot.class, DomainRoot.class.getName() + OID_SEPARATOR + ROOT_PK);
+    }
 
     private final Class objClass;
     /* 
@@ -76,6 +85,7 @@ public class OID implements Comparable<OID>, Serializable {
     }
 
     private OID(Class objClass, String fullId) {
+        CACHED_CLASSES.putIfAbsent(objClass.getName(), objClass);
         this.objClass = objClass;
         this.fullId = fullId;
     }
@@ -94,7 +104,12 @@ public class OID implements Comparable<OID>, Serializable {
 
         String className = extractClassNameFromExtenalId(externalId);
         try {
-            return new OID(Class.forName(className), externalId);
+            Class objClass = CACHED_CLASSES.get(className);
+            if (objClass != null) {
+                return new OID(objClass, externalId);
+            } else {
+                return new OID(Thread.currentThread().getContextClassLoader().loadClass(className), externalId);
+            }
         } catch (Exception e) {
             if (logger.isErrorEnabled()) {
                 logger.error(EXTERNAL_ID_ERROR + externalId);
