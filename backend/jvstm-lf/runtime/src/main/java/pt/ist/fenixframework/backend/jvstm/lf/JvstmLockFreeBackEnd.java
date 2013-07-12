@@ -135,7 +135,6 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
     protected void initializeJvstmTxNumber() {
         int maxTx = getRepository().getMaxCommittedTxNumber();
         if (maxTx >= 0) {
-            logger.info("Setting the last committed TX number to {}", maxTx);
             TransactionUtils.initializeTxNumber(maxTx);
         } else {
             throw new Error("Couldn't determine the last transaction number");

@@ -1,13 +1,19 @@
 package jvstm;
 
 import org.hibernate.annotations.common.AssertionFailure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransactionUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(TransactionUtils.class);
 
     /* This operation needs to be performed atomically.  Currently, it is invoked
     during the bootstrap of Fenix Framework, so there is no other transaction
     running that might be changing the ActiveTransactionsRecord. */
     public static void initializeTxNumber(int maxTx) {
+        logger.info("Setting the last committed TX number to {}", maxTx);
+
         ActiveTransactionsRecord initialRecord = new ActiveTransactionsRecord(maxTx, WriteSet.empty());
         boolean success = Transaction.mostRecentCommittedRecord.trySetNext(initialRecord);
         if (!success) {
