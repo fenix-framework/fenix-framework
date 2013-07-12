@@ -7,8 +7,6 @@
  */
 package pt.ist.fenixframework.backend.jvstm.lf;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -23,7 +21,9 @@ import pt.ist.fenixframework.backend.jvstm.pstm.LocalCommitOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.RemoteCommitOnlyTransaction;
 
-import com.hazelcast.nio.DataSerializable;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.DataSerializable;
 
 public class CommitRequest implements DataSerializable {
 
@@ -162,7 +162,7 @@ public class CommitRequest implements DataSerializable {
     }
 
     @Override
-    public void writeData(DataOutput out) throws IOException {
+    public void writeData(ObjectDataOutput out) throws IOException {
         out.writeInt(this.serverId);
         out.writeInt(this.txVersion);
         out.writeLong(this.id.getMostSignificantBits());
@@ -172,7 +172,7 @@ public class CommitRequest implements DataSerializable {
     }
 
     @Override
-    public void readData(DataInput in) throws IOException {
+    public void readData(ObjectDataInput in) throws IOException {
         this.serverId = in.readInt();
         this.txVersion = in.readInt();
         this.id = new UUID(in.readLong(), in.readLong());
@@ -275,4 +275,5 @@ public class CommitRequest implements DataSerializable {
         // Always return the commit that really follows
         return this.getNext();
     }
+
 }

@@ -12,9 +12,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.core.AtomicNumber;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IAtomicLong;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
@@ -51,6 +51,8 @@ public class LockFreeClusterUtils {
         registerListenerForCommitRequests();
     }
 
+//    private static final ReentrantLock ENQUEUE_LOCK = new ReentrantLock(true);
+
     private static void registerListenerForCommitRequests() {
         ITopic<CommitRequest> topic = getHazelcastInstance().getTopic(FF_COMMIT_TOPIC_NAME);
 
@@ -58,6 +60,9 @@ public class LockFreeClusterUtils {
 
             @Override
             public final void onMessage(Message<CommitRequest> message) {
+//                ENQUEUE_LOCK.lock();
+
+//                try {
                 CommitRequest commitRequest = message.getMessageObject();
 
                 logger.debug("Received commit request message. id={}, serverId={}", commitRequest.getId(),
@@ -65,9 +70,14 @@ public class LockFreeClusterUtils {
 
                 commitRequest.assignTransaction();
                 enqueueCommitRequest(commitRequest);
+//                } finally {
+//                    ENQUEUE_LOCK.unlock();
+//                }
             }
 
             private final void enqueueCommitRequest(CommitRequest commitRequest) {
+//                synchronized (LockFreeClusterUtils.FF_COMMIT_TOPIC_NAME) { // TODO REMOVE THIS !!!
+
                 CommitRequest last = commitRequestsTail;
 
                 // according to Hazelcast, onMessage() runs on a single thread, so this CAS should never fail
@@ -76,6 +86,7 @@ public class LockFreeClusterUtils {
                 }
                 // update last known tail
                 commitRequestsTail = commitRequest;
+//                }
             }
 
             private void enqueueFailed() throws AssertionError {
@@ -102,7 +113,7 @@ public class LockFreeClusterUtils {
     public static void notifyStartupComplete() {
         logger.info("Notify other nodes that startup completed");
 
-        AtomicNumber initMarker = getHazelcastInstance().getAtomicNumber("initMarker");
+        IAtomicLong initMarker = getHazelcastInstance().getAtomicLong("initMarker");
         initMarker.incrementAndGet();
     }
 
@@ -110,7 +121,7 @@ public class LockFreeClusterUtils {
         logger.info("Waiting for startup from first node");
 
         // check initMarker in AtomicNumber (value 1)
-        AtomicNumber initMarker = getHazelcastInstance().getAtomicNumber("initMarker");
+        IAtomicLong initMarker = getHazelcastInstance().getAtomicLong("initMarker");
 
         while (initMarker.get() == 0) {
             logger.debug("Waiting for first node to startup...");
@@ -130,7 +141,7 @@ public class LockFreeClusterUtils {
         to appear.  By reusing numbers with the cluster alive, we either don't
         reuse 0 or change the algorithm  that detects the first member */
 
-        AtomicNumber serverIdGenerator = getHazelcastInstance().getAtomicNumber("serverId");
+        IAtomicLong serverIdGenerator = getHazelcastInstance().getAtomicLong("serverId");
         long longId = serverIdGenerator.getAndAdd(1L);
 
         logger.info("Got (long) serverId: {}", longId);
