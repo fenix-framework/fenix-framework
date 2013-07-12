@@ -185,8 +185,18 @@ public class OID implements Comparable<OID>, Serializable {
      * @return The {@link LocalityHints} instance or <code>null</code> is this OID does not have {@link LocalityHints}
      */
     public LocalityHints getLocalityHints() {
+        return getLocalityHint(fullId);
+    }
+
+    public static LocalityHints getLocalityHint(String fullId) {
         int firstSep = fullId.indexOf(OID_SEPARATOR);
+        if (firstSep == -1) {
+            return null;
+        }
         int secondSep = fullId.indexOf(OID_SEPARATOR, firstSep + 1);
+        if (secondSep == -1) {
+            return null;
+        }
         String localityHintsStr = fullId.substring(secondSep + 1);
 
         return (localityHintsStr.isEmpty() ? null : LocalityHints.string2Hints(localityHintsStr));

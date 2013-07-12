@@ -272,6 +272,10 @@ public class InfinispanBackEnd implements BackEnd {
         return keys.toArray(new String[keys.size()]);
     }
 
+    public final LocalityHints getLocalityHints(String externalId) {
+        return OID.getLocalityHint(externalId);
+    }
+
     @Override
     public ClusterInformation getClusterInformation() {
         RpcManager rpcManager = readCache.getAdvancedCache().getRpcManager();

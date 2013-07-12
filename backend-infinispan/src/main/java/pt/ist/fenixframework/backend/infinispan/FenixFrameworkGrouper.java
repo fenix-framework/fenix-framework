@@ -23,7 +23,7 @@ public class FenixFrameworkGrouper implements Grouper<String> {
     public String computeGroup(String key, String group) {
         //ignore the group parameter. It is != null when @Group is used in a key, but the keys are string.
         assert group == null;
-        LocalityHints localityHints = backEnd.getDomainObject(key).getLocalityHints();
+        LocalityHints localityHints = backEnd.getLocalityHints(key);
         //it is not a problem to return null. Null means no grouping for the key.
         return localityHints == null ? null : localityHints.get(Constants.GROUP_ID);
     }
