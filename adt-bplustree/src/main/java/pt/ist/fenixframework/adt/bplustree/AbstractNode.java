@@ -8,6 +8,7 @@ import java.util.TreeMap;
 
 import pt.ist.fenixframework.core.Externalization;
 import eu.cloudtm.LocalityHints;
+import pt.ist.fenixframework.core.TreeMapExternalizator;
 // import java.util.concurrent.atomic.AtomicInteger;
 
 /** The keys comparison function should be consistent with equals. */
@@ -114,11 +115,13 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
         private final byte[] serializedTreeMap;
 
         TreeMapExternalization(TreeMap<Comparable, ? extends Serializable> treeMap) {
-            this.serializedTreeMap = Externalization.externalizeSerializable(treeMap);
+            //this.serializedTreeMap = Externalization.externalizeSerializable(treeMap);
+            this.serializedTreeMap = TreeMapExternalizator.externalize(treeMap);
         }
 
         TreeMap toTreeMap() {
-            return (TreeMap) Externalization.internalizeSerializable(serializedTreeMap);
+            //return (TreeMap) Externalization.internalizeSerializable(serializedTreeMap);
+            return TreeMapExternalizator.internalize(serializedTreeMap);
         }
 
         @Override
