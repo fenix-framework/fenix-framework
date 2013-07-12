@@ -99,14 +99,16 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
 
     public static Serializable /*byte[]*/externalizeTreeMap(TreeMap treeMap) {
         // return Externalization.externalizeObject(new TreeMapExternalization(treeMap));
-        return new TreeMapExternalization(treeMap);
+        //return new TreeMapExternalization(treeMap);
         // return treeMap;
+        return TreeMapExternalizator.externalize(treeMap);
     }
 
     public static TreeMap internalizeTreeMap(Serializable/*byte[]*/externalizedTreeMap) {
         // TreeMapExternalization treeMapExternalization = Externalization.internalizeObject(externalizedTreeMap);
-        return ((TreeMapExternalization) externalizedTreeMap).toTreeMap();
+        //return ((TreeMapExternalization) externalizedTreeMap).toTreeMap();
         // return (TreeMap)externalizedTreeMap;
+        return TreeMapExternalizator.internalize((byte[]) externalizedTreeMap);
     }
 
     private static class TreeMapExternalization implements Serializable {
