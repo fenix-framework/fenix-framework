@@ -3,10 +3,7 @@ package pt.ist.fenixframework.backend.infinispan.messaging;
 import org.infinispan.distribution.ch.ConsistentHash;
 import org.infinispan.marshall.Marshaller;
 import org.jgroups.*;
-import org.jgroups.blocks.AsyncRequestHandler;
-import org.jgroups.blocks.MessageDispatcher;
-import org.jgroups.blocks.RequestOptions;
-import org.jgroups.blocks.Response;
+import org.jgroups.blocks.*;
 import org.jgroups.util.Rsp;
 import org.jgroups.util.RspList;
 import org.slf4j.Logger;
@@ -119,7 +116,9 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         long end;
         long start = sync ? System.nanoTime() : 0;
         try {
-            return send(destination, sendBuffer, sync);
+            //wait for all the replies
+            return send(destination, sendBuffer, sync ? new RequestOptions(ResponseMode.GET_ALL, 0) :
+                    new RequestOptions(ResponseMode.GET_NONE, 0));
         } finally {
             end = sync ? System.nanoTime() : 0;
             Stats workerStats = new Stats();
@@ -339,16 +338,6 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         return channel.getAddress();
     }
 
-    protected final <T> T send(Address address, SendBuffer buffer, boolean sync) throws Exception {
-        buffer.flush();
-        if (logger.isTraceEnabled()) {
-            logger.trace("Send " + (sync ? "sync" : "async") + " unicast message to " + address + " with " +
-                    buffer.size() + " bytes.");
-        }
-        return messageDispatcher.sendMessage(createMessage(address, buffer),
-                sync ? RequestOptions.SYNC() : RequestOptions.ASYNC());
-    }
-
     protected final <T> RspList<T> broadcastRequest(SendBuffer buffer, boolean sync) throws Exception {
         buffer.flush();
         if (logger.isTraceEnabled()) {
@@ -409,6 +398,14 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
             logger.trace("Convert Infinispan address [" + address + "] to JGroups address [" + jgrpAddress + "]");
         }
         return jgrpAddress;
+    }
+
+    private <T> T send(Address address, SendBuffer buffer, RequestOptions requestOptions) throws Exception {
+        buffer.flush();
+        if (logger.isTraceEnabled()) {
+            logger.trace("Send unicast message to " + address + " with " + buffer.size() + " bytes. " + requestOptions);
+        }
+        return messageDispatcher.sendMessage(createMessage(address, buffer), requestOptions);
     }
 
     private Message createMessage(Address destinaton, SendBuffer buffer) throws IOException {
