@@ -360,6 +360,24 @@
         </pluginRepository>
     </pluginRepositories>
 
+    <profiles>
+        <profile>
+            <id>cloudtm-deploy</id>
+            <distributionManagement>
+                <repository>
+                    <id>deployment</id>
+                    <name>Internal Releases</name>
+                    <url>http://cloudtm.ist.utl.pt:8083/nexus/content/repositories/releases/</url>
+                </repository>
+                <snapshotRepository>
+                    <id>deployment</id>
+                    <name>Internal Releases</name>
+                    <url>http://cloudtm.ist.utl.pt:8083/nexus/content/repositories/snapshots/</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
     <!-- Distribution Management -->
     <distributionManagement>
         <repository>
