@@ -5,6 +5,9 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.List;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
 
     public static final String SERIALIZER_CLASS_PACKAGE = "pt.ist.fenixframework";
@@ -19,17 +22,21 @@ public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
         super(compArgs, domainModel);
     }
 
-    public static String getSerializedFormTypeName(ValueType vt) {
+    public static String getSerializedFormTypeName(ValueType vt, boolean simple) {
         List<ExternalizationElement> extElems = vt.getExternalizationElements();
         if (extElems.size() == 0) { // built-in type do not have externalizers
-            return vt.getFullname();
+            return simple ? vt.getDomainName() : vt.getFullname();
         } else if (extElems.size() == 1) {
             // It's just a wrapper.  So, our serialized form is the same as our component's
-            return getSerializedFormTypeName(extElems.get(0).getType());
+            return getSerializedFormTypeName(extElems.get(0).getType(), simple);
         } else {
             // Alas, we need a full-blown SerializedForm for this one
-            return makeSerializationValueTypeName(vt);
+            return simple ? JsonElement.class.getSimpleName() : JsonElement.class.getName();
         }
+    }
+
+    public static String getSerializedFormTypeName(ValueType vt) {
+        return getSerializedFormTypeName(vt, false);
     }
 
     @Override
@@ -51,58 +58,24 @@ public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
         closeBlock(out);
     }
 
+    @Override
+    protected void generateFilePreamble(String subPackageName, PrintWriter out) {
+        super.generateFilePreamble(subPackageName, out);
+
+        println(out, "import " + JsonObject.class.getName() + ";");
+        println(out, "import pt.ist.fenixframework.util.JsonConverter;");
+    }
+
     protected void generateValueTypeSerializations() {
         for (ValueType vt : getDomainModel().getAllValueTypes()) {
             if (!(vt.isBuiltin() || vt.isEnum())) {
                 println(out, "");
                 print(out, "// VT: " + vt.getDomainName() + " serializes as " + getSerializedFormTypeName(vt));
 
-                List<ExternalizationElement> extElems = vt.getExternalizationElements();
-                if (extElems.size() > 1) { // because 1-externalizer VTs unwrap and use their component's type
-                    generateValueTypeSerializableForm(vt);
-                }
                 generateValueTypeSerialization(vt);
                 generateValueTypeDeSerialization(vt);
             }
         }
-    }
-
-    protected void generateValueTypeSerializableForm(ValueType vt) {
-        onNewline(out);
-        print(out, "public static final class " + makeSerializationValueTypeName(vt) + " implements java.io.Serializable");
-        newBlock(out);
-        onNewline(out);
-        println(out, "private static final long serialVersionUID = 1L;");
-        generateSlots(vt);
-        generateConstructor(vt);
-        closeBlock(out);
-    }
-
-    protected void generateSlots(ValueType vt) {
-        List<ExternalizationElement> extElems = vt.getExternalizationElements();
-        for (ExternalizationElement extElem : extElems) {
-            ValueType extElemVt = extElem.getType();
-            if (extElemVt.isBuiltin() || extElemVt.isEnum()) {
-                generateSlotDeclaration(out, extElemVt.getFullname(), makeSlotName(extElem));
-            } else {
-                generateSlotDeclaration(out, getSerializedFormTypeName(extElemVt), extElem.getMethodName().replace('.', '_'));
-            }
-        }
-    }
-
-    protected void generateConstructor(ValueType vt) {
-        onNewline(out);
-        printConstructor(out, "private", makeSerializationValueTypeName(vt), makeArg(vt.getFullname(), "obj"));
-        startMethodBody(out);
-        List<ExternalizationElement> extElems = vt.getExternalizationElements();
-        for (ExternalizationElement extElem : extElems) {
-            onNewline(out);
-            ValueType extElemVt = extElem.getType();
-            printWords(out, "this." + makeSlotName(extElem), "=",
-                    applyExternalizationIfRequired(applyExternalizerTo(extElem, "obj"), extElemVt));
-            print(out, ";");
-        }
-        endMethodBody(out);
     }
 
     protected String applyExternalizerTo(ExternalizationElement extElem, String expr) {
@@ -121,16 +94,16 @@ public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
         }
     }
 
-    public static String makeSerializationValueTypeName(ValueType vt) {
-        return "Serialized$" + makeSafeValueTypeName(vt);
-    }
-
     public static String makeSafeValueTypeName(ValueType vt) {
         return vt.getDomainName().replace('.', '$');
     }
 
-    protected String makeSlotName(ExternalizationElement extElem) {
-        return extElem.getMethodName().replace('.', '_');
+    protected String makePrettySlotName(ExternalizationElement extElem) {
+        String name = extElem.getMethodName().replace('.', '_');
+        if (name.startsWith("get")) {
+            name = name.substring(3);
+        }
+        return Character.toLowerCase(name.charAt(0)) + name.substring(1);
     }
 
     protected void generateValueTypeSerialization(ValueType vt) {
@@ -138,16 +111,23 @@ public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
         printMethod(out, "public static final", getSerializedFormTypeName(vt), SERIALIZATION_METHOD_PREFIX
                 + makeSafeValueTypeName(vt), makeArg(vt.getFullname(), "obj"));
         startMethodBody(out);
-        print(out, "return ");
-        if (DomainModel.isNullableType(vt)) {
-            print(out, "(obj == null) ? null : ");
-        }
         if (vt.getExternalizationElements().size() == 1) {
+            print(out, "return (obj == null) ? null : ");
             ExternalizationElement extElem = vt.getExternalizationElements().get(0);
             ValueType extElemVt = extElem.getType();
             print(out, applyExternalizationIfRequired(applyExternalizerTo(extElem, "obj"), extElemVt));
         } else {
-            print(out, "new " + makeSerializationValueTypeName(vt) + "(obj)");
+            println(out, "if (obj == null) return null;");
+            println(out, "JsonObject json = new JsonObject();");
+            for (ExternalizationElement extElem : vt.getExternalizationElements()) {
+                print(out, "json.add(\"");
+                print(out, makePrettySlotName(extElem));
+                print(out, "\", JsonConverter.getJsonFor(");
+                print(out, applyExternalizationIfRequired(applyExternalizerTo(extElem, "obj"), extElem.getType()));
+                print(out, "));");
+                newline(out);
+            }
+            print(out, "return json");
         }
         print(out, ";");
         endMethodBody(out);
@@ -185,18 +165,28 @@ public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
             for (ExternalizationElement extElem : extElems) {
 
                 if (firstArg) {
+                    newline(out);
                     firstArg = false;
                 } else {
-                    print(out, ", ");
+                    println(out, ",");
                 }
 
                 ValueType extElemVt = extElem.getType();
                 if (extElemVt.isBuiltin() || extElemVt.isEnum()) {
-                    print(out, "obj." + makeSlotName(extElem));
+                    print(out, "JsonConverter.get");
+                    print(out, capitalize(extElem.getType().getDomainName()));
+                    print(out, "FromJson(obj.getAsJsonObject().get(\"");;
+                    print(out, makePrettySlotName(extElem));
+                    print(out, "\"))");
                 } else {
                     // note that extElems.size() > 1 because of the outer if statment
-                    print(out, DESERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(extElemVt) + "(obj."
-                            + extElem.getMethodName().replace('.', '_') + ")");
+                    print(out, DESERIALIZATION_METHOD_PREFIX);
+                    print(out, makeSafeValueTypeName(extElemVt));
+                    print(out, "(JsonConverter.get");
+                    print(out, getSerializedFormTypeName(extElemVt, true));
+                    print(out, "FromJson(obj.getAsJsonObject().get(\"");
+                    print(out, makePrettySlotName(extElem));
+                    print(out, "\")))");
                 }
             }
         }
