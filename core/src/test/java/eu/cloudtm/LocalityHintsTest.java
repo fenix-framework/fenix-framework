@@ -1,9 +1,13 @@
 package eu.cloudtm;
 
 import org.infinispan.dataplacement.c50.keyfeature.Feature;
+import org.infinispan.dataplacement.c50.keyfeature.FeatureValue;
 import org.infinispan.dataplacement.c50.keyfeature.NumericFeature;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * // TODO: Document this
@@ -18,6 +22,11 @@ public class LocalityHintsTest {
         @Override
         public Feature[] getAllKeyFeatures() {
             return new Feature[] { new NumericFeature("feature1"), new NumericFeature("feature2"), new NumericFeature("feature3") };
+        }
+
+        @Override
+        protected Map<Feature, FeatureValue> getFeatureFromGroup(String key) {
+            return Collections.emptyMap();
         }
     };
 

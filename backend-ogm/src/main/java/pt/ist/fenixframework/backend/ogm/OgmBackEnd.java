@@ -1,5 +1,6 @@
 package pt.ist.fenixframework.backend.ogm;
 
+import eu.cloudtm.LocalityHints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +96,11 @@ public class OgmBackEnd implements BackEnd {
 
     @Override
     public MessagingQueue createMessagingQueue(String appName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LocalityHints getLocalityHints(String externalId) {
         throw new UnsupportedOperationException();
     }
 

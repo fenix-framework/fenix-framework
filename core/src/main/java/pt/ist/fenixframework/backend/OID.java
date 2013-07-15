@@ -199,6 +199,6 @@ public class OID implements Comparable<OID>, Serializable {
         }
         String localityHintsStr = fullId.substring(secondSep + 1);
 
-        return (localityHintsStr.isEmpty() ? null : LocalityHints.string2Hints(localityHintsStr));
+        return (localityHintsStr.isEmpty() ? new LocalityHints() : LocalityHints.string2Hints(localityHintsStr));
     }
 }

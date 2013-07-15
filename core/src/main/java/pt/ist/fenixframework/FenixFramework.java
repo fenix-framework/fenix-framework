@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import eu.cloudtm.LocalityHints;
 import pt.ist.fenixframework.jmx.JmxUtil;
 import pt.ist.fenixframework.messaging.RequestProcessor;
 import org.slf4j.Logger;
@@ -592,5 +593,9 @@ public class FenixFramework {
 
     public static void initConnection(String application) throws Exception {
         getMessagingQueue(application);
+    }
+
+    public static LocalityHints localityHintsFromExternalId(String externalId) {
+        return getConfig().getBackEnd().getLocalityHints(externalId);
     }
 }

@@ -1,21 +1,21 @@
 package eu.cloudtm;
 
-import java.util.Map;
-
+import eu.cloudtm.test.domain.Person;
 import org.infinispan.dataplacement.c50.keyfeature.Feature;
 import org.infinispan.dataplacement.c50.keyfeature.FeatureValue;
 import org.infinispan.dataplacement.c50.keyfeature.NumericFeature;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
-import eu.cloudtm.test.domain.Person;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * // TODO: Document this
- * 
+ *
  * @author Pedro Ruivo
  * @since 2.3-cloudtm
  */
@@ -24,9 +24,15 @@ public class CloudtmFeatureManagerTest {
     private static final CloudtmFeatureManager TEST_MANAGER = new CloudtmFeatureManager() {
         @Override
         public Feature[] getAllKeyFeatures() {
-            return new Feature[] { new NumericFeature("feature1"), new NumericFeature("feature2"), new NumericFeature("feature3") };
+            return new Feature[]{new NumericFeature("feature1"), new NumericFeature("feature2"), new NumericFeature("feature3")};
+        }
+
+        @Override
+        protected Map<Feature, FeatureValue> getFeatureFromGroup(String key) {
+            return Collections.emptyMap();
         }
     };
+    Person person = null;
 
     @BeforeClass
     public void initLocalityHints() {
@@ -40,7 +46,7 @@ public class CloudtmFeatureManagerTest {
 
     @Test
     public void testSimpleHints() {
-        LocalityHints hints = new LocalityHints(new String[] {Constants.GROUP_ID, "group", "feature1", "1", "feature2", "2"});
+        LocalityHints hints = new LocalityHints(new String[]{Constants.GROUP_ID, "group", "feature1", "1", "feature2", "2"});
         createTestPerson(hints);
 
         CloudtmFeatureManager manager = TEST_MANAGER;
@@ -77,8 +83,6 @@ public class CloudtmFeatureManagerTest {
             Assert.assertNull(featureValueMap.get(manager.getAllKeyFeatures()[2]));
         }
     }
-
-    Person person = null;
 
     @Test
     public void testNoHints() {
