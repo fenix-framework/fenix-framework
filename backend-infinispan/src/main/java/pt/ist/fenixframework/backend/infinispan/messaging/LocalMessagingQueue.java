@@ -6,6 +6,7 @@ import org.infinispan.distribution.group.GroupingConsistentHash;
 import org.infinispan.notifications.Listener;
 import org.infinispan.notifications.cachelistener.annotation.TopologyChanged;
 import org.infinispan.notifications.cachelistener.event.TopologyChangedEvent;
+import org.infinispan.reconfigurableprotocol.protocol.PassiveReplicationCommitProtocol;
 import org.infinispan.remoting.rpc.RpcManager;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.statetransfer.StateTransferManager;
@@ -15,7 +16,9 @@ import pt.ist.fenixframework.backend.infinispan.InfinispanBackEnd;
 import pt.ist.fenixframework.jmx.JmxUtil;
 import pt.ist.fenixframework.jmx.annotations.MBean;
 import pt.ist.fenixframework.jmx.annotations.ManagedAttribute;
+import pt.ist.fenixframework.jmx.annotations.ManagedOperation;
 
+import java.io.IOException;
 import java.util.Collections;
 
 /**
@@ -48,6 +51,24 @@ public class LocalMessagingQueue extends AbstractMessagingQueue implements Reque
     @ManagedAttribute(description = "Returns true if this worker is the coordinator.")
     public final boolean isCoordinator() {
         return isCoordinator;
+    }
+
+    @ManagedOperation(description = "Sets the protocol used by Infinispan in the load balancer")
+    public final void setProtocol(String protocol) {
+        if (protocol == null || protocol.isEmpty()) {
+            return;
+        }
+        boolean primaryBackup = protocol.equals(PassiveReplicationCommitProtocol.UID);
+        try {
+            SendBuffer buffer = new SendBuffer();
+            buffer.writeByte(primaryBackup ? MessageType.SET_PB.type() : MessageType.UNSET_PB.type());
+            broadcastRequest(buffer, false);
+        } catch (IOException e) {
+            logger.error("Error setting protocol to " + protocol, e);
+        } catch (Exception e) {
+            logger.error("Error setting protocol to " + protocol, e);
+        }
+
     }
 
     @Override

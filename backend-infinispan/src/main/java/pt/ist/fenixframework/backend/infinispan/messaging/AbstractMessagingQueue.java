@@ -34,6 +34,7 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
     private final ConcurrentMap<Address, Stats> globalStats;
     private State state;
     private int nextIndex;
+    private volatile boolean primaryBackup;
 
     protected AbstractMessagingQueue(String appName, Marshaller marshaller, String jgrpConfigFile,
                                      ThreadPoolRequestProcessor threadPoolRequestProcessor) throws Exception {
@@ -44,6 +45,7 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         this.messageDispatcher = new MessageDispatcher();
         this.addressCache = new AddressCache();
         this.globalStats = new ConcurrentHashMap<Address, Stats>();
+        this.primaryBackup = false;
         messageDispatcher.setRequestHandler(this);
         messageDispatcher.setMembershipListener(this);
         messageDispatcher.setChannel(channel);
@@ -76,17 +78,28 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         Address from = request.getSrc();
         ReceivedBuffer buffer = new ReceivedBuffer(request.getBuffer());
         MessageType type = MessageType.from(buffer.readByte());
-        if (type == MessageType.WORK_REQUEST) {
-            if (!canHandleRequests()) {
-                if (logger.isErrorEnabled()) {
-                    logger.error("Work request received but this queue cannot handle it!");
+        switch (type) {
+            case WORK_REQUEST:
+                if (!canHandleRequests()) {
+                    if (logger.isErrorEnabled()) {
+                        logger.error("Work request received but this queue cannot handle it!");
+                    }
+                    throw new IllegalStateException("Cannot handle request because it does not have access to the cache");
                 }
-                throw new IllegalStateException("Cannot handle request because it does not have access to the cache");
-            }
-            threadPoolRequestProcessor.execute(buffer.readUTF(), response);
-            return;
+                threadPoolRequestProcessor.execute(buffer.readUTF(), response);
+                break;
+            case SET_PB:
+                primaryBackup = true;
+                reply(response, null);
+                break;
+            case UNSET_PB:
+                primaryBackup = false;
+                reply(response, null);
+                break;
+            default:
+                handleData(from, type, buffer, response);
+                break;
         }
-        handleData(from, type, buffer, response);
     }
 
     @Override
@@ -95,14 +108,14 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
     }
 
     @Override
-    public final Object sendRequest(String data, String localityHint, boolean sync) throws Exception {
+    public final Object sendRequest(String data, String localityHint, boolean sync, boolean write) throws Exception {
         if (getState() != State.RUNNING) {
             if (logger.isErrorEnabled()) {
                 logger.error("Tried to send a work request but the queue is not running. State=" + getState());
             }
             throw new IllegalStateException("Messaging Queue was stopped!");
         }
-        Address destination = locate(localityHint);
+        Address destination = locate(localityHint, write);
         if (destination == null) {
             logger.error("Trying to send a work request but not worker was found.");
             throw new IllegalStateException("Trying to send a work request but not worker was found.");
@@ -285,7 +298,7 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         return state;
     }
 
-    protected final Address locate(String localityHint) throws Exception {
+    protected final Address locate(String localityHint, boolean write) throws Exception {
         initConsistentHashIfNeeded();
         Address address;
         ConsistentHash consistentHash = getConsistentHash();
@@ -301,6 +314,12 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
             if (logger.isTraceEnabled()) {
                 logger.trace("Locate owner for hint [" + localityHint + "]. Using round robin: " + address);
             }
+        } else if (primaryBackup) {
+            //full replicated or not locality hint.
+            address = primayBackup(consistentHash, localityHint, write);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Locate owner for hint [" + localityHint + "]. Using primary backup: " + address);
+            }
         } else {
             address = toJGroupsAddress(consistentHash.locatePrimaryOwner(localityHint));
             if (logger.isTraceEnabled()) {
@@ -312,13 +331,7 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
     }
 
     protected final Address roundRobin(ConsistentHash consistentHash) throws Exception {
-        List<org.infinispan.remoting.transport.Address> members = consistentHash.getMembers();
-        int index;
-        synchronized (this) {
-            nextIndex = (nextIndex + 1) % members.size();
-            index = nextIndex;
-        }
-        return toJGroupsAddress(members.get(index));
+        return nextMember(consistentHash.getMembers());
     }
 
     protected abstract void innerInit();
@@ -398,6 +411,29 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
             logger.trace("Convert Infinispan address [" + address + "] to JGroups address [" + jgrpAddress + "]");
         }
         return jgrpAddress;
+    }
+
+    private Address nextMember(List<org.infinispan.remoting.transport.Address> members) throws Exception {
+        if (members.size() == 0) {
+            return toJGroupsAddress(members.get(0));
+        }
+        int index;
+        synchronized (this) {
+            nextIndex = (nextIndex + 1) % members.size();
+            index = nextIndex;
+        }
+        return toJGroupsAddress(members.get(index));
+    }
+
+    private Address primayBackup(ConsistentHash consistentHash, String hint, boolean write) throws Exception {
+        if (write || consistentHash.getMembers().size() == 0) {
+            return toJGroupsAddress(consistentHash.getMembers().get(0));
+        } else if (hint == null) {
+            List<org.infinispan.remoting.transport.Address> backups = new ArrayList<org.infinispan.remoting.transport.Address>(consistentHash.getMembers());
+            backups.remove(0);
+            return nextMember(backups);
+        }
+        return toJGroupsAddress(consistentHash.locatePrimaryOwner(hint));
     }
 
     private <T> T send(Address address, SendBuffer buffer, RequestOptions requestOptions) throws Exception {

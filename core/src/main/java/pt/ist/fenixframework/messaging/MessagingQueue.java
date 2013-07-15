@@ -8,7 +8,7 @@ public interface MessagingQueue {
 
     void init() throws Exception;
 
-    Object sendRequest(String data, String localityHint, boolean sync) throws Exception;
+    Object sendRequest(String data, String localityHint, boolean sync, boolean write) throws Exception;
 
     void shutdown();
 }

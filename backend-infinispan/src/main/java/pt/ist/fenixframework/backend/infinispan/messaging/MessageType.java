@@ -8,7 +8,9 @@ public enum MessageType {
     CH_REQUEST,
     CH_UPDATE,
     WORK_REQUEST,
-    ADDRESS_REQUEST;
+    ADDRESS_REQUEST,
+    SET_PB,
+    UNSET_PB;
     public final byte type() {
         return (byte) this.ordinal();
     }

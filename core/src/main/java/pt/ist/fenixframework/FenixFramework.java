@@ -573,6 +573,10 @@ public class FenixFramework {
     }
 
     public static Object sendRequest(String request, String localityHint, String application, boolean sync) throws Exception {
+        return sendRequest(request, localityHint, application, sync, true);
+    }
+
+    public static Object sendRequest(String request, String localityHint, String application, boolean sync, boolean write) throws Exception {
         if (application == null || application.isEmpty()) {
             throw new IllegalArgumentException("Application cannot be null or empty");
         }
@@ -583,7 +587,7 @@ public class FenixFramework {
             }
             throw new RuntimeException("Message Queue for " + application + " not found!");
         }
-        return queue.sendRequest(request, localityHint, sync);
+        return queue.sendRequest(request, localityHint, sync, write);
     }
 
     public static void initConnection(String application) throws Exception {
