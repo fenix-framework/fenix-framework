@@ -1,5 +1,6 @@
 package pt.ist.fenixframework.backend;
 
+import eu.cloudtm.LocalityHints;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
@@ -77,5 +78,7 @@ public interface BackEnd {
      * @return an uninitialized MessagingQueue for the application name.
      */
     MessagingQueue createMessagingQueue(String appName) throws Exception;
+
+    public LocalityHints getLocalityHints(String externalId);
 
 }

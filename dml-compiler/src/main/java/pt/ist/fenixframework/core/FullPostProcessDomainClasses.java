@@ -32,7 +32,9 @@ public class FullPostProcessDomainClasses {
                 dir = new File(dirName);
                 if (!dir.isDirectory()) {
                     String message = "Parameter -cd value '" + dirName + "' is not a directory.";
-                    logger.error(message);
+                    if (logger.isErrorEnabled()) {
+                        logger.error(message);
+                    }
                     throw new Error(message);
                 }
                 consumeArg(args, i);
@@ -57,7 +59,9 @@ public class FullPostProcessDomainClasses {
 	int next = i + 1;
 	if ((next >= args.length) || (args[next] == null)) {
             String message = "Invalid argument following '" + args[i] + "'";
+        if (logger.isErrorEnabled()) {
             logger.error(message);
+        }
 	    throw new Error(message);
 	}
 	String result = args[next];
@@ -111,7 +115,9 @@ public class FullPostProcessDomainClasses {
         }
 
         if (dmlFiles.isEmpty()) {
-            logger.warn("No dml files found to post process domain");
+            if (logger.isWarnEnabled()) {
+                logger.warn("No dml files found to post process domain");
+            }
             return;
         }
 

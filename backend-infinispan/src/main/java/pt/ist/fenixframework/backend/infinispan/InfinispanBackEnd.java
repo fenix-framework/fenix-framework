@@ -148,11 +148,15 @@ public class InfinispanBackEnd implements BackEnd {
             writeCache = readCache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
         } catch (IOException ioe) {
             String message = "Error creating Infinispan cache manager with configuration file: " + config.getIspnConfigFile();
-            logger.error(message, ioe);
+            if (logger.isErrorEnabled()) {
+                logger.error(message, ioe);
+            }
             throw new Error(message, ioe);
         } catch (Exception e) {
             String message = "Error creating Infinispan cache manager";
-            logger.error(message, e);
+            if (logger.isErrorEnabled()) {
+                logger.error(message, e);
+            }
             throw new Error(message, e);
         }
 
@@ -268,6 +272,10 @@ public class InfinispanBackEnd implements BackEnd {
         return keys.toArray(new String[keys.size()]);
     }
 
+    public final LocalityHints getLocalityHints(String externalId) {
+        return OID.getLocalityHint(externalId);
+    }
+
     @Override
     public ClusterInformation getClusterInformation() {
         RpcManager rpcManager = readCache.getAdvancedCache().getRpcManager();
@@ -299,7 +307,7 @@ public class InfinispanBackEnd implements BackEnd {
             }
             return localMessagingQueue;
         } else {
-            return new RemoteMessagingQueue(appName, jgroupsMessagingConfigurationFile,
+            return new RemoteMessagingQueue(appName, localName, jgroupsMessagingConfigurationFile,
                     readCache.getAdvancedCache().getComponentRegistry().getCacheMarshaller());
         }
     }
