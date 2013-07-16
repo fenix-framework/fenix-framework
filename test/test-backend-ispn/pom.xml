@@ -6,7 +6,7 @@
         <groupId>pt.ist</groupId>
         <artifactId>fenix-framework-parent</artifactId>
         <!-- Perhaps in Maven 3.1 the version may be ommitted -->
-        <version>2.9-cloudtm-SNAPSHOT</version>
+        <version>2.9-cloudtm</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
 
