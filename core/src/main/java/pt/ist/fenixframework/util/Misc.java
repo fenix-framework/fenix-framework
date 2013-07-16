@@ -18,13 +18,19 @@ public class Misc {
     public static void traceClassLoaderHierarchy(Logger logger) {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
 
-        logger.trace("Classloader hierarchy starting from Thread Context Class Loader:");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Classloader hierarchy starting from Thread Context Class Loader:");
+        }
         try {
             do {
-                logger.trace("    -> " + cl);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("    -> " + cl);
+                }
             } while ((cl = cl.getParent()) != null);
         } catch (Exception e) {
-            logger.trace("Failed to list all classloaders", e);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Failed to list all classloaders", e);
+            }
         }
     }
 }

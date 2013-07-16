@@ -42,7 +42,9 @@ public class HibernateSearchSupport {
             throw new RuntimeException("Tried to initialize already initialized HibernateSearchSupport");
         }
         if (INDEXED_CLASSES.isEmpty()) {
-            logger.warn("Hibernate Search enabled but no domain classes are marked with @Indexed");
+            if (logger.isWarnEnabled()) {
+                logger.warn("Hibernate Search enabled but no domain classes are marked with @Indexed");
+            }
         }
 
         SearchConfiguration configuration =
@@ -57,7 +59,9 @@ public class HibernateSearchSupport {
                 searchFactory.getWorker().performWork(new Work<DomainObject>(obj, workType), context);
             }
         } catch (RuntimeException e) {
-            logger.warn("Problem inside updateIndex", e);
+            if (logger.isWarnEnabled()) {
+                logger.warn("Problem inside updateIndex", e);
+            }
             throw e;
         }
     }
@@ -87,7 +91,9 @@ public class HibernateSearchSupport {
                 Class<?> domainClass = Class.forName(dc.getFullName());
 
                 if (domainClass.getAnnotation(org.hibernate.search.annotations.Indexed.class) != null) {
-                    logger.trace("Indexing " + dc.getFullName());
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Indexing " + dc.getFullName());
+                    }
                     classList.add(domainClass);
                 }
             } catch (ClassNotFoundException e) {

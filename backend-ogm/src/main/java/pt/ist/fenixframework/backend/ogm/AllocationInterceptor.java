@@ -31,9 +31,11 @@ public class AllocationInterceptor extends EmptyInterceptor {
 
     @Override
     public Object instantiate(String entityName, EntityMode entityMode, Serializable id) {
-        logger.trace("EntityName: " + entityName);
-        logger.trace("EntityMode: " + entityMode);
-        logger.trace("        Id: " + id);
+        if (logger.isTraceEnabled()) {
+            logger.trace("EntityName: " + entityName);
+            logger.trace("EntityMode: " + entityMode);
+            logger.trace("        Id: " + id);
+        }
 
         try {
             Class clazz = Class.forName(entityName);
@@ -41,7 +43,9 @@ public class AllocationInterceptor extends EmptyInterceptor {
             return DomainObjectAllocator.allocateObject(clazz, oid);
         } catch (ClassNotFoundException ex) {
             // Should not occur.
-            logger.error("ClassNotFoundException for " + entityName);
+            if (logger.isErrorEnabled()) {
+                logger.error("ClassNotFoundException for " + entityName);
+            }
             // This will probably break ahead, but we can just let hibernate try its luck
             return null;
         }

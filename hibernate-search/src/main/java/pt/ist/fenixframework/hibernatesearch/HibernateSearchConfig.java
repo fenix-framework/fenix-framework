@@ -27,23 +27,31 @@ public abstract class HibernateSearchConfig extends FFDAPConfig {
 
         URL hibernateSearchConfigURL = Thread.currentThread().getContextClassLoader().getResource(CONFIG_FILE);
         if (hibernateSearchConfigURL == null) {
-            logger.info("Resource '" + CONFIG_FILE + "' not found. Hibernate Search disabled");
+            if (logger.isInfoEnabled()) {
+                logger.info("Resource '" + CONFIG_FILE + "' not found. Hibernate Search disabled");
+            }
             return;
         }
-        logger.info("Using config resource: " + hibernateSearchConfigURL);
+        if (logger.isInfoEnabled()) {
+            logger.info("Using config resource: " + hibernateSearchConfigURL);
+        }
 
         Properties properties = new Properties();
         try {
             properties.load(hibernateSearchConfigURL.openStream());
         } catch (IOException e) {
-            logger.error("Hibernate Search unable to create properties. Hibernate Search disabled", e);
+            if (logger.isErrorEnabled()) {
+                logger.error("Hibernate Search unable to create properties. Hibernate Search disabled", e);
+            }
         }
 
         // Ensure TxIntrospector is available
         if (! TxStats.ENABLED) {
-            logger.error("TxIntrospector is disabled!" +
-                         " -> Module Hibernate-search will not be available." +
-                         " Please enable TxIntrospector and rebuild your application");
+            if (logger.isErrorEnabled()) {
+                logger.error("TxIntrospector is disabled!" +
+                        " -> Module Hibernate-search will not be available." +
+                        " Please enable TxIntrospector and rebuild your application");
+            }
             return;
         }
 

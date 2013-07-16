@@ -14,7 +14,6 @@ import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
  *
  */
 public class OgmConfig extends HibernateSearchConfig {
-    private static final Logger logger = LoggerFactory.getLogger(OgmConfig.class);
 
     private static final String FAILED_INIT = "Failed to initialize Backend OGM";
 

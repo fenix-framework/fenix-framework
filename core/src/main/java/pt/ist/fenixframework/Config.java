@@ -137,7 +137,9 @@ public abstract class Config {
      */
     protected void checkForDomainModelURLs() {
         if ((domainModelURLs == null) || (domainModelURLs.length == 0)) {
-            logger.error(NO_DOMAIN_MODEL);
+            if (logger.isErrorEnabled()) {
+                logger.error(NO_DOMAIN_MODEL);
+            }
             missingRequired("domainModelURLs");
         }
     }
@@ -181,8 +183,9 @@ public abstract class Config {
             field = getField(this.getClass(), propName);
         } catch (ConfigError e) {
             // we choose to ignore unknown config properties, but we do give a loud warning
-            logger.warn(e.getMessage());
-            logger.debug(e.getMessage(), e);
+            if (logger.isWarnEnabled()) {
+                logger.warn(e.getMessage(), e);
+            }
             return;
         }
 
@@ -250,7 +253,9 @@ public abstract class Config {
 
     private void checkForMultipleDomainModelUrlsDefinition() {
         if (domainModelURLs != null) { // means that it was already set
-            logger.error(ConfigError.DUPLICATE_DEFINITION_OF_DOMAIN_MODEL_URLS);
+            if (logger.isErrorEnabled()) {
+                logger.error(ConfigError.DUPLICATE_DEFINITION_OF_DOMAIN_MODEL_URLS);
+            }
             throw new ConfigError(ConfigError.DUPLICATE_DEFINITION_OF_DOMAIN_MODEL_URLS);
         }
     }
@@ -274,9 +279,13 @@ public abstract class Config {
             }
 
         } catch (IOException e) {
-            logger.warn("failed when setting appNameFromString", e);
+            if (logger.isWarnEnabled()) {
+                logger.warn("failed when setting appNameFromString", e);
+            }
         } catch (ProjectException e) {
-            logger.warn("failed when setting appNameFromString", e);
+            if (logger.isWarnEnabled()) {
+                logger.warn("failed when setting appNameFromString", e);
+            }
         }
     }
 
@@ -322,11 +331,17 @@ public abstract class Config {
      * Utility method to wait for the number of expected initial nodes to be up.
      */
     public void waitForExpectedInitialNodes(String barrierName) throws Exception {
-        logger.debug("expectedInitialNodes=" + expectedInitialNodes);
+        if (logger.isDebugEnabled()) {
+            logger.debug("expectedInitialNodes=" + expectedInitialNodes);
+        }
         if (expectedInitialNodes > 1) {
-            logger.debug("Waiting until " + expectedInitialNodes + " nodes are up");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Waiting until " + expectedInitialNodes + " nodes are up");
+            }
             FenixFramework.barrier(barrierName, expectedInitialNodes);
-            logger.debug("All nodes are up.");
+            if (logger.isDebugEnabled()) {
+                logger.debug("All nodes are up.");
+            }
         }
     }
 

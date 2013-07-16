@@ -2,8 +2,6 @@ package pt.ist.fenixframework.backend.infinispan;
 
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.global.GlobalConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
 import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
@@ -15,7 +13,6 @@ import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
  * @see Config
  */
 public class InfinispanConfig extends HibernateSearchConfig {
-    private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
     private static final String FAILED_INIT = "Failed to initialize Backend Infinispan";
 
     // /**

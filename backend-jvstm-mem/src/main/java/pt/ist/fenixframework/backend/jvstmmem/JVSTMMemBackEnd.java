@@ -1,5 +1,6 @@
 package pt.ist.fenixframework.backend.jvstmmem;
 
+import eu.cloudtm.LocalityHints;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
@@ -75,6 +76,11 @@ public class JVSTMMemBackEnd implements BackEnd {
 
     @Override
     public MessagingQueue createMessagingQueue(String appName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LocalityHints getLocalityHints(String externalId) {
         throw new UnsupportedOperationException();
     }
 

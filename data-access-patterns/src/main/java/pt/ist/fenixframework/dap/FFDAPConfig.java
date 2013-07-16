@@ -53,15 +53,21 @@ public abstract class FFDAPConfig extends Config {
         try {
             if (!dapEnabled) return;
 
-            logger.debug("Initialing Data Access Patterns module.");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Initialing Data Access Patterns module.");
+            }
             DAPConfig dapConfig;
             URL dapConfigURL = Thread.currentThread().getContextClassLoader().
                 getResource(CONFIG_FILE);
             if (dapConfigURL == null) {
-                logger.info("Resource '" + CONFIG_FILE + "' not found.  Using default values.");
+                if (logger.isInfoEnabled()) {
+                    logger.info("Resource '" + CONFIG_FILE + "' not found.  Using default values.");
+                }
                 dapConfig = new DAPConfig();
             } else {
-                logger.info("Using config resource '" + dapConfigURL + "'.");
+                if (logger.isInfoEnabled()) {
+                    logger.info("Using config resource '" + dapConfigURL + "'.");
+                }
                 dapConfig = DAPConfig.loadConfig(dapConfigURL);
             }
 
@@ -76,7 +82,9 @@ public abstract class FFDAPConfig extends Config {
             mbean.initDap(dapConfig, FenixFramework.getDomainModel());
             mbean.enableDap();
         } catch (Exception ex) {
-            logger.error("Unable to initialize Data Access Patterns module", ex);
+            if (logger.isErrorEnabled()) {
+                logger.error("Unable to initialize Data Access Patterns module", ex);
+            }
             dapEnabled = false;
         }
     }

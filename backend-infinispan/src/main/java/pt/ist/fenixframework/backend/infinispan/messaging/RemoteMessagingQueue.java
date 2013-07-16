@@ -5,6 +5,11 @@ import org.infinispan.marshall.Marshaller;
 import org.jgroups.blocks.Response;
 import org.jgroups.util.Rsp;
 import org.jgroups.util.RspList;
+import pt.ist.fenixframework.backend.infinispan.InfinispanBackEnd;
+import pt.ist.fenixframework.jmx.JmxUtil;
+import pt.ist.fenixframework.jmx.annotations.MBean;
+
+import java.util.Collections;
 
 /**
  * Used by Fenix Framework instances that does not have direct access to the cache.
@@ -12,13 +17,18 @@ import org.jgroups.util.RspList;
  * @author Pedro Ruivo
  * @since 2.8
  */
+@MBean(category = "messaging", description = "Messaging client that sends requests to the workers",
+        objectName = "Client")
 public class RemoteMessagingQueue extends AbstractMessagingQueue {
 
-    private ConsistentHash consistentHash;
-    private org.jgroups.Address singleWorker;
+    private volatile ConsistentHash consistentHash;
+    private volatile org.jgroups.Address singleWorker;
 
-    public RemoteMessagingQueue(String appName, String jgrpConfigFile, Marshaller marshaller) throws Exception {
-        super(appName, marshaller, jgrpConfigFile, null);
+    public RemoteMessagingQueue(String remoteAppName, String localAppName, String jgrpConfigFile, Marshaller marshaller)
+            throws Exception {
+        super(remoteAppName, marshaller, jgrpConfigFile, null);
+        JmxUtil.processInstance(this, localAppName, InfinispanBackEnd.BACKEND_NAME,
+                Collections.singletonMap("remoteApplication", remoteAppName));
     }
 
     @Override

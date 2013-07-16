@@ -95,7 +95,9 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
             throw new RuntimeException("Minimum LOWER_BOUND is 2");
         }
 
-        logger.info("Setting LOWER_BOUND = {}", lowerBound);
+        if (logger.isInfoEnabled()) {
+            logger.info("Setting LOWER_BOUND = {}", lowerBound);
+        }
         LOWER_BOUND = lowerBound;
         LOWER_BOUND_WITH_LAST_KEY = LOWER_BOUND + 1;
         MAX_NUMBER_OF_KEYS = 2 * LOWER_BOUND;
