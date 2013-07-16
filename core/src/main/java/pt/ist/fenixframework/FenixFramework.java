@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import eu.cloudtm.LocalityHints;
 import pt.ist.fenixframework.jmx.JmxUtil;
 import pt.ist.fenixframework.messaging.RequestProcessor;
 import org.slf4j.Logger;
@@ -111,8 +112,6 @@ public class FenixFramework {
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX = "fenix-framework-";
     private static final String FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX = ".properties";
 
-    private static final String FENIX_FRAMEWORK_LOGGING_CONFIG = "fenix-framework-log4j.properties";
-
     private static final Object INIT_LOCK = new Object();
     // private static boolean bootstrapped = false;
     private static boolean initialized = false;
@@ -150,12 +149,16 @@ public class FenixFramework {
         // logger.debug("INIT FF");
         // logger.trace("INIT FF");
 
-        logger.trace("Static initializer block for FenixFramework class [BEGIN]");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Static initializer block for FenixFramework class [BEGIN]");
+        }
         synchronized (INIT_LOCK) {
             logger.info("Trying auto-initialization with configuration by convention");
             tryAutoInit();
         }
-        logger.trace("Static initializer block for FenixFramework class [END]");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Static initializer block for FenixFramework class [END]");
+        }
     }
 
     /**
@@ -168,24 +171,34 @@ public class FenixFramework {
     private static void tryAutoInit() {
         /* first load the default configuration if it exists */
         Properties props = loadProperties(FENIX_FRAMEWORK_CONFIG_RESOURCE_DEFAULT, new Properties());
-        logger.debug("Fenix Framework properties after reading default config file:" + props.toString());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Fenix Framework properties after reading default config file:" + props.toString());
+        }
 
         /* look up current backend's name */
         String currentBackEndName = BackEndId.getBackEndId().getBackEndName();
-        logger.debug("CurrentBackEndName = " + currentBackEndName);
+        if (logger.isDebugEnabled()) {
+            logger.debug("CurrentBackEndName = " + currentBackEndName);
+        }
         /* then override with the backend-specific config file */
         props =
                 loadProperties(FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX + currentBackEndName
                         + FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX, props);
-        logger.debug("Fenix Framework properties after reading backend config file:" + props.toString());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Fenix Framework properties after reading backend config file:" + props.toString());
+        }
 
         /* finally, enforce any system properties */
         props = loadSystemProperties(props);
-        logger.debug("Fenix Framework properties after enforcing system properties:" + props.toString());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Fenix Framework properties after enforcing system properties:" + props.toString());
+        }
 
         // try auto init for the given properties.  If none exists just skip
         if (props.isEmpty() || !tryAutoInit(props)) {
-            logger.info("Skipping configuration by convention.");
+            if (logger.isInfoEnabled()) {
+                logger.info("Skipping configuration by convention.");
+            }
         }
     }
 
@@ -199,17 +212,23 @@ public class FenixFramework {
 
         InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
         if (in == null) {
-            logger.info("Resource '" + resourceName + "' not found");
+            if (logger.isInfoEnabled()) {
+                logger.info("Resource '" + resourceName + "' not found");
+            }
             return props;
         }
 
-        logger.info("Found configuration by convention in resource '" + resourceName + "'.");
+        if (logger.isInfoEnabled()) {
+            logger.info("Found configuration by convention in resource '" + resourceName + "'.");
+        }
 
         // add the new properties
         try {
             props.load(in);
         } catch (IOException e) {
-            logger.warn("Failed auto initialization with " + resourceName, e);
+            if (logger.isWarnEnabled()) {
+                logger.warn("Failed auto initialization with " + resourceName, e);
+            }
             return defaults;
         } finally {
             try {
@@ -228,7 +247,9 @@ public class FenixFramework {
             if (propertyName.startsWith(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX)) {
                 String value = systemProps.getProperty(propertyName);
                 String realPropertyName = propertyName.substring(FENIX_FRAMEWORK_SYSTEM_PROPERTY_PREFIX.length());
-                logger.debug("Enforcing property from system: " + realPropertyName + "=" + value);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Enforcing property from system: " + realPropertyName + "=" + value);
+                }
                 newProps.setProperty(realPropertyName, value);
             }
         }
@@ -243,7 +264,9 @@ public class FenixFramework {
         try {
             config = createConfigFromProperties(props);
         } catch (ConfigError e) {
-            logger.info("ConfigError", e);
+            if (logger.isErrorEnabled()) {
+                logger.error("ConfigError", e);
+            }
             throw e;
         }
         FenixFramework.initialize(config);
@@ -263,7 +286,9 @@ public class FenixFramework {
                 } catch (ClassNotFoundException e) {
                     // here, we could ignore and attempt the default config class, but it's best if
                     // the programmer understands that the configuration is flawed
-                    logger.error(ConfigError.CONFIG_CLASS_NOT_FOUND + configClassName, e);
+                    if (logger.isErrorEnabled()) {
+                        logger.error(ConfigError.CONFIG_CLASS_NOT_FOUND + configClassName, e);
+                    }
                     throw new ConfigError(ConfigError.CONFIG_CLASS_NOT_FOUND, configClassName);
                 }
             } else { // fallback to the current backend's default
@@ -306,11 +331,15 @@ public class FenixFramework {
             }
 
             if (newConfig == null) {
-                logger.warn("Initialization with a 'null' config instance.");
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Initialization with a 'null' config instance.");
+                }
                 throw new ConfigError("A configuration must be provided");
             }
 
-            logger.info("Initializing Fenix Framework with config.class=" + newConfig.getClass().getName());
+            if (logger.isInfoEnabled()) {
+                logger.info("Initializing Fenix Framework with config.class=" + newConfig.getClass().getName());
+            }
             FenixFramework.config = newConfig;
 
             // domainModelURLs should have been set by now
@@ -327,15 +356,21 @@ public class FenixFramework {
             try {
                 FenixFramework.config.initialize();
             } catch (RuntimeException e) {
-                logger.error("Could not initialize Fenix Framework", e);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Could not initialize Fenix Framework", e);
+                }
                 e.printStackTrace();
                 throw e;
             } catch (ConfigError e) {
-                logger.error("Could not initialize Fenix Framework", e);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Could not initialize Fenix Framework", e);
+                }
                 e.printStackTrace();
                 throw e;
             } catch (Exception e) {
-                logger.error("Could not initialize Fenix Framework", e);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Could not initialize Fenix Framework", e);
+                }
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
@@ -344,21 +379,27 @@ public class FenixFramework {
             } catch (UnsupportedOperationException e) {
                 //ignored!
             } catch (Exception e) {
-                logger.error("Could not initialize Fenix Framework", e);
+                if (logger.isErrorEnabled()) {
+                    logger.error("Could not initialize Fenix Framework", e);
+                }
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
             // DataAccessPatterns.init(FenixFramework.config);
             initialized = true;
         }
-        logger.info("Initialization of Fenix Framework is now complete.");
+        if (logger.isInfoEnabled()) {
+            logger.info("Initialization of Fenix Framework is now complete.");
+        }
     }
 
     public static void initialize(MultiConfig configs) {
         synchronized (INIT_LOCK) {
             // look up current backend's name
             String currentBackEndName = BackEndId.getBackEndId().getBackEndName();
-            logger.debug("CurrentBackEndName = " + currentBackEndName);
+            if (logger.isDebugEnabled()) {
+                logger.debug("CurrentBackEndName = " + currentBackEndName);
+            }
             // get the correct config for the current backend
             Config config = configs.get(currentBackEndName);
             // initialize
@@ -514,7 +555,9 @@ public class FenixFramework {
             if (receiver == null) {
                 receiver = r;
             } else {
-                logger.error("Request processor already registered.");
+                if (logger.isErrorEnabled()) {
+                    logger.error("Request processor already registered.");
+                }
             }
         }
     }
@@ -531,15 +574,28 @@ public class FenixFramework {
     }
 
     public static Object sendRequest(String request, String localityHint, String application, boolean sync) throws Exception {
+        return sendRequest(request, localityHint, application, sync, true);
+    }
+
+    public static Object sendRequest(String request, String localityHint, String application, boolean sync, boolean write) throws Exception {
+        if (application == null || application.isEmpty()) {
+            throw new IllegalArgumentException("Application cannot be null or empty");
+        }
         MessagingQueue queue = getMessagingQueue(application);
         if (queue == null) {
-            logger.error("Message Queue for " + application + " not found!");
+            if (logger.isErrorEnabled()) {
+                logger.error("Message Queue for " + application + " not found!");
+            }
             throw new RuntimeException("Message Queue for " + application + " not found!");
         }
-        return queue.sendRequest(request, localityHint, sync);
+        return queue.sendRequest(request, localityHint, sync, write);
     }
 
     public static void initConnection(String application) throws Exception {
         getMessagingQueue(application);
+    }
+
+    public static LocalityHints localityHintsFromExternalId(String externalId) {
+        return getConfig().getBackEnd().getLocalityHints(externalId);
     }
 }

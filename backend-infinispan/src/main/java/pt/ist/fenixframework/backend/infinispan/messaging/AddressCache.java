@@ -3,6 +3,7 @@ package pt.ist.fenixframework.backend.infinispan.messaging;
 import org.infinispan.remoting.transport.Address;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,6 +61,14 @@ public class AddressCache {
         for (Address address : toRemove) {
             addressCache.remove(address);
         }
+    }
+
+    public final Map<String, String> cacheAsString() {
+        Map<String, String> result = new HashMap<String, String>();
+        for (Map.Entry<Address, JGroupsAddress> entry : addressCache.entrySet()) {
+            result.put(entry.getKey().toString(), entry.getValue().address.toString());
+        }
+        return result;
     }
 
     private class JGroupsAddress {

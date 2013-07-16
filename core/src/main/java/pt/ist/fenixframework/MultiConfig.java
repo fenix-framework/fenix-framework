@@ -50,7 +50,9 @@ public class MultiConfig {
     public Config get(String backEndName) {
         Config config = configs.get(backEndName);
         if (config == null) {
-            logger.warn(UNKNOWN_BACKEND + backEndName);
+            if (logger.isWarnEnabled()) {
+                logger.warn(UNKNOWN_BACKEND + backEndName);
+            }
         }
         return config;
     }

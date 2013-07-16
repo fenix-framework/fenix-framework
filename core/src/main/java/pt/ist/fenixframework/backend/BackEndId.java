@@ -96,7 +96,9 @@ public abstract class BackEndId {
 
         String message = "Missing required BackEndId: " + CodeGenerator.BACKEND_PACKAGE
             + "." + CodeGenerator.CURRENT_BACKEND_ID_CLASS;
-        logger.error(message);
-        throw new ConfigError(message);
+        if (logger.isErrorEnabled()) {
+            logger.error(message);
+        }
+        throw new ConfigError(message, ex);
     }
 }

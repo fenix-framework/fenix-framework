@@ -56,15 +56,23 @@ public class LocalityHints {
             keyValues.put(Constants.GROUP_ID, decode[1]);
             if (keyFeatureManager != null) {
                 Feature[] features = keyFeatureManager.getAllKeyFeatures();
-                for (int i = 2; i < decode.length; ++i) {
-                    keyValues.put(features[i - 2].getName(), decode[i]);
+                if (decode.length + 2 < features.length) {
+                    //invalid string
+                    return new LocalityHints();
+                }
+                for (int i = 0; i < features.length; ++i) {
+                    keyValues.put(features[i].getName(), decode[i + 2]);
                 }
             }
         } else if (WITHOUT_GROUP_HINTS.equals(decode[0])) {
             if (keyFeatureManager != null) {
                 Feature[] features = keyFeatureManager.getAllKeyFeatures();
-                for (int i = 1; i < decode.length; ++i) {
-                    keyValues.put(features[i - 1].getName(), decode[i]);
+                if (decode.length + 1 < features.length) {
+                    //invalid string
+                    return new LocalityHints();
+                }
+                for (int i = 0; i < features.length; ++i) {
+                    keyValues.put(features[i].getName(), decode[i + 1]);
                 }
             }
         }

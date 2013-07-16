@@ -8,8 +8,6 @@ import pt.ist.fenixframework.core.AbstractDomainObjectAdapter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.IdentityMap;
 import eu.cloudtm.LocalityHints;
-// import pt.ist.fenixframework.DomainObject;
-// import pt.ist.fenixframework.FenixFramework;
 
 public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanDomainObject.class);
@@ -44,7 +42,9 @@ public class InfinispanDomainObject extends AbstractDomainObjectAdapter {
             if (shouldBeSame == this) {
                 return;
             } else {
-                logger.warn("Another object was already cached with the same key as this new object: " + oid);
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Another object was already cached with the same key as this new object: " + oid);
+                }
             }
         }
     }

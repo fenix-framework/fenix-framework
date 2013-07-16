@@ -46,7 +46,9 @@ public class OgmTransactionManager implements TransactionManager {
         properties.put(InfinispanDatastoreProvider.INFINISPAN_CONFIGURATION_RESOURCENAME, config.getIspnConfigFile());
 
         emf = Persistence.createEntityManagerFactory("fenixframework-persistence-unit", properties);
-        logger.debug("Created EntityManagerFactory: " + emf);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Created EntityManagerFactory: " + emf);
+        }
 
         SessionFactoryImplementor sessionFactory =
             (SessionFactoryImplementor)((HibernateEntityManagerFactory)emf).getSessionFactory();
@@ -68,10 +70,14 @@ public class OgmTransactionManager implements TransactionManager {
     @Override
     public void begin(boolean readOnly) throws NotSupportedException, SystemException {
         if (readOnly) {
-            logger.warn("OgmBackEnd does not enforce read-only transactions. Starting as normal transaction");
+            if (logger.isWarnEnabled()) {
+                logger.warn("OgmBackEnd does not enforce read-only transactions. Starting as normal transaction");
+            }
         }
 
-        logger.trace("Begin transaction");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Begin transaction");
+        }
         delegateTxManager.begin();
 
         EntityManager em = null;
@@ -82,7 +88,9 @@ public class OgmTransactionManager implements TransactionManager {
     @Override
     public void commit() throws RollbackException, HeuristicMixedException,
                                 HeuristicRollbackException, SystemException {
-        logger.trace("Commit transaction");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Commit transaction");
+        }
 
 	pt.ist.fenixframework.Transaction tx = getTransaction();
 
@@ -125,7 +133,9 @@ public class OgmTransactionManager implements TransactionManager {
 
     @Override
     public void rollback() throws SystemException {
-        logger.trace("Rollback transaction");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Rollback transaction");
+        }
         delegateTxManager.rollback();
 
         currentEntityManager.set(null);
@@ -157,19 +167,27 @@ public class OgmTransactionManager implements TransactionManager {
                 boolean inTopLevelTransaction = false;
                 // the purpose of this test is to enable reuse of the existing transaction
                 if (getTransaction() == null) {
-                    logger.trace("No previous transaction.  Will begin a new one.");
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("No previous transaction.  Will begin a new one.");
+                    }
                     begin();
                     inTopLevelTransaction = true;
                 } else {
-                    logger.trace("Already inside a transaction. Not nesting.");
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Already inside a transaction. Not nesting.");
+                    }
                 }
                 // do some work
                 result = command.call();
                 if (inTopLevelTransaction) {
-                    logger.trace("Will commit a top-level transaction.");
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Will commit a top-level transaction.");
+                    }
                     commit();
                 } else {
-                    logger.trace("Leaving an inner transaction.");
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Leaving an inner transaction.");
+                    }
                 }
                 txFinished = true;
                 return result;
@@ -187,7 +205,9 @@ public class OgmTransactionManager implements TransactionManager {
                 //If a heuristic decision to roll back the transaction was made
                 logException(hre);
             } catch (Exception e) { // any other exception gets out
-                logger.debug("Exception within transaction", e);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Exception within transaction", e);
+                }
                 throw e;
             } finally {
                 if (!txFinished) {
@@ -199,7 +219,9 @@ public class OgmTransactionManager implements TransactionManager {
                         //          so rollback() will be invoked again, but the transaction no longer exists
                         // Pedro -- just ignore it
                     } catch (Exception ex) {
-                        logger.error("Exception while aborting transaction");
+                        if (logger.isErrorEnabled()) {
+                            logger.error("Exception while aborting transaction");
+                        }
                         ex.printStackTrace();
                     }
                 }
@@ -207,7 +229,9 @@ public class OgmTransactionManager implements TransactionManager {
             // Pedro had this wait here.  Why?
             // waitingBeforeRetry();
 
-            logger.debug("Retrying transaction: " + command);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Retrying transaction: " + command);
+            }
         }
         // never reached
         throw new RuntimeException("code never reached");
@@ -225,8 +249,9 @@ public class OgmTransactionManager implements TransactionManager {
     // }
 
     private void logException(Exception e) {
-        logger.info("Exception caught in transaction: " + e.getLocalizedMessage());
-        logger.trace("Exception caught in transaction:", e);
+        if (logger.isInfoEnabled()) {
+            logger.info("Exception caught in transaction: " + e.getLocalizedMessage());
+        }
     }
 
     @Override

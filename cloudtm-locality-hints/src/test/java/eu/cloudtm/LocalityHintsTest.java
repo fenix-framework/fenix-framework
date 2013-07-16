@@ -1,13 +1,12 @@
 package eu.cloudtm;
 
-import junit.framework.Assert;
 import org.testng.annotations.Test;
 
 import static junit.framework.Assert.assertTrue;
 
 /**
  * // TODO: Document this
- * 
+ *
  * @author Pedro Ruivo
  * @since 2.3-cloudtm
  */
@@ -16,7 +15,7 @@ public class LocalityHintsTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testWrongParameters() {
-        new LocalityHints(new String[] {"bla"});
+        new LocalityHints(new String[]{"bla"});
     }
 
     @Test
@@ -31,7 +30,7 @@ public class LocalityHintsTest {
 
     @Test
     public void testIfInitialized() {
-        new LocalityHints(new String[] {Constants.GROUP_ID, "bla"}).hints2String();
+        new LocalityHints(new String[]{Constants.GROUP_ID, "bla"}).hints2String();
     }
 
     @Test
