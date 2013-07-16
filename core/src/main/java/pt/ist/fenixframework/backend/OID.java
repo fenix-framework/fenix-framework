@@ -189,6 +189,9 @@ public class OID implements Comparable<OID>, Serializable {
     }
 
     public static LocalityHints getLocalityHint(String fullId) {
+        if (fullId.startsWith(ROOT_OBJECT_ID.fullId)) {
+            return new LocalityHints();
+        }
         int firstSep = fullId.indexOf(OID_SEPARATOR);
         if (firstSep == -1) {
             return null;
