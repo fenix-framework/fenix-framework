@@ -9,6 +9,8 @@ import org.joda.time.Partial;
 
 import pt.ist.fenixframework.core.Externalization;
 
+import com.google.gson.JsonElement;
+
 public class ToSqlConverter {
 
     // enums
@@ -122,6 +124,10 @@ public class ToSqlConverter {
 
     public static Object getValueForSerializable(Serializable value) {
         return (value == null) ? null : Externalization.externalizeSerializable(value);
+    }
+
+    public static String getValueForJsonElement(JsonElement value) {
+        return value.toString();
     }
 
 //     public static Period readPeriod(ResultSet rs, String columnName) throws SQLException {

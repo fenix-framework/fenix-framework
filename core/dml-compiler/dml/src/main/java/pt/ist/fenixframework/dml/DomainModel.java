@@ -65,7 +65,10 @@ public class DomainModel implements Serializable {
             { "org.joda.time.LocalTime", "LocalTime" }, { "org.joda.time.Partial", "Partial" },
 
             // also anything Serializable is acceptable
-            { "java.io.Serializable", "Serializable" } };
+            { "java.io.Serializable", "Serializable" },
+
+            // we need JsonElement for we live in a JSON world
+            { "com.google.gson.JsonElement", "JsonElement" } };
 
     protected void initializeBuiltinValueTypes() {
         for (String[] valueType : builtinValueTypes) {
