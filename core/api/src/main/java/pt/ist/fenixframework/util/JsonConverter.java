@@ -35,6 +35,13 @@ public final class JsonConverter {
 
     // Externalizers
 
+    public static JsonElement getJsonFor(Enum<?> value) {
+        if (value == null) {
+            return JsonNull.INSTANCE;
+        }
+        return new JsonPrimitive(value.name());
+    }
+
     public static JsonElement getJsonFor(Boolean value) {
         if (value == null) {
             return JsonNull.INSTANCE;
@@ -124,6 +131,13 @@ public final class JsonConverter {
     }
 
     // Internalizers
+
+    public static <T extends Enum<T>> T getEnumFromJson(Class<T> enumClass, JsonElement value) {
+        if (value.isJsonNull()) {
+            return null;
+        }
+        return Enum.valueOf(enumClass, value.getAsString());
+    }
 
     public static <T extends DomainObject> T getDomainObjectFromJson(JsonElement value) {
         if (value.isJsonNull()) {
