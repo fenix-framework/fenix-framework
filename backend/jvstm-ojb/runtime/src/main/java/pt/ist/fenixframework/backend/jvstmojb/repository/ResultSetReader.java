@@ -16,6 +16,9 @@ import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.core.Externalization;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
 public class ResultSetReader {
 
     public static <T extends DomainObject> T readDomainObject(ResultSet rs, String columnName) throws SQLException {
@@ -169,6 +172,12 @@ public class ResultSetReader {
         return (bytes == null) ? null : Externalization.<Serializable> internalizeSerializable(bytes);
     }
 
+    private static final JsonParser PARSER = new JsonParser();
+
+    public static JsonElement readJsonElement(ResultSet rs, String columnName) throws SQLException {
+        String jsonElementAsString = rs.getString(columnName);
+        return jsonElementAsString == null ? null : PARSER.parse(jsonElementAsString);
+    }
 //     public static Period readPeriod(ResultSet rs, String columnName) throws SQLException {
 //     }
 }
