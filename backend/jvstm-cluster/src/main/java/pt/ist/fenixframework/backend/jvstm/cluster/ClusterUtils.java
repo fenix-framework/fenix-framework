@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.core.TransactionError;
 
-import com.hazelcast.core.AtomicNumber;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IAtomicLong;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
@@ -77,7 +77,7 @@ public class ClusterUtils {
     }
 
     public static void initGlobalLockNumber(int value) {
-        AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
+        IAtomicLong lockNumber = getHazelcastInstance().getAtomicLong(FF_GLOBAL_LOCK_NUMBER_NAME);
         lockNumber.compareAndSet(0, value);
     }
 
@@ -92,7 +92,7 @@ public class ClusterUtils {
         logger.debug("Will get global cluster lock...");
 
         try {
-            AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
+            IAtomicLong lockNumber = getHazelcastInstance().getAtomicLong(FF_GLOBAL_LOCK_NUMBER_NAME);
 
 //            int ourLockValue = 0 - DomainClassInfo.getServerId();
             do {
@@ -142,7 +142,7 @@ public class ClusterUtils {
     public static void globalUnlock(int txNum) {
         logger.debug("Will release global cluster lock ( -> {})", txNum);
         try {
-            AtomicNumber lockNumber = getHazelcastInstance().getAtomicNumber(FF_GLOBAL_LOCK_NUMBER_NAME);
+            IAtomicLong lockNumber = getHazelcastInstance().getAtomicLong(FF_GLOBAL_LOCK_NUMBER_NAME);
             lockNumber.set(txNum);
         } catch (RuntimeException e) {
             logger.error("Failed to release global lock");
@@ -162,15 +162,15 @@ public class ClusterUtils {
     public static void notifyStartupComplete() {
         logger.info("Notify other nodes that startup completed");
 
-        AtomicNumber initMarker = getHazelcastInstance().getAtomicNumber("initMarker");
+        IAtomicLong initMarker = getHazelcastInstance().getAtomicLong("initMarker");
         initMarker.incrementAndGet();
     }
 
     public static void waitForStartupFromFirstNode() {
         logger.info("Waiting for startup from first node");
 
-        // check initMarker in AtomicNumber (value 1)
-        AtomicNumber initMarker = getHazelcastInstance().getAtomicNumber("initMarker");
+        // check initMarker in IAtomicLong (value 1)
+        IAtomicLong initMarker = getHazelcastInstance().getAtomicLong("initMarker");
 
         while (initMarker.get() == 0) {
             logger.debug("Waiting for first node to startup...");
@@ -186,11 +186,11 @@ public class ClusterUtils {
     public static int obtainNewServerId() {
         /* currently does not reuse the server Id value while any server is up.
         This can be changed if needed.  However, we currently depend on the first
-        server getting the AtomicNumber 0 to know that it is the first member
+        server getting the IAtomicLong 0 to know that it is the first member
         to appear.  By reusing numbers with the cluster alive, we either don't
         reuse 0 or change the algorithm  that detects the first member */
 
-        AtomicNumber serverIdGenerator = getHazelcastInstance().getAtomicNumber("serverId");
+        IAtomicLong serverIdGenerator = getHazelcastInstance().getAtomicLong("serverId");
         long longId = serverIdGenerator.getAndAdd(1L);
 
         logger.info("Got (long) serverId: {}", longId);

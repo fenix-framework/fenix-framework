@@ -65,7 +65,6 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>2.5.1</version>
         </dependency>
     </dependencies>
 
