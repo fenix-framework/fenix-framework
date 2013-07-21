@@ -396,20 +396,22 @@ public class LockFreeRepository implements ExtendedRepository {
     So, to maintain the invariant it is not enough to load the missing value:
     we also need to load all values from the last known down to the missing one.
     Only then can this newly created list be CAS-ed onto the previous ref to
-    <0,NOT_LOADED_VALUE>. */
+    <0,NOT_LOADED_VALUE>. Note however, that a 'valid' version is different from
+    a 'loaded' version.  We may allow bodies to contain the NOT_LOADED_VALUE if
+    their version is not 0. */
     @Override
     public void reloadAttribute(VBox box) {
         int txNumber = jvstm.Transaction.current().getNumber();
 
         boolean success = false;
 
-        VBoxBody oldestLoadedBody = box.getOldestLoadedBody();
+        VBoxBody oldestValidBody = box.getOldestValidBody();
 
         int highestVersionToLoad;
-        if (oldestLoadedBody == null) {
+        if (oldestValidBody == null) {
             highestVersionToLoad = Transaction.mostRecentCommittedRecord.transactionNumber;
         } else {
-            highestVersionToLoad = oldestLoadedBody.version - 1;
+            highestVersionToLoad = oldestValidBody.version - 1;
         }
 
         if (txNumber > highestVersionToLoad) {
@@ -421,7 +423,7 @@ public class LockFreeRepository implements ExtendedRepository {
 
         VBoxBody tail = loadVersionsInRange(box, highestVersionToLoad, txNumber);
 
-        replaceTail(box, oldestLoadedBody, tail);
+        replaceTail(box, oldestValidBody, tail);
     }
 
     @Override
@@ -615,7 +617,7 @@ public class LockFreeRepository implements ExtendedRepository {
             VBoxBody nextBody;
 
             if (versionToLoad <= txNumber) { // end recursion
-                nextBody = VBox.NOT_LOADED_BODY;
+                nextBody = VBox.notLoadedBody();
             } else {
                 nextBody = loadVersionsInRange(box, versionToLoad - 1, txNumber);
             }
@@ -667,15 +669,18 @@ public class LockFreeRepository implements ExtendedRepository {
     private void replaceTailInVBox(VBox box, VBoxBody tail) {
         VBoxBody current = box.body;
 
-        if (isBodyLoaded(current)) {
+        if (isBodyValid(current)) {
             updateAndReplaceTailInBody(current, tail);
         } else if (!UNSAFE.compareAndSwapObject(box, Offsets.bodyOffset, current, tail)) {
-            updateAndReplaceTailInBody(current, tail);
+            /* we re-read box.body instead of using current because current might
+            be null.  That's in theory.  In practice I think that it will always
+            contains a NOT_LOADED_VALUE in version 0.*/
+            updateAndReplaceTailInBody(box.body, tail);
         }
     }
 
-    private boolean isBodyLoaded(VBoxBody body) {
-        return body != null && body != VBox.NOT_LOADED_BODY;
+    private boolean isBodyValid(VBoxBody body) {
+        return !VBox.isBodyNullOrVersion0NotLoaded(body);
     }
 
     private static final long nextOffset = UtilUnsafe.objectFieldOffset(VBoxBody.class, "next");
@@ -683,7 +688,7 @@ public class LockFreeRepository implements ExtendedRepository {
     private void replaceTailInBody(VBoxBody body, VBoxBody tail) {
         VBoxBody current = body.next;
 
-        if (isBodyLoaded(current)) {
+        if (isBodyValid(current)) {
             updateAndReplaceTailInBody(current, tail);
         } else if (!UNSAFE.compareAndSwapObject(body, nextOffset, current, tail)) {
             updateAndReplaceTailInBody(current, tail);
@@ -691,10 +696,10 @@ public class LockFreeRepository implements ExtendedRepository {
     }
 
     private void updateAndReplaceTailInBody(VBoxBody current, VBoxBody tail) {
-        current = getOldestLoadedBody(current);
+        current = getOldestValidBody(current);
         tail = findSubTail(current, tail);
 
-        if (isBodyLoaded(tail)) {
+        if (isBodyValid(tail)) {
             replaceTailInBody(current, tail);
         }
         // otherwise, everything from the tail was already found in the body 
@@ -704,7 +709,7 @@ public class LockFreeRepository implements ExtendedRepository {
     tail that is not in the body list (the single body can have at most a next
     that is the NOT_LOADED_BODY. */
     private VBoxBody findSubTail(VBoxBody head, VBoxBody tail) {
-        while (isBodyLoaded(tail)) {
+        while (isBodyValid(tail)) {
             if (tail.version >= head.version) {
                 tail = tail.next;
             } else {
@@ -714,10 +719,10 @@ public class LockFreeRepository implements ExtendedRepository {
         return null;
     }
 
-    // Should never be invoked with head == null or head == VBox.NOT_LOADED_BODY
-    public VBoxBody getOldestLoadedBody(VBoxBody head) {
+    // Assumes !VBox.isBodyNullOrVersion0NotLoaded(head)
+    private VBoxBody getOldestValidBody(VBoxBody head) {
         VBoxBody oldest = head;
-        while ((oldest.next != VBox.NOT_LOADED_BODY) && (oldest.next != null)) {
+        while (isBodyValid(oldest.next)) {
             oldest = oldest.next;
         }
         return oldest;

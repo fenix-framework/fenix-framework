@@ -81,7 +81,7 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
         return this.get();
     }
 
-    public VBoxBody<E> getOldestLoadedBody() {
+    public VBoxBody<E> getOldestValidBody() {
         if (isBodyNullOrVersion0NotLoaded(this.body)) {
             return null;
         } else {
