@@ -102,8 +102,8 @@ public class OID implements Comparable<OID>, Serializable {
             logger.trace("Building OID from externalId: " + externalId);
         }
 
-        String className = extractClassNameFromExtenalId(externalId);
         try {
+            String className = extractClassNameFromExtenalId(externalId);
             Class objClass = CACHED_CLASSES.get(className);
             if (objClass != null) {
                 return new OID(objClass, externalId);
