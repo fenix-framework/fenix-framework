@@ -374,7 +374,7 @@ public class LockFreeRepository implements ExtendedRepository {
             public Boolean call() {
                 if (dataGrid.get(CACHE_IS_NEW) == null) {
                     dataGrid.put(CACHE_IS_NEW, "false");
-                    logger.info("Initialization marker not present. Data Drid is being initialized for the first time.");
+                    logger.info("Initialization marker not present. Data Grid is being initialized for the first time.");
                     return true;
                 } else {
                     logger.info("Initialization marker is present. Data Grid already existed.");
