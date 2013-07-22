@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.SortedMap;
 
+import eu.cloudtm.LocalityHints;
+
 /** 
  * Inner node of a B+-Tree.  These nodes do not contain elements.  They only
  * contain M keys (ordered) and M+1 sub-nodes (M > 0).  The n-th sub-node will
@@ -21,7 +23,8 @@ public class InnerNode extends InnerNode_Base {
         super();
     }
 
-    InnerNode(AbstractNode leftNode, AbstractNode rightNode, Comparable splitKey) {
+    InnerNode(LocalityHints hints, AbstractNode leftNode, AbstractNode rightNode, Comparable splitKey) {
+	super(hints);
     	TreeMap<Comparable,AbstractNode> newMap = new TreeMap<Comparable,AbstractNode>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY);
     	newMap.put(splitKey, leftNode);
     	newMap.put(BPlusTree.LAST_KEY, rightNode);
@@ -31,7 +34,8 @@ public class InnerNode extends InnerNode_Base {
     	rightNode.setParent(this);
     }
 
-    private InnerNode(TreeMap<Comparable,AbstractNode> subNodes) {
+    private InnerNode(LocalityHints hints, TreeMap<Comparable,AbstractNode> subNodes) {
+	super(hints);
     	setSubNodes(subNodes);
     	for (AbstractNode subNode : subNodes.values()) { // smf: either don't do this or don't setParent when making new
     	    subNode.setParent(this);
@@ -68,14 +72,14 @@ public class InnerNode extends InnerNode_Base {
     	    // this level.  It will be moved up.
     	    TreeMap<Comparable,AbstractNode> leftSubNodes = new TreeMap<Comparable,AbstractNode>(newMap.headMap(keyToSplit));
     	    leftSubNodes.put(BPlusTree.LAST_KEY, subNodeToMoveLeft);
-    	    InnerNode leftNode = new InnerNode(leftSubNodes);
+    	    InnerNode leftNode = new InnerNode(this.getLocalityHints(), leftSubNodes);
     	    subNodeToMoveLeft.setParent(leftNode); // smf: maybe it is not necessary because of the code in the constructor
 
-    	    InnerNode rightNode = new InnerNode(new TreeMap<Comparable,AbstractNode>(newMap.tailMap(nextKey)));
+    	    InnerNode rightNode = new InnerNode(this.getLocalityHints(), new TreeMap<Comparable,AbstractNode>(newMap.tailMap(nextKey)));
 
     	    // propagate split to parent
     	    if (this.getParent() == null) {
-    		InnerNode newRoot = new InnerNode(leftNode, rightNode, keyToSplit);
+    		InnerNode newRoot = new InnerNode(this.getLocalityHints(), leftNode, rightNode, keyToSplit);
     		return newRoot;
     	    } else {
     		return this.getParent().rebase(leftNode, rightNode, keyToSplit);

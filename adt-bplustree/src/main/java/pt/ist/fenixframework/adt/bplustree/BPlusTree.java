@@ -10,6 +10,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.cloudtm.LocalityHints;
+
+import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 /**
@@ -117,9 +120,14 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     public BPlusTree() {
         initRoot();
     }
+    
+    public BPlusTree(LocalityHints hints) {
+	super(hints);
+	initRoot();
+    }
 
     private void initRoot() {
-        this.setRoot(new LeafNode());
+        this.setRoot(new LeafNode(this.getLocalityHints()));
     }
 
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
@@ -249,4 +257,5 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     public boolean putIfMissing(Comparable key, T value) {
         return insert(key, value);
     }
+    
 }

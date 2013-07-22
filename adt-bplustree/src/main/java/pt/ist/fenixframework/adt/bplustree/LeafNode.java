@@ -8,13 +8,17 @@ import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import eu.cloudtm.LocalityHints;
+
 public class LeafNode extends LeafNode_Base {
     
-    public LeafNode() {
+    public LeafNode(LocalityHints hints) {
+	super(hints);
 	setEntries(new TreeMap<Comparable,Serializable>(BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY));
     }
-
-    private LeafNode(TreeMap<Comparable,Serializable> entries) {
+    
+    private LeafNode(LocalityHints hints, TreeMap<Comparable,Serializable> entries) {
+	super(hints);
 	setEntries(entries);
     }
 
@@ -35,13 +39,13 @@ public class LeafNode extends LeafNode_Base {
 	    Comparable keyToSplit = findRightMiddlePosition(localMap.keySet());
 
 	    // split node in two
-	    LeafNode leftNode = new LeafNode(new TreeMap<Comparable,Serializable>(localMap.headMap(keyToSplit)));
-	    LeafNode rightNode = new LeafNode(new TreeMap<Comparable,Serializable>(localMap.tailMap(keyToSplit)));
+	    LeafNode leftNode = new LeafNode(this.getLocalityHints(), new TreeMap<Comparable,Serializable>(localMap.headMap(keyToSplit)));
+	    LeafNode rightNode = new LeafNode(this.getLocalityHints(), new TreeMap<Comparable,Serializable>(localMap.tailMap(keyToSplit)));
 	    fixLeafNodesListAfterSplit(leftNode, rightNode);
 
 	    // propagate split to parent
 	    if (getParent() == null) {  // make new root node
-		InnerNode newRoot = new InnerNode(leftNode, rightNode, keyToSplit);
+		InnerNode newRoot = new InnerNode(this.getLocalityHints(), leftNode, rightNode, keyToSplit);
 		return newRoot;
 	    } else {
 		// leftNode.parent = getParent();

@@ -13,6 +13,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.infinispan.FenixFrameworkGrouper;
 import pt.ist.fenixframework.backend.infinispan.InfinispanBackEnd;
@@ -128,10 +131,12 @@ public class GroupingTest {
 
         Assert.assertFalse(age64Segment == age65Segment);
 
+        final DomainRoot root = FenixFramework.getDomainRoot();
         final Author[] authors = new Author[NUM_AUTHOR];
 
         for (int i = 0; i < NUM_AUTHOR; ++i) {
             authors[i] = Author.createAuthorGroupedByAge(i, i % 2 == 0 ? 65 : 64);
+            addAuthorToRoot(root, authors[i]);
         }
 
         for (int i = 0; i < NUM_AUTHOR; ++i) {
@@ -140,6 +145,11 @@ public class GroupingTest {
                 Assert.assertEquals(segment, ch.getSegment(internalId));
             }
         }
+    }
+    
+    @Atomic
+    private void addAuthorToRoot(DomainRoot root, Author author) {
+	root.addTheAuthors(author);	
     }
     
     @Test
@@ -171,7 +181,7 @@ public class GroupingTest {
             Assert.assertEquals(segment, ch.getSegment(internalId));
         }
     }
-
+    
     @After
     public void shutdown() {
         FenixFramework.shutdown();
