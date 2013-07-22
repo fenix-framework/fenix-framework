@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.core.exception.MissingObjectException;
+import eu.cloudtm.Constants;
 import eu.cloudtm.LocalityHints;
 
 /**
@@ -63,7 +64,11 @@ public class OID implements Comparable<OID>, Serializable {
             }
             return ROOT_OBJECT_ID;
         } else {
-            OID oid = new OID(objClass, UUID.randomUUID().toString(), hints);
+            String uuid = UUID.randomUUID().toString();
+            if (hints == null) {
+        	hints = new LocalityHints(new String[]{Constants.GROUP_ID, uuid});
+            }
+            OID oid = new OID(objClass, uuid, hints);
             if (logger.isTraceEnabled()) {
                 logger.trace("Making new oid: " + oid.toString());
             }

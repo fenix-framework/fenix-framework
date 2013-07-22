@@ -141,6 +141,36 @@ public class GroupingTest {
             }
         }
     }
+    
+    @Test
+    public void testSlotColocation() throws Exception {
+        ConfigurationBuilderHolder holder = getDefaultConfigurations();
+        InfinispanConfig infinispanConfig = getInfinispanConfig();
+        infinispanConfig.setDefaultConfiguration(holder.getDefaultConfigurationBuilder().build());
+        infinispanConfig.setGlobalConfiguration(holder.getGlobalConfigurationBuilder().build());
+        infinispanConfig.setUseGrouping(true);
+        FenixFramework.initialize(infinispanConfig);
+        final Cache cache = ((InfinispanBackEnd) FenixFramework.getConfig().getBackEnd()).getInfinispanCache();
+
+        Assert.assertTrue(cache.getCacheConfiguration().clustering().hash().groups().enabled());
+        Assert.assertEquals(1, cache.getCacheConfiguration().clustering().hash().groups().groupers().size());
+        Assert.assertEquals(FenixFrameworkGrouper.class, cache.getCacheConfiguration().clustering().hash().groups().groupers().get(0).getClass());
+
+        final Hash hashFunction = cache.getCacheConfiguration().clustering().hash().hash();
+        ConsistentHash ch = cache.getAdvancedCache().getDistributionManager().getConsistentHash();
+
+        final Author author = Author.createAuthor(42, 194); // Author.createAuthorGroupedByAge(42, 194);
+        
+        // confirm that the slots of author are co-located
+        int segment = -1;
+        for (String internalId : FenixFramework.getStorageKeys(author)) {
+            System.out.println(internalId + " --->> " + ch.getSegment(internalId));
+            if (segment == -1) {
+        	segment = ch.getSegment(internalId);
+            }
+            Assert.assertEquals(segment, ch.getSegment(internalId));
+        }
+    }
 
     @After
     public void shutdown() {

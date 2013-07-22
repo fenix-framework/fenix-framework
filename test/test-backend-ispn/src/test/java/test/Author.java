@@ -30,6 +30,11 @@ public class Author extends Author_Base {
         localityHints.addHint(Constants.GROUP_ID, String.valueOf(age));
         return new Author(localityHints, id, age);
     }
+    
+    @Atomic
+    public static Author createAuthor(int id, int age) {
+	return new Author(id, age);
+    }
 
     @Override
     public String toString() {
