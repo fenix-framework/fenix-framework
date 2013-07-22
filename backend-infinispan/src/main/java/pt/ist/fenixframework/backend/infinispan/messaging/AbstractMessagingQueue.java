@@ -19,8 +19,10 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * {@link MessagingQueue} implementation to dispatch the requests in {@link pt.ist.fenixframework.backend.infinispan.InfinispanBackEnd}.
+ *
  * @author Pedro Ruivo
- * @since 2.8
+ * @since 2.8-cloudtm
  */
 public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncRequestHandler, MembershipListener {
 
