@@ -272,7 +272,12 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + role.getName() + "\");");
         print(out, "if (oid == null || oid instanceof Externalization.NullClass)");
         newBlock(out);
-        println(out, "internalSet = new " + collectionType + "();");
+        // FIXME epic hack to get debugging on co-located trees
+        if (collectionType.contains("ColocatedBPlusTree")) {
+            println(out, "internalSet = new " + collectionType + "(\"" + role.getName() + "\");");
+        } else {
+            println(out, "internalSet = new " + collectionType + "();");
+        }
         print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + role.getName()
                 + "\", internalSet.getOid());");
         closeBlock(out, false);

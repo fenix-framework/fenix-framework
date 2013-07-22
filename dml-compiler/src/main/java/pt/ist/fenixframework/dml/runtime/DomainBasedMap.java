@@ -7,6 +7,8 @@ import pt.ist.fenixframework.DomainObject;
 
 public interface DomainBasedMap<T extends Serializable> extends DomainObject, Iterable<T> {
 
+    public static final String RELATION_NAME_SEPARATOR = ";relationName;";
+    
     public T get(Comparable key);
     
     public boolean putIfMissing(Comparable key, T value);
