@@ -1,20 +1,15 @@
 package pt.ist.fenixframework;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.dml.CodeGenerator;
 import pt.ist.fenixframework.dml.CompilerArgs;
@@ -23,8 +18,6 @@ import pt.ist.fenixframework.dml.DmlLexer;
 import pt.ist.fenixframework.dml.DmlParser;
 import pt.ist.fenixframework.dml.DmlTreeParser;
 import pt.ist.fenixframework.dml.DomainModel;
-
-
 import antlr.ANTLRException;
 import antlr.collections.AST;
 

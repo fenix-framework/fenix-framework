@@ -239,6 +239,7 @@ roleOptions[Role roleDef]
 roleOption[Role roleDef]
 {
     int lower, upper, card;
+    String colltype;
 }
     : #(MULTIPLICITY 
             (   #(MULTIPLICITY_RANGE 
@@ -252,7 +253,9 @@ roleOption[Role roleDef]
         )
     | #(INDEXED name:IDENT card=indexCard { roleDef.setIndexProperty(name.getText()); roleDef.setIndexCardinality(card); } )
     | #(ORDERED { roleDef.setOrdered(true); } )
+    | #(COLLECTION colltype=identifier { roleDef.setCollection(colltype); } )
     ;
+
 
 indexCard returns [int bound = 1]
     :

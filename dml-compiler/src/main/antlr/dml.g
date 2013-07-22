@@ -24,7 +24,7 @@ tokens {
     DOMAIN_DEFS; CLASS_DEF; EXTENDS_CLAUSE; OBJBLOCK; IMPLEMENTS_CLAUSE;
     RELATION_DEF; SLOT_DEF; RELATION_BLOCK; ROLE; ROLE_NAME; ROLE_OPTIONS;
     MULTIPLICITY; MULTIPLICITY_RANGE; EXTERNAL;
-    INDEXED; ORDERED; VALUE_TYPE; SLOT_OPTIONS; REQUIRED_OPTION;
+    INDEXED; ORDERED; COLLECTION; VALUE_TYPE; SLOT_OPTIONS; REQUIRED_OPTION;
     ENUM_TYPE; PACKAGE; ABSOLUTE_NAME; VALUE_TYPE_BLOCK; EXTERNALIZATION_CLAUSE;
     EXTERNALIZATION_ELEMENT; INTERNALIZATION_CLAUSE; TYPE;
     WILDCARD; WILDCARD_EXTENDS; WILDCARD_SUPER;
@@ -267,8 +267,10 @@ roleOption!
         {#roleOption = #([INDEXED,"INDEXED"], ip, card);}
     |   "ordered"
         {#roleOption = #([ORDERED,"ORDERED"]);}
+    |   "collection" colltype:identifier
+    	{#roleOption = #([COLLECTION,"COLLECTION"], colltype);}
     ;
-
+    
 multiplicityRange!
     :
         lower:INT_NUMBER MULT_RANGE upper:multiplicityUpperOnly
@@ -289,7 +291,7 @@ multiplicityUpperOnly
 identifier 
     :   IDENT  ( DOT^ IDENT )*
     ;
-
+    
 // With the addition of packages, names of entities may start with a dot
 entityTypeIdentifier!
     :   id1:identifier

@@ -68,7 +68,7 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
 		.getFullname()
 		+ " key");
 	startMethodBody(out);
-	printWords(out, "return", getSearchForKey(role, haveMany ? getCollectionToUse() : retType));
+	printWords(out, "return", getSearchForKey(role, haveMany ? getCollectionToUse(role) : retType));
 	print(out, ";");
 	endMethodBody(out);
     }
@@ -90,9 +90,9 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
     @Override
     protected String getDefaultCollectionFor(Role role) {
 	if (role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY) {
-	    return makeGenericType(super.getCollectionToUse(), makeGenericType(LINKED_LIST_FULL_CLASS, role.getType().getFullName()));
+	    return makeGenericType(super.getCollectionToUse(role), makeGenericType(LINKED_LIST_FULL_CLASS, role.getType().getFullName()));
 	} else {
-	    return makeGenericType(super.getCollectionToUse(), role.getType().getFullName());
+	    return makeGenericType(super.getCollectionToUse(role), role.getType().getFullName());
 	}
     }
     

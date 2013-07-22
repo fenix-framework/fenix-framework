@@ -12,6 +12,7 @@ public class Role implements Serializable{
     private int multiplicityUpper = 1;
     private DomainRelation relation;
     private String indexProperty;
+    private String collectionName;
     private boolean ordered = false;
     private int indexCardinality;
     
@@ -60,6 +61,14 @@ public class Role implements Serializable{
 
     public void setIndexProperty(String propName) {
         this.indexProperty = propName;
+    }
+    
+    public void setCollection(String collectionName) {
+	this.collectionName = collectionName;
+    }
+    
+    public String getCollection() {
+	return this.collectionName;
     }
 
     public String getIndexProperty() {

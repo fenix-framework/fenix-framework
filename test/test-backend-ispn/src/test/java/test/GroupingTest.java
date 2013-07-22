@@ -174,7 +174,6 @@ public class GroupingTest {
         // confirm that the slots of author are co-located
         int segment = -1;
         for (String internalId : FenixFramework.getStorageKeys(author)) {
-            System.out.println(internalId + " --->> " + ch.getSegment(internalId));
             if (segment == -1) {
         	segment = ch.getSegment(internalId);
             }

@@ -66,8 +66,12 @@ public abstract class CodeGenerator {
         this.collectionToUse = newCollectionName;
     }
 
-    public String getCollectionToUse() {
-        return collectionToUse;
+    public String getCollectionToUse(Role role) {
+	String collectionName = role.getCollection();
+	if (collectionName == null) {
+	    collectionName = collectionToUse;
+	}
+        return collectionName;
     }
 
     public DomainModel getDomainModel() {
@@ -634,7 +638,11 @@ public abstract class CodeGenerator {
     }
 
     protected String getDefaultCollectionFor(Role role) {
-        return makeGenericType(collectionToUse, role.getType().getFullName());
+	String collectionName = role.getCollection();
+	if (collectionName == null) {
+	    collectionName = collectionToUse;
+	}
+        return makeGenericType(collectionName, role.getType().getFullName());
     }
 
     protected String getNewRoleStarSlotExpression(Role role) {
