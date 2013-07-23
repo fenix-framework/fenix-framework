@@ -77,6 +77,12 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
             LockFreeClusterUtils.waitForStartupFromFirstNode();
             localInit(thisConfig, serverId, firstNode);
         }
+
+        /* start a thread that can handle commits even it nothing else is going
+        on.  This is important to allow the entrance of new members.  Otherwise,
+        who would process their init transaction? */
+        new CommitHelper().start();
+        logger.debug("Started commit helper thread");
     }
 
     @Override

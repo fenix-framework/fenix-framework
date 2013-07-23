@@ -43,15 +43,7 @@ public class CommitRequest implements DataSerializable {
     private final AtomicReference<ValidationStatus> validationStatus = new AtomicReference<ValidationStatus>(
             ValidationStatus.UNSET); // AtomicReference?
 
-//    /* The sentinel has a null transaction attribute. It is only used to ensure
-//    that there is a beginning to the commit requests queue */
-    private static boolean sentinelRequestCreated = false;
-
     public static synchronized CommitRequest makeSentinelRequest() {
-        if (sentinelRequestCreated) {
-            throw new Error("CommitRequest::makeSentinelRequest() invoked more than once!");
-        }
-        sentinelRequestCreated = true;
         return new CommitRequest() {
             private static final long serialVersionUID = 2L;
 
@@ -209,7 +201,7 @@ public class CommitRequest implements DataSerializable {
         try {
             internalHandle();
         } catch (CommitException e) {
-            logger.debug("Commit Request {} throw CommitException. Exception will be discarded.", this.getId());
+            logger.debug("Commit Request {} threw CommitException. Exception will be discarded.", this.getId());
         } catch (Throwable e) {
             if (logger.isDebugEnabled()) {
                 logger.debug(

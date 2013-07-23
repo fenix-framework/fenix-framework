@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.backend.jvstm.pstm.CommitOnlyTransaction;
+
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicLong;
@@ -30,10 +32,9 @@ public class LockFreeClusterUtils {
     private static HazelcastInstance HAZELCAST_INSTANCE;
 
     // commit requests that have not been applied yet
-    private static final AtomicReference<CommitRequest> commitRequestsHead = new AtomicReference<CommitRequest>(
-            CommitRequest.makeSentinelRequest());
+    private static final AtomicReference<CommitRequest> commitRequestsHead = new AtomicReference<CommitRequest>();
     // this avoids iterating from the head every time a commit request arrives.  Is only used by the (single) thread that enqueues requests
-    private static CommitRequest commitRequestsTail = commitRequestsHead.get();
+    private static CommitRequest commitRequestsTail = null;
 
 //    // where to append commit requests. may be outdated due to concurrency, so we need to be careful when updating this reference 
 //    private static volatile AtomicReference<CommitRequest> commitRequestTail = new AtomicReference<CommitRequest>(null);
@@ -44,6 +45,9 @@ public class LockFreeClusterUtils {
     }
 
     public static void initializeGroupCommunication(JvstmLockFreeConfig thisConfig) {
+        commitRequestsHead.set(CommitRequest.makeSentinelRequest());
+        commitRequestsTail = getCommitRequestAtHead();
+
         com.hazelcast.config.Config hzlCfg = thisConfig.getHazelcastConfig();
         HAZELCAST_INSTANCE = Hazelcast.newHazelcastInstance(hzlCfg);
 
@@ -206,7 +210,16 @@ public class LockFreeClusterUtils {
     }
 
     public static void shutdown() {
-        getHazelcastInstance().getLifecycleService().shutdown();
+        HazelcastInstance hzl = getHazelcastInstance();
+        hzl.getTopic(FF_COMMIT_TOPIC_NAME).destroy();
+        hzl.getLifecycleService().shutdown();
+
+        /* strangely this is here.  Perhaps we should move these clear()s
+        elsewhere. They are needed when the classes are reused via
+        FenixFramework.shutdown()/initialize().  I guess these maps should be
+        in this class not in COTx */
+        CommitOnlyTransaction.txVersionToCommitIdMap.clear();
+        CommitOnlyTransaction.commitsMap.clear();
     }
 
     /**
