@@ -71,24 +71,9 @@ public class LeafNodeArrayGhost extends LeafNodeArrayGhost_Base {
     }
 
     private void fixLeafNodeArrayGhostsListAfterSplit(LeafNodeArrayGhost leftNode, LeafNodeArrayGhost rightNode) {
-	LeafNodeArrayGhost myPrevious = this.getPrevious();
-	LeafNodeArrayGhost myNext = this.getNext();
-	
-	if (myPrevious != null) {
-	    leftNode.setPrevious(myPrevious);
-	}
-        rightNode.setPrevious(leftNode);
-        if (myNext != null) {
-            rightNode.setNext(myNext);
-        }
+        leftNode.setPrevious(this.getPrevious());
+        rightNode.setNext(this.getNext());
         leftNode.setNext(rightNode);
-        
-        if (myPrevious != null) {
-            myPrevious.setNext(leftNode);
-        }
-        if (myNext != null) {
-            myNext.setPrevious(rightNode);
-        }
     }
 
     public AbstractNodeArrayGhost remove(Comparable key) {

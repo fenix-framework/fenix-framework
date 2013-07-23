@@ -28,6 +28,7 @@ relation DRWithAuthors {
     Author playsRole theAuthors {
         multiplicity *;
         indexed by id #(*);
+        collection pt.ist.fenixframework.adt.bplustree.ColocatedBPlusTreeGhost;
     }
 }
 
