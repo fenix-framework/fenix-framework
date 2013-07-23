@@ -58,13 +58,13 @@ public class StandaloneVBox<E> extends VBox<E> {
     }
 
     public static StandaloneVBox lookupCachedVBox(String vboxId) {
-        return (StandaloneVBox) VBoxCache.getCache().lookup(vboxId);
+        return VBoxCache.getCache().lookup(vboxId);
     }
 
     public static <T> StandaloneVBox<T> makeNew(String vboxId, boolean allocateOnly) {
         if (allocateOnly) {
             // when a box is allocated, it is safe to say that the version number is 0
-            return new StandaloneVBox<T>(vboxId, NOT_LOADED_BODY);
+            return new StandaloneVBox<T>(vboxId, VBox.<T> notLoadedBody());
         } else {
             StandaloneVBox<T> vbox = new StandaloneVBox<T>(vboxId);
             vbox.put(null); // this is required to add the vbox to the writeset

@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.TopLevelTransaction;
+import jvstm.Transaction;
 import jvstm.TransactionSignaller;
 import jvstm.UtilUnsafe;
 import jvstm.WriteSet;
@@ -39,7 +40,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
 
 //    private final WriteSet writeSet = STUB_WRITE_SET;
 
-    private final ConcurrentHashMap<Integer, UUID> txVersionToCommitIdMap = new ConcurrentHashMap<Integer, UUID>();
+    public static final ConcurrentHashMap<Integer, UUID> txVersionToCommitIdMap = new ConcurrentHashMap<Integer, UUID>();
 
 //    private boolean readOnly = false;
 
@@ -95,7 +96,17 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
      * are decorated by {@link CommitOnlyTransaction}s.
      */
     public void localCommit() {
-        this.commitTx(false); // smf TODO: double-check whether we want to mess with ActiveTxRecords, thread-locals, etc.  I guess 'false' is the way to go...
+        // save current
+        Transaction savedTx = Transaction.current();
+        // set current
+        Transaction.current.set(this);
+        try {
+            // enact the commit
+            this.commitTx(false); // smf TODO: double-check whether we want to mess with ActiveTxRecords, thread-locals, etc.  I guess 'false' is the way to go...
+        } finally {
+            // restore current
+            Transaction.current.set(savedTx);
+        }
     }
 
 //    @Override
@@ -322,18 +333,19 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
         such result via some helper AND even have seen already our record enqueued
         and committed. So we need to check for that to skip enqueuing. */
         if (lastCheck.transactionNumber >= commitRecord.transactionNumber) {
-            logger.debug("Transaction {} of commit request {} was already enqueued AND even committed by another helper.",
+            logger.debug("Transaction {} for commit request {} was already enqueued AND even committed by another helper.",
                     commitRecord.transactionNumber, this.commitRequest.getId());
-            return;
+        } else {
+            if (lastCheck.trySetNext(commitRecord)) {
+                logger.debug("Enqueued record for valid transaction {} of commit request {}", commitRecord.transactionNumber,
+                        this.commitRequest.getId());
+            } else {
+                logger.debug("Transaction {} of commit request {} was already enqueued by another helper.",
+                        commitRecord.transactionNumber, this.commitRequest.getId());
+            }
         }
 
-        if (lastCheck.trySetNext(commitRecord)) {
-            logger.debug("Enqueued record for valid transaction {} of commit request {}", commitRecord.transactionNumber,
-                    this.commitRequest.getId());
-        } else {
-            logger.debug("Transaction {} of commit request {} was already enqueued by another helper.",
-                    commitRecord.transactionNumber, this.commitRequest.getId());
-        }
+        // EVERYONE MUST TRY THIS, to ensure visibility when looking it up ahead.
         txVersionToCommitIdMap.putIfAbsent(commitRecord.transactionNumber, this.commitRequest.getId());
     }
 
@@ -355,16 +367,19 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
     @Override
     protected void helpCommit(ActiveTransactionsRecord recordToCommit) {
         if (!recordToCommit.isCommitted()) {
-            int txVersion = this.getCommitTxRecord().transactionNumber;
-            UUID commitId = this.txVersionToCommitIdMap.get(txVersion);
+            logger.debug("Helping to commit version {}", recordToCommit.transactionNumber);
+
+            int txVersion = recordToCommit.transactionNumber;
+            UUID commitId = CommitOnlyTransaction.txVersionToCommitIdMap.get(txVersion);
 
             if (commitId != null) { // may be null if it was already persisted 
                 JvstmLockFreeBackEnd.getInstance().getRepository().mapTxVersionToCommitId(txVersion, commitId);
-                this.txVersionToCommitIdMap.remove(txVersion);
+                CommitOnlyTransaction.txVersionToCommitIdMap.remove(txVersion);
             }
+            super.helpCommit(recordToCommit);
+        } else {
+            logger.debug("Version {} was already fully committed", recordToCommit.transactionNumber);
         }
-
-        super.helpCommit(recordToCommit);
     }
 
     @Override

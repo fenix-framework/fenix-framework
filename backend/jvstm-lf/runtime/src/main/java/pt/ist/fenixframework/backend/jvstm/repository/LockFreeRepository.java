@@ -19,6 +19,8 @@ import jvstm.Transaction;
 import jvstm.UtilUnsafe;
 import jvstm.VBox.Offsets;
 import jvstm.VBoxBody;
+import jvstm.util.Cons;
+import jvstm.util.Pair;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,15 +204,15 @@ public class LockFreeRepository implements ExtendedRepository {
 //                    newValue = (newValue == nullObject) ? null : newValue;
 //
 //                    String key = makeKeyFor(vbox);
-//                    DataVersionHolder current = (DataVersionHolder) dataGrid.get(key);
-//                    DataVersionHolder newVersion;
+//                    DataHolder current = (DataHolder) dataGrid.get(key);
+//                    DataHolder newVersion;
 //                    byte[] externalizedData = Externalization.externalizeObject(newValue);
 //
 //                    if (current != null) {
 //                        dataGrid.put(makeVersionedKey(key, current.version), current); // TODO: colocar aqui um timeout ?
-//                        newVersion = new DataVersionHolder(txNumber, current.version, externalizedData);
+//                        newVersion = new DataHolder(txNumber, current.version, externalizedData);
 //                    } else {
-//                        newVersion = new DataVersionHolder(txNumber, -1, externalizedData);
+//                        newVersion = new DataHolder(txNumber, -1, externalizedData);
 //                    }
 //
 //                    dataGrid.put(key, newVersion); // TODO: colocar aqui um timeout
@@ -372,7 +374,7 @@ public class LockFreeRepository implements ExtendedRepository {
             public Boolean call() {
                 if (dataGrid.get(CACHE_IS_NEW) == null) {
                     dataGrid.put(CACHE_IS_NEW, "false");
-                    logger.info("Initialization marker not present. Data Drid is being initialized for the first time.");
+                    logger.info("Initialization marker not present. Data Grid is being initialized for the first time.");
                     return true;
                 } else {
                     logger.info("Initialization marker is present. Data Grid already existed.");
@@ -396,20 +398,22 @@ public class LockFreeRepository implements ExtendedRepository {
     So, to maintain the invariant it is not enough to load the missing value:
     we also need to load all values from the last known down to the missing one.
     Only then can this newly created list be CAS-ed onto the previous ref to
-    <0,NOT_LOADED_VALUE>. */
+    <0,NOT_LOADED_VALUE>. Note however, that a 'valid' version is different from
+    a 'loaded' version.  We may allow bodies to contain the NOT_LOADED_VALUE if
+    their version is not 0. */
     @Override
     public void reloadAttribute(VBox box) {
         int txNumber = jvstm.Transaction.current().getNumber();
 
         boolean success = false;
 
-        VBoxBody oldestLoadedBody = box.getOldestLoadedBody();
+        VBoxBody oldestValidBody = box.getOldestValidBody();
 
         int highestVersionToLoad;
-        if (oldestLoadedBody == null) {
+        if (oldestValidBody == null) {
             highestVersionToLoad = Transaction.mostRecentCommittedRecord.transactionNumber;
         } else {
-            highestVersionToLoad = oldestLoadedBody.version - 1;
+            highestVersionToLoad = oldestValidBody.version - 1;
         }
 
         if (txNumber > highestVersionToLoad) {
@@ -421,7 +425,7 @@ public class LockFreeRepository implements ExtendedRepository {
 
         VBoxBody tail = loadVersionsInRange(box, highestVersionToLoad, txNumber);
 
-        replaceTail(box, oldestLoadedBody, tail);
+        replaceTail(box, oldestValidBody, tail);
     }
 
     @Override
@@ -436,9 +440,9 @@ public class LockFreeRepository implements ExtendedRepository {
 
         logger.debug("looking up key {} (tx version={})", key, versionToLoad);
 
-        DataVersionHolder entry = LockFreeRepository.this.dataGrid.get(key);
+        DataHolder entry = LockFreeRepository.this.dataGrid.get(key);
 
-        replaceBodyValue(body, Externalization.internalizeObject(entry.data));
+        replaceBodyValue(body, entry.getData());
     }
 
     @Override
@@ -468,8 +472,7 @@ public class LockFreeRepository implements ExtendedRepository {
 
                     String key = makeKeyWithCommitId(vboxId, commitId.toString());
 
-                    byte[] externalizedValue = Externalization.externalizeObject(newValue);
-                    DataVersionHolder newVersion = new DataVersionHolder(externalizedValue);
+                    DataHolder newVersion = new DataHolder(newValue);
 
                     LockFreeRepository.this.dataGrid.put(key, newVersion);
                 }
@@ -516,9 +519,9 @@ public class LockFreeRepository implements ExtendedRepository {
 //            @Override
 //            public List<VersionedValue> call() {
 //                ArrayList<VersionedValue> result = new ArrayList<VersionedValue>();
-//                DataVersionHolder current;
+//                DataHolder current;
 //
-//                current = (DataVersionHolder) dataGrid.get(key);
+//                current = (DataHolder) dataGrid.get(key);
 //
 //                if (current != null) {
 //
@@ -533,7 +536,7 @@ public class LockFreeRepository implements ExtendedRepository {
 //                            break;
 //                        }
 //
-//                        current = (DataVersionHolder) dataGrid.get(makeVersionedKey(key, current.previousVersion));
+//                        current = (DataHolder) dataGrid.get(makeVersionedKey(key, current.previousVersion));
 //                    }
 //                }
 //                throw new PersistenceException("Version of vbox " + vbox.getId() + " not found for transaction number "
@@ -598,36 +601,53 @@ public class LockFreeRepository implements ExtendedRepository {
     lower than txNumber. */
     @SuppressWarnings("unchecked")
     private VBoxBody loadVersionsInRange(VBox box, int versionToLoad, int txNumber) {
-        // find the commitId of this committed version
-        String commitId = getCommitIdForVersion(versionToLoad);
+
+        Cons<Pair<DataHolder, Integer>> entries = Cons.<Pair<DataHolder, Integer>> empty();
+
+        while (true) {
+            // find the commitId of this committed version
+            String commitId = getCommitIdForVersion(versionToLoad);
 
 //        logger.debug("version {} as commitId {}", versionToLoad, commitId);
 
-        // lookup an entry for this box in the given version
-        String key = makeKeyWithCommitId(makeKeyFor(box), commitId);
+            // lookup an entry for this box in the given version
+            String key = makeKeyWithCommitId(makeKeyFor(box), commitId);
 
-        logger.debug("looking up key {} (tx version={})", key, versionToLoad);
+            logger.debug("looking up key {} (tx version={})", key, versionToLoad);
 
-        DataVersionHolder entry = LockFreeRepository.this.dataGrid.get(key);
-        if (entry != null) {
-            logger.debug("Adding to list the value for key: {}", key);
+            DataHolder entry = LockFreeRepository.this.dataGrid.get(key);
 
-            VBoxBody nextBody;
+            if (entry != null) {
+                Pair<DataHolder, Integer> pair = new Pair<DataHolder, Integer>(entry, versionToLoad);
+                entries = entries.cons(pair);
 
-            if (versionToLoad <= txNumber) { // end recursion
-                nextBody = VBox.NOT_LOADED_BODY;
+                if (versionToLoad <= txNumber) {
+                    logger.debug("Leaving load loop at version {} <= txNumber {}", versionToLoad, txNumber);
+                    break;
+                }
             } else {
-                nextBody = loadVersionsInRange(box, versionToLoad - 1, txNumber);
+                logger.debug("No such key: {}", key);
+                if (versionToLoad == 0) {
+                    throw new PersistenceException("Version of vbox " + box.getId() + " not found for transaction number "
+                            + txNumber);
+                }
             }
 
-            return VBox.makeNewBody(Externalization.internalizeObject(entry.data), versionToLoad, nextBody);
-        } else {
-            if (versionToLoad == 0) {
-                throw new PersistenceException("Version of vbox " + box.getId() + " not found for transaction number " + txNumber);
-            }
-            logger.debug("No such key: {}", key);
-            return loadVersionsInRange(box, versionToLoad - 1, txNumber);
+            versionToLoad--;
         }
+
+        logger.debug("Found {} version(s) to load", entries.size());
+
+        logger.debug("Adding NOT_LOADED_BODY");
+        VBoxBody bodies = VBox.notLoadedBody();
+
+        // build the bodies
+        for (Pair<DataHolder, Integer> pair : entries) {
+            logger.debug("Adding version {}", pair.second);
+            bodies = VBox.makeNewBody(pair.first.getData(), pair.second, bodies);
+        }
+
+        return bodies;
     }
 
     private String getCommitIdForVersion(int versionToLoad) {
@@ -667,15 +687,18 @@ public class LockFreeRepository implements ExtendedRepository {
     private void replaceTailInVBox(VBox box, VBoxBody tail) {
         VBoxBody current = box.body;
 
-        if (isBodyLoaded(current)) {
+        if (isBodyValid(current)) {
             updateAndReplaceTailInBody(current, tail);
         } else if (!UNSAFE.compareAndSwapObject(box, Offsets.bodyOffset, current, tail)) {
-            updateAndReplaceTailInBody(current, tail);
+            /* we re-read box.body instead of using current because current might
+            be null.  That's in theory.  In practice I think that it will always
+            contains a NOT_LOADED_VALUE in version 0.*/
+            updateAndReplaceTailInBody(box.body, tail);
         }
     }
 
-    private boolean isBodyLoaded(VBoxBody body) {
-        return body != null && body != VBox.NOT_LOADED_BODY;
+    private boolean isBodyValid(VBoxBody body) {
+        return !VBox.isBodyNullOrVersion0NotLoaded(body);
     }
 
     private static final long nextOffset = UtilUnsafe.objectFieldOffset(VBoxBody.class, "next");
@@ -683,7 +706,7 @@ public class LockFreeRepository implements ExtendedRepository {
     private void replaceTailInBody(VBoxBody body, VBoxBody tail) {
         VBoxBody current = body.next;
 
-        if (isBodyLoaded(current)) {
+        if (isBodyValid(current)) {
             updateAndReplaceTailInBody(current, tail);
         } else if (!UNSAFE.compareAndSwapObject(body, nextOffset, current, tail)) {
             updateAndReplaceTailInBody(current, tail);
@@ -691,10 +714,10 @@ public class LockFreeRepository implements ExtendedRepository {
     }
 
     private void updateAndReplaceTailInBody(VBoxBody current, VBoxBody tail) {
-        current = getOldestLoadedBody(current);
+        current = getOldestValidBody(current);
         tail = findSubTail(current, tail);
 
-        if (isBodyLoaded(tail)) {
+        if (isBodyValid(tail)) {
             replaceTailInBody(current, tail);
         }
         // otherwise, everything from the tail was already found in the body 
@@ -704,7 +727,7 @@ public class LockFreeRepository implements ExtendedRepository {
     tail that is not in the body list (the single body can have at most a next
     that is the NOT_LOADED_BODY. */
     private VBoxBody findSubTail(VBoxBody head, VBoxBody tail) {
-        while (isBodyLoaded(tail)) {
+        while (isBodyValid(tail)) {
             if (tail.version >= head.version) {
                 tail = tail.next;
             } else {
@@ -714,10 +737,10 @@ public class LockFreeRepository implements ExtendedRepository {
         return null;
     }
 
-    // Should never be invoked with head == null or head == VBox.NOT_LOADED_BODY
-    public VBoxBody getOldestLoadedBody(VBoxBody head) {
+    // Assumes !VBox.isBodyNullOrVersion0NotLoaded(head)
+    private VBoxBody getOldestValidBody(VBoxBody head) {
         VBoxBody oldest = head;
-        while ((oldest.next != VBox.NOT_LOADED_BODY) && (oldest.next != null)) {
+        while (isBodyValid(oldest.next)) {
             oldest = oldest.next;
         }
         return oldest;
@@ -739,35 +762,20 @@ public class LockFreeRepository implements ExtendedRepository {
 //        return key + ":" + version;
 //    }
 
-    /* DataVersionHolder class. Ensures safe publication. */
-
-//    private static class DataVersionHolder implements java.io.Serializable {
-//        private static final long serialVersionUID = 1L;
-//        public final int version;
-//        public final int previousVersion;
-//        public final byte[] data;
-//
-//        DataVersionHolder(int version, int previousVersion, byte[] data) {
-//            this.version = version;
-//            this.previousVersion = previousVersion;
-//            this.data = data;
-//        }
-//    }
-
-    private static class DataVersionHolder implements java.io.Serializable {
+    private static class DataHolder implements java.io.Serializable {
         private static final long serialVersionUID = 1L;
-        public int version;
-        public int previousVersion;
-        public final byte[] data;
+        private final byte[] data2;
 
-        DataVersionHolder(byte[] data) {
-            this(-1, -1, data);
+        DataHolder(Object data) {
+            this.data2 = Externalization.externalizeObject(data);
         }
 
-        DataVersionHolder(int version, int previousVersion, byte[] data) {
-            this.version = version;
-            this.previousVersion = previousVersion;
-            this.data = data;
+//        byte[] getRawData() {
+//            return this.data;
+//        }
+
+        Object getData() {
+            return Externalization.internalizeObject(this.data2);
         }
     }
 

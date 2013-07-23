@@ -48,7 +48,7 @@ public class JvstmLockFreeConfig extends JVSTMConfig {
 
     /**
      * This {@link Map} contains datagrid-specific properties. Any property found in the FF configuration starting with
-     * <code>DATAGRID_PARAM_PREIFX</code> will be stored in this map (striped of the prefix). It is up to the concrete datagrid
+     * <code>DATAGRID_PARAM_PREFIX</code> will be stored in this map (striped of the prefix). It is up to the concrete datagrid
      * implementation to make sense of these properties.
      */
     protected HashMap<String, String> dataGridPropertiesMap = new HashMap<String, String>();

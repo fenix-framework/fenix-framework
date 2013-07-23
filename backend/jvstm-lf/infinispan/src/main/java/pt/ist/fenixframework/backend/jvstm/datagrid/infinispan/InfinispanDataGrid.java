@@ -7,8 +7,6 @@
  */
 package pt.ist.fenixframework.backend.jvstm.datagrid.infinispan;
 
-import java.util.concurrent.Callable;
-
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
@@ -68,37 +66,37 @@ public class InfinispanDataGrid implements DataGrid {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T get(Object key) {
-        if (logger.isDebugEnabled() && !inTransaction()) {
-            logger.error("==========================================");
-            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
-            logger.error("==========================================");
-            new Exception().printStackTrace();
-            logger.error("==========================================");
-        }
+//        if (!inTransaction()) {
+//            logger.error("==========================================");
+//            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
+//            logger.error("==========================================");
+//            new Exception().printStackTrace();
+//            System.exit(1);
+//        }
         return (T) this.cache.get(key);
     }
 
     @Override
     public void put(Object key, Object value) {
-        if (logger.isDebugEnabled() && !inTransaction()) {
-            logger.error("==========================================");
-            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
-            logger.error("==========================================");
-            new Exception().printStackTrace();
-            logger.error("==========================================");
-        }
+//        if (!inTransaction()) {
+//            logger.error("==========================================");
+//            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
+//            logger.error("==========================================");
+//            new Exception().printStackTrace();
+//            System.exit(1);
+//        }
         this.cache.put(key, value);
     }
 
     @Override
     public void putIfAbsent(Object key, Object value) {
-        if (logger.isDebugEnabled() && !inTransaction()) {
-            logger.error("==========================================");
-            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
-            logger.error("==========================================");
-            new Exception().printStackTrace();
-            logger.error("==========================================");
-        }
+//        if (!inTransaction()) {
+//            logger.error("==========================================");
+//            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
+//            logger.error("==========================================");
+//            new Exception().printStackTrace();
+//            System.exit(1);
+//        }
         this.cache.putIfAbsent(key, value);
     }
 
@@ -245,50 +243,52 @@ public class InfinispanDataGrid implements DataGrid {
 
         this.cacheManager.defineConfiguration(CACHE_NAME, conf);
 
-        final DefaultCacheManager finalCacheManager = this.cacheManager;
-        this.cache = doWithinBackingTransactionIfNeeded(new Callable<Cache<Object, Object>>() {
-            @Override
-            public Cache<Object, Object> call() {
-                return finalCacheManager.getCache(CACHE_NAME).getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
-            }
-        });
+        this.cache = this.cacheManager.getCache(CACHE_NAME).getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
+
+//        final DefaultCacheManager finalCacheManager = this.cacheManager;
+//        this.cache = doWithinBackingTransactionIfNeeded(new Callable<Cache<Object, Object>>() {
+//            @Override
+//            public Cache<Object, Object> call() {
+//                return finalCacheManager.getCache(CACHE_NAME).getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
+//            }
+//        });
     }
 
-    /* used internally to wrap every access to the dataGrid in a transaction.
-    It only controls transactional operations when running 'control' operations,
-    such as bootstrapping.  The user of this interface InfinispanDataGrid is
-    responsible for starting data grid transactions whenever needed in all other
-    cases */
-    private <T> T doWithinBackingTransactionIfNeeded(Callable<T> command) {
-        boolean inTopLevel = false;
-        boolean commandFinished = false;
-
-        try {
-            if (!inTransaction()) {
-                beginTransaction();
-                inTopLevel = true;
-            }
-
-            T result = command.call();
-            commandFinished = true;
-
-            return result;
-        } catch (Exception e) {
-            throw new PersistenceException(e);
-        } finally {
-            if (inTopLevel) {
-                try {
-                    if (commandFinished) {
-                        commitTransaction();
-                    } else {
-                        rollbackTransaction();
-                    }
-                } catch (Exception e) {
-                    throw new PersistenceException(e);
-                }
-            }
-        }
-    }
+//    /* used internally to wrap every access to the dataGrid in a transaction.
+//    It only controls transactional operations when running 'control' operations,
+//    such as bootstrapping.  The user of this interface InfinispanDataGrid is
+//    responsible for starting data grid transactions whenever needed in all other
+//    cases */
+//    private <T> T doWithinBackingTransactionIfNeeded(Callable<T> command) {
+//        boolean inTopLevel = false;
+//        boolean commandFinished = false;
+//
+//        try {
+//            if (!inTransaction()) {
+//                beginTransaction();
+//                inTopLevel = true;
+//            }
+//
+//            T result = command.call();
+//            commandFinished = true;
+//
+//            return result;
+//        } catch (Exception e) {
+//            throw new PersistenceException(e);
+//        } finally {
+//            if (inTopLevel) {
+//                try {
+//                    if (commandFinished) {
+//                        commitTransaction();
+//                    } else {
+//                        rollbackTransaction();
+//                    }
+//                } catch (Exception e) {
+//                    throw new PersistenceException(e);
+//                }
+//            }
+//        }
+//    }
 
     private TransactionManager getTransactionManager() {
         return this.transactionManager;

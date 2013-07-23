@@ -7,8 +7,6 @@
  */
 package pt.ist.fenixframework.backend.jvstm.lf;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -23,7 +21,9 @@ import pt.ist.fenixframework.backend.jvstm.pstm.LocalCommitOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.RemoteCommitOnlyTransaction;
 
-import com.hazelcast.nio.DataSerializable;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.DataSerializable;
 
 public class CommitRequest implements DataSerializable {
 
@@ -43,15 +43,7 @@ public class CommitRequest implements DataSerializable {
     private final AtomicReference<ValidationStatus> validationStatus = new AtomicReference<ValidationStatus>(
             ValidationStatus.UNSET); // AtomicReference?
 
-//    /* The sentinel has a null transaction attribute. It is only used to ensure
-//    that there is a beginning to the commit requests queue */
-    private static boolean sentinelRequestCreated = false;
-
     public static synchronized CommitRequest makeSentinelRequest() {
-        if (sentinelRequestCreated) {
-            throw new Error("CommitRequest::makeSentinelRequest() invoked more than once!");
-        }
-        sentinelRequestCreated = true;
         return new CommitRequest() {
             private static final long serialVersionUID = 2L;
 
@@ -162,7 +154,7 @@ public class CommitRequest implements DataSerializable {
     }
 
     @Override
-    public void writeData(DataOutput out) throws IOException {
+    public void writeData(ObjectDataOutput out) throws IOException {
         out.writeInt(this.serverId);
         out.writeInt(this.txVersion);
         out.writeLong(this.id.getMostSignificantBits());
@@ -172,7 +164,7 @@ public class CommitRequest implements DataSerializable {
     }
 
     @Override
-    public void readData(DataInput in) throws IOException {
+    public void readData(ObjectDataInput in) throws IOException {
         this.serverId = in.readInt();
         this.txVersion = in.readInt();
         this.id = new UUID(in.readLong(), in.readLong());
@@ -209,7 +201,7 @@ public class CommitRequest implements DataSerializable {
         try {
             internalHandle();
         } catch (CommitException e) {
-            logger.debug("Commit Request {} throw CommitException. Exception will be discarded.", this.getId());
+            logger.debug("Commit Request {} threw CommitException. Exception will be discarded.", this.getId());
         } catch (Throwable e) {
             if (logger.isDebugEnabled()) {
                 logger.debug(
@@ -275,4 +267,5 @@ public class CommitRequest implements DataSerializable {
         // Always return the commit that really follows
         return this.getNext();
     }
+
 }

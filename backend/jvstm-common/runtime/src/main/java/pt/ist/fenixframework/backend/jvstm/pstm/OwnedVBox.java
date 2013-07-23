@@ -137,7 +137,7 @@ public abstract class OwnedVBox<E> extends VBox<E> {
             if (allocateOnly) {
                 // when a box is allocated, it is safe 
                 // to say that the version number is 0
-                return new ReferenceBox<T>(ownerObj, slotName, NOT_LOADED_BODY);
+                return new ReferenceBox<T>(ownerObj, slotName, VBox.<T> notLoadedBody());
             } else {
                 return new ReferenceBox<T>(ownerObj, slotName);
             }
@@ -145,7 +145,7 @@ public abstract class OwnedVBox<E> extends VBox<E> {
             if (allocateOnly) {
                 // when a box is allocated, it is safe 
                 // to say that the version number is 0
-                return new PrimitiveBox<T>(ownerObj, slotName, NOT_LOADED_BODY);
+                return new PrimitiveBox<T>(ownerObj, slotName, VBox.<T> notLoadedBody());
             } else {
                 return new PrimitiveBox<T>(ownerObj, slotName);
             }

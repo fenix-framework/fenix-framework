@@ -458,7 +458,8 @@ public class InfinispanRepository implements Repository {
 
     @Override
     public void reloadAttributeSingleVersion(VBox box, jvstm.VBoxBody body) {
-        throw new UnsupportedOperationException("not supported");
+        logger.debug("Reloading single version is not supported. Will reload entire vbox.");
+        reloadAttribute(box);
     }
 
     List<VersionedValue> getMostRecentVersions(final VBox vbox, final int desiredVersion) {
