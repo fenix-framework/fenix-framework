@@ -128,6 +128,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateSlotAccessors(Slot slot, PrintWriter out) {
         generateInfinispanGetter(slot, out);
+        generateInfinispanGhostGetter(slot, out);
+        generateInfinispanRegisterGet(slot.getName(), "registerGet" + capitalize(slot.getName()), out);
         generateInfinispanSetter(slot, out);
     }
 
@@ -233,6 +235,23 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, "return (oid == null || oid instanceof Externalization.NullClass ? null : (" + typeName
                 + ")InfinispanBackEnd.getInstance().fromOid(oid));");
         endMethodBody(out);
+        
+        // generate the ghost getter
+        newline(out);
+        printFinalMethod(out, "public", typeName, "get" + capitalize(slotName) + "Ghost");
+        startMethodBody(out);
+        generateGetterDAPStatement(dC, slotName, typeName, out);//DAP read stats update statement
+    
+        println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGetGhost(getOid().getFullId() + \":" + slotName + "\");");
+        print(out, "return (oid == null || oid instanceof Externalization.NullClass ? null : (" + typeName + ")InfinispanBackEnd.getInstance().fromOid(oid));");
+        endMethodBody(out);
+
+        // and the register method
+        newline(out);
+        printFinalMethod(out, "public", "void", "registerGet" + capitalize(slotName));
+        startMethodBody(out);
+        print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + slotName + "\");");
+        endMethodBody(out);
     }
 
     @Override
@@ -244,8 +263,12 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         String methodModifiers = getMethodModifiers();
         boolean isIndexed = role.isIndexed();
 
-        generateRoleSlotMethodsMultStarGetter(role, out);
+        generateRoleSlotMethodsMultStarGetter(role, out, false);
 
+        // generate ghost method
+        generateRoleSlotMethodsMultStarGetter(role, out, true);
+        generateRoleSlotMethodsMultStarRegisterGhostGet(role, out);
+        
         if (isIndexed) {
             generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName,
                     "get" + capitalize(role.getName()), typeName, slotName);
@@ -260,18 +283,27 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         generateIteratorMethod(role, out);
     }
 
-    protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out) {
+    protected void generateRoleSlotMethodsMultStarRegisterGhostGet(Role role, PrintWriter out) {
         newline(out);
-        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()));
+        printFinalMethod(out, "public", "void", "registerGet" + capitalize(role.getName()));
+        startMethodBody(out);
+        print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + role.getName() + "\");");
+        endMethodBody(out);
+    }
+    
+    protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out, boolean ghost) {
+        newline(out);
+        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()) + (ghost ? "Ghost" : ""));
         startMethodBody(out);
 
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 
         String collectionType = getDefaultCollectionFor(role);
         println(out, collectionType + " internalSet;");
-        println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + role.getName() + "\");");
+        println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet" + (ghost ? "Ghost" : "") + "(getOid().getFullId() + \":" + role.getName() + "\");");
         print(out, "if (oid == null || oid instanceof Externalization.NullClass)");
         newBlock(out);
+        
         // FIXME epic hack to get debugging on co-located trees
         if (collectionType.contains("ColocatedBPlusTree")) {
             println(out, "internalSet = new " + collectionType + "(\"" + role.getName() + "\");");
@@ -416,4 +448,19 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         return "pt.ist.fenixframework.dml.runtime.Role";
     }
 
+    protected void generateInfinispanGhostGetter(Slot slot, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName() + "Ghost"));
+        startMethodBody(out);
+        generateInfinispanGetterBody(slot, out, "cacheGetGhost");
+        endMethodBody(out);
+    }
+    
+    protected void generateInfinispanRegisterGet(String access, String methodName, PrintWriter out) {
+        newline(out);
+        printFinalMethod(out, "public", "void", methodName);
+        startMethodBody(out);
+        print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + access + "\");");
+        endMethodBody(out);
+    }
 }

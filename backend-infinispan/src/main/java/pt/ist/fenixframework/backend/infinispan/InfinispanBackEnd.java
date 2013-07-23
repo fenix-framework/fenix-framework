@@ -1,6 +1,16 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import eu.cloudtm.LocalityHints;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
+
+import javax.transaction.SystemException;
+
+import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
@@ -19,6 +29,7 @@ import org.infinispan.remoting.transport.Address;
 import org.infinispan.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
@@ -30,19 +41,16 @@ import pt.ist.fenixframework.backend.OID;
 import pt.ist.fenixframework.backend.infinispan.messaging.LocalMessagingQueue;
 import pt.ist.fenixframework.backend.infinispan.messaging.RemoteMessagingQueue;
 import pt.ist.fenixframework.backend.infinispan.messaging.ThreadPoolRequestProcessor;
-import pt.ist.fenixframework.core.*;
+import pt.ist.fenixframework.core.AbstractDomainObject;
+import pt.ist.fenixframework.core.DomainObjectAllocator;
+import pt.ist.fenixframework.core.Externalization;
+import pt.ist.fenixframework.core.IdentityMap;
+import pt.ist.fenixframework.core.SharedIdentityMap;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.messaging.MessagingQueue;
-
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import eu.cloudtm.LocalityHints;
 
 public class InfinispanBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanBackEnd.class);
@@ -54,6 +62,7 @@ public class InfinispanBackEnd implements BackEnd {
     protected final InfinispanTransactionManager transactionManager;
     protected Cache<String, Object> readCache;
     protected Cache<String, Object> writeCache;
+    protected Cache<String, Object> ghostCache;
     private LocalMessagingQueue localMessagingQueue;
     private String jgroupsMessagingConfigurationFile;
 
@@ -146,6 +155,7 @@ public class InfinispanBackEnd implements BackEnd {
             cacheManager.defineConfiguration(applicationName, domainCacheConfiguration);
             readCache = cacheManager.getCache(applicationName);
             writeCache = readCache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
+            ghostCache = readCache.getAdvancedCache().withFlags(Flag.READ_WITHOUT_REGISTERING);
         } catch (IOException ioe) {
             String message = "Error creating Infinispan cache manager with configuration file: " + config.getIspnConfigFile();
             if (logger.isErrorEnabled()) {
@@ -235,6 +245,25 @@ public class InfinispanBackEnd implements BackEnd {
         return (T) (obj instanceof Externalization.NullClass ? null : obj);
     }
 
+    /**
+     * Reads from Infinispan a value with a given key such that the transactional context does not keep 
+     * track of this key. This means that this read can never cause the trasactin to abort.
+     * This method is used by the code generated in the Domain Objects.
+     */
+    public final <T> T cacheGetGhost(String key) {
+	Object obj = ghostCache.getAdvancedCache().withFlags(Flag.READ_WITHOUT_REGISTERING).get(key);
+        return (T)(obj instanceof Externalization.NullClass ? null : obj);
+    }
+    
+    public final void registerGet(String key) {
+	AdvancedCache advCache = readCache.getAdvancedCache();
+	try {
+	    advCache.getTxTable().getLocalTransaction(advCache.getTransactionManager().getTransaction()).addReadKey(key);
+	} catch (SystemException e) {
+	    logger.error("Exception while getting the current JPA Transaction to register a key read", e);
+	}
+    }    
+    
     /**
      * WARNING: This is a backend-specific method. It was added as an hack to enable some tests by
      * Algorithmica and will be removed later. The programmer should not use this method directly,

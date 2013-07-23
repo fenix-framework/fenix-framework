@@ -46,6 +46,36 @@ relation AdtLeafNodeHasSibling {
     LeafNode playsRole next;
 }
 
+// BPlusTree with ghost reads
+class BPlusTreeGhost {}
+
+class AbstractNodeGhost {}
+
+class LeafNodeGhost extends AbstractNodeGhost {
+    GenericTreeMap<Comparable,java.io.Serializable> entries;
+}
+
+class InnerNodeGhost extends AbstractNodeGhost {
+    GenericTreeMap<Comparable,AbstractNodeGhost> subNodes;
+}
+
+relation AdtBPlusTreeGhostHasRootNode {
+    BPlusTreeGhost playsRole;
+    AbstractNodeGhost playsRole root;
+}
+
+relation AdtNodeGhostHasParent {
+    AbstractNodeGhost playsRole {
+		multiplicity *;
+    }
+    InnerNodeGhost playsRole parent;
+}
+
+relation AdtLeafNodeGhostHasSibling {
+    LeafNodeGhost playsRole previous;
+    LeafNodeGhost playsRole next;
+}
+
 
 /* BPlusTree backed by Arrays */
 
@@ -83,4 +113,35 @@ relation NodeArrayHasParent {
 relation LeafNodeArrayHasSibling {
     LeafNodeArray playsRole previous;
     LeafNodeArray playsRole next;
+}
+
+/* Ghost BPlusTree backed by Arrays */
+
+class BPlusTreeArrayGhost {}
+
+class AbstractNodeArrayGhost {}
+
+class LeafNodeArrayGhost extends AbstractNodeArrayGhost {
+    BackingArrays<java.io.Serializable> entries;
+}
+
+class InnerNodeArrayGhost extends AbstractNodeArrayGhost {
+    BackingArrays<AbstractNodeArrayGhost> subNodes;
+}
+
+relation BPlusTreeArrayGhostHasRootNode {
+    BPlusTreeArrayGhost playsRole;
+    AbstractNodeArrayGhost playsRole root;
+}
+
+relation NodeArrayGhostHasParent {
+    AbstractNodeArrayGhost playsRole {
+    	multiplicity *;
+    }
+    InnerNodeArrayGhost playsRole parent;
+}
+
+relation LeafNodeArrayGhostHasSibling {
+    LeafNodeArrayGhost playsRole previous;
+    LeafNodeArrayGhost playsRole next;
 }

@@ -327,7 +327,7 @@ public abstract class CodeGenerator {
         // constructors
         newline(out);
         generateBaseClassConstructors(domClass, out);
-
+        
         // slots getters/setters
         generateSlotsAccessors(domClass, out);
 
@@ -776,6 +776,8 @@ public abstract class CodeGenerator {
 
     protected void generateSlotAccessors(Slot slot, PrintWriter out) {
         generateSlotGetter(slot.getName(), slot.getTypeName(), out);
+        generateSlotGhostGetter(slot.getName(), slot.getTypeName(), out);
+        generateEmptyRegisterGet(slot.getName(), out);
         generateSlotSetter(slot, out);
     }
 
@@ -785,6 +787,10 @@ public abstract class CodeGenerator {
 
     protected void generateSlotGetter(String slotName, String typeName, PrintWriter out) {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
+    }
+    
+    protected void generateSlotGhostGetter(String slotName, String typeName, PrintWriter out) {
+	generateGetter("public", "get" + capitalize(slotName) + "Ghost", slotName, typeName, out);
     }
 
     protected void generateGetter(String visibility, String getterName, String slotName, String typeName, PrintWriter out) {
@@ -872,6 +878,9 @@ public abstract class CodeGenerator {
 
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
+        generateGetter("public", "get" + capitalize(slotName) + "Ghost", slotName, typeName, out);
+        generateEmptyRegisterGet(slotName, out);
+        
     }
 
     protected void generateRoleSlotMethodsMultOneSetter(Role role, PrintWriter out) {
@@ -1047,6 +1056,8 @@ public abstract class CodeGenerator {
 
     protected void generateRoleSlotMethodsMultStarGettersAndIterators(Role role, PrintWriter out) {
         generateRelationGetter("get" + capitalize(role.getName()), role, out);
+        generateRelationGetter("get" + capitalize(role.getName()) + "Ghost", role, out);
+        generateEmptyRegisterGet(role.getName(), out);
         generateIteratorMethod(role, out);
     }
 
@@ -1150,6 +1161,14 @@ public abstract class CodeGenerator {
         endMethodBody(out);
     }
 
+    protected void generateEmptyRegisterGet(String suffixName, PrintWriter out) {
+	newline(out);
+	printFinalMethod(out, "public", "void", "registerGet" + capitalize(suffixName));
+	startMethodBody(out);
+	// empty method on purpose
+	endMethodBody(out);
+    }
+    
     //     protected void generateMultiplicityConsistencyPredicate(Role role, PrintWriter out) {
     //         String slotName = role.getName();
     //         String slotAccessExpression = getSlotExpression(slotName);
