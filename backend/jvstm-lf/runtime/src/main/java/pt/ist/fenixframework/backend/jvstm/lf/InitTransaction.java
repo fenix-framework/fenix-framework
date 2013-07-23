@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import jvstm.ActiveTransactionsRecord;
 import jvstm.CommitException;
-import jvstm.Transaction;
+import jvstm.TransactionUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ import pt.ist.fenixframework.backend.jvstm.pstm.LockFreeTransaction;
 
 public class InitTransaction extends LockFreeTransaction {
 
-    private static final Logger logger = LoggerFactory.getLogger(LockFreeTransaction.class);
+    private static final Logger logger = LoggerFactory.getLogger(InitTransaction.class);
 
     /* used to store the most recent persisted version before the commit request
     is sent.  This way we later know that it's enough to lookup commit higher
@@ -32,21 +32,20 @@ public class InitTransaction extends LockFreeTransaction {
     }
 
     @Override
-    protected void upgradeWithPendingCommits(ActiveTransactionsRecord record) {
+    protected void upgradeWithPendingCommits() {
         // no-op
         /* we cannot help while initializing... :-) */
     }
 
     @Override
+    protected void preValidateLocally() {
+        // no-op
+        /* this requires helping and we can't do it while initializing */
+    }
+
+    @Override
     protected void helpedTryCommit(CommitRequest myRequest) throws CommitException {
         this.existingVersion = JvstmLockFreeBackEnd.getInstance().getRepository().getMaxCommittedTxNumber();
-
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
 
         super.helpedTryCommit(myRequest);
     }
@@ -72,23 +71,32 @@ public class InitTransaction extends LockFreeTransaction {
             if (commitId != null) {
                 // next try, if needed, will be for a higher version
                 versionToLookup++;
+            } else {
+                logger.info("Waiting for version {} to have a commitId", versionToLookup);
+                // wait a little before retrying
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         } while (!myRequestIdString.equals(commitId));
 
-        // perform the commit steps for this request so that others will see them
+        /* versionToLookup-1 is the version in which we found our initialization
+        commit persisted.  When we see that number set in the repository, it's
+        already committed, so just set versionToLoad-1 as the first one*/
 
-        // 1. validation and enqueue
+        // fill in this commit requests validation status, because others may see this as the sentinel
         assignCommitRecord(versionToLookup - 1, makeWriteSet());
         requestToProcess.setValid();
-        Transaction.mostRecentCommittedRecord.trySetNext(getCommitTxRecord());
 
-        // 2. write back
-        ensureCommitStatus();
+        // set the most recent record
+        TransactionUtils.initializeTxNumber(versionToLookup - 1);
 
-        // 3. we don't need it in the queue anymore
+        // we don't need it in the queue anymore (this is optional)
         LockFreeClusterUtils.tryToRemoveCommitRequest(requestToProcess);
 
         return requestToProcess;
-
     }
+
 }

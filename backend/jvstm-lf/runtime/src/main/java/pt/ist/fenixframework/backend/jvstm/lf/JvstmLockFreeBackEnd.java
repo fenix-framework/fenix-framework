@@ -77,6 +77,12 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
             LockFreeClusterUtils.waitForStartupFromFirstNode();
             localInit(thisConfig, serverId, firstNode);
         }
+
+        /* start a thread that can handle commits even it nothing else is going
+        on.  This is important to allow the entrance of new members.  Otherwise,
+        who would process their init transaction? */
+        new CommitHelper().start();
+        logger.debug("Started commit helper thread");
     }
 
     @Override
@@ -135,7 +141,6 @@ public class JvstmLockFreeBackEnd extends JVSTMBackEnd {
     protected void initializeJvstmTxNumber() {
         int maxTx = getRepository().getMaxCommittedTxNumber();
         if (maxTx >= 0) {
-            logger.info("Setting the last committed TX number to {}", maxTx);
             TransactionUtils.initializeTxNumber(maxTx);
         } else {
             throw new Error("Couldn't determine the last transaction number");

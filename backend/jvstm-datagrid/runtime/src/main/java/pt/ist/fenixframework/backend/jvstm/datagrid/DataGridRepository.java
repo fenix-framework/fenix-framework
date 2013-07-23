@@ -260,7 +260,7 @@ public class DataGridRepository implements Repository {
             public Boolean call() {
                 if (dataGrid.get(CACHE_IS_NEW) == null) {
                     dataGrid.put(CACHE_IS_NEW, "false");
-                    logger.info("Initialization marker not present. Data Drid is being initialized for the first time.");
+                    logger.info("Initialization marker not present. Data Grid is being initialized for the first time.");
                     return true;
                 } else {
                     logger.info("Initialization marker is present. Data Grid already existed.");
@@ -284,7 +284,8 @@ public class DataGridRepository implements Repository {
 
     @Override
     public void reloadAttributeSingleVersion(VBox box, jvstm.VBoxBody body) {
-        throw new UnsupportedOperationException("not supported");
+        logger.debug("Reloading single version is not supported. Will reload entire vbox.");
+        reloadAttribute(box);
     }
 
     List<VersionedValue> getMostRecentVersions(final VBox vbox, final int desiredVersion) {

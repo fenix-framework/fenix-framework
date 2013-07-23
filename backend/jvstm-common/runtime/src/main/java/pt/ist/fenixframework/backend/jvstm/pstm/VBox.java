@@ -23,10 +23,17 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
         };
     };
 
-    public static final VBoxBody NOT_LOADED_BODY = new VBoxBody(notLoadedValue(), 0, null);
-
     public static <T> T notLoadedValue() {
         return (T) NOT_LOADED_VALUE;
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static <T> VBoxBody<T> notLoadedBody() {
+        return new VBoxBody(notLoadedValue(), 0, null);
+    }
+
+    public static <T> boolean isBodyNullOrVersion0NotLoaded(VBoxBody<T> body) {
+        return (body == null || (body.version == 0 && body.value == notLoadedValue()));
     }
 
     protected VBox() {
@@ -74,12 +81,12 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
         return this.get();
     }
 
-    public VBoxBody<E> getOldestLoadedBody() {
-        if (this.body == VBox.NOT_LOADED_BODY || this.body == null) {
+    public VBoxBody<E> getOldestValidBody() {
+        if (isBodyNullOrVersion0NotLoaded(this.body)) {
             return null;
         } else {
             VBoxBody<E> oldest = this.body;
-            while ((oldest.next != VBox.NOT_LOADED_BODY) && (oldest.next != null)) {
+            while (isBodyNullOrVersion0NotLoaded(oldest.next)) {
                 oldest = oldest.next;
             }
             return oldest;
@@ -105,7 +112,7 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
     /* Reloads this box ensuring that it can provide at least information about 'requiredVersion'. */
     boolean reload(int requiredVersion) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Reload VBox: {}", this.getId());
+            logger.debug("Reload VBox {} for version {}", this.getId(), requiredVersion);
         }
 
         try {
@@ -140,7 +147,7 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
         }
         if (current == null) {
 //            logger.debug("Returning NOT_LOADED_BODY due to null.");
-            return NOT_LOADED_BODY; // VBox.NOT_LOADED_VALUE;
+            return notLoadedBody(); // VBox.NOT_LOADED_VALUE;
         }
 
 //        logger.debug("In VBox {}, found version {} with '{}'", this.getId(), current.version, current.value);

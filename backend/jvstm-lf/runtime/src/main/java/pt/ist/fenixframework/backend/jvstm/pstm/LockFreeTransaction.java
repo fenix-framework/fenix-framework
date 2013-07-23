@@ -45,13 +45,15 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 
     public LockFreeTransaction(ActiveTransactionsRecord record) {
         super(record);
-        upgradeWithPendingCommits(record);
+
+        logger.debug("Initial read version is {}", record.transactionNumber);
+
+        upgradeWithPendingCommits();
     }
 
-    protected void upgradeWithPendingCommits(ActiveTransactionsRecord record) {
-        logger.debug("Initial read version is {}", record.transactionNumber);
-        ActiveTransactionsRecord newRecord = processCommitRequests(record);
-        logger.debug("Done processing pending commit requests.  Most recent version is {}", record.transactionNumber);
+    protected void upgradeWithPendingCommits() {
+        ActiveTransactionsRecord newRecord = processCommitRequests();
+        logger.debug("Done processing pending commit requests.  Most recent version is {}", newRecord.transactionNumber);
 
         if (newRecord != this.activeTxRecord) {
             logger.debug("Upgrading read version to {}", newRecord.transactionNumber);
@@ -126,7 +128,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 
         // notice that body has changed if we went into the previous if 
 
-        logger.debug("Value for vbox {} is: {{}}", ((VBox) vbox).getId(), body.value);
+        logger.debug("Value for vbox {} is: '{}'", ((VBox) vbox).getId(), body.value);
 
         return super.getValueFromBody(vbox, body);
     }
@@ -153,20 +155,25 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     }
 
     /* this method processes the commit requests queue helping to apply as many
-    commits as it finds in the queue. This ensures that: (1) eventually the queue
+    commits as it finds in the queue. This is good for: (1) eventually the queue
     gets processed even if there are only read-only transactions; (2) the
     transactions make an effort to begin in the most up to date state of the
     world, which improves the chances of a write transaction committing successfully
     */
-    private ActiveTransactionsRecord processCommitRequests(ActiveTransactionsRecord record) {
+    private ActiveTransactionsRecord processCommitRequests() {
         /* by reading tail only after reading head, we ensure that tail is greater
         than or equal to the current Request*/
         CommitRequest currentRequest = LockFreeClusterUtils.getCommitRequestAtHead();
         CommitRequest tail = LockFreeClusterUtils.getCommitRequestsTail();
 
-//        if (currentRequest != tail) {
-        tryCommit(currentRequest, tail.getId());
-//        }
+        if (currentRequest != tail) {
+            try {
+                tryCommit(currentRequest, tail.getId());
+            } catch (CommitException e) {
+                /* just the ignore the possibility that the tail transaction that
+                I'm helping to commit may be invalid */
+            }
+        }
 
         /* return the newest record there is. This is safe, and we don't really
         need to invoke Transaction.getRecordForNewTransaction(), because the
@@ -215,10 +222,8 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
             checkConsistencyPredicates();
             alreadyChecked = null; // allow gc of set
 
-            // locally validate before continuing
-            ActiveTransactionsRecord lastSeenCommitted = helpCommitAll();
-            snapshotValidation(lastSeenCommitted.transactionNumber);
-            upgradeTx(lastSeenCommitted);
+            preValidateLocally();
+            logger.debug("Tx is locally valid");
 
             // persist the write set ahead of sending the commit request
             CommitRequest myRequest = makeCommitRequest();
@@ -233,6 +238,16 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
 // From TopLevelTransaction:
             upgradeTx(getCommitTxRecord());  // commitTxRecord was set by the helper LocalCommitOnlyTransaction 
         }
+    }
+
+    protected void preValidateLocally() {
+        // locally validate before continuing
+        logger.debug("Validating locally before broadcasting commit request");
+//            ActiveTransactionsRecord lastSeenCommitted = helpCommitAll();
+        ActiveTransactionsRecord lastSeenCommitted = processCommitRequests();
+
+        snapshotValidation(lastSeenCommitted.transactionNumber);
+        upgradeTx(lastSeenCommitted);
     }
 
     private static void persistWriteSet(CommitRequest commitRequest) {
@@ -366,222 +381,26 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
         }
     }
 
-//// LOCK-BASED STUFF BELOW
-//// LOCK-BASED STUFF BELOW
-//// LOCK-BASED STUFF BELOW
-//// LOCK-BASED STUFF BELOW
-//// LOCK-BASED STUFF BELOW
-//// LOCK-BASED STUFF BELOW
+    /* When this tx is performing local validation before sending its commit
+    record, it will helpcommit those in front of itself that are waiting for
+    write-back.  But, those need to persist their map txversion->commitId also,
+    so we override helpCommit here for that reason. */
+    @Override
+    protected void helpCommit(ActiveTransactionsRecord recordToCommit) {
+        if (!recordToCommit.isCommitted()) {
+            logger.debug("Helping to commit version {}", recordToCommit.transactionNumber);
 
-//    @Override
-//    protected void tryCommit() {
-//        if ((JvstmLockFreeBackEnd.getInstance().getNumMembers() > 1) && isWriteTransaction() && this.perTxValues.isEmpty()) {
-//            makeSpeculativeCommitRequest();
-//        }
-//        super.tryCommit();
-//    }
-//
-//    private void makeSpeculativeCommitRequest() {
-//        this.speculativeCommitRequest = new SpeculativeCommitRequest(DomainClassInfo.getServerId(), this.boxesWritten);
-//    }
-//
-//    @Override
-//    protected boolean validateCommit() {
-//        applyCommitRequests(this.activeTxRecord);
-//        return super.validateCommit();
-//    }
-//
-//    @Override
-//    protected Cons<VBoxBody> performValidCommit() {
-//        int mostRecentGlobalTxNum = LockFreeClusterUtils.globalLock();
-//
-//        boolean commitSuccess = false;
-//        try {
-//
-//            // re-validate, if needed, after updating local data
-//            ActiveTransactionsRecord myRecord = this.activeTxRecord;
-//            if (myRecord.transactionNumber != mostRecentGlobalTxNum) {
-//                updateToMostRecentCommit(myRecord, mostRecentGlobalTxNum);
-//
-//                // the cache may have been updated, so validate again
-//                logger.debug("Need to re-validate tx due to commit requests");
-//                if (!validateCommit()) { // we may use a variation here, because we know we don't need to recheck the queue 
-//                    logger.warn("Invalid commit. Restarting.");
-//                    TransactionUtils.signalCommitFail();
-//                    throw new AssertionError("Impossible condition - Commit fail signalled!");
-//                }
-//
-//                assert (this.activeTxRecord.transactionNumber == mostRecentGlobalTxNum);
-//
-//            }
-//
-//            Cons<VBoxBody> temp = super.performValidCommit();
-//
-//            /* It is safe to test the number of elements even if  */
-//            if (this.speculativeCommitRequest != null) {
-//                this.speculativeCommitRequest.setTxNumber(this.getNumber());
-//                logger.debug("Sending commit request created before lock");
-//                LockFreeClusterUtils.sendCommitInfoToOthers(this.speculativeCommitRequest);
-//            } else if (JvstmLockFreeBackEnd.getInstance().getNumMembers() > 1) {
-//                /* Only send the commit request if there is at least other member
-//                in the cluster.  This test is safe: Even if another member joins
-//                after the test detects only one member, then such new member
-//                will not loose this commit, because it is already written to the
-//                repository (and members register as commit request listeners
-//                **before** reading the last committed tx from the repository.*/
-//
-//                logger.debug("Creating commit request (within lock) to send others");
-//                LockFreeClusterUtils.sendCommitInfoToOthers(new OldCommitRequest(DomainClassInfo.getServerId(), this.getNumber(),
-//                        this.boxesWritten));
-//            }
-//            commitSuccess = true;
-//
-//            return temp;
-//        } finally {
-//            // this tx number has been updated after performing the valid commit
-//            LockFreeClusterUtils.globalUnlock((commitSuccess ? this.getNumber() : mostRecentGlobalTxNum));
-//        }
-//    }
-//
-//    /* this is a debug feature. This counter should only increase (although it
-//    may skip some numbers, because local commits are not enqueued). If the order
-//    of commit requests may become skewed then it's because the thread that processed
-//    the messages is being allowed to execute after the global global lock has been
-//    released */
-//    private static int debug_hazelcast_last_commit_seen = Transaction.getMostRecentCommitedNumber();
-//
-//    /* this method only returns after having applied all commit requests up until
-//    the mostRecentGlobalTxNum. This way we ensure that no earlier commit request
-//    is missing, which would cause us to commit a wrong tx version */
-//    public static ActiveTransactionsRecord updateToMostRecentCommit(ActiveTransactionsRecord currentCommitRecord,
-//            int mostRecentGlobalTxNum) {
-//        logger.debug("Must apply commits from {} up to {}", currentCommitRecord.transactionNumber, mostRecentGlobalTxNum);
-//
-//        while (currentCommitRecord.transactionNumber < mostRecentGlobalTxNum) {
-//            ActiveTransactionsRecord newCommitRecord = applyCommitRequests(currentCommitRecord);
-//            if (newCommitRecord == currentCommitRecord) {
-//                logger.debug("There was nothing yet to process");
-////                try {
-////                    Thread.sleep(3000);
-////                } catch (InterruptedException e) {
-////                    // TODO Auto-generated catch block
-////                    e.printStackTrace();
-////                }
-//                Thread.yield();
-//            } else {
-//                logger.debug("Processed commit requests up to {}", newCommitRecord.transactionNumber);
-//            }
-//            currentCommitRecord = newCommitRecord;
-//        }
-//
-//        return currentCommitRecord;
-//    }
-//
-//    /* this method tries to apply as many commit requests as it finds in the queue. if it fails to get the lock it returns without doing anything */
-//    public static ActiveTransactionsRecord tryToApplyCommitRequests(ActiveTransactionsRecord record) {
-//        logger.debug("Try to apply commit requests if any.");
-//        // avoid locking if queue is empty
-//        if (LockFreeClusterUtils.getCommitRequests().isEmpty()) {
-////            logger.debug("No commit requests to apply. Great.");
-//            /* we need to always return the most recent committed number:
-//
-//            - if inside a commit (already holding the commit lock), this ensures
-//            that we're able to detect record advances caused by the processing
-//            of the commit requests queue (e.g. while we were waiting to acquire
-//            the global lock) 
-//            
-//            - if starting a new transaction, it attempts to improve on the version
-//            we see (here it would be acceptable to just return the record had)
-//            */
-//            return findActiveRecordForNumber(record, Transaction.getMostRecentCommitedNumber());
-//        }
-//
-////        COMMIT_LOCK.lock(); // change to tryLock to allow the starting transactions to begin without waiting for a long commit (which in fact may already have processed the queue :-))  
-//        if (COMMIT_LOCK.tryLock()) {
-//            try {
-//                return applyCommitRequests(record);
-//            } finally {
-//                COMMIT_LOCK.unlock();
-//            }
-//        } else {
-//            return findActiveRecordForNumber(record, Transaction.getMostRecentCommitedNumber());
-//        }
-//    }
-//
-//    // must be called while holding the local commit lock
-//    private static ActiveTransactionsRecord applyCommitRequests(ActiveTransactionsRecord record) {
-//        int currentCommittedNumber = Transaction.getMostRecentCommitedNumber();
-//
-//        OldCommitRequest commitRequest;
-//        while ((commitRequest = LockFreeClusterUtils.getCommitRequests().poll()) != null) {
-//            int txNum = commitRequest.getTxNumber();
-//
-//            /* this may occur only when booting.  It happens when commit
-//            request messages arrive between the time the topic channel is
-//            established, but the most recent committed version hasn't been
-//            initialized yet.  When it gets initialized, it is typically to
-//            a greater value than the one from the txs that are enqueued. */
-//            if (txNum <= currentCommittedNumber) {
-//                logger.info("Ignoring outdated commit request txNum={} <= mostRecentNum={}.", txNum, currentCommittedNumber);
-//                continue;
-//            }
-//
-//            if (txNum <= debug_hazelcast_last_commit_seen) {
-//                logger.error("The commit request has a number({}) <= last_seen({})", txNum, debug_hazelcast_last_commit_seen);
-//                System.exit(-1);
-//                throw new Error("Inconsistent commit request. This should not happen");
-//            } else {
-//                logger.debug("remove me :-)");
-//                debug_hazelcast_last_commit_seen = txNum;
-//            }
-//            applyCommitRequest(commitRequest);
-//            currentCommittedNumber = commitRequest.getTxNumber();
-//        }
-//
-//        return findActiveRecordForNumber(record, currentCommittedNumber);
-//    }
-//
-//    // within commit lock
-//    private static void applyCommitRequest(OldCommitRequest commitRequest) {
-//        int serverId = commitRequest.getServerId();
-//        int txNumber = commitRequest.getTxNumber();
-//
-//        logger.debug("Applying commit request: serverId={}, txNumber={}", serverId, txNumber);
-//
-//        Cons<VBoxBody> newBodies = Cons.empty();
-//
-//        int size = commitRequest.getIds().length;
-//        for (int i = 0; i < size; i++) {
-//            String vboxId = commitRequest.getIds()[i];
-//
-//            JvstmLockFreeBackEnd backEnd = (JvstmLockFreeBackEnd) FenixFramework.getConfig().getBackEnd();
-//
-//            VBox vbox = backEnd.lookupCachedVBox(vboxId);
-//
-//            /* if the vbox is not found (not cached or reachable from a domain object), we don't need to update its
-//            slots. If a concurrent access to this objects causes it to be allocated
-//            and its slots reloaded, the most recent values will be fetched from
-//            the repository */
-//            if (vbox != null) {
-//                VBoxBody newBody = vbox.addNewVersion(txNumber);
-//                if (newBody != null) {
-//                    newBodies = newBodies.cons(newBody);
-//                }
-//            } else {
-//                logger.debug("Ignoring commit request for vbox not found in local memory: {}", vboxId);
-//            }
-//        }
-//
-//        ActiveTransactionsRecord newRecord = new ActiveTransactionsRecord(txNumber, newBodies);
-//        Transaction.setMostRecentActiveRecord(newRecord);
-//    }
-//
-//    private static ActiveTransactionsRecord findActiveRecordForNumber(ActiveTransactionsRecord rec, int number) {
-//        while (rec.transactionNumber < number) {
-//            rec = rec.getNext();
-//        }
-//
-//        return rec;
-//    }
+            int txVersion = recordToCommit.transactionNumber;
+            UUID commitId = CommitOnlyTransaction.txVersionToCommitIdMap.get(txVersion);
+
+            if (commitId != null) { // may be null if it was already persisted 
+                JvstmLockFreeBackEnd.getInstance().getRepository().mapTxVersionToCommitId(txVersion, commitId);
+                CommitOnlyTransaction.txVersionToCommitIdMap.remove(txVersion);
+            }
+            super.helpCommit(recordToCommit);
+        } else {
+            logger.debug("Version {} was already fully committed", recordToCommit.transactionNumber);
+        }
+    }
 
 }

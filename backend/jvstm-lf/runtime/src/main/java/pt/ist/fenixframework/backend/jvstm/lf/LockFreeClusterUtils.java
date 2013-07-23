@@ -12,9 +12,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.core.AtomicNumber;
+import pt.ist.fenixframework.backend.jvstm.pstm.CommitOnlyTransaction;
+
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IAtomicLong;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
@@ -30,10 +32,9 @@ public class LockFreeClusterUtils {
     private static HazelcastInstance HAZELCAST_INSTANCE;
 
     // commit requests that have not been applied yet
-    private static final AtomicReference<CommitRequest> commitRequestsHead = new AtomicReference<CommitRequest>(
-            CommitRequest.makeSentinelRequest());
+    private static final AtomicReference<CommitRequest> commitRequestsHead = new AtomicReference<CommitRequest>();
     // this avoids iterating from the head every time a commit request arrives.  Is only used by the (single) thread that enqueues requests
-    private static CommitRequest commitRequestsTail = commitRequestsHead.get();
+    private static CommitRequest commitRequestsTail = null;
 
 //    // where to append commit requests. may be outdated due to concurrency, so we need to be careful when updating this reference 
 //    private static volatile AtomicReference<CommitRequest> commitRequestTail = new AtomicReference<CommitRequest>(null);
@@ -44,12 +45,17 @@ public class LockFreeClusterUtils {
     }
 
     public static void initializeGroupCommunication(JvstmLockFreeConfig thisConfig) {
+        commitRequestsHead.set(CommitRequest.makeSentinelRequest());
+        commitRequestsTail = getCommitRequestAtHead();
+
         com.hazelcast.config.Config hzlCfg = thisConfig.getHazelcastConfig();
         HAZELCAST_INSTANCE = Hazelcast.newHazelcastInstance(hzlCfg);
 
         // register listener for commit requests
         registerListenerForCommitRequests();
     }
+
+//    private static final ReentrantLock ENQUEUE_LOCK = new ReentrantLock(true);
 
     private static void registerListenerForCommitRequests() {
         ITopic<CommitRequest> topic = getHazelcastInstance().getTopic(FF_COMMIT_TOPIC_NAME);
@@ -58,6 +64,9 @@ public class LockFreeClusterUtils {
 
             @Override
             public final void onMessage(Message<CommitRequest> message) {
+//                ENQUEUE_LOCK.lock();
+
+//                try {
                 CommitRequest commitRequest = message.getMessageObject();
 
                 logger.debug("Received commit request message. id={}, serverId={}", commitRequest.getId(),
@@ -65,9 +74,14 @@ public class LockFreeClusterUtils {
 
                 commitRequest.assignTransaction();
                 enqueueCommitRequest(commitRequest);
+//                } finally {
+//                    ENQUEUE_LOCK.unlock();
+//                }
             }
 
             private final void enqueueCommitRequest(CommitRequest commitRequest) {
+//                synchronized (LockFreeClusterUtils.FF_COMMIT_TOPIC_NAME) { // TODO REMOVE THIS !!!
+
                 CommitRequest last = commitRequestsTail;
 
                 // according to Hazelcast, onMessage() runs on a single thread, so this CAS should never fail
@@ -76,6 +90,7 @@ public class LockFreeClusterUtils {
                 }
                 // update last known tail
                 commitRequestsTail = commitRequest;
+//                }
             }
 
             private void enqueueFailed() throws AssertionError {
@@ -102,7 +117,7 @@ public class LockFreeClusterUtils {
     public static void notifyStartupComplete() {
         logger.info("Notify other nodes that startup completed");
 
-        AtomicNumber initMarker = getHazelcastInstance().getAtomicNumber("initMarker");
+        IAtomicLong initMarker = getHazelcastInstance().getAtomicLong("initMarker");
         initMarker.incrementAndGet();
     }
 
@@ -110,7 +125,7 @@ public class LockFreeClusterUtils {
         logger.info("Waiting for startup from first node");
 
         // check initMarker in AtomicNumber (value 1)
-        AtomicNumber initMarker = getHazelcastInstance().getAtomicNumber("initMarker");
+        IAtomicLong initMarker = getHazelcastInstance().getAtomicLong("initMarker");
 
         while (initMarker.get() == 0) {
             logger.debug("Waiting for first node to startup...");
@@ -130,7 +145,7 @@ public class LockFreeClusterUtils {
         to appear.  By reusing numbers with the cluster alive, we either don't
         reuse 0 or change the algorithm  that detects the first member */
 
-        AtomicNumber serverIdGenerator = getHazelcastInstance().getAtomicNumber("serverId");
+        IAtomicLong serverIdGenerator = getHazelcastInstance().getAtomicLong("serverId");
         long longId = serverIdGenerator.getAndAdd(1L);
 
         logger.info("Got (long) serverId: {}", longId);
@@ -195,7 +210,16 @@ public class LockFreeClusterUtils {
     }
 
     public static void shutdown() {
-        getHazelcastInstance().getLifecycleService().shutdown();
+        HazelcastInstance hzl = getHazelcastInstance();
+        hzl.getTopic(FF_COMMIT_TOPIC_NAME).destroy();
+        hzl.getLifecycleService().shutdown();
+
+        /* strangely this is here.  Perhaps we should move these clear()s
+        elsewhere. They are needed when the classes are reused via
+        FenixFramework.shutdown()/initialize().  I guess these maps should be
+        in this class not in COTx */
+        CommitOnlyTransaction.txVersionToCommitIdMap.clear();
+        CommitOnlyTransaction.commitsMap.clear();
     }
 
     /**

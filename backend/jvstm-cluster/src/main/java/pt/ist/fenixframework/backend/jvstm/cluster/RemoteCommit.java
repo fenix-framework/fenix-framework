@@ -7,8 +7,6 @@
  */
 package pt.ist.fenixframework.backend.jvstm.cluster;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,7 +21,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.hazelcast.nio.DataSerializable;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.DataSerializable;
 
 public class RemoteCommit implements DataSerializable {
     private static final long serialVersionUID = 1L;
@@ -67,7 +67,7 @@ public class RemoteCommit implements DataSerializable {
     }
 
     @Override
-    public void writeData(DataOutput out) throws IOException {
+    public void writeData(ObjectDataOutput out) throws IOException {
         out.writeInt(this.serverId);
         out.writeInt(this.txNumber);
 
@@ -86,7 +86,7 @@ public class RemoteCommit implements DataSerializable {
     }
 
     @Override
-    public void readData(DataInput in) throws IOException {
+    public void readData(ObjectDataInput in) throws IOException {
         this.serverId = in.readInt();
         this.txNumber = in.readInt();
 
@@ -157,14 +157,14 @@ public class RemoteCommit implements DataSerializable {
         }
 
         @Override
-        public void writeData(DataOutput out) throws IOException {
+        public void writeData(ObjectDataOutput out) throws IOException {
             out.writeInt(this.serverId);
             out.writeInt(this.txNumber);
             out.writeUTF(this.commitData);
         }
 
         @Override
-        public void readData(DataInput in) throws IOException {
+        public void readData(ObjectDataInput in) throws IOException {
             this.serverId = in.readInt();
             this.txNumber = in.readInt();
             String commitData = in.readUTF();
