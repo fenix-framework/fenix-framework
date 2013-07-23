@@ -390,7 +390,7 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
         if (!recordToCommit.isCommitted()) {
             logger.debug("Helping to commit version {}", recordToCommit.transactionNumber);
 
-            int txVersion = this.getCommitTxRecord().transactionNumber;
+            int txVersion = recordToCommit.transactionNumber;
             UUID commitId = CommitOnlyTransaction.txVersionToCommitIdMap.get(txVersion);
 
             if (commitId != null) { // may be null if it was already persisted 
