@@ -66,7 +66,7 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     }
 
     private void fixLeafNodeArraysListAfterSplit(LeafNodeArray leftNode, LeafNodeArray rightNode) {
-	LeafNodeArray myPrevious = this.getPrevious();
+        LeafNodeArray myPrevious = this.getPrevious();
         LeafNodeArray myNext = this.getNext();
 
         if (myPrevious != null) {
