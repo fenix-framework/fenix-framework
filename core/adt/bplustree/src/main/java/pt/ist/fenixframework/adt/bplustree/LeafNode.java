@@ -89,24 +89,14 @@ public class LeafNode extends LeafNode_Base {
     }
 
     private void fixLeafNodesListAfterSplit(LeafNode leftNode, LeafNode rightNode) {
-        LeafNode myPrevious = this.getPrevious();
-        LeafNode myNext = this.getNext();
-
-        if (myPrevious != null) {
-            leftNode.setPrevious(myPrevious);
-        }
-        rightNode.setPrevious(leftNode);
-        if (myNext != null) {
-            rightNode.setNext(myNext);
-        }
+        /* Because of the bidirectional sibling relation between leaf nodes,
+        whenever we update one side, the other will get automatically updated
+        as well.   The following code will correctly disconnect from any
+        previous/next (with regard to 'this') and set it to refer to the new
+        left and right nodes. */
+        leftNode.setPrevious(this.getPrevious());
+        rightNode.setNext(this.getNext());
         leftNode.setNext(rightNode);
-        
-        if (myPrevious != null) {
-            myPrevious.setNext(leftNode);
-        }
-        if (myNext != null) {
-            myNext.setPrevious(rightNode);
-        }   
     }
 
     @Override
