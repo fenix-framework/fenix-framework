@@ -82,9 +82,24 @@ public class LeafNode extends LeafNode_Base {
     }
 
     private void fixLeafNodesListAfterSplit(LeafNode leftNode, LeafNode rightNode) {
-	leftNode.setPrevious(this.getPrevious());
-	rightNode.setNext(this.getNext());
-	leftNode.setNext(rightNode);
+	LeafNode myPrevious = this.getPrevious();
+	LeafNode myNext = this.getNext();
+	
+	if (myPrevious != null) {
+	    leftNode.setPrevious(myPrevious);
+	}
+        rightNode.setPrevious(leftNode);
+        if (myNext != null) {
+            rightNode.setNext(myNext);
+        }
+        leftNode.setNext(rightNode);
+        
+        if (myPrevious != null) {
+            myPrevious.setNext(leftNode);
+        }
+        if (myNext != null) {
+            myNext.setPrevious(rightNode);
+        }
     }
 
     public AbstractNode remove(Comparable key) {
