@@ -89,7 +89,7 @@ public class LeafNode extends LeafNode_Base {
     }
 
     private void fixLeafNodesListAfterSplit(LeafNode leftNode, LeafNode rightNode) {
-        LeafNode myPrevious = this.getPrevious();
+	LeafNode myPrevious = this.getPrevious();
         LeafNode myNext = this.getNext();
 
         if (myPrevious != null) {
