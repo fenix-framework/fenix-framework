@@ -11,6 +11,8 @@ valueType java.util.TreeMap as GenericTreeMap {
 
 class BPlusTree {}
 
+class ColocatedBPlusTree extends BPlusTree {}
+
 class AbstractNode {}
 
 class LeafNode extends AbstractNode {
@@ -48,6 +50,8 @@ relation AdtLeafNodeHasSibling {
 
 // BPlusTree with ghost reads
 class BPlusTreeGhost {}
+
+class ColocatedBPlusTreeGhost extends BPlusTreeGhost {}
 
 class AbstractNodeGhost {}
 
