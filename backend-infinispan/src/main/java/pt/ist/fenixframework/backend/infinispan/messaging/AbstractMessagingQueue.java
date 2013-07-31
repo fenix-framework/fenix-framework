@@ -296,6 +296,32 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         globalStats.clear();
     }
 
+    @Override
+    public Map<String, String> printLocationInfo(Collection<String> localityHintsList) {
+        if (localityHintsList == null || localityHintsList.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<String, LocatedLocalityHint> intermediateResults = new HashMap<String, LocatedLocalityHint>();
+        Map<String, String> result = new HashMap<String, String>();
+        for (String hint : localityHintsList) {
+            try {
+                String owner = String.valueOf(locate(hint, true));
+                LocatedLocalityHint locatedLocalityHint = intermediateResults.get(owner);
+                if (locatedLocalityHint == null) {
+                    locatedLocalityHint = new LocatedLocalityHint();
+                    intermediateResults.put(owner, locatedLocalityHint);
+                }
+                locatedLocalityHint.localityHintList.add(hint);
+            } catch (Throwable e) {
+                //ops...
+            }
+        }
+        for (Map.Entry<String, LocatedLocalityHint> entry : intermediateResults.entrySet()) {
+            result.put(entry.getKey(), entry.getValue().prettyPrint());
+        }
+        return result;
+    }
+
     protected synchronized final State getState() {
         return state;
     }
@@ -487,6 +513,18 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
                 return 0;
             }
             return TimeUnit.NANOSECONDS.toMillis(serviceTime) * 1.0 / sync;
+        }
+    }
+
+    private class LocatedLocalityHint {
+        private final List<String> localityHintList;
+
+        private LocatedLocalityHint() {
+            localityHintList = new ArrayList<String>(4);
+        }
+
+        public final String prettyPrint() {
+            return localityHintList.size() + ": " + localityHintList;
         }
     }
 }

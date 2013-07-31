@@ -1,5 +1,8 @@
 package pt.ist.fenixframework.messaging;
 
+import java.util.Collection;
+import java.util.Map;
+
 /**
  * Locality Aware Request Dispatcher interface. This interface is {@link pt.ist.fenixframework.backend.BackEnd}
  * dependent and each backend should provide an implementation.
@@ -34,4 +37,10 @@ public interface MessagingQueue {
      * Shutdowns this queue.
      */
     void shutdown();
+
+    /**
+     * @param localityHintsList the locality hint list
+     * @return a map with the owner and the locality hints;
+     */
+    Map<String, String> printLocationInfo(Collection<String> localityHintsList);
 }

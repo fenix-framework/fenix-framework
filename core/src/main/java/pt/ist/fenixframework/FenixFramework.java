@@ -2,8 +2,7 @@ package pt.ist.fenixframework;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -597,5 +596,16 @@ public class FenixFramework {
 
     public static LocalityHints localityHintsFromExternalId(String externalId) {
         return getConfig().getBackEnd().getLocalityHints(externalId);
+    }
+
+    public static Map<String, String> printLocationInfo(String application, Collection<String> localityHintsList) {
+        if (application == null || application.isEmpty() || localityHintsList == null || localityHintsList.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        MessagingQueue messagingQueue = APPLICATION_LOAD_BALANCER.get(application);
+        if (messagingQueue == null) {
+            return Collections.emptyMap();
+        }
+        return messagingQueue.printLocationInfo(localityHintsList);
     }
 }
