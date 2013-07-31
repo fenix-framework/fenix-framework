@@ -199,13 +199,11 @@ public class OID implements Comparable<OID>, Serializable {
         }
         int firstSep = fullId.indexOf(OID_SEPARATOR);
         if (firstSep == -1) {
-            System.out.println("fullId: " + fullId);
-            return null;
+            return new LocalityHints();
         }
         int secondSep = fullId.indexOf(OID_SEPARATOR, firstSep + 1);
         if (secondSep == -1) {
-            System.out.println("second fullId: " + fullId);
-            return null;
+            return new LocalityHints();
         }
         String localityHintsStr = fullId.substring(secondSep + 1);
 
