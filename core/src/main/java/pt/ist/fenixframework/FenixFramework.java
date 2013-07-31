@@ -259,7 +259,7 @@ public class FenixFramework {
      * Attempt to automatically initialize the framework with the given set of properties.
      */
     private static boolean tryAutoInit(Properties props) {
-        Config config = null;
+        Config config;
         try {
             config = createConfigFromProperties(props);
         } catch (ConfigError e) {
@@ -274,9 +274,9 @@ public class FenixFramework {
 
     private static Config createConfigFromProperties(Properties props) {
         // get the config instance
-        Config config = null;
+        Config config;
         try {
-            Class<? extends Config> configClass = null;
+            Class<? extends Config> configClass;
             // first check for possible overriding in the config file
             String configClassName = props.getProperty(Config.PROPERTY_CONFIG_CLASS);
             if (configClassName != null) {
@@ -522,6 +522,9 @@ public class FenixFramework {
     }
 
     private static MessagingQueue getMessagingQueue(String appName) throws Exception {
+        if (appName == null) {
+            return null;
+        }
         MessagingQueue messagingQueue = APPLICATION_LOAD_BALANCER.get(appName);
         if (messagingQueue == null) {
             messagingQueue = getConfig().getBackEnd().createMessagingQueue(appName);
@@ -536,6 +539,9 @@ public class FenixFramework {
     }
 
     private static void shutdownMessagingQueue(String appName) {
+        if (appName == null) {
+            return;
+        }
         MessagingQueue messagingQueue = APPLICATION_LOAD_BALANCER.remove(appName);
         if (messagingQueue != null) {
             messagingQueue.shutdown();

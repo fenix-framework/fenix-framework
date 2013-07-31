@@ -344,12 +344,12 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
             }
         } else if (primaryBackup) {
             //full replicated or not locality hint.
-            address = primayBackup(consistentHash, localityHint, write);
+            address = primaryBackup(consistentHash, localityHint, write);
             if (logger.isTraceEnabled()) {
                 logger.trace("Locate owner for hint [" + localityHint + "]. Using primary backup: " + address);
             }
         } else {
-            address = toJGroupsAddress(consistentHash.locatePrimaryOwner(localityHint));
+            address = dynamic(consistentHash, localityHint);
             if (logger.isTraceEnabled()) {
                 logger.trace("Locate owner for hint [" + localityHint + "]. Primary owner: " + address);
             }
@@ -442,18 +442,25 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
     }
 
     private Address nextMember(List<org.infinispan.remoting.transport.Address> members) throws Exception {
-        if (members.size() == 0) {
+        if (members.size() == 1) {
             return toJGroupsAddress(members.get(0));
         }
-        int index;
+        int startIndex;
         synchronized (this) {
             nextIndex = (nextIndex + 1) % members.size();
-            index = nextIndex;
+            startIndex = nextIndex;
         }
-        return toJGroupsAddress(members.get(index));
+        Address address;
+        int index = startIndex;
+        do {
+            address = toJGroupsAddress(members.get(index));
+            index = (index + 1) % members.size();
+        } while (address == null && index != startIndex);
+
+        return address;
     }
 
-    private Address primayBackup(ConsistentHash consistentHash, String hint, boolean write) throws Exception {
+    private Address primaryBackup(ConsistentHash consistentHash, String hint, boolean write) throws Exception {
         if (write || consistentHash.getMembers().size() == 0) {
             return toJGroupsAddress(consistentHash.getMembers().get(0));
         } else if (hint == null) {
@@ -461,7 +468,29 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
             backups.remove(0);
             return nextMember(backups);
         }
-        return toJGroupsAddress(consistentHash.locatePrimaryOwner(hint));
+        List<org.infinispan.remoting.transport.Address> members = consistentHash.locateOwners(hint);
+        Address address = toJGroupsAddress(members.remove(0));
+        while (address == null && !members.isEmpty()) {
+            address = toJGroupsAddress(members.remove(0));
+        }
+        if (address == null) {
+            List<org.infinispan.remoting.transport.Address> backups = new ArrayList<org.infinispan.remoting.transport.Address>(consistentHash.getMembers());
+            backups.remove(0);
+            return nextMember(backups);
+        }
+        return address;
+    }
+
+    private Address dynamic(ConsistentHash consistentHash, String hint) throws Exception {
+        List<org.infinispan.remoting.transport.Address> members = new ArrayList<org.infinispan.remoting.transport.Address>(consistentHash.locateOwners(hint));
+        Address address = toJGroupsAddress(members.remove(0));
+        while (address == null && !members.isEmpty()) {
+            address = toJGroupsAddress(members.remove(0));
+        }
+        if (address == null) {
+            return nextMember(consistentHash.getMembers());
+        }
+        return address;
     }
 
     private <T> T send(Address address, SendBuffer buffer, RequestOptions requestOptions) throws Exception {
