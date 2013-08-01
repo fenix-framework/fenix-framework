@@ -16,8 +16,7 @@ import java.util.Map;
  */
 public class LocalityHints {
 
-    private static final String WITHOUT_GROUP_HINTS = "&";
-    private static final String WITH_GROUP_HINTS = "%";
+    private static final String LOCALITY_HINT_STRING = "&";
     private static volatile KeyFeatureManager keyFeatureManager;
     private final Map<String, String> keyValues;
 
@@ -50,49 +49,46 @@ public class LocalityHints {
 
     public static LocalityHints string2Hints(String hints) {
         String[] decode = StringUtils.decode(hints);
+        if (decode.length == 0 || decode.length < 3) {
+            return new LocalityHints();
+        }else if (!LOCALITY_HINT_STRING.equals(decode[0])) {
+            return new LocalityHints();
+        }
+
         Map<String, String> keyValues = new HashMap<String, String>();
 
-        if (WITH_GROUP_HINTS.equals(decode[0])) {
+        if (decode[1] != null) {
             keyValues.put(Constants.GROUP_ID, decode[1]);
+        }
+        if (decode[2] != null) {
+            keyValues.put(Constants.RELATION_NAME, decode[2]);
+        }
+        if (decode.length > 3) {
             if (keyFeatureManager != null) {
                 Feature[] features = keyFeatureManager.getAllKeyFeatures();
-                if (decode.length + 2 < features.length) {
-                    //invalid string
+                if (decode.length + 3 < features.length) {
+                    //invalid string: more features than registered
                     return new LocalityHints();
                 }
                 for (int i = 0; i < features.length; ++i) {
-                    keyValues.put(features[i].getName(), decode[i + 2]);
-                }
-            }
-        } else if (WITHOUT_GROUP_HINTS.equals(decode[0])) {
-            if (keyFeatureManager != null) {
-                Feature[] features = keyFeatureManager.getAllKeyFeatures();
-                if (decode.length + 1 < features.length) {
-                    //invalid string
-                    return new LocalityHints();
-                }
-                for (int i = 0; i < features.length; ++i) {
-                    keyValues.put(features[i].getName(), decode[i + 1]);
+                    keyValues.put(features[i].getName(), decode[i + 3]);
                 }
             }
         }
         return new LocalityHints(keyValues);
     }
 
-    public final synchronized void addHint(String key, String value) {
+    public final synchronized LocalityHints addHint(String key, String value) {
         this.keyValues.put(key, value);
+        return this;
     }
 
     public final String hints2String() {
         List<String> list = new ArrayList<String>(keyValues.size() + 2);
 
-        String groupId = keyValues.get(Constants.GROUP_ID);
-        if (groupId == null) {
-            list.add(WITHOUT_GROUP_HINTS);
-        } else {
-            list.add(WITH_GROUP_HINTS);
-            list.add(groupId);
-        }
+        list.add(LOCALITY_HINT_STRING);
+        list.add(keyValues.get(Constants.GROUP_ID));
+        list.add(keyValues.get(Constants.RELATION_NAME));
 
         if (keyFeatureManager != null) {
             for (Feature feature : keyFeatureManager.getAllKeyFeatures()) {
@@ -134,5 +130,10 @@ public class LocalityHints {
 
     public final boolean isEmpty() {
         return keyValues.isEmpty();
+    }
+
+    @Override
+    public LocalityHints clone() {
+        return new LocalityHints(new HashMap<String, String>(keyValues));
     }
 }

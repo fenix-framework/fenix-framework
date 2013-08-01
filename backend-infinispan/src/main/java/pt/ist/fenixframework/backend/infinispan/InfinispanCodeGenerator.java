@@ -306,7 +306,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         
         // FIXME epic hack to get debugging on co-located trees
         if (collectionType.contains("ColocatedBPlusTree")) {
-            println(out, "internalSet = new " + collectionType + "(\"" + role.getName() + "\");");
+            println(out, "internalSet = new " + collectionType + "(this.getLocalityHints(), \"" + role.getName() + "\");");
         } else {
             println(out, "internalSet = new " + collectionType + "();");
         }
