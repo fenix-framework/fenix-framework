@@ -12,9 +12,6 @@ import pt.ist.fenixframework.jmx.annotations.ManagedOperation;
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
  * @author Pedro Ruivo
@@ -26,17 +23,10 @@ public class ThreadPoolRequestProcessor {
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(0);
     private final ThreadPoolExecutor executorService;
     private final Queue<RequestRunnable> pendingRequests;
-    private final Object statLock = new Object();
-    private final AtomicInteger taskExecutedCounter;
-    private final AtomicLong lastReset;
-    private final AtomicLong syncServiceTime;
-    private final AtomicLong asyncServiceTime;
+    private volatile Stats stats;
 
     public ThreadPoolRequestProcessor(int coreThreads, int maxThreads, int keepAliveTime, final String applicationName) {
-        taskExecutedCounter = new AtomicInteger(0);
-        lastReset = new AtomicLong(System.nanoTime());
-        syncServiceTime = new AtomicLong(0);
-        asyncServiceTime = new AtomicLong(0);
+        stats = new Stats();
         JmxUtil.processInstance(this, applicationName, InfinispanBackEnd.BACKEND_NAME, null);
         this.pendingRequests = new LinkedBlockingDeque<RequestRunnable>();
         executorService = new ThreadPoolExecutor(coreThreads, maxThreads, keepAliveTime, TimeUnit.MILLISECONDS,
@@ -71,6 +61,7 @@ public class ThreadPoolRequestProcessor {
 
     public final void execute(String data, Response response) {
         executorService.execute(new RequestRunnable(response, data));
+        stats.taskReceived();
     }
 
     @ManagedAttribute(description = "Returns the core thread pool size.")
@@ -116,67 +107,71 @@ public class ThreadPoolRequestProcessor {
         return executorService.getActiveCount();
     }
 
-    @ManagedAttribute(description = "Returns the number of exeucted tasks since last reset.")
-    public final int getNumberOfExecutedTasks() {
-        return taskExecutedCounter.get();
+    @ManagedAttribute(description = "Returns the number of synchronous executed tasks since last reset.")
+    public final int getNumberOfExecutedSynTasks() {
+        return stats.getNumberOfSyncTasks();
+    }
+
+    @ManagedAttribute(description = "Returns the number of asynchronous executed tasks since last reset.")
+    public final int getNumberOfExecutedAsyncTasks() {
+        return stats.getNumberOfAsyncTasks();
     }
 
     @ManagedAttribute(description = "Return the time elapsed in seconds since last reset.")
     public final long getTimeElapsedSinceLastReset() {
-        return NANOSECONDS.toSeconds(System.nanoTime() - lastReset.get());
+        return stats.getTimeSinceLastReset();
     }
 
-    @ManagedAttribute(description = "Returns the average number of tasks executed per second since last reset")
-    public final double getAverageTasksExecutedPerSecond() {
-        synchronized (statLock) {
-            long timeElapsed = getTimeElapsedSinceLastReset();
-            if (timeElapsed > 0) {
-                return taskExecutedCounter.get() * 1.0 / timeElapsed;
-            }
-            return 0;
-        }
+    @ManagedAttribute(description = "Returns the average number of synchronous tasks executed per second since last reset")
+    public final double getAverageSyncTasksExecutedPerSecond() {
+        return stats.getNumberOfSyncTasksThroughput();
+    }
+
+    @ManagedAttribute(description = "Returns the average number of synchronous tasks executed per second since last reset")
+    public final double getAverageAsyncTasksExecutedPerSecond() {
+        return stats.getNumberOfAsyncTasksThroughput();
     }
 
     @ManagedAttribute(description = "Returns the average synchronous service time in milliseconds")
     public final double getAverageSyncServiceTime() {
-        synchronized (statLock) {
-            long tasks = taskExecutedCounter.get();
-            if (tasks > 0) {
-                return NANOSECONDS.toMillis(syncServiceTime.get()) * 1.0 / tasks;
-            }
-            return 0;
-        }
+        return stats.getAverageSyncTasksServiceTime();
+    }
+
+    @ManagedAttribute(description = "Returns the average synchronous total time in milliseconds")
+    public final double getAverageSyncTotalTime() {
+        return stats.getAverageSyncTasksTotalTime();
     }
 
     @ManagedAttribute(description = "Returns the average synchronous service time in milliseconds")
     public final double getAverageAsyncServiceTime() {
-        synchronized (statLock) {
-            long tasks = taskExecutedCounter.get();
-            if (tasks > 0) {
-                return NANOSECONDS.toMillis(asyncServiceTime.get()) * 1.0 / tasks;
-            }
-            return 0;
-        }
+        return stats.getAverageAsyncTasksServiceTime();
+    }
+
+    @ManagedAttribute(description = "Returns the average synchronous total time in milliseconds")
+    public final double getAverageAsyncTotalTime() {
+        return stats.getAverageAsyncTasksTotalTime();
+    }
+
+    @ManagedAttribute(description = "Returns the tasks arrival rate in tasks per second")
+    public final double getArrivalRate() {
+        return stats.getArrivalRate();
     }
 
     @ManagedOperation(description = "Reset the thread counter")
     public final void reset() {
-        synchronized (statLock) {
-            taskExecutedCounter.set(0);
-            lastReset.set(System.nanoTime());
-            syncServiceTime.set(0);
-            asyncServiceTime.set(0);
-        }
+        stats = new Stats();
     }
 
     private class RequestRunnable implements Runnable {
 
         private final Response response;
         private final String data;
+        private final long receivedTimeStamp;
 
         private RequestRunnable(Response response, String data) {
             this.response = response;
             this.data = data;
+            this.receivedTimeStamp = System.nanoTime();
         }
 
         @Override
@@ -204,14 +199,123 @@ public class ThreadPoolRequestProcessor {
                     response.send(throwable, true);
                 }
             } finally {
-                synchronized (statLock) {
-                    taskExecutedCounter.incrementAndGet();
-                    if (start != 0 && end != 0) {
-                        AtomicLong duration = response == null ? asyncServiceTime : syncServiceTime;
-                        duration.addAndGet(end - start);
-                    }
+                if (response == null) {
+                    stats.addAsyncStats(end - start, end - receivedTimeStamp);
+                } else {
+                    stats.addSyncStats(end - start, end - receivedTimeStamp);
                 }
             }
+        }
+    }
+
+    private class Stats {
+        private final long lastReset;
+        private int tasksReceived;
+        private int numberOfSyncTasks;
+        private long syncTasksTotalTime;
+        private long syncTasksServiceTime;
+        private int numberOfAsyncTasks;
+        private int asyncTasksTotalTime;
+        private int asyncTasksServiceTime;
+
+        private Stats() {
+            lastReset = System.nanoTime();
+        }
+
+        public synchronized final void taskReceived() {
+            tasksReceived++;
+        }
+
+        public synchronized final void addSyncStats(long serviceTime, long totalTime) {
+            numberOfSyncTasks++;
+            if (serviceTime > 0) {
+                syncTasksServiceTime += serviceTime;
+                syncTasksTotalTime += totalTime > 0 ? totalTime : serviceTime;
+            }
+        }
+
+        public synchronized final void addAsyncStats(long serviceTime, long totalTime) {
+            numberOfAsyncTasks++;
+            if (serviceTime > 0) {
+                asyncTasksServiceTime += serviceTime;
+                asyncTasksTotalTime += totalTime > 0 ? totalTime : serviceTime;
+            }
+        }
+
+        public synchronized double getAverageSyncTasksTotalTime() {
+            if (numberOfSyncTasks == 0) {
+                return 0;
+            }
+            return convertToMillis(syncTasksTotalTime * 1.0 / numberOfSyncTasks);
+        }
+
+        public synchronized double getAverageSyncTasksServiceTime() {
+            if (numberOfSyncTasks == 0) {
+                return 0;
+            }
+            return convertToMillis(syncTasksServiceTime * 1.0 / numberOfSyncTasks);
+        }
+
+        public synchronized double getAverageAsyncTasksTotalTime() {
+            if (numberOfAsyncTasks == 0) {
+                return 0;
+            }
+            return convertToMillis(asyncTasksTotalTime * 1.0 / numberOfAsyncTasks);
+        }
+
+        public synchronized double getAverageAsyncTasksServiceTime() {
+            if (numberOfAsyncTasks == 0) {
+                return 0;
+            }
+            return convertToMillis(asyncTasksServiceTime * 1.0 / numberOfAsyncTasks);
+        }
+
+        public synchronized int getNumberOfSyncTasks() {
+            return numberOfSyncTasks;
+        }
+
+        public synchronized int getNumberOfAsyncTasks() {
+            return numberOfAsyncTasks;
+        }
+
+        public synchronized final double getNumberOfSyncTasksThroughput() {
+            double timeSinceReset = convertToSeconds(timeSinceReset());
+            if (timeSinceReset == 0) {
+                return 0;
+            }
+            return numberOfSyncTasks / timeSinceReset;
+        }
+
+        public synchronized final double getNumberOfAsyncTasksThroughput() {
+            double timeSinceReset = convertToSeconds(timeSinceReset());
+            if (timeSinceReset == 0) {
+                return 0;
+            }
+            return numberOfAsyncTasks / timeSinceReset;
+        }
+
+        public synchronized double getArrivalRate() {
+            double timeSinceReset = convertToSeconds(timeSinceReset());
+            if (timeSinceReset == 0) {
+                return 0;
+            }
+            return tasksReceived * 1.0 / timeSinceReset;
+        }
+
+        public synchronized long getTimeSinceLastReset() {
+            return TimeUnit.NANOSECONDS.toSeconds(timeSinceReset());
+        }
+
+        private double convertToSeconds(double value) {
+            return value / 1E9;
+        }
+
+        private double convertToMillis(double value) {
+            return value / 1E3;
+        }
+
+        private long timeSinceReset() {
+            return System.nanoTime() - lastReset;
         }
     }
 }
