@@ -24,7 +24,8 @@ import java.util.concurrent.TimeUnit;
  * @author Pedro Ruivo
  * @since 2.8-cloudtm
  */
-public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncRequestHandler, MembershipListener {
+public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncRequestHandler, MembershipListener,
+        ThreadPoolRequestProcessor.LoadListener {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final Marshaller marshaller;
@@ -52,6 +53,9 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         messageDispatcher.setMembershipListener(this);
         messageDispatcher.setChannel(channel);
         messageDispatcher.asyncDispatching(true);
+        if (this.threadPoolRequestProcessor != null) {
+            this.threadPoolRequestProcessor.setLoadListener(this);
+        }
         state = State.BOOT;
     }
 
@@ -97,6 +101,9 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
             case UNSET_PB:
                 primaryBackup = false;
                 reply(response, null);
+                break;
+            case OVERLOADED:
+            case UNDERLOADED:
                 break;
             default:
                 handleData(from, type, buffer, response);
@@ -379,12 +386,13 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         return channel.getAddress();
     }
 
-    protected final <T> RspList<T> broadcastRequest(SendBuffer buffer, boolean sync) throws Exception {
+    protected final <T> RspList<T> broadcastRequest(SendBuffer buffer, boolean sync, boolean internal) throws Exception {
         buffer.flush();
         if (logger.isTraceEnabled()) {
-            logger.trace("Send " + (sync ? "sync" : "async") + " broadcast message with " + buffer.size() + " bytes.");
+            logger.trace("Send " + (sync ? "sync" : "async") + " broadcast message with " + buffer.size() + " bytes. " +
+                    "internal=" + internal);
         }
-        return messageDispatcher.castMessage(null, createMessage(null, buffer),
+        return messageDispatcher.castMessage(null, createMessage(null, buffer, sync, internal),
                 sync ? RequestOptions.SYNC() : RequestOptions.ASYNC());
     }
 
@@ -416,7 +424,7 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
                 SendBuffer buffer = new SendBuffer();
                 buffer.writeByte(MessageType.ADDRESS_REQUEST.type());
                 buffer.writeByteArray(marshaller.objectToByteBuffer(address));
-                RspList<Boolean> rspList = broadcastRequest(buffer, true);
+                RspList<Boolean> rspList = broadcastRequest(buffer, true, false);
                 for (Map.Entry<org.jgroups.Address, Rsp<Boolean>> entry : rspList.entrySet()) {
                     if (entry.getValue().wasReceived() && entry.getValue().getValue() == Boolean.TRUE) {
                         addressCache.add(address, entry.getKey());
@@ -498,13 +506,24 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         if (logger.isTraceEnabled()) {
             logger.trace("Send unicast message to " + address + " with " + buffer.size() + " bytes. " + requestOptions);
         }
-        return messageDispatcher.sendMessage(createMessage(address, buffer), requestOptions);
+        boolean sync = requestOptions.getMode() == ResponseMode.GET_ALL;
+        return messageDispatcher.sendMessage(createMessage(address, buffer, sync, false), requestOptions);
     }
 
-    private Message createMessage(Address destinaton, SendBuffer buffer) throws IOException {
+    private Message createMessage(Address destinaton, SendBuffer buffer, boolean sync, boolean internal) throws IOException {
         buffer.flush();
         Message message = new Message(destinaton, buffer.toByteArray());
-        return message.setFlag(Message.Flag.NO_TOTAL_ORDER, Message.Flag.OOB);
+        if (internal) {
+            //bypass flow control + bundling, and with fifo.
+            message.setFlag(Message.Flag.NO_FC, Message.Flag.DONT_BUNDLE, Message.Flag.NO_TOTAL_ORDER);
+        } else if (sync) {
+            //no fifo
+            message.setFlag(Message.Flag.NO_TOTAL_ORDER, Message.Flag.OOB);
+        } else {
+            //fifo
+            message.setFlag(Message.Flag.NO_TOTAL_ORDER);
+        }
+        return message;
     }
 
     private boolean canHandleRequests() {

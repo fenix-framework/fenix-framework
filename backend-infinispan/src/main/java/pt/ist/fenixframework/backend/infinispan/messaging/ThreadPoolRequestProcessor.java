@@ -23,11 +23,13 @@ public class ThreadPoolRequestProcessor {
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(0);
     private final ThreadPoolExecutor executorService;
     private final Queue<RequestRunnable> pendingRequests;
+    private final LoadManager loadManager;
     private volatile Stats stats;
 
-    public ThreadPoolRequestProcessor(int coreThreads, int maxThreads, int keepAliveTime, final String applicationName) {
-        stats = new Stats();
-        JmxUtil.processInstance(this, applicationName, InfinispanBackEnd.BACKEND_NAME, null);
+    public ThreadPoolRequestProcessor(int coreThreads, int maxThreads, int keepAliveTime, int maxQueueSize, int minQueueSize,
+                                      final String applicationName) {
+        this.stats = new Stats();
+        this.loadManager = new LoadManager(minQueueSize, maxQueueSize);
         this.pendingRequests = new LinkedBlockingDeque<RequestRunnable>();
         executorService = new ThreadPoolExecutor(coreThreads, maxThreads, keepAliveTime, TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>(),
@@ -41,14 +43,14 @@ public class ThreadPoolRequestProcessor {
                     @Override
                     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
                         if (r instanceof RequestRunnable) {
-                            pendingRequests.add((RequestRunnable) r);
+                            enqueueTask((RequestRunnable) r);
                             //to avoid some strange case in which the executor rejects the task and also
                             //removes all the threads.
                             executor.execute(new Runnable() {
                                 @Override
                                 public void run() {
                                     RequestRunnable requestRunnable;
-                                    while ((requestRunnable = pendingRequests.poll()) != null) {
+                                    while ((requestRunnable = dequeueTaskWithoutWait()) != null) {
                                         requestRunnable.execute();
                                     }
                                 }
@@ -57,6 +59,7 @@ public class ThreadPoolRequestProcessor {
                     }
                 }
         );
+        JmxUtil.processInstance(this, applicationName, InfinispanBackEnd.BACKEND_NAME, null);
     }
 
     public final void execute(String data, Response response) {
@@ -73,6 +76,10 @@ public class ThreadPoolRequestProcessor {
             "than zero.", method = MethodType.SETTER)
     public void setCoreThreads(int coreThreads) {
         executorService.setCorePoolSize(coreThreads);
+    }
+
+    public final void setLoadListener(LoadListener loadListener) {
+        loadManager.setLoadListener(loadListener);
     }
 
     @ManagedAttribute(description = "Returns the maximum thread pool size.")
@@ -162,6 +169,78 @@ public class ThreadPoolRequestProcessor {
         stats = new Stats();
     }
 
+    @ManagedAttribute(description = "Maximum queue size before sending an overload threshold reached notification")
+    public final int getMaxQueueSizeNotificationThreshold() {
+        return loadManager.getMaxQueueSizeThreshold();
+    }
+
+    @ManagedAttribute(description = "Maximum queue size before sending an overload threshold reached notification",
+            method = MethodType.SETTER)
+    public final void setMaxQueueSizeNotificationThreshold(int threshold) {
+        loadManager.setMaxQueueSizeThreshold(threshold);
+    }
+
+    @ManagedAttribute(description = "Minimum queue size before sending an underload threshold reached notification")
+    public final int getMinQueueSizeNotificationThreshold() {
+        return loadManager.getMinQueueSizeThreshold();
+    }
+
+    @ManagedAttribute(description = "Minimum queue size before sending an underload threshold reached notification",
+            method = MethodType.SETTER)
+    public final void setMinQueueSizeNotificationThreshold(int threshold) {
+        loadManager.setMinQueueSizeThreshold(threshold);
+    }
+
+    @ManagedAttribute(description = "Returns true if this queue is overloaded")
+    public final boolean isOverloaded() {
+        return loadManager.isOverLoaded();
+    }
+
+    @ManagedAttribute(description = "Returns true if this queue is underloaded")
+    public final boolean isUnderloaded() {
+        return loadManager.isUnderLoaded();
+    }
+
+    /**
+     * test only
+     */
+    public final int getLoadManagerQueueSize() {
+        return loadManager.getQueueSize();
+    }
+
+    /**
+     * test only
+     */
+    public final void simulateEnqueueTask() {
+        loadManager.notifyTaskEnqueued();
+    }
+
+    /**
+     * test only
+     */
+    public final void simulateDequeueTask() {
+        loadManager.notifyTaskDequeued();
+    }
+
+    private void enqueueTask(RequestRunnable requestRunnable) {
+        loadManager.notifyTaskEnqueued();
+        pendingRequests.add(requestRunnable);
+    }
+
+    private RequestRunnable dequeueTaskWithoutWait() {
+        RequestRunnable requestRunnable = pendingRequests.poll();
+        if (requestRunnable != null) {
+            loadManager.notifyTaskDequeued();
+        }
+        return requestRunnable;
+    }
+
+    public static interface LoadListener {
+        void overloaded();
+
+        void underloaded();
+    }
+
     private class RequestRunnable implements Runnable {
 
         private final Response response;
@@ -178,7 +257,7 @@ public class ThreadPoolRequestProcessor {
         public void run() {
             execute();
             RequestRunnable requestRunnable;
-            while ((requestRunnable = pendingRequests.poll()) != null) {
+            while ((requestRunnable = dequeueTaskWithoutWait()) != null) {
                 requestRunnable.execute();
             }
         }
@@ -316,6 +395,86 @@ public class ThreadPoolRequestProcessor {
 
         private long timeSinceReset() {
             return System.nanoTime() - lastReset;
+        }
+    }
+
+    private class LoadManager {
+        private LoadListener loadListener;
+        private int maxQueueSizeThreshold;
+        private int minQueueSizeThreshold;
+        private int queueSize;
+        private boolean overLoaded;
+        private boolean underLoaded;
+
+        public LoadManager(int minQueueSizeThreshold, int maxQueueSizeThreshold) {
+            this.maxQueueSizeThreshold = maxQueueSizeThreshold;
+            this.minQueueSizeThreshold = minQueueSizeThreshold;
+            this.queueSize = 0;
+            this.overLoaded = false;
+            this.underLoaded = true;
+            checkThresholds();
+        }
+
+        public synchronized final void notifyTaskEnqueued() {
+            if (++queueSize >= maxQueueSizeThreshold && !overLoaded) {
+                overLoaded = true;
+                underLoaded = false;
+                loadListener.overloaded();
+            }
+        }
+
+        public synchronized final void notifyTaskDequeued() {
+            if (--queueSize <= minQueueSizeThreshold && !underLoaded) {
+                overLoaded = false;
+                underLoaded = true;
+                loadListener.underloaded();
+            }
+        }
+
+        public synchronized final void setLoadListener(LoadListener loadListener) {
+            this.loadListener = loadListener;
+        }
+
+        public synchronized final int getMaxQueueSizeThreshold() {
+            return maxQueueSizeThreshold;
+        }
+
+        public synchronized final void setMaxQueueSizeThreshold(int maxQueueSizeThreshold) {
+            this.maxQueueSizeThreshold = maxQueueSizeThreshold;
+            checkThresholds();
+        }
+
+        public synchronized final int getMinQueueSizeThreshold() {
+            return minQueueSizeThreshold;
+        }
+
+        public synchronized final void setMinQueueSizeThreshold(int minQueueSizeThreshold) {
+            this.minQueueSizeThreshold = minQueueSizeThreshold;
+            checkThresholds();
+        }
+
+        public synchronized final int getQueueSize() {
+            return queueSize;
+        }
+
+        public synchronized final boolean isOverLoaded() {
+            return overLoaded;
+        }
+
+        public synchronized final boolean isUnderLoaded() {
+            return underLoaded;
+        }
+
+        private void checkThresholds() {
+            if (minQueueSizeThreshold <= 0) {
+                minQueueSizeThreshold = 1;
+            }
+            if (maxQueueSizeThreshold <= 0) {
+                maxQueueSizeThreshold = 1;
+            }
+            if (minQueueSizeThreshold >= maxQueueSizeThreshold) {
+                maxQueueSizeThreshold = minQueueSizeThreshold + 1;
+            }
         }
     }
 }

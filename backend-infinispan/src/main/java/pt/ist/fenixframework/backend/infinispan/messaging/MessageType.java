@@ -10,7 +10,9 @@ public enum MessageType {
     WORK_REQUEST,
     ADDRESS_REQUEST,
     SET_PB,
-    UNSET_PB;
+    UNSET_PB,
+    OVERLOADED,
+    UNDERLOADED;
     public final byte type() {
         return (byte) this.ordinal();
     }

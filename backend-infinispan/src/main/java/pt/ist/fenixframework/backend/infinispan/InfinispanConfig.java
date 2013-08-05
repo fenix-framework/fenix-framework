@@ -53,6 +53,8 @@ public class InfinispanConfig extends HibernateSearchConfig {
     protected int coreThreadPoolSize = 1;
     protected int maxThreadPoolSize = 8;
     protected int keepAliveTime = 60000;
+    protected int maxQueueSizeLoadNotification = 100;
+    protected int minQueueSizeLoadNotification = 10;
     protected String messagingJgroupsFile = "jgrp-messaging.xml";
     /**
      * for test only
@@ -160,6 +162,30 @@ public class InfinispanConfig extends HibernateSearchConfig {
 
     public final void keepAliveTimeFromString(String value) {
         setKeepAliveTime(Integer.valueOf(value));
+    }
+
+    public final int maxQueueSizeLoadNotification() {
+        return maxQueueSizeLoadNotification;
+    }
+
+    public final void setMaxQueueSizeLoadNotification(int maxQueueSizeLoadNotification) {
+        this.maxQueueSizeLoadNotification = maxQueueSizeLoadNotification;
+    }
+
+    public final void maxQueueSizeLoadNotificationFromString(String value) {
+        setMaxQueueSizeLoadNotification(Integer.valueOf(value));
+    }
+
+    public final int minQueueSizeLoadNotification() {
+        return minQueueSizeLoadNotification;
+    }
+
+    public final void setMinQueueSizeLoadNotification(int minQueueSizeLoadNotification) {
+        this.minQueueSizeLoadNotification = minQueueSizeLoadNotification;
+    }
+
+    public final void minQueueSizeLoadNotificationFromString(String value) {
+        setMinQueueSizeLoadNotification(Integer.valueOf(value));
     }
 
     public final String messagingJgroupsFile() {

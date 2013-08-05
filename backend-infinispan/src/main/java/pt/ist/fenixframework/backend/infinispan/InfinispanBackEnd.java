@@ -213,13 +213,11 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     private void setupMessaging(InfinispanConfig config) throws Exception {
-        int coreThreads = config.coreThreadPoolSize();
-        int maxThreads = config.maxThreadPoolSize();
-        int keepAlive = config.keepAliveTime();
         this.jgroupsMessagingConfigurationFile = config.messagingJgroupsFile();
         String applicationName = config.getAppName();
-        ThreadPoolRequestProcessor threadPoolRequestProcessor = new ThreadPoolRequestProcessor(coreThreads, maxThreads,
-                keepAlive, applicationName);
+        ThreadPoolRequestProcessor threadPoolRequestProcessor = new ThreadPoolRequestProcessor(
+                config.coreThreadPoolSize(), config.maxThreadPoolSize(), config.keepAliveTime(),
+                config.maxQueueSizeLoadNotification(), config.minQueueSizeLoadNotification(), applicationName);
         localMessagingQueue = new LocalMessagingQueue(applicationName, readCache, jgroupsMessagingConfigurationFile,
                 threadPoolRequestProcessor);
     }
@@ -246,15 +244,15 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     /**
-     * Reads from Infinispan a value with a given key such that the transactional context does not keep 
-     * track of this key. This means that this read can never cause the trasactin to abort.
+     * Reads from Infinispan a value with a given key such that the transactional context does not keep
+     * track of this key. This means that this read can never cause the transaction to abort.
      * This method is used by the code generated in the Domain Objects.
      */
     public final <T> T cacheGetGhost(String key) {
 	Object obj = ghostCache.getAdvancedCache().withFlags(Flag.READ_WITHOUT_REGISTERING).get(key);
         return (T)(obj instanceof Externalization.NullClass ? null : obj);
     }
-    
+
     public final void registerGet(String key) {
 	AdvancedCache advCache = readCache.getAdvancedCache();
 	try {
@@ -262,8 +260,8 @@ public class InfinispanBackEnd implements BackEnd {
 	} catch (SystemException e) {
 	    logger.error("Exception while getting the current JPA Transaction to register a key read", e);
 	}
-    }    
-    
+    }
+
     /**
      * WARNING: This is a backend-specific method. It was added as an hack to enable some tests by
      * Algorithmica and will be removed later. The programmer should not use this method directly,

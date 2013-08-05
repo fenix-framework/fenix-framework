@@ -32,6 +32,16 @@ public class RemoteMessagingQueue extends AbstractMessagingQueue {
     }
 
     @Override
+    public void overloaded() {
+        //no-op
+    }
+
+    @Override
+    public void underloaded() {
+        //no-op
+    }
+
+    @Override
     protected final void innerInit() {
         //nothing to initialize
     }
@@ -50,7 +60,7 @@ public class RemoteMessagingQueue extends AbstractMessagingQueue {
                 }
                 SendBuffer buffer = new SendBuffer();
                 buffer.writeByte(MessageType.CH_REQUEST.type());
-                RspList<?> rspList = broadcastRequest(buffer, true);
+                RspList<?> rspList = broadcastRequest(buffer, true, false);
                 for (Rsp<?> rsp : rspList.values()) {
                     Object response = rsp.getValue();
                     if (response != null && response instanceof byte[]) {

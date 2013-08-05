@@ -18,7 +18,6 @@ import pt.ist.fenixframework.jmx.annotations.MBean;
 import pt.ist.fenixframework.jmx.annotations.ManagedAttribute;
 import pt.ist.fenixframework.jmx.annotations.ManagedOperation;
 
-import java.io.IOException;
 import java.util.Collections;
 
 /**
@@ -60,15 +59,30 @@ public class LocalMessagingQueue extends AbstractMessagingQueue implements Reque
         }
         boolean primaryBackup = protocol.equals(PassiveReplicationCommitProtocol.UID);
         try {
-            SendBuffer buffer = new SendBuffer();
-            buffer.writeByte(primaryBackup ? MessageType.SET_PB.type() : MessageType.UNSET_PB.type());
-            broadcastRequest(buffer, false);
-        } catch (IOException e) {
-            logger.error("Error setting protocol to " + protocol, e);
+            broadcastRequest(SendBuffer.notification(primaryBackup ? MessageType.SET_PB : MessageType.UNSET_PB),
+                    false, true);
         } catch (Exception e) {
             logger.error("Error setting protocol to " + protocol, e);
         }
 
+    }
+
+    @Override
+    public void overloaded() {
+        try {
+            broadcastRequest(SendBuffer.notification(MessageType.OVERLOADED), false, true);
+        } catch (Exception e) {
+            logger.error("Error notifying overload thread pool", e);
+        }
+    }
+
+    @Override
+    public void underloaded() {
+        try {
+            broadcastRequest(SendBuffer.notification(MessageType.UNDERLOADED), false, true);
+        } catch (Exception e) {
+            logger.error("Error notifying underloaded thread pool", e);
+        }
     }
 
     @Override
@@ -157,7 +171,7 @@ public class LocalMessagingQueue extends AbstractMessagingQueue implements Reque
         SendBuffer sendBuffer = new SendBuffer();
         sendBuffer.writeByte(MessageType.CH_UPDATE.type());
         sendBuffer.writeByteArray(marshaller.objectToByteBuffer(consistentHash));
-        broadcastRequest(sendBuffer, false);
+        broadcastRequest(sendBuffer, false, true);
         sendBuffer.close();
     }
 
