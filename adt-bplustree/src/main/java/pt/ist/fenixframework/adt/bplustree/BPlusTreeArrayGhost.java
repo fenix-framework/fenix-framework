@@ -168,6 +168,11 @@ public class BPlusTreeArrayGhost<T extends Serializable> extends BPlusTreeArrayG
     public T get(Comparable key) {
         return ((AbstractNodeArrayGhost<T>) this.getRoot()).get(key);
     }
+    
+    @Override
+    public T getCached(boolean forceMiss, Comparable key) {
+	return ((AbstractNodeArrayGhost<T>) this.getRootCached(forceMiss)).get(forceMiss, key);
+    }
 
     /**
      * Return the value at the index-th position (zero-based).
@@ -210,6 +215,11 @@ public class BPlusTreeArrayGhost<T extends Serializable> extends BPlusTreeArrayG
     public Iterator iterator() {
         return this.getRoot().iterator();
     }
+    
+    @Override
+    public Iterator iteratorCached(boolean forceMiss) {
+        return this.getRootCached(forceMiss).iteratorCached(forceMiss);
+    } 
 
     public boolean myEquals(BPlusTreeArrayGhost other) {
         Iterator<AbstractDomainObject> it1 = this.iterator();

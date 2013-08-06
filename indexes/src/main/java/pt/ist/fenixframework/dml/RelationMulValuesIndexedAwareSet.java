@@ -52,6 +52,10 @@ public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject,E2
 	return new UnmodifiableDomainBaseSet<E2>(multiValueMap.get(key));
     }
     
+    public Set<E2> getValuesCached(boolean forceMiss, Comparable<?> key) {
+	return new UnmodifiableDomainBaseSet<E2>(multiValueMap.getCached(forceMiss, key));
+    }
+    
     @Override
     public boolean contains(Object o) {
 	if (o instanceof AbstractDomainObject) {

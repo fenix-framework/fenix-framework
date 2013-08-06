@@ -111,6 +111,11 @@ public class UnmodifiableDomainBaseSet<T extends AbstractDomainObject> implement
         public T get(Comparable key) {
             return null;
         }
+        
+        @Override
+        public T getCached(boolean forceMiss, Comparable key) {
+            return null;
+        }
 
         @Override
         public boolean putIfMissing(Comparable key, T value) {
@@ -139,6 +144,26 @@ public class UnmodifiableDomainBaseSet<T extends AbstractDomainObject> implement
 
         @Override
         public Iterator<T> iterator() {
+            return new Iterator<T>() {
+                @Override
+                public boolean hasNext() {
+                    return false;
+                }
+
+                @Override
+                public T next() {
+                    throw new NoSuchElementException();
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+        
+        @Override
+        public Iterator<T> iteratorCached(boolean forceMiss) {
             return new Iterator<T>() {
                 @Override
                 public boolean hasNext() {

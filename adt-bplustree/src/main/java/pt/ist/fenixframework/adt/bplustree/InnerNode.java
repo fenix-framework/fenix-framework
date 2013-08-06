@@ -405,6 +405,11 @@ public class InnerNode extends InnerNode_Base {
     	return findSubNode(key).get(key);
     }
 
+    @Override
+    public Serializable get(boolean forceMiss, Comparable key) {
+	return findSubNode(forceMiss, key).get(forceMiss, key);
+    }
+    
     // travels to the leftmost leaf and goes from there;
     @Override
     public Serializable getIndex(int index) {
@@ -424,6 +429,16 @@ public class InnerNode extends InnerNode_Base {
 
     private AbstractNode findSubNode(Comparable key) {
     	for (Map.Entry<Comparable,AbstractNode> subNode : this.getSubNodes().entrySet()) {
+    	    Comparable splitKey = subNode.getKey();
+    	    if (BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY.compare(splitKey, key) > 0) { // this will eventually be true because the LAST_KEY is greater than all
+    		return subNode.getValue();
+    	    }
+    	}
+    	throw new RuntimeException("findSubNode() didn't find a suitable sub-node!?");
+    }
+    
+    private AbstractNode findSubNode(boolean forceMiss, Comparable key) {
+    	for (Map.Entry<Comparable,AbstractNode> subNode : this.getSubNodesCached(forceMiss).entrySet()) {
     	    Comparable splitKey = subNode.getKey();
     	    if (BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY.compare(splitKey, key) > 0) { // this will eventually be true because the LAST_KEY is greater than all
     		return subNode.getValue();
@@ -455,6 +470,11 @@ public class InnerNode extends InnerNode_Base {
     @Override
     public Iterator iterator() {
     	return this.getSubNodes().firstEntry().getValue().iterator();
+    }
+    
+    @Override
+    public Iterator iteratorCached(boolean forceMiss) {
+    	return this.getSubNodesCached(forceMiss).firstEntry().getValue().iteratorCached(forceMiss);
     }
 
     @Override

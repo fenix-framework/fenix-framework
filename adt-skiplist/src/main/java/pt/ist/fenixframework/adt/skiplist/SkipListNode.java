@@ -26,6 +26,10 @@ public class SkipListNode<T extends Serializable> extends SkipListNode_Base {
 	return getForward().forward[level];
     }
     
+    public SkipListNode getForwardCached(boolean forceMiss, int level) {
+	return getForwardCached(forceMiss).forward[level];
+    }
+    
     private SkipListNode[] copyForward() {
 	SkipListNode[] arr = getForward().forward;
 	int size = arr.length;

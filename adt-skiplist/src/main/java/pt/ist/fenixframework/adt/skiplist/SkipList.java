@@ -102,6 +102,31 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
 	}
     }
     
+    @Override
+    public T getCached(boolean forceMiss, Comparable key) {
+	boolean result;
+
+	SkipListNode node = getHeadCached(forceMiss);
+	int level = getLevelCached(forceMiss);
+
+	Comparable oid = node.getOid();
+
+	for (int i = level; i >= 0; i--) {
+	    SkipListNode next = node.getForwardCached(forceMiss, i);
+	    while ((oid = next.getKeyValueCached(forceMiss).key).compareTo(key) < 0) {
+		node = next;
+		next = node.getForwardCached(forceMiss, i);
+	    }
+	}
+	node = node.getForwardCached(forceMiss, 0);
+
+	if (node.getKeyValueCached(forceMiss).key.compareTo(key) == 0) {
+	    return (T) node.getKeyValueCached(forceMiss).value;
+	} else {
+	    return null;
+	}
+    }
+    
     public boolean removeKey(Comparable toRemove) {
 	boolean result;
 
@@ -171,6 +196,34 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
 	};
     }
 
+    public Iterator<T> iteratorCached(final boolean forceMiss) {
+	return new Iterator<T>() {
+
+	    private SkipListNode iter = getHeadCached(forceMiss).getForwardCached(forceMiss, 0); // skip head tomb
+
+	    @Override
+	    public boolean hasNext() {
+		return iter.getForwardCached(forceMiss, 0) != null;
+	    }
+
+	    @Override
+	    public T next() {
+		if (iter.getForwardCached(forceMiss, 0) == null) {
+		    throw new NoSuchElementException();
+		}
+		Object value = iter.getKeyValueCached(forceMiss).value;
+		iter = iter.getForwardCached(forceMiss, 0);
+		return (T)value;
+	    }
+
+	    @Override
+	    public void remove() {
+		throw new UnsupportedOperationException("This implementation does not allow element removal via the iterator");
+	    }
+
+	};
+    }
+    
     @Override
     public boolean remove(Comparable key) {
         return removeKey(key);

@@ -50,11 +50,11 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
 	String slotAccessExpression = "get" + capitalizedSlotName + "()";
 	String methodModifiers = getMethodModifiers();
 	if (isIndexed) {
-	    generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName);
+	    generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName, false);
 	}
     }
     
-    protected void generateRoleSlotMethodsMultStarIndexed(Role role, PrintWriter out, String methodModifiers, String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName) {
+    protected void generateRoleSlotMethodsMultStarIndexed(Role role, PrintWriter out, String methodModifiers, String capitalizedSlotName, String slotAccessExpression, String typeName, String slotName, boolean cached) {
 	Slot indexedSlot = getIndexedSlot(role);
 	String keyField = role.getIndexProperty();
 	String retType = role.getType().getFullName();
@@ -64,11 +64,13 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
 	    retType = makeGenericType("java.util.Set", retType);
 	}
 	onNewline(out);
-	printMethod(out, "public", retType, "get" + capitalize(role.getName()) + "By" + capitalize(keyField) + methodNameSufix, indexedSlot.getSlotType()
-		.getFullname()
-		+ " key");
+	if (cached) {
+	    printMethod(out, "public", retType, "get" + capitalize(role.getName()) + "By" + capitalize(keyField) + methodNameSufix + "Cached", "boolean forceMiss", indexedSlot.getSlotType().getFullname() + " key");	    
+	} else {
+	    printMethod(out, "public", retType, "get" + capitalize(role.getName()) + "By" + capitalize(keyField) + methodNameSufix, indexedSlot.getSlotType().getFullname() + " key");
+	}
 	startMethodBody(out);
-	printWords(out, "return", getSearchForKey(role, haveMany ? getCollectionToUse(role) : retType));
+	printWords(out, "return", getSearchForKey(role, haveMany ? getCollectionToUse(role) : retType, cached));
 	print(out, ";");
 	endMethodBody(out);
     }
@@ -81,7 +83,7 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
 	return indexedSlot;
     }
 
-    private String getSearchForKey(Role role, String retType) {
+    protected String getSearchForKey(Role role, String retType, boolean cached) {
 	boolean indexMult = role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY;
 	String fetchMethod = "get" + (indexMult ? "Values" : "");
 	return "((" + getRelationAwareTypeFor(role) + ") get"+ capitalize(role.getName()) + "())." + fetchMethod + "(key)";

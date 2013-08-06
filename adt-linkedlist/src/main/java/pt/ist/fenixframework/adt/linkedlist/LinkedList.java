@@ -43,7 +43,22 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
 	    return null;
 	}
     }
-
+    
+    public T getCached(boolean forceMiss, Comparable key) {
+	ListNode<T> previous = getHeadCached(forceMiss);
+	ListNode<T> next = previous.getNextCached(forceMiss);
+	Comparable oid = false;
+	while (next != null && (oid = next.getKeyValueCached(forceMiss).key).compareTo(key) < 0) {
+	    previous = next;
+	    next = previous.getNextCached(forceMiss);
+	}
+	if (next != null && key.compareTo(oid) == 0) {
+	    return (T) next.getKeyValueCached(forceMiss).value;
+	} else {
+	    return null;
+	}
+    }
+    
     public boolean removeKey(Comparable toRemove) {
 	ListNode<T> previous = getHead();
 	ListNode<T> next = previous.getNext();
@@ -77,6 +92,34 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
 	return size;
     }
 
+    public Iterator<T> iteratorCached(final boolean forceMiss) {
+	return new Iterator<T>() {
+
+	    private ListNode<T> iter = getHeadCached(forceMiss).getNextCached(forceMiss); // skip head tomb
+	    
+	    @Override
+	    public boolean hasNext() {
+		return iter != null;
+	    }
+
+	    @Override
+	    public T next() {
+		if (iter == null) {
+		    throw new NoSuchElementException();
+		}
+		Object value = iter.getKeyValueCached(forceMiss).value;
+		iter = iter.getNextCached(forceMiss);
+		return (T)value;
+	    }
+
+	    @Override
+	    public void remove() {
+		throw new UnsupportedOperationException("This implementation does not allow element removal via the iterator");
+	    }
+
+	};
+    }
+    
     public Iterator<T> iterator() {
 	return new Iterator<T>() {
 

@@ -404,6 +404,11 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     public Serializable get(Comparable key) {
     	return findSubNode(key).get(key);
     }
+    
+    @Override
+    public Serializable get(boolean forceMiss, Comparable key) {
+	return findSubNode(forceMiss, key).get(forceMiss, key);
+    }
 
     // travels to the leftmost leaf and goes from there;
     @Override
@@ -432,6 +437,16 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     	throw new RuntimeException("findSubNode() didn't find a suitable sub-node!?");
     }
     
+    private AbstractNodeGhost findSubNode(boolean forceMiss, Comparable key) {
+    	for (Map.Entry<Comparable,AbstractNodeGhost> subNode : this.getSubNodesCached(forceMiss).entrySet()) {
+    	    Comparable splitKey = subNode.getKey();
+    	    if (BPlusTree.COMPARATOR_SUPPORTING_LAST_KEY.compare(splitKey, key) > 0) { // this will eventually be true because the LAST_KEY is greater than all
+    		return subNode.getValue();
+    	    }
+    	}
+    	throw new RuntimeException("findSubNode() didn't find a suitable sub-node!?");
+    }
+        
     @Override
     int shallowSize() {
     	return this.getSubNodes().size();
@@ -455,6 +470,11 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     @Override
     public Iterator iterator() {
     	return this.getSubNodes().firstEntry().getValue().iterator();
+    }
+    
+    @Override
+    public Iterator iteratorCached(boolean forceMiss) {
+    	return this.getSubNodesCached(forceMiss).firstEntry().getValue().iteratorCached(forceMiss);
     }
 
     @Override

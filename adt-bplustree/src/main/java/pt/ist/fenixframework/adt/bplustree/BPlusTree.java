@@ -169,6 +169,11 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     public T get(Comparable key) {
         return ((AbstractNode<T>) this.getRoot()).get(key);
     }
+    
+    @Override
+    public T getCached(boolean forceMiss, Comparable key) {
+	return ((AbstractNode<T>) this.getRootCached(forceMiss)).get(forceMiss, key);
+    }
 
     /**
      * Return the value at the index-th position (zero-based).
@@ -211,6 +216,11 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
     public Iterator iterator() {
         return this.getRoot().iterator();
     }
+    
+    @Override
+    public Iterator iteratorCached(boolean forceMiss) {
+        return this.getRootCached(forceMiss).iteratorCached(forceMiss);
+    }    
 
     public boolean myEquals(BPlusTree other) {
         Iterator<T> it1 = this.iterator();

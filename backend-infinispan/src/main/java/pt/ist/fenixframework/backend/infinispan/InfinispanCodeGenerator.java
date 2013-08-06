@@ -8,10 +8,12 @@ import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.IndexesCodeGenerator;
+import pt.ist.fenixframework.dml.RelationMulValuesIndexedAwareSet;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.dml.ValueType;
 import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
+import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
 
 public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
@@ -128,6 +130,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateSlotAccessors(Slot slot, PrintWriter out) {
         generateInfinispanGetter(slot, out);
+        generateInfinispanCachedGetter(slot, out);
         generateInfinispanGhostGetter(slot, out);
         generateInfinispanRegisterGet(slot.getName(), "registerGet" + capitalize(slot.getName()), out);
         generateInfinispanSetter(slot, out);
@@ -236,6 +239,26 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
                 + ")InfinispanBackEnd.getInstance().fromOid(oid));");
         endMethodBody(out);
         
+        // generate the cached getter 
+	final String objectType = getReferenceType(typeName);
+	newline(out);
+	printFinalMethod(out, "public", typeName, "get" + capitalize(slotName + "Cached"), "boolean forceMiss");
+	startMethodBody(out);
+	println(out, objectType + " result = null;");
+	print(out, "if (!forceMiss)");
+	newBlock(out);
+	print(out, "result = InfinispanBackEnd.getL2Cache(getOid().getFullId() + \":" + slotName + "\");");
+	closeBlock(out, false);
+	newline(out);
+	print(out, "if (result == null)");
+	newBlock(out);
+	println(out, "result = get" + capitalize(slotName) + "();");
+	print(out, "InfinispanBackEnd.putL2Cache(getOid().getFullId() + \":" + slotName + "\", result);");
+	closeBlock(out, false);
+	newline(out);
+	print(out, "return result;");
+	endMethodBody(out);
+        
         // generate the ghost getter
         newline(out);
         printFinalMethod(out, "public", typeName, "get" + capitalize(slotName) + "Ghost");
@@ -263,15 +286,20 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         String methodModifiers = getMethodModifiers();
         boolean isIndexed = role.isIndexed();
 
-        generateRoleSlotMethodsMultStarGetter(role, out, false);
-
+        generateRoleSlotMethodsMultStarGetter(role, out, false, false);
+        // cached method
+        generateRoleSlotMethodsMultStarGetter(role, out, false, true);
         // generate ghost method
-        generateRoleSlotMethodsMultStarGetter(role, out, true);
+        generateRoleSlotMethodsMultStarGetter(role, out, true, false);
         generateRoleSlotMethodsMultStarRegisterGhostGet(role, out);
         
         if (isIndexed) {
             generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName,
-                    "get" + capitalize(role.getName()), typeName, slotName);
+                    "get" + capitalize(role.getName()), typeName, slotName, true);
+            
+            // cached method for the index as well
+            generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName,
+                    "get" + capitalize(role.getName()), typeName, slotName, false);
         }
 
         generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);
@@ -291,15 +319,33 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         endMethodBody(out);
     }
     
-    protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out, boolean ghost) {
+    protected String getSearchForKey(Role role, String retType, boolean cached) {
+	boolean indexMult = role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY;
+	String fetchMethod = "get" + (indexMult ? "Values" : "");
+	return "((" + getRelationAwareTypeFor(cached, role) + ") get"+ capitalize(role.getName()) + (cached ? "Cached(forceMiss" : "(") + "))." + fetchMethod + (cached ? "Cached(forceMiss, " : "(") + "key)";
+    }
+    
+    protected void generateRoleSlotMethodsMultStarGetter(Role role, PrintWriter out, boolean ghost, boolean cached) {
         newline(out);
-        printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()) + (ghost ? "Ghost" : ""));
+        if (cached) {
+            printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()) + (ghost ? "Ghost" : "") + (cached ? "Cached" : ""), "boolean forceMiss");
+        } else {
+            printFinalMethod(out, "public", getSetTypeDeclarationFor(role), "get" + capitalize(role.getName()) + (ghost ? "Ghost" : ""));
+        }
         startMethodBody(out);
 
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
 
         String collectionType = getDefaultCollectionFor(role);
-        println(out, collectionType + " internalSet;");
+        println(out, collectionType + " internalSet" + (cached ? " = null" : "") + ";");
+        if (cached) {
+            println(out, "if (!forceMiss)");
+            newBlock(out);
+            print(out, "internalSet = InfinispanBackEnd.getL2Cache(getOid().getFullId() + \":" + role.getName() + "\");");
+            closeBlock(out);
+            println(out, "if (internalSet == null)");
+            newBlock(out);
+        }
         println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet" + (ghost ? "Ghost" : "") + "(getOid().getFullId() + \":" + role.getName() + "\");");
         print(out, "if (oid == null || oid instanceof Externalization.NullClass)");
         newBlock(out);
@@ -318,8 +364,12 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, "internalSet = (" + collectionType + ")InfinispanBackEnd.getInstance().fromOid(oid);");
         // print(out, "// no need to test for null.  The entry must exist for sure.");
         closeBlock(out);
+        if (cached) {
+            print(out, "InfinispanBackEnd.putL2Cache(getOid().getFullId() + \":" + role.getName() + "\", internalSet);");
+            closeBlock(out);
+        }
         print(out, "return new ");
-        print(out, getRelationAwareTypeFor(role));
+        print(out, getRelationAwareTypeFor(cached, role));
         print(out, "((");
         print(out, getTypeFullName(role.getOtherRole().getType()));
         print(out, ") this, ");
@@ -328,6 +378,24 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         print(out, role.getName());
         print(out, ");");
         endMethodBody(out);
+    }
+    
+    protected String getRelationAwareTypeFor(boolean cached, Role role) {
+        String elemType = getTypeFullName(role.getType());
+        String thisType = getTypeFullName(role.getOtherRole().getType());
+        return makeGenericType(getRelationAwareBaseTypeFor(cached, role), thisType, elemType);
+    }
+    
+    protected String getRelationAwareBaseTypeFor(boolean cached, Role role) {
+	if (cached) {
+	    if (role.isIndexed() && role.getIndexCardinality() == Role.MULTIPLICITY_MANY) {
+		return RelationMulValuesIndexedCacheableAwareSet.class.getName();
+	    } else {
+		return RelationAwareCacheableSet.class.getName();
+	    }	    
+	} else {
+	    return super.getRelationAwareBaseTypeFor(role);
+	}
     }
 
     protected void generateRoleSlotMethodsMultStarSetter(Role role, PrintWriter out, String methodModifiers,
@@ -462,5 +530,26 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         startMethodBody(out);
         print(out, "InfinispanBackEnd.getInstance().registerGet(getOid().getFullId() + \":" + access + "\");");
         endMethodBody(out);
+    }
+    
+    protected void generateInfinispanCachedGetter(Slot slot, PrintWriter out) {
+	final String objectType = getReferenceType(slot.getTypeName());
+	newline(out);
+	printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName() + "Cached"), "boolean forceMiss");
+	startMethodBody(out);
+	println(out, objectType + " result = null;");
+	print(out, "if (!forceMiss)");
+	newBlock(out);
+	print(out, "result = InfinispanBackEnd.getL2Cache(getOid().getFullId() + \":" + slot.getName() + "\");");
+	closeBlock(out, false);
+	newline(out);
+	print(out, "if (result == null)");
+	newBlock(out);
+	println(out, "result = get" + capitalize(slot.getName()) + "();");
+	print(out, "InfinispanBackEnd.putL2Cache(getOid().getFullId() + \":" + slot.getName() + "\", result);");
+	closeBlock(out, false);
+	newline(out);
+	print(out, "return result;");
+	endMethodBody(out);
     }
 }

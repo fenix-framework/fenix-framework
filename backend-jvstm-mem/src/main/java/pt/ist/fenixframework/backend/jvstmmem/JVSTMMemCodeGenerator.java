@@ -130,7 +130,7 @@ public class JVSTMMemCodeGenerator extends IndexesCodeGenerator {
 	generateRoleSlotMethodsMultStarGetter("get" + capitalize(role.getName()), role, out);
         
         if (isIndexed) {
-            generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, "get" + capitalize(role.getName()), typeName, slotName);
+            generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, "get" + capitalize(role.getName()), typeName, slotName, false);
         }
 
 	generateRoleSlotMethodsMultStarSetter(role, out, methodModifiers, capitalizedSlotName, typeName, slotName);

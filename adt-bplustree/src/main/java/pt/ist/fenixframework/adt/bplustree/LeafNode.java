@@ -180,6 +180,10 @@ public class LeafNode extends LeafNode_Base {
     public Serializable get(Comparable key) {
 	return this.getEntries().get(key);
     }
+    
+    public Serializable get(boolean forceMiss, Comparable key) {
+	return this.getEntriesCached(forceMiss).get(key);
+    }
 
     public Serializable getIndex(int index) {
 	if (index < 0) {
@@ -241,6 +245,10 @@ public class LeafNode extends LeafNode_Base {
     public Iterator<Serializable> iterator() {
 	return new LeafNodeValuesIterator(this);
     }
+    
+    public Iterator<Serializable> iteratorCached(boolean forceMiss) {
+	return new LeafNodeValuesCachedIterator(forceMiss, this);
+    }
 
     protected abstract class GenericLeafNodeIterator<T> implements Iterator<T> {
 	private Iterator<T> iterator;
@@ -289,6 +297,59 @@ public class LeafNode extends LeafNode_Base {
 
         protected Iterator<Serializable> getInternalIterator(LeafNode leafNode) {
             return leafNode.getEntries().values().iterator();
+        }
+
+    }
+    
+    protected abstract class GenericLeafNodeCacheableIterator<T> implements Iterator<T> {
+	private Iterator<T> iterator;
+	private LeafNode current;
+	private boolean forceMiss;
+
+
+	GenericLeafNodeCacheableIterator(boolean forceMiss, LeafNode leafNode) {
+	    this.forceMiss = forceMiss;
+	    this.iterator = getInternalIterator(leafNode);
+	    this.current = leafNode;
+	}
+
+	protected abstract Iterator<T> getInternalIterator(LeafNode leafNode);
+
+	public boolean hasNext() {
+	    if (this.iterator.hasNext()) {
+		return true;
+	    } else {
+		return this.current.getNextCached(forceMiss) != null;
+	    }
+	}
+
+	public T next() {
+	    if (!this.iterator.hasNext()) {
+		LeafNode nextNode = this.current.getNextCached(forceMiss);
+		if (nextNode != null) {
+		    this.current = nextNode;
+		    this.iterator = getInternalIterator(this.current);
+		} else {
+		    throw new NoSuchElementException();
+		}
+	    }
+	    return this.iterator.next();
+	}
+
+	public void remove() {
+	    throw new UnsupportedOperationException("This implementation does not allow element removal via the iterator");
+	}
+
+    }
+    
+    private class LeafNodeValuesCachedIterator extends GenericLeafNodeCacheableIterator<Serializable> {
+
+	LeafNodeValuesCachedIterator(boolean forceMiss, LeafNode leafNode) {
+            super(forceMiss, leafNode);
+	}
+
+        protected Iterator<Serializable> getInternalIterator(LeafNode leafNode) {
+            return leafNode.getEntriesCached(super.forceMiss).values().iterator();
         }
 
     }

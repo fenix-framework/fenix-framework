@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 import eu.cloudtm.LocalityHints;
@@ -180,6 +179,10 @@ public class LeafNodeGhost extends LeafNodeGhost_Base {
     public Serializable get(Comparable key) {
 	return this.getEntries().get(key);
     }
+    
+    public Serializable get(boolean forceMiss, Comparable key) {
+	return this.getEntriesCached(forceMiss).get(key);
+    }
 
     public Serializable getIndex(int index) {
 	if (index < 0) {
@@ -241,11 +244,14 @@ public class LeafNodeGhost extends LeafNodeGhost_Base {
     public Iterator<Serializable> iterator() {
 	return new LeafNodeGhostValuesIterator(this);
     }
+    
+    public Iterator<Serializable> iteratorCached(boolean forceMiss) {
+	return new LeafNodeGhostValuesCachedIterator(forceMiss, this);
+    }
 
     protected abstract class GenericLeafNodeGhostIterator<T> implements Iterator<T> {
 	private Iterator<T> iterator;
 	private LeafNodeGhost current;
-
 
 	GenericLeafNodeGhostIterator(LeafNodeGhost leafNode) {
 	    this.iterator = getInternalIterator(leafNode);
@@ -264,7 +270,8 @@ public class LeafNodeGhost extends LeafNodeGhost_Base {
 
 	public T next() {
 	    if (!this.iterator.hasNext()) {
-		LeafNodeGhost nextNode = this.current.getNext();
+		LeafNodeGhost nextNode = null;
+		nextNode = this.current.getNext();
 		if (nextNode != null) {
 		    this.current = nextNode;
 		    this.iterator = getInternalIterator(this.current);
@@ -290,6 +297,59 @@ public class LeafNodeGhost extends LeafNodeGhost_Base {
 	protected Iterator<Serializable> getInternalIterator(LeafNodeGhost leafNode) {
 	    return leafNode.getEntries().values().iterator();
 	}
+
+    }
+    
+    protected abstract class GenericLeafNodeGhostCacheableIterator<T> implements Iterator<T> {
+	private Iterator<T> iterator;
+	private LeafNodeGhost current;
+	private boolean forceMiss;
+
+
+	GenericLeafNodeGhostCacheableIterator(boolean forceMiss, LeafNodeGhost leafNode) {
+	    this.forceMiss = forceMiss;
+	    this.iterator = getInternalIterator(leafNode);
+	    this.current = leafNode;
+	}
+
+	protected abstract Iterator<T> getInternalIterator(LeafNodeGhost leafNode);
+
+	public boolean hasNext() {
+	    if (this.iterator.hasNext()) {
+		return true;
+	    } else {
+		return this.current.getNextCached(forceMiss) != null;
+	    }
+	}
+
+	public T next() {
+	    if (!this.iterator.hasNext()) {
+		LeafNodeGhost nextNode = this.current.getNextCached(forceMiss);
+		if (nextNode != null) {
+		    this.current = nextNode;
+		    this.iterator = getInternalIterator(this.current);
+		} else {
+		    throw new NoSuchElementException();
+		}
+	    }
+	    return this.iterator.next();
+	}
+
+	public void remove() {
+	    throw new UnsupportedOperationException("This implementation does not allow element removal via the iterator");
+	}
+
+    }
+    
+    private class LeafNodeGhostValuesCachedIterator extends GenericLeafNodeGhostCacheableIterator<Serializable> {
+
+	LeafNodeGhostValuesCachedIterator(boolean forceMiss, LeafNodeGhost leafNode) {
+            super(forceMiss, leafNode);
+	}
+
+        protected Iterator<Serializable> getInternalIterator(LeafNodeGhost leafNode) {
+            return leafNode.getEntriesCached(super.forceMiss).values().iterator();
+        }
 
     }
 

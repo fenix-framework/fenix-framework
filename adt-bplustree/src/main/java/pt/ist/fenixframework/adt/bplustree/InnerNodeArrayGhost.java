@@ -359,6 +359,11 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
     public Serializable get(Comparable key) {
 	return findSubNode(key).get(key);
     }
+    
+    @Override
+    public Serializable get(boolean forceMiss, Comparable key) {
+	return findSubNode(forceMiss, key).get(forceMiss, key);
+    }
 
     // travels to the leftmost leaf and goes from there;
     @Override
@@ -387,6 +392,17 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
 	}
 	throw new RuntimeException("findSubNode() didn't find a suitable sub-node!?");
     }
+    
+    private AbstractNodeArrayGhost findSubNode(boolean forceMiss, Comparable key) {
+	DoubleArray<AbstractNodeArrayGhost> subNodes = this.getSubNodesCached(forceMiss);
+	for (int i = 0; i < subNodes.length(); i++) {
+	    Comparable splitKey = subNodes.keys[i];
+	    if (BPlusTreeArray.COMPARATOR_SUPPORTING_LAST_KEY.compare(splitKey, key) > 0) { // this will eventually be true because the LAST_KEY is greater than all
+		return subNodes.values[i];
+	    }
+	}
+	throw new RuntimeException("findSubNode() didn't find a suitable sub-node!?");
+    }
 
     @Override
     int shallowSize() {
@@ -406,6 +422,11 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
     @Override
     public Iterator iterator() {
 	return this.getSubNodes().firstValue().iterator();
+    }
+    
+    @Override
+    public Iterator iteratorCached(boolean forceMiss) {
+    	return this.getSubNodesCached(forceMiss).firstValue().iteratorCached(forceMiss);
     }
 
     @Override

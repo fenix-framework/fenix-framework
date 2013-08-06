@@ -162,6 +162,10 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     public Serializable get(Comparable key) {
 	return this.getEntries().get(key);
     }
+    
+    public Serializable get(boolean forceMiss, Comparable key) {
+	return this.getEntriesCached(forceMiss).get(key);
+    }
 
     public Serializable getIndex(int index) {
 	if (index < 0) {
@@ -210,6 +214,10 @@ public class LeafNodeArray extends LeafNodeArray_Base {
     public Iterator<Serializable> iterator() {
 	return new LeafNodeArrayIterator(this);
     }
+    
+    public Iterator<Serializable> iteratorCached(boolean forceMiss) {
+	return new LeafNodeArrayCachedIterator(forceMiss, this);
+    }
 
     private class LeafNodeArrayIterator implements Iterator<Serializable> {
 	private int index;
@@ -252,6 +260,48 @@ public class LeafNodeArray extends LeafNodeArray_Base {
 
     }
 
+    private class LeafNodeArrayCachedIterator implements Iterator<Serializable> {
+	private int index;
+	private Serializable[] values;
+	private LeafNodeArray current;
+	private boolean forceMiss;
+
+	LeafNodeArrayCachedIterator(boolean forceMiss, LeafNodeArray LeafNodeArray) {
+	    this.index = 0;
+	    this.values = LeafNodeArray.getEntriesCached(forceMiss).values;
+	    this.current = LeafNodeArray;
+	    this.forceMiss = forceMiss;
+	}
+
+	public boolean hasNext() {
+	    if (index < values.length) {
+		return true;
+	    } else {
+		return this.current.getNextCached(forceMiss) != null;
+	    }
+	}
+
+        public Serializable next() {
+	    if (index >= values.length) {
+		LeafNodeArray nextNode = this.current.getNextCached(forceMiss);
+		if (nextNode != null) {
+		    this.current = nextNode;
+		    this.index = 0;
+		    this.values = this.current.getEntriesCached(forceMiss).values;
+		} else {
+		    throw new NoSuchElementException();
+		}
+	    }
+	    index++;
+	    return values[index - 1];
+	}
+
+        public void remove() {
+	    throw new UnsupportedOperationException("This implementation does not allow element removal via the iterator");
+	}
+
+    }
+    
     public String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds) {
 	StringBuilder str = new StringBuilder();
 	str.append(BPlusTreeArray.spaces(level));

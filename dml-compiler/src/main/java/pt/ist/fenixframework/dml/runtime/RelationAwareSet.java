@@ -7,7 +7,7 @@ import java.util.Set;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
 public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends AbstractDomainObject> extends AbstractSet<E2> implements Set<E2>,RelationBaseSet<E2> {
-    private DomainBasedMap<E2> internalMap;
+    protected DomainBasedMap<E2> internalMap;
     protected KeyFunction<? extends Comparable<?>, E2> mapKey;
     protected E1 owner;
     protected Relation<E1,E2> relation;
@@ -33,6 +33,10 @@ public class RelationAwareSet<E1 extends AbstractDomainObject,E2 extends Abstrac
 
     public E2 get(Comparable<?> key) {
 	return internalMap.get(key);
+    }
+    
+    public E2 getCached(Comparable<?> key, boolean forceMiss) {
+	return internalMap.getCached(forceMiss, key);
     }
     
     public boolean contains(Object o) {

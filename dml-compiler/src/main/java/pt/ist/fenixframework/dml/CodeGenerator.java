@@ -776,6 +776,14 @@ public abstract class CodeGenerator {
 
     protected void generateSlotAccessors(Slot slot, PrintWriter out) {
         generateSlotGetter(slot.getName(), slot.getTypeName(), out);
+	
+        newline(out);
+	printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName() + "Cached"), "boolean forceMiss");
+	startMethodBody(out);
+	print(out, "return get" + capitalize(slot.getName()) + "();");
+	endMethodBody(out);
+	newline(out);
+	
         generateSlotGhostGetter(slot.getName(), slot.getTypeName(), out);
         generateEmptyRegisterGet(slot.getName(), out);
         generateSlotSetter(slot, out);
@@ -792,7 +800,7 @@ public abstract class CodeGenerator {
     protected void generateSlotGhostGetter(String slotName, String typeName, PrintWriter out) {
 	generateGetter("public", "get" + capitalize(slotName) + "Ghost", slotName, typeName, out);
     }
-
+    
     protected void generateGetter(String visibility, String getterName, String slotName, String typeName, PrintWriter out) {
         newline(out);
         printFinalMethod(out, visibility, typeName, getterName);
@@ -879,6 +887,14 @@ public abstract class CodeGenerator {
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
         generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
         generateGetter("public", "get" + capitalize(slotName) + "Ghost", slotName, typeName, out);
+        
+        newline(out);
+	printFinalMethod(out, "public", typeName, "get" + capitalize(slotName + "Cached"), "boolean forceMiss");
+	startMethodBody(out);
+	print(out, "return get" + capitalize(slotName) + "();");
+	endMethodBody(out);
+	newline(out);
+	
         generateEmptyRegisterGet(slotName, out);
         
     }
@@ -1078,6 +1094,15 @@ public abstract class CodeGenerator {
     protected void generateRelationGetter(String getterName, Role role, PrintWriter out) {
         String paramListType = makeGenericType("java.util.Set", getTypeFullName(role.getType()));
         generateRelationGetter(getterName, role, paramListType, out);
+    }
+    
+    protected void generateRelationGetterCached(String getterName, Role role, PrintWriter out) {
+        String paramListType = makeGenericType("java.util.Set", getTypeFullName(role.getType()));
+        newline(out);
+        printFinalMethod(out, "public", paramListType, getterName, "boolean forceMiss");
+        startMethodBody(out);
+        generateRelationGetterBody(role, out);
+        endMethodBody(out);
     }
 
     protected void generateRelationGetter(String getterName, Role role, String paramListType, PrintWriter out) {

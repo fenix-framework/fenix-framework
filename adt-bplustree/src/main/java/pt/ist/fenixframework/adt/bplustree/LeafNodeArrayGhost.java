@@ -20,7 +20,7 @@ public class LeafNodeArrayGhost extends LeafNodeArrayGhost_Base {
 
     public AbstractNodeArrayGhost insert(Comparable key, Serializable value) {
 	DoubleArray<Serializable> localArr = justInsert(key, value);
-
+	
 	if (localArr == null) {		// no insertion occurred
 	    return null;	// insert will return false
 	}
@@ -162,6 +162,10 @@ public class LeafNodeArrayGhost extends LeafNodeArrayGhost_Base {
     public Serializable get(Comparable key) {
 	return this.getEntries().get(key);
     }
+    
+    public Serializable get(boolean forceMiss, Comparable key) {
+	return this.getEntriesCached(forceMiss).get(key);
+    }
 
     public Serializable getIndex(int index) {
 	if (index < 0) {
@@ -210,6 +214,10 @@ public class LeafNodeArrayGhost extends LeafNodeArrayGhost_Base {
     public Iterator<Serializable> iterator() {
 	return new LeafNodeArrayGhostIterator(this);
     }
+    
+    public Iterator<Serializable> iteratorCached(boolean forceMiss) {
+	return new LeafNodeArrayGhostCachedIterator(forceMiss, this);
+    }
 
     private class LeafNodeArrayGhostIterator implements Iterator<Serializable> {
 	private int index;
@@ -252,6 +260,48 @@ public class LeafNodeArrayGhost extends LeafNodeArrayGhost_Base {
 
     }
 
+    private class LeafNodeArrayGhostCachedIterator implements Iterator<Serializable> {
+	private int index;
+	private Serializable[] values;
+	private LeafNodeArrayGhost current;
+	private boolean forceMiss;
+
+	LeafNodeArrayGhostCachedIterator(boolean forceMiss, LeafNodeArrayGhost LeafNodeArrayGhost) {
+	    this.index = 0;
+	    this.values = LeafNodeArrayGhost.getEntriesCached(forceMiss).values;
+	    this.current = LeafNodeArrayGhost;
+	    this.forceMiss = forceMiss;
+	}
+
+	public boolean hasNext() {
+	    if (index < values.length) {
+		return true;
+	    } else {
+		return this.current.getNextCached(forceMiss) != null;
+	    }
+	}
+
+        public Serializable next() {
+	    if (index >= values.length) {
+		LeafNodeArrayGhost nextNode = this.current.getNextCached(forceMiss);
+		if (nextNode != null) {
+		    this.current = nextNode;
+		    this.index = 0;
+		    this.values = this.current.getEntriesCached(forceMiss).values;
+		} else {
+		    throw new NoSuchElementException();
+		}
+	    }
+	    index++;
+	    return values[index - 1];
+	}
+
+        public void remove() {
+	    throw new UnsupportedOperationException("This implementation does not allow element removal via the iterator");
+	}
+
+    }
+    
     public String dump(int level, boolean dumpKeysOnly, boolean dumpNodeIds) {
 	StringBuilder str = new StringBuilder();
 	str.append(BPlusTreeArray.spaces(level));

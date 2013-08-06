@@ -1,6 +1,7 @@
 package pt.ist.fenixframework.adt.bplustree;
 
 import java.io.Serializable;
+import java.util.Iterator;
 
 import pt.ist.fenixframework.core.Externalization;
 import eu.cloudtm.LocalityHints;
@@ -18,12 +19,16 @@ public abstract class AbstractNodeArrayGhost<T extends Serializable> extends Abs
     /** Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key. */
     abstract T get(Comparable key);
 
+    abstract T get(boolean forceMiss, Comparable key);
+    
     /**
      * Returns the value at the given index
      * 
      * @throws IndexOutOfBoundsException if the index is out of range (index < 0 || index >= size())
      */
     abstract T getIndex(int index);
+    
+    abstract Iterator iteratorCached(boolean forceMiss);
 
     /**
      * Returns the value that was removed from the given index
