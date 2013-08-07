@@ -366,6 +366,27 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         generateRoleSlotMethodsMultOneGetterUpdateFromFK(slotName, makeForeignKeyName(slotName), out);
         printWords(out, "return", getSlotExpression(slotName) + ";");
         endMethodBody(out);
+        
+        // generate ghost getter
+    	newline(out);
+    	printFinalMethod(out, "public", typeName, "get" + capitalize(slotName + "Ghost"));
+    	startMethodBody(out);
+    	println(out, "return get" + capitalize(slotName) + "();");
+    	endMethodBody(out);
+        
+        // generate cached getter
+    	newline(out);
+    	printFinalMethod(out, "public", typeName, "get" + capitalize(slotName + "Cached"), "boolean forceMiss");
+    	startMethodBody(out);
+    	println(out, "return get" + capitalize(slotName) + "();");
+    	endMethodBody(out);        
+        
+        // generate register method
+    	newline(out);
+    	printFinalMethod(out, "public", "void", "register" + capitalize(slotName));
+    	startMethodBody(out);
+    	endMethodBody(out);        
+    	
     }
 
     protected void generateRoleSlotMethodsMultOneGetterUpdateFromFK(String slotName, String fkSlotName, PrintWriter out) {
@@ -426,6 +447,17 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         super.generateRoleSlotMethodsMultStar(role, out);
         // generateRoleMultGetterSetter(role, out);
         generateRoleSlotMethodsMultOneHibernateFK(role, out);
+        
+        // Cached indexed
+        boolean isIndexed = role.isIndexed();
+    	String typeName = getTypeFullName(role.getType());
+    	String slotName = role.getName();
+    	String capitalizedSlotName = capitalize(slotName);
+    	String slotAccessExpression = "get" + capitalizedSlotName + "()";
+    	String methodModifiers = getMethodModifiers();
+    	if (isIndexed) {
+    	    generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression, typeName, slotName, true);
+    	}
     }
 
     @Override
@@ -450,6 +482,13 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         print(out, role.getName());
         print(out, ");");
         endMethodBody(out);
+        
+        newline(out);
+        printFinalMethod(out, "public", typeName, getterName + "Cached", "boolean forceMiss");
+        startMethodBody(out);
+        println(out, "return " + getterName + "();");
+        endMethodBody(out);
+        
     }
 
     @Override
