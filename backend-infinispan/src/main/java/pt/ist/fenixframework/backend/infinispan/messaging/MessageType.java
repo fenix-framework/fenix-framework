@@ -9,16 +9,15 @@ public enum MessageType {
     CH_UPDATE,
     WORK_REQUEST,
     ADDRESS_REQUEST,
-    SET_PB,
-    UNSET_PB,
-    OVERLOADED,
-    UNDERLOADED;
-    public final byte type() {
-        return (byte) this.ordinal();
-    }
+    PROTOCOL,
+    LOAD;
 
     public static MessageType from(byte type) {
         return values()[type];
+    }
+
+    public final byte type() {
+        return (byte) this.ordinal();
     }
 
 }

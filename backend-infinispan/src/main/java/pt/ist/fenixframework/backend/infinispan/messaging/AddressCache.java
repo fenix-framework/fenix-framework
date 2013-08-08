@@ -22,33 +22,10 @@ public class AddressCache {
         addressCache = new ConcurrentHashMap<Address, JGroupsAddress>();
     }
 
-    public final org.jgroups.Address get(Address address) {
-        JGroupsAddress jGroupsAddress = addressCache.get(address);
-        return jGroupsAddress == null ? null : jGroupsAddress.address;
-    }
-
-    public final void add(Address ispnAddress, org.jgroups.Address jgrpAddress) {
-        JGroupsAddress existing = addressCache.putIfAbsent(ispnAddress, new JGroupsAddress());
-        if (existing == null) {
-            existing = addressCache.get(ispnAddress);
-        }
-        existing.address = jgrpAddress;
-    }
-
-    public final void lock(Address address) {
-        JGroupsAddress existing = addressCache.putIfAbsent(address, new JGroupsAddress());
-        if (existing == null) {
-            existing = addressCache.get(address);
-        }
-        existing.lock.lock();
-    }
-
-    public final void unlock(Address address) throws InterruptedException {
-        JGroupsAddress existing = addressCache.putIfAbsent(address, new JGroupsAddress());
-        if (existing == null) {
-            existing = addressCache.get(address);
-        }
-        existing.lock.unlock();
+    public final JGroupsAddress get(Address address) {
+        JGroupsAddress jGroupsAddress = new JGroupsAddress();
+        JGroupsAddress existing = addressCache.putIfAbsent(address, jGroupsAddress);
+        return existing == null ? jGroupsAddress : existing;
     }
 
     public final void clean(List<org.jgroups.Address> members) {
@@ -71,13 +48,55 @@ public class AddressCache {
         return result;
     }
 
-    private class JGroupsAddress {
-        private org.jgroups.Address address;
+    public void updateLoad(org.jgroups.Address from, Address address, boolean overloaded) {
+        if (address != null) {
+            JGroupsAddress jGroupsAddress = new JGroupsAddress();
+            JGroupsAddress existing = addressCache.putIfAbsent(address, jGroupsAddress);
+            if (existing != null) {
+                jGroupsAddress = existing;
+            } else {
+                jGroupsAddress.address = from;
+            }
+            jGroupsAddress.overloaded = overloaded;
+        } else {
+            for (JGroupsAddress existing : addressCache.values()) {
+                if (existing.address.equals(from)) {
+                    existing.overloaded = overloaded;
+                    return;
+                }
+            }
+        }
+
+    }
+
+    public static class JGroupsAddress {
         private final ReentrantLock lock;
+        private volatile org.jgroups.Address address;
+        private volatile boolean overloaded;
 
         public JGroupsAddress() {
             address = null;
             lock = new ReentrantLock();
+        }
+
+        public final org.jgroups.Address address() {
+            return address;
+        }
+
+        public final void address(org.jgroups.Address address) {
+            this.address = address;
+        }
+
+        public final boolean overloaded() {
+            return overloaded;
+        }
+
+        public final void lock() {
+            lock.lock();
+        }
+
+        public final void unlock() {
+            lock.unlock();
         }
     }
 

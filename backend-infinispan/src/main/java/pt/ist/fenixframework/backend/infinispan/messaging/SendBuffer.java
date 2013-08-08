@@ -14,18 +14,10 @@ public class SendBuffer implements ObjectOutput {
 
     private final ObjectOutputStream objectOutputStream;
     private final ByteArrayOutputStream byteArrayOutputStream;
-    private final byte[] presetData;
 
     public SendBuffer() throws IOException, SecurityException {
         byteArrayOutputStream = new ByteArrayOutputStream();
         objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        presetData = null;
-    }
-
-    private SendBuffer(byte[] presetData) {
-        this.byteArrayOutputStream = null;
-        this.objectOutputStream = null;
-        this.presetData = presetData;
     }
 
     @Override
@@ -123,9 +115,6 @@ public class SendBuffer implements ObjectOutput {
     }
 
     public byte[] toByteArray() throws IOException {
-        if (presetData != null) {
-            return presetData;
-        }
         objectOutputStream.flush();
         byte[] array = byteArrayOutputStream.toByteArray();
         byteArrayOutputStream.reset();
@@ -134,9 +123,5 @@ public class SendBuffer implements ObjectOutput {
 
     public final int size() {
         return byteArrayOutputStream.size();
-    }
-
-    public static SendBuffer notification(MessageType type) {
-        return new SendBuffer(new byte[]{type.type()});
     }
 }

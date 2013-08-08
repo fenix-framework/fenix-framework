@@ -24,8 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @author Pedro Ruivo
  * @since 2.8-cloudtm
  */
-public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncRequestHandler, MembershipListener,
-        ThreadPoolRequestProcessor.LoadListener {
+public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncRequestHandler, MembershipListener  {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final Marshaller marshaller;
@@ -35,15 +34,20 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
     private final JChannel channel;
     private final AddressCache addressCache;
     private final ConcurrentMap<Address, Stats> globalStats;
+    private final LoadBalancePolicy loadBalancePolicy;
+    protected volatile boolean primaryBackup;
     private State state;
-    private int nextIndex;
-    private volatile boolean primaryBackup;
 
-    protected AbstractMessagingQueue(String appName, Marshaller marshaller, String jgrpConfigFile,
-                                     ThreadPoolRequestProcessor threadPoolRequestProcessor) throws Exception {
+    protected AbstractMessagingQueue(ThreadPoolRequestProcessor threadPoolRequestProcessor, String appName,
+                                     String jgrpConfigFile, Marshaller marshaller, LoadBalancePolicy loadBalancePolicy)
+            throws Exception {
+        if (marshaller == null) {
+            throw new NullPointerException("Marshaller cannot be null");
+        }
         this.appName = appName;
         this.marshaller = marshaller;
         this.threadPoolRequestProcessor = threadPoolRequestProcessor;
+        this.loadBalancePolicy = loadBalancePolicy;
         this.channel = new JChannel(jgrpConfigFile);
         this.messageDispatcher = new MessageDispatcher();
         this.addressCache = new AddressCache();
@@ -53,9 +57,21 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         messageDispatcher.setMembershipListener(this);
         messageDispatcher.setChannel(channel);
         messageDispatcher.asyncDispatching(true);
-        if (this.threadPoolRequestProcessor != null) {
-            this.threadPoolRequestProcessor.setLoadListener(this);
+
+        if (this.loadBalancePolicy != null) {
+            this.loadBalancePolicy.init(new LoadBalancePolicy.LoadBalanceTranslation() {
+                @Override
+                public Address translate(org.infinispan.remoting.transport.Address address) {
+                    try {
+                        return toJGroupsAddress(address);
+                    } catch (Exception e) {
+                        logger.debug("Cannot convert " + address + " to JGroups address");
+                        return null;
+                    }
+                }
+            });
         }
+
         state = State.BOOT;
     }
 
@@ -90,20 +106,24 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
                     if (logger.isErrorEnabled()) {
                         logger.error("Work request received but this queue cannot handle it!");
                     }
-                    throw new IllegalStateException("Cannot handle request because it does not have access to the cache");
+                    throw new ProcessorNotFoundException("Cannot handle request because it does not have access to the cache");
                 }
                 threadPoolRequestProcessor.execute(buffer.readUTF(), response);
                 break;
-            case SET_PB:
-                primaryBackup = true;
+            case PROTOCOL:
+                primaryBackup = buffer.readBoolean();
                 reply(response, null);
                 break;
-            case UNSET_PB:
-                primaryBackup = false;
-                reply(response, null);
-                break;
-            case OVERLOADED:
-            case UNDERLOADED:
+            case LOAD:
+                boolean overloaded = buffer.readBoolean();
+                boolean hasTranslation = buffer.readBoolean();
+                if (hasTranslation) {
+                    org.infinispan.remoting.transport.Address address =
+                            (org.infinispan.remoting.transport.Address) marshaller.objectFromByteBuffer(buffer.readByteArray());
+                    addressCache.updateLoad(from, address, overloaded);
+                } else {
+                    addressCache.updateLoad(from, null, overloaded);
+                }
                 break;
             default:
                 handleData(from, type, buffer, response);
@@ -124,36 +144,51 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
             }
             throw new IllegalStateException("Messaging Queue was stopped!");
         }
-        Address destination = locate(localityHint, write);
-        if (destination == null) {
-            logger.error("Trying to send a work request but not worker was found.");
-            throw new IllegalStateException("Trying to send a work request but not worker was found.");
-        } else if (logger.isTraceEnabled()) {
-            logger.trace("Sending work request to " + destination);
+        if (loadBalancePolicy == null) {
+            throw new IllegalStateException("Load Balance Policy is not set.");
         }
-        SendBuffer sendBuffer = new SendBuffer();
-        sendBuffer.writeByte(MessageType.WORK_REQUEST.type());
-        sendBuffer.writeUTF(data);
+        Iterator<Address> iterator = locate(localityHint, write);
 
-        long end;
-        long start = sync ? System.nanoTime() : 0;
-        try {
-            //wait for all the replies
-            return send(destination, sendBuffer, sync ? new RequestOptions(ResponseMode.GET_ALL, 0) :
-                    new RequestOptions(ResponseMode.GET_NONE, 0));
-        } finally {
-            end = sync ? System.nanoTime() : 0;
-            Stats workerStats = new Stats();
-            Stats existing = globalStats.putIfAbsent(destination, workerStats);
-            if (existing != null) {
-                workerStats = existing;
+        if (logger.isTraceEnabled()) {
+            logger.trace("Sending work request using " + iterator);
+        }
+
+        while (iterator.hasNext()) {
+            Address address = iterator.next();
+            SendBuffer sendBuffer = new SendBuffer();
+            sendBuffer.writeByte(MessageType.WORK_REQUEST.type());
+            sendBuffer.writeUTF(data);
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("Sending work request to " + address);
             }
-            if (sync) {
-                workerStats.addSync(end - start);
-            } else {
-                workerStats.addAsync();
+
+            try {
+                //wait for all the replies
+                final long start = sync ? System.nanoTime() : 0;
+                Object reply = send(address, sendBuffer, sync ? new RequestOptions(ResponseMode.GET_ALL, 0) :
+                        new RequestOptions(ResponseMode.GET_NONE, 0));
+                final long end = System.nanoTime();
+                Stats workerStats = new Stats();
+                Stats existing = globalStats.putIfAbsent(address, workerStats);
+                if (existing != null) {
+                    workerStats = existing;
+                }
+                if (sync) {
+                    workerStats.addSync(end - start);
+                } else {
+                    workerStats.addAsync();
+                }
+                return reply;
+            } catch (SuspectedException e) {
+                logger.info("Suspected exception caught while sending a request to " + address +
+                        ". Trying to find another worker...");
+            } catch (ProcessorNotFoundException e) {
+                logger.info(address + " does not have a processor thread pool. Trying to find another worker...");
             }
         }
+        logger.error("Trying to send a work request but not worker was found.");
+        throw new IllegalStateException("Trying to send a work request but not worker was found.");
     }
 
     @Override
@@ -167,7 +202,6 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         if (logger.isDebugEnabled()) {
             logger.debug("Initializing message queue...");
         }
-        nextIndex = 0;
         channel.connect("ff-" + appName + "-messaging");
         messageDispatcher.start();
         state = State.RUNNING;
@@ -333,40 +367,24 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         return state;
     }
 
-    protected final Address locate(String localityHint, boolean write) throws Exception {
+    protected final Iterator<Address> locate(String localityHint, boolean write) throws Exception {
         initConsistentHashIfNeeded();
-        Address address;
+        Iterator<Address> iterator;
         ConsistentHash consistentHash = getConsistentHash();
         if (consistentHash == null) {
             //local mode
-            address = localWorker();
+            iterator = new LoadBalancePolicy.SingleAddressIterator(localWorker());
             if (logger.isTraceEnabled()) {
-                logger.trace("Locate owner for hint [" + localityHint + "]. Cache is local only: " + address);
-            }
-        } else if (localityHint == null || consistentHash.getNumSegments() == 1) {
-            //full replicated or not locality hint.
-            address = roundRobin(consistentHash);
-            if (logger.isTraceEnabled()) {
-                logger.trace("Locate owner for hint [" + localityHint + "]. Using round robin: " + address);
-            }
-        } else if (primaryBackup) {
-            //full replicated or not locality hint.
-            address = primaryBackup(consistentHash, localityHint, write);
-            if (logger.isTraceEnabled()) {
-                logger.trace("Locate owner for hint [" + localityHint + "]. Using primary backup: " + address);
+                logger.trace("Locate owner for hint [" + localityHint + "]. Cache is local only: " + iterator);
             }
         } else {
-            address = dynamic(consistentHash, localityHint);
+            iterator = loadBalancePolicy.locate(consistentHash, localityHint, primaryBackup, write);
             if (logger.isTraceEnabled()) {
-                logger.trace("Locate owner for hint [" + localityHint + "]. Primary owner: " + address);
+                logger.trace("Locate owner for hint [" + localityHint + "]. Using load balance policy: " + iterator);
             }
-
         }
-        return address;
-    }
 
-    protected final Address roundRobin(ConsistentHash consistentHash) throws Exception {
-        return nextMember(consistentHash.getMembers());
+        return iterator == null ? LoadBalancePolicy.EMPTY_ITERATOR : iterator;
     }
 
     protected abstract void innerInit();
@@ -404,101 +422,50 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
 
     protected final org.jgroups.Address toJGroupsAddress(org.infinispan.remoting.transport.Address address)
             throws Exception {
-        org.jgroups.Address jgrpAddress = addressCache.get(address);
-        if (jgrpAddress == null) {
-            addressCache.lock(address);
-            try {
-                jgrpAddress = addressCache.get(address);
-                if (jgrpAddress != null) {
+        AddressCache.JGroupsAddress jgrpAddress = addressCache.get(address);
+        if (jgrpAddress.overloaded()) {
+            //fail the translation to make the load balance to peek a new node
+            return null;
+        }
+        if (jgrpAddress.address() != null) {
+            return jgrpAddress.address();
+        }
+        try {
+            jgrpAddress.lock();
+            if (jgrpAddress.address() != null) {
+                return jgrpAddress.address();
+            }
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("Don't have JGroups address for Infinispan Address [" + address + "]. Making a request");
+            }
+
+            SendBuffer buffer = new SendBuffer();
+            buffer.writeByte(MessageType.ADDRESS_REQUEST.type());
+            buffer.writeByteArray(marshaller.objectToByteBuffer(address));
+            RspList<Boolean> rspList = broadcastRequest(buffer, true, true);
+            for (Map.Entry<org.jgroups.Address, Rsp<Boolean>> entry : rspList.entrySet()) {
+                if (entry.getValue().wasReceived() && entry.getValue().getValue() == Boolean.TRUE) {
+                    jgrpAddress.address(entry.getKey());
                     if (logger.isTraceEnabled()) {
                         logger.trace("Convert Infinispan address [" + address + "] to JGroups address [" +
-                                jgrpAddress + "]");
+                                entry.getKey() + "]");
                     }
-                    return jgrpAddress;
+                    return entry.getKey();
                 }
-
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Don't have JGroups address for Infinispan Address [" + address + "]. Making a request");
-                }
-
-                SendBuffer buffer = new SendBuffer();
-                buffer.writeByte(MessageType.ADDRESS_REQUEST.type());
-                buffer.writeByteArray(marshaller.objectToByteBuffer(address));
-                RspList<Boolean> rspList = broadcastRequest(buffer, true, false);
-                for (Map.Entry<org.jgroups.Address, Rsp<Boolean>> entry : rspList.entrySet()) {
-                    if (entry.getValue().wasReceived() && entry.getValue().getValue() == Boolean.TRUE) {
-                        addressCache.add(address, entry.getKey());
-                        if (logger.isTraceEnabled()) {
-                            logger.trace("Convert Infinispan address [" + address + "] to JGroups address [" +
-                                    entry.getKey() + "]");
-                        }
-                        return entry.getKey();
-                    }
-                }
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Don't have JGroups address for Infinispan Address [" + address +
-                            "] and no member has replied positively");
-                }
-            } finally {
-                addressCache.unlock(address);
             }
+            if (logger.isTraceEnabled()) {
+                logger.trace("Don't have JGroups address for Infinispan Address [" + address +
+                        "] and no member has replied positively");
+            }
+        } finally {
+            jgrpAddress.unlock();
         }
+
         if (logger.isTraceEnabled()) {
             logger.trace("Convert Infinispan address [" + address + "] to JGroups address [" + jgrpAddress + "]");
         }
-        return jgrpAddress;
-    }
-
-    private Address nextMember(List<org.infinispan.remoting.transport.Address> members) throws Exception {
-        if (members.size() == 1) {
-            return toJGroupsAddress(members.get(0));
-        }
-        int startIndex;
-        synchronized (this) {
-            nextIndex = (nextIndex + 1) % members.size();
-            startIndex = nextIndex;
-        }
-        Address address;
-        int index = startIndex;
-        do {
-            address = toJGroupsAddress(members.get(index));
-            index = (index + 1) % members.size();
-        } while (address == null && index != startIndex);
-
-        return address;
-    }
-
-    private Address primaryBackup(ConsistentHash consistentHash, String hint, boolean write) throws Exception {
-        if (write || consistentHash.getMembers().size() == 0) {
-            return toJGroupsAddress(consistentHash.getMembers().get(0));
-        } else if (hint == null) {
-            List<org.infinispan.remoting.transport.Address> backups = new ArrayList<org.infinispan.remoting.transport.Address>(consistentHash.getMembers());
-            backups.remove(0);
-            return nextMember(backups);
-        }
-        List<org.infinispan.remoting.transport.Address> members = consistentHash.locateOwners(hint);
-        Address address = toJGroupsAddress(members.remove(0));
-        while (address == null && !members.isEmpty()) {
-            address = toJGroupsAddress(members.remove(0));
-        }
-        if (address == null) {
-            List<org.infinispan.remoting.transport.Address> backups = new ArrayList<org.infinispan.remoting.transport.Address>(consistentHash.getMembers());
-            backups.remove(0);
-            return nextMember(backups);
-        }
-        return address;
-    }
-
-    private Address dynamic(ConsistentHash consistentHash, String hint) throws Exception {
-        List<org.infinispan.remoting.transport.Address> members = new ArrayList<org.infinispan.remoting.transport.Address>(consistentHash.locateOwners(hint));
-        Address address = toJGroupsAddress(members.remove(0));
-        while (address == null && !members.isEmpty()) {
-            address = toJGroupsAddress(members.remove(0));
-        }
-        if (address == null) {
-            return nextMember(consistentHash.getMembers());
-        }
-        return address;
+        return jgrpAddress.address();
     }
 
     private <T> T send(Address address, SendBuffer buffer, RequestOptions requestOptions) throws Exception {

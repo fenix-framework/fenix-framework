@@ -56,6 +56,7 @@ public class InfinispanConfig extends HibernateSearchConfig {
     protected int maxQueueSizeLoadNotification = 100;
     protected int minQueueSizeLoadNotification = 10;
     protected String messagingJgroupsFile = "jgrp-messaging.xml";
+    protected String loadBalancePolicyClass = null;
     /**
      * for test only
      */
@@ -190,6 +191,10 @@ public class InfinispanConfig extends HibernateSearchConfig {
 
     public final String messagingJgroupsFile() {
         return messagingJgroupsFile;
+    }
+
+    public final String loadBalancePolicyClass() {
+        return loadBalancePolicyClass;
     }
 
     @Override

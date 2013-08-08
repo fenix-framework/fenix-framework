@@ -24,21 +24,12 @@ public class RemoteMessagingQueue extends AbstractMessagingQueue {
     private volatile ConsistentHash consistentHash;
     private volatile org.jgroups.Address singleWorker;
 
-    public RemoteMessagingQueue(String remoteAppName, String localAppName, String jgrpConfigFile, Marshaller marshaller)
+    public RemoteMessagingQueue(String remoteAppName, String localAppName, String jgrpConfigFile, Marshaller marshaller,
+                                LoadBalancePolicy loadBalancePolicy)
             throws Exception {
-        super(remoteAppName, marshaller, jgrpConfigFile, null);
+        super(null, remoteAppName, jgrpConfigFile, marshaller, loadBalancePolicy);
         JmxUtil.processInstance(this, localAppName, InfinispanBackEnd.BACKEND_NAME,
                 Collections.singletonMap("remoteApplication", remoteAppName));
-    }
-
-    @Override
-    public void overloaded() {
-        //no-op
-    }
-
-    @Override
-    public void underloaded() {
-        //no-op
     }
 
     @Override
@@ -70,6 +61,7 @@ public class RemoteMessagingQueue extends AbstractMessagingQueue {
                         } else {
                             this.consistentHash = (ConsistentHash) marshaller.objectFromByteBuffer(receivedBuffer.readByteArray());
                         }
+                        primaryBackup = receivedBuffer.readBoolean();
                         return;
                     }
                 }

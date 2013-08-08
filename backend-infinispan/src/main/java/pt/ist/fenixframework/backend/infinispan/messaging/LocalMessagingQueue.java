@@ -3,9 +3,11 @@ package pt.ist.fenixframework.backend.infinispan.messaging;
 import org.infinispan.Cache;
 import org.infinispan.distribution.ch.ConsistentHash;
 import org.infinispan.distribution.group.GroupingConsistentHash;
+import org.infinispan.factories.ComponentRegistry;
 import org.infinispan.notifications.Listener;
 import org.infinispan.notifications.cachelistener.annotation.TopologyChanged;
 import org.infinispan.notifications.cachelistener.event.TopologyChangedEvent;
+import org.infinispan.reconfigurableprotocol.manager.ReconfigurableReplicationManager;
 import org.infinispan.reconfigurableprotocol.protocol.PassiveReplicationCommitProtocol;
 import org.infinispan.remoting.rpc.RpcManager;
 import org.infinispan.remoting.transport.Address;
@@ -28,18 +30,21 @@ import java.util.Collections;
  */
 @MBean(category = "messaging", description = "Messaging worker that sends and process requests from others client/workers",
         objectName = "Worker")
-public class LocalMessagingQueue extends AbstractMessagingQueue implements RequestHandler {
+public class LocalMessagingQueue extends AbstractMessagingQueue implements RequestHandler, ThreadPoolRequestProcessor.LoadListener {
 
     private final Cache cache;
     private final RpcManager rpcManager;
     private final ConsistentHashListener consistentHashListener;
     private ConsistentHash consistentHash;
     private boolean isCoordinator;
+    private volatile boolean overloaded;
 
     public LocalMessagingQueue(String appName, Cache cache, String jgrpConfigFile,
-                               ThreadPoolRequestProcessor threadPoolRequestProcessor)
+                               ThreadPoolRequestProcessor threadPoolRequestProcessor, LoadBalancePolicy loadBalancePolicy)
             throws Exception {
-        super(appName, cache.getAdvancedCache().getComponentRegistry().getCacheMarshaller(), jgrpConfigFile, threadPoolRequestProcessor);
+        super(threadPoolRequestProcessor, appName, jgrpConfigFile, cache.getAdvancedCache().getComponentRegistry()
+                .getCacheMarshaller(), loadBalancePolicy);
+        threadPoolRequestProcessor.setLoadListener(this);
         this.cache = cache;
         this.rpcManager = cache.getAdvancedCache().getRpcManager();
         this.consistentHashListener = new ConsistentHashListener();
@@ -59,8 +64,10 @@ public class LocalMessagingQueue extends AbstractMessagingQueue implements Reque
         }
         boolean primaryBackup = protocol.equals(PassiveReplicationCommitProtocol.UID);
         try {
-            broadcastRequest(SendBuffer.notification(primaryBackup ? MessageType.SET_PB : MessageType.UNSET_PB),
-                    false, true);
+            SendBuffer buffer = new SendBuffer();
+            buffer.writeByte(MessageType.PROTOCOL.type());
+            buffer.writeBoolean(primaryBackup);
+            broadcastRequest(buffer, false, true);
         } catch (Exception e) {
             logger.error("Error setting protocol to " + protocol, e);
         }
@@ -69,30 +76,29 @@ public class LocalMessagingQueue extends AbstractMessagingQueue implements Reque
 
     @Override
     public void overloaded() {
-        try {
-            broadcastRequest(SendBuffer.notification(MessageType.OVERLOADED), false, true);
-        } catch (Exception e) {
-            logger.error("Error notifying overload thread pool", e);
-        }
+        overloaded = true;
+        notifyLoad();
+
     }
 
     @Override
     public void underloaded() {
-        try {
-            broadcastRequest(SendBuffer.notification(MessageType.UNDERLOADED), false, true);
-        } catch (Exception e) {
-            logger.error("Error notifying underloaded thread pool", e);
-        }
+        overloaded = false;
+        notifyLoad();
     }
 
     @Override
     protected final void innerInit() {
         cache.addListener(consistentHashListener);
         try {
-            StateTransferManager stateTransferManager = cache.getAdvancedCache().getComponentRegistry()
-                    .getStateTransferManager();
+            ComponentRegistry registry = cache.getAdvancedCache().getComponentRegistry();
+            StateTransferManager stateTransferManager = registry.getStateTransferManager();
             if (stateTransferManager != null) {
                 updateConsistentHash(stateTransferManager.getCacheTopology().getCurrentCH());
+            }
+            ReconfigurableReplicationManager manager = registry.getComponent(ReconfigurableReplicationManager.class);
+            if (manager != null) {
+                primaryBackup = PassiveReplicationCommitProtocol.UID.equals(manager.getCurrentProtocolId());
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -137,6 +143,7 @@ public class LocalMessagingQueue extends AbstractMessagingQueue implements Reque
                     if (!localMode) {
                         sendBuffer.writeByteArray(marshaller.objectToByteBuffer(consistentHash));
                     }
+                    sendBuffer.writeBoolean(primaryBackup);
                     reply(response, sendBuffer.toByteArray());
                     sendBuffer.close();
                     if (logger.isTraceEnabled()) {
@@ -162,6 +169,21 @@ public class LocalMessagingQueue extends AbstractMessagingQueue implements Reque
         }
 
         reply(response, null);
+    }
+
+    private void notifyLoad() {
+        try {
+            SendBuffer buffer = new SendBuffer();
+            buffer.writeByte(MessageType.LOAD.type());
+            buffer.writeBoolean(overloaded);
+            buffer.writeBoolean(rpcManager != null);
+            if (rpcManager != null) {
+                buffer.writeByteArray(marshaller.objectToByteBuffer(rpcManager.getAddress()));
+            }
+            broadcastRequest(buffer, false, true);
+        } catch (Exception e) {
+            logger.error("Error notifying load thread pool", e);
+        }
     }
 
     private void broadcastConsistentHash(ConsistentHash consistentHash) throws Exception {

@@ -38,9 +38,11 @@ import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.BasicClusterInformation;
 import pt.ist.fenixframework.backend.ClusterInformation;
 import pt.ist.fenixframework.backend.OID;
+import pt.ist.fenixframework.backend.infinispan.messaging.LoadBalancePolicy;
 import pt.ist.fenixframework.backend.infinispan.messaging.LocalMessagingQueue;
 import pt.ist.fenixframework.backend.infinispan.messaging.RemoteMessagingQueue;
 import pt.ist.fenixframework.backend.infinispan.messaging.ThreadPoolRequestProcessor;
+import pt.ist.fenixframework.backend.infinispan.messaging.drd.DRDLoadBalancePolicy;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.Externalization;
@@ -70,6 +72,7 @@ public class InfinispanBackEnd implements BackEnd {
     protected Cache<String, Object> ghostCache;
     private LocalMessagingQueue localMessagingQueue;
     private String jgroupsMessagingConfigurationFile;
+    private String loadBalancePolicyClass;
 
     private InfinispanBackEnd() {
         this.transactionManager = new InfinispanTransactionManager();
@@ -231,12 +234,25 @@ public class InfinispanBackEnd implements BackEnd {
 
     private void setupMessaging(InfinispanConfig config) throws Exception {
         this.jgroupsMessagingConfigurationFile = config.messagingJgroupsFile();
+        this.loadBalancePolicyClass = config.loadBalancePolicyClass();
         String applicationName = config.getAppName();
         ThreadPoolRequestProcessor threadPoolRequestProcessor = new ThreadPoolRequestProcessor(
                 config.coreThreadPoolSize(), config.maxThreadPoolSize(), config.keepAliveTime(),
                 config.maxQueueSizeLoadNotification(), config.minQueueSizeLoadNotification(), applicationName);
         localMessagingQueue = new LocalMessagingQueue(applicationName, readCache, jgroupsMessagingConfigurationFile,
-                threadPoolRequestProcessor);
+                threadPoolRequestProcessor, createLoadBalancePolicy());
+    }
+    
+    private LoadBalancePolicy createLoadBalancePolicy() throws Exception {
+        if (loadBalancePolicyClass == null || loadBalancePolicyClass.isEmpty()) {
+            return new DRDLoadBalancePolicy();
+        }
+        Class<? extends LoadBalancePolicy> loadBalancePolicy = (Class<? extends LoadBalancePolicy>)
+                pt.ist.fenixframework.util.Util.loadClass(loadBalancePolicyClass);
+        if (loadBalancePolicy == null) {
+            return new DRDLoadBalancePolicy();
+        }
+        return loadBalancePolicy.newInstance();
     }
 
     protected IdentityMap getIdentityMap() {
@@ -352,7 +368,7 @@ public class InfinispanBackEnd implements BackEnd {
             return localMessagingQueue;
         } else {
             return new RemoteMessagingQueue(appName, localName, jgroupsMessagingConfigurationFile,
-                    readCache.getAdvancedCache().getComponentRegistry().getCacheMarshaller());
+                    readCache.getAdvancedCache().getComponentRegistry().getCacheMarshaller(), createLoadBalancePolicy());
         }
     }
 }
