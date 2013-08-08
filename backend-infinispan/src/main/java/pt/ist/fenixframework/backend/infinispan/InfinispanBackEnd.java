@@ -30,9 +30,6 @@ import org.infinispan.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.arjuna.ats.arjuna.common.arjPropertyManager;
-import com.arjuna.ats.internal.arjuna.objectstore.VolatileStore;
-
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
@@ -61,13 +58,6 @@ public class InfinispanBackEnd implements BackEnd {
     public static final String BACKEND_NAME = "ispn";
 
     private static final InfinispanBackEnd instance = new InfinispanBackEnd();
-
-    static {
-	      // Set up transactional stores for JBoss TS
-	      arjPropertyManager.getCoordinatorEnvironmentBean().setCommunicationStore(VolatileStore.class.getName());
-	      arjPropertyManager.getObjectStoreEnvironmentBean().setObjectStoreType(VolatileStore.class.getName());
-	      arjPropertyManager.getCoordinatorEnvironmentBean().setDefaultTimeout(3000);
-	   }
     
     private static final BoundedConcurrentHashMap<String, Object> L2_CACHE = new BoundedConcurrentHashMap<String, Object>(4000000, 64, BoundedConcurrentHashMap.Eviction.LRU);
     // 4M references, approx 32MB in 64bit references + CHM structure (mostly eviction related) = at most 40MB for the L2 Cache
