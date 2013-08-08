@@ -29,13 +29,13 @@ public class DAPCodeGenerator extends DefaultCodeGenerator {
 
     public final String getGetterDAPStatement(DomainClass domainClass, String slotName, String typeName) {
         //System.out.println("\tGenerating getter DAP statement for " + domainClass.getFullName() + "."  + slotName + " of type " + typeName);
-        if (DAP_ENABLED) return "pt.ist.dap.implementation.simple.SimpleContextManager.updateReadStatisticsWithoutContext(\"" + domainClass.getFullName() + "\", \"" + slotName + "\");";
+        if (DAP_ENABLED) return "pt.ist.dap.implementation.simple.SimpleContextManager.updateReadStatisticsWithContext(\"" + domainClass.getFullName() + "\", \"" + slotName + "\");";
         else return "";
     }
 
     public final String getSetterDAPStatement(DomainClass domainClass, String slotName, String typeName) {
         //System.out.println("\tGenerating setter DAP statement for " + domainClass.getFullName() + "."  + slotName + " of type " + typeName);
-        if (DAP_ENABLED) return "pt.ist.dap.implementation.simple.SimpleContextManager.updateWriteStatisticsWithoutContext(\"" + domainClass.getFullName() + "\", \"" + slotName + "\");";
+        if (DAP_ENABLED) return "pt.ist.dap.implementation.simple.SimpleContextManager.updateWriteStatisticsWithContext(\"" + domainClass.getFullName() + "\", \"" + slotName + "\");";
         else return "";
     }
     

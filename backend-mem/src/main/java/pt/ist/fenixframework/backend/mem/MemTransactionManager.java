@@ -120,4 +120,9 @@ public class MemTransactionManager extends AbstractTransactionManager {
 	this.transaction.rollback();
 	this.transaction = null;
     }
+
+	@Override
+	public <T> T withTransaction(Callable<T> command, String transactionalClassId) throws Exception {
+		return withTransaction(command);
+	}
 }

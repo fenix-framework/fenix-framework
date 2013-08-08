@@ -144,7 +144,8 @@ public class OgmTransactionManager implements TransactionManager {
     @Override
     public <T> T withTransaction(CallableWithoutException<T> command) {
         try {
-            return withTransaction(command, null);
+        	Atomic atomic = null;
+            return withTransaction(command, atomic);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -152,7 +153,8 @@ public class OgmTransactionManager implements TransactionManager {
 
     @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {
-	return withTransaction(command, null);
+    	Atomic atomic = null;
+	return withTransaction(command, atomic);
     }
 
     /**
@@ -296,6 +298,11 @@ public class OgmTransactionManager implements TransactionManager {
     public void removeCommitListener(CommitListener listener) {
 	listeners.remove(listener);
     }
+
+	@Override
+	public <T> T withTransaction(Callable<T> command, String transactionalClassId) throws Exception {
+		return withTransaction(command);
+	}
 
 }
 

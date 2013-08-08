@@ -3,6 +3,9 @@ package pt.ist.fenixframework.backend.infinispan;
 import org.infinispan.CacheException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import pt.ist.dap.implementation.simple.SimpleContextManager;
+import pt.ist.dap.implementation.simple.SimpleInfo;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.CallableWithoutException;
 import pt.ist.fenixframework.CommitListener;
@@ -23,17 +26,31 @@ public class InfinispanTransactionManager implements TransactionManager {
     public void begin() throws NotSupportedException, SystemException {
         begin(false);
     }
-
+    
     @Override
     public void begin(boolean readOnly) throws NotSupportedException, SystemException {
+    	begin(readOnly, null);
+    }
+    
+    private static final ThreadLocal<Boolean> usingDAP = new ThreadLocal<Boolean>() {
+    	protected Boolean initialValue() {
+    		return false;
+    	}
+    };
+    
+    private void begin(boolean readOnly, String transactionalClassId) throws NotSupportedException, SystemException {
         if (readOnly && logger.isWarnEnabled()) {
             logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
+        }
+        if (transactionalClassId != null) {
+        	SimpleContextManager.addContextInfo(new SimpleInfo(transactionalClassId, transactionalClassId));
+        	usingDAP.set(true);
         }
         delegateTxManager.begin();
         if (logger.isTraceEnabled()) {
             logger.trace("Begin transaction: " + getTransaction());
         }
-    }
+    } 
 
     @Override
     public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
@@ -63,6 +80,10 @@ public class InfinispanTransactionManager implements TransactionManager {
             for (CommitListener listener : listeners) {
                 listener.afterCommit(tx);
             }
+            if (usingDAP.get()) {
+            	SimpleContextManager.removeContextInfo();
+            	usingDAP.set(false);
+            }
         }
     }
 
@@ -83,13 +104,17 @@ public class InfinispanTransactionManager implements TransactionManager {
         if (logger.isTraceEnabled()) {
             logger.trace("Rollback transaction: " + getTransaction());
         }
+        if (usingDAP.get()) {
+        	SimpleContextManager.removeContextInfo();
+        	usingDAP.set(false);
+        }
         delegateTxManager.rollback();
     }
 
     @Override
     public <T> T withTransaction(CallableWithoutException<T> command) {
         try {
-            return withTransaction(command, null);
+            return withTransaction(command, null, null);
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
@@ -97,16 +122,25 @@ public class InfinispanTransactionManager implements TransactionManager {
 
     @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {
-        return withTransaction(command, null);
+        return withTransaction(command, null, null);
     }
 
+    @Override
+    public <T> T withTransaction(Callable<T> command, String transactionalClassId) throws Exception {
+        return withTransaction(command, null, transactionalClassId);
+    }
+    
+    @Override
+    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
+        return withTransaction(command, atomic, null);
+    }
+    
     /**
      * For now, it ignores the value of the atomic parameter.
      */
-    @Override
-    public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
-        while (true) {
-            boolean started = tryBegin();
+    private <T> T withTransaction(Callable<T> command, Atomic atomic, String transactionalClassId) throws Exception {
+    	while (true) {
+            boolean started = tryBegin(transactionalClassId);
             boolean success = false;
             boolean canRetry = false;
             boolean finished;
@@ -245,13 +279,13 @@ public class InfinispanTransactionManager implements TransactionManager {
     /**
      * @return {@code true} if the begin has succeed, {@code false} otherwise.
      */
-    private boolean tryBegin() {
+    private boolean tryBegin(String transactionalClassId) {
         if (getTransaction() == null) {
             if (logger.isTraceEnabled()) {
                 logger.trace("No previous transaction. Will begin a new one.");
             }
             try {
-                begin();
+                begin(false, transactionalClassId);
             } catch (RuntimeException e) {
                 if (logger.isErrorEnabled()) {
                     logger.error("Error beginning transaction", e);

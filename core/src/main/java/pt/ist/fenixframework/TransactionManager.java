@@ -59,6 +59,17 @@ public interface TransactionManager extends javax.transaction.TransactionManager
     public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception;
 
     /**
+     * Transactionally execute a command, possibly returning a result.
+     * Additionally, the transactional class being executed is identified by the programmer.
+     * 
+     * @param command
+     *            The command to execute
+     * @param transactionalClassId
+     *            Identifier of the transactional class being executed.
+     */
+    public <T> T withTransaction(Callable<T> command, String transactionalClassId) throws Exception;
+    
+    /**
      * Create a new transaction and associate it with the current thread. This
      * method can be used as a hint from the programmer that she does (or does
      * not) intend do perform write operations. As such, implementations may

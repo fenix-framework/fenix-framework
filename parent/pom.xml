@@ -25,7 +25,7 @@
         <version.asm>4.0</version.asm>
         <version.commons.io>2.4</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
-        <version.dap-framework>2.0</version.dap-framework>
+        <version.dap-framework>2.1-cloudtm</version.dap-framework>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>

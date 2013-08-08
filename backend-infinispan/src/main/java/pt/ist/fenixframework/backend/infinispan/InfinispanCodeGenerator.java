@@ -537,6 +537,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 	newline(out);
 	printFinalMethod(out, "public", slot.getTypeName(), "get" + capitalize(slot.getName() + "Cached"), "boolean forceMiss");
 	startMethodBody(out);
+	generateGetterDAPStatement(dC, slot.getName(), slot.getTypeName(), out);//DAP read stats update statement
 	println(out, objectType + " result = null;");
 	print(out, "if (!forceMiss)");
 	newBlock(out);
