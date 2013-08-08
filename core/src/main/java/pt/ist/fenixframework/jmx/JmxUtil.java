@@ -27,6 +27,7 @@ public class JmxUtil {
     private static final String COMPONENT_KEY = "component";
     private static final String CATEGORY_KEY = "category";
     private static final MBeanServer mBeanServer;
+    public static final String COMMON_MODULE = "common";
 
     static {
         MBeanServer tmpMbeanServer;
