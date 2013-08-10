@@ -80,6 +80,11 @@ public class RemoteMessagingQueue extends AbstractMessagingQueue {
     }
 
     @Override
+    protected boolean isCoordinator() {
+        return false;
+    }
+
+    @Override
     protected final void handleData(org.jgroups.Address from, MessageType type, ReceivedBuffer buffer, Response response)
             throws Exception {
         switch (type) {

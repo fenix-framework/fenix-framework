@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @author Pedro Ruivo
  * @since 2.8-cloudtm
  */
-public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncRequestHandler, MembershipListener  {
+public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncRequestHandler, MembershipListener {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final Marshaller marshaller;
@@ -59,17 +59,28 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         messageDispatcher.asyncDispatching(true);
 
         if (this.loadBalancePolicy != null) {
-            this.loadBalancePolicy.init(new LoadBalancePolicy.LoadBalanceTranslation() {
-                @Override
-                public Address translate(org.infinispan.remoting.transport.Address address) {
-                    try {
-                        return toJGroupsAddress(address);
-                    } catch (Exception e) {
-                        logger.debug("Cannot convert " + address + " to JGroups address");
-                        return null;
-                    }
-                }
-            });
+            this.loadBalancePolicy.init(
+                    new LoadBalancePolicy.LoadBalanceTranslation() {
+                        @Override
+                        public Address translate(org.infinispan.remoting.transport.Address address) {
+                            try {
+                                return toJGroupsAddress(address);
+                            } catch (Exception e) {
+                                logger.debug("Cannot convert " + address + " to JGroups address");
+                                return null;
+                            }
+                        }
+                    }, new LoadBalancePolicy.LoadBalanceChannel() {
+                        @Override
+                        public Object broadcast(SendBuffer buffer, boolean sync) throws Exception {
+                            SendBuffer newBuffer = new SendBuffer();
+                            newBuffer.writeByte(MessageType.LOAD_BALANCE.type());
+                            newBuffer.writeByteArray(buffer.toByteArray());
+                            return broadcastRequest(newBuffer, sync, true);
+                        }
+                    },
+                    appName
+            );
         }
 
         state = State.BOOT;
@@ -102,14 +113,14 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         MessageType type = MessageType.from(buffer.readByte());
         switch (type) {
             case WORK_REQUEST:
-                if (!canHandleRequests()) {
-                    if (logger.isErrorEnabled()) {
-                        logger.error("Work request received but this queue cannot handle it!");
-                    }
-                    throw new ProcessorNotFoundException("Cannot handle request because it does not have access to the cache");
+                if (isWorker()) {
+                    threadPoolRequestProcessor.execute(buffer.readUTF(), response);
+                    return;
                 }
-                threadPoolRequestProcessor.execute(buffer.readUTF(), response);
-                break;
+                if (logger.isErrorEnabled()) {
+                    logger.error("Work request received but this queue cannot handle it!");
+                }
+                throw new ProcessorNotFoundException("Cannot handle request because it does not have access to the cache");
             case PROTOCOL:
                 primaryBackup = buffer.readBoolean();
                 reply(response, null);
@@ -123,6 +134,23 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
                     addressCache.updateLoad(from, address, overloaded);
                 } else {
                     addressCache.updateLoad(from, null, overloaded);
+                }
+                break;
+            case LOAD_BALANCE:
+                if (loadBalancePolicy != null) {
+                    reply(response, loadBalancePolicy.handle(new ReceivedBuffer(buffer.readByteArray())));
+                } else {
+                    reply(response, null);
+                }
+                break;
+            case STATE_TRANSFER:
+                if (loadBalancePolicy != null) {
+                    SendBuffer buffer1 = new SendBuffer();
+                    loadBalancePolicy.getState(buffer1, isWorker(), isCoordinator());
+                    byte[] reply = buffer1.toByteArray();
+                    reply(response, reply.length == 0 ? null : reply);
+                } else {
+                    reply(response, null);
                 }
                 break;
             default:
@@ -206,6 +234,7 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         messageDispatcher.start();
         state = State.RUNNING;
         innerInit();
+        loadBalancePolicyStateTransfer();
         if (logger.isDebugEnabled()) {
             logger.debug("Message queue initialized!");
         }
@@ -397,6 +426,8 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
 
     protected abstract Address localWorker();
 
+    protected abstract boolean isCoordinator();
+
     protected abstract void handleData(Address from, MessageType type, ReceivedBuffer buffer, Response response)
             throws Exception;
 
@@ -468,6 +499,21 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         return jgrpAddress.address();
     }
 
+    private void loadBalancePolicyStateTransfer() throws Exception {
+        SendBuffer buffer = new SendBuffer();
+        buffer.writeByte(MessageType.STATE_TRANSFER.type());
+        RspList<Object> rspList = broadcastRequest(buffer, true, true);
+        for (Rsp<Object> rsp : rspList.values()) {
+            Object value = rsp.getValue();
+            if (value != null && value instanceof byte[]) {
+                ReceivedBuffer buffer1 = new ReceivedBuffer((byte[]) value);
+                loadBalancePolicy.setState(buffer1);
+                break;
+            }
+        }
+        loadBalancePolicy.setState(null);
+    }
+
     private <T> T send(Address address, SendBuffer buffer, RequestOptions requestOptions) throws Exception {
         buffer.flush();
         if (logger.isTraceEnabled()) {
@@ -493,7 +539,7 @@ public abstract class AbstractMessagingQueue implements MessagingQueue, AsyncReq
         return message;
     }
 
-    private boolean canHandleRequests() {
+    private boolean isWorker() {
         return threadPoolRequestProcessor != null;
     }
 

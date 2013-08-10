@@ -7,10 +7,12 @@ package pt.ist.fenixframework.backend.infinispan.messaging;
 public enum MessageType {
     CH_REQUEST,
     CH_UPDATE,
+    STATE_TRANSFER,
     WORK_REQUEST,
     ADDRESS_REQUEST,
     PROTOCOL,
-    LOAD;
+    LOAD,
+    LOAD_BALANCE;
 
     public static MessageType from(byte type) {
         return values()[type];

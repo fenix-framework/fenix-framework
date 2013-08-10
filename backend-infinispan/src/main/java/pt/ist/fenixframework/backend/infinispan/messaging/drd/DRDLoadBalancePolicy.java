@@ -4,12 +4,16 @@ import org.infinispan.distribution.ch.ConsistentHash;
 import org.jgroups.Address;
 import org.slf4j.Logger;
 import pt.ist.fenixframework.backend.infinispan.messaging.LoadBalancePolicy;
+import pt.ist.fenixframework.backend.infinispan.messaging.ReceivedBuffer;
+import pt.ist.fenixframework.backend.infinispan.messaging.SendBuffer;
 
 import java.util.*;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
+ * Data-chasing Request Dispatching
+ *
  * @author Pedro Ruivo
  * @since 2.10
  */
@@ -24,7 +28,7 @@ public class DRDLoadBalancePolicy implements LoadBalancePolicy {
     }
 
     @Override
-    public void init(LoadBalanceTranslation translation) {
+    public final void init(LoadBalanceTranslation translation, LoadBalanceChannel ignored, String ignored2) {
         this.translation = translation;
     }
 
@@ -70,6 +74,17 @@ public class DRDLoadBalancePolicy implements LoadBalancePolicy {
             log.trace("DRD Load Balance Policy: [Dynamic]: " + addressSetOrdered);
         }
         return new ListDRDIterator(translation, addressSetOrdered).init();
+    }
+
+    @Override
+    public void getState(SendBuffer buffer, boolean worker, boolean coordinator) {/*no-op*/}
+
+    @Override
+    public void setState(ReceivedBuffer buffer) {/*no-op*/}
+
+    @Override
+    public Object handle(ReceivedBuffer buffer) {
+        return null; //no-op
     }
 
     private void copyMembers(ConsistentHash consistentHash, Set<org.infinispan.remoting.transport.Address> orderedSet) {

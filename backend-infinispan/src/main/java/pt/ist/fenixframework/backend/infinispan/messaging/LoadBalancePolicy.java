@@ -3,8 +3,8 @@ package pt.ist.fenixframework.backend.infinispan.messaging;
 import org.infinispan.distribution.ch.ConsistentHash;
 import org.jgroups.Address;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * @author Pedro Ruivo
@@ -34,13 +34,25 @@ public interface LoadBalancePolicy {
         }
     };
 
-    void init(LoadBalanceTranslation translation);
+    void init(LoadBalanceTranslation translation, LoadBalanceChannel channel, String appName);
 
     Iterator<Address> locate(ConsistentHash consistentHash, String hint, boolean primaryBackup, boolean write);
+
+    void getState(SendBuffer buffer, boolean worker, boolean coordinator) throws IOException;
+
+    void setState(ReceivedBuffer buffer) throws IOException;
+
+    Object handle(ReceivedBuffer buffer) throws IOException;
 
     public static interface LoadBalanceTranslation {
 
         Address translate(org.infinispan.remoting.transport.Address address);
+
+    }
+
+    public static interface LoadBalanceChannel {
+
+        Object broadcast(SendBuffer buffer, boolean sync) throws Exception;
 
     }
 
@@ -67,7 +79,6 @@ public interface LoadBalancePolicy {
             return address;
         }
 
-
         @Override
         public final void remove() {
             throw new UnsupportedOperationException();
@@ -78,6 +89,61 @@ public interface LoadBalancePolicy {
             return "SingleAddressIterator{" +
                     "address=" + address +
                     '}';
+        }
+    }
+
+    public static class AddressListIterator implements Iterator<Address> {
+        private final LoadBalanceTranslation translation;
+        private final Deque<org.infinispan.remoting.transport.Address> addressList;
+        private Address next;
+
+        public AddressListIterator(LoadBalanceTranslation translation,
+                                   Set<org.infinispan.remoting.transport.Address> addresses) {
+            this.translation = translation;
+            addressList = new ArrayDeque<org.infinispan.remoting.transport.Address>(addresses);
+        }
+
+        public final AddressListIterator init() {
+            setNext();
+            return this;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public Address next() {
+            if (next == null) {
+                throw new NoSuchElementException();
+            }
+            Address toReturn = next;
+            setNext();
+            return toReturn;
+        }
+
+        @Override
+        public final void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String toString() {
+            return "ListLCDRIterator{" +
+                    "addressList=" + addressList +
+                    ", next=" + next +
+                    '}';
+        }
+
+        private void setNext() {
+            if (addressList.isEmpty()) {
+                next = null;
+                return;
+            }
+            do {
+                next = translation.translate(addressList.pollFirst());
+            } while (next == null && !addressList.isEmpty());
         }
     }
 
