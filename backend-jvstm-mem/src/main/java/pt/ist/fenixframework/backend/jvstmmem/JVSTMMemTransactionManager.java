@@ -121,6 +121,11 @@ public class JVSTMMemTransactionManager implements TransactionManager {
     }
 
     @Override
+    public <T> T withTransaction(CallableWithoutException<T> command, String transactionalClassId) {
+        return withTransaction(command);
+    }
+
+    @Override
     public void addCommitListener(CommitListener listener) {}
 
     @Override

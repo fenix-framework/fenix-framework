@@ -3,7 +3,6 @@ package pt.ist.fenixframework.backend.infinispan;
 import org.infinispan.CacheException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import pt.ist.dap.implementation.simple.SimpleContextManager;
 import pt.ist.dap.implementation.simple.SimpleInfo;
 import pt.ist.fenixframework.Atomic;
@@ -19,38 +18,28 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class InfinispanTransactionManager implements TransactionManager {
     private static final Logger logger = LoggerFactory.getLogger(InfinispanTransactionManager.class);
     private static final RollBackOnlyException ROLL_BACK_ONLY_EXCEPTION = new RollBackOnlyException();
+    private static final ThreadLocal<Boolean> usingDAP = new ThreadLocal<Boolean>() {
+        protected Boolean initialValue() {
+            return false;
+        }
+    };
     private static javax.transaction.TransactionManager delegateTxManager;
     private final ConcurrentLinkedQueue<CommitListener> listeners = new ConcurrentLinkedQueue<CommitListener>();
+    private final TransactionClassManager transactionClassManager;
+
+    public InfinispanTransactionManager(TransactionClassManager transactionClassManager) {
+        this.transactionClassManager = transactionClassManager;
+    }
 
     @Override
     public void begin() throws NotSupportedException, SystemException {
         begin(false);
     }
-    
+
     @Override
     public void begin(boolean readOnly) throws NotSupportedException, SystemException {
-    	begin(readOnly, null);
+        begin(readOnly, null);
     }
-    
-    private static final ThreadLocal<Boolean> usingDAP = new ThreadLocal<Boolean>() {
-    	protected Boolean initialValue() {
-    		return false;
-    	}
-    };
-    
-    private void begin(boolean readOnly, String transactionalClassId) throws NotSupportedException, SystemException {
-        if (readOnly && logger.isWarnEnabled()) {
-            logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
-        }
-        if (transactionalClassId != null) {
-        	SimpleContextManager.addContextInfo(new SimpleInfo(transactionalClassId, transactionalClassId));
-        	usingDAP.set(true);
-        }
-        delegateTxManager.begin();
-        if (logger.isTraceEnabled()) {
-            logger.trace("Begin transaction: " + getTransaction());
-        }
-    } 
 
     @Override
     public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SystemException {
@@ -81,8 +70,8 @@ public class InfinispanTransactionManager implements TransactionManager {
                 listener.afterCommit(tx);
             }
             if (usingDAP.get()) {
-            	SimpleContextManager.removeContextInfo();
-            	usingDAP.set(false);
+                SimpleContextManager.removeContextInfo();
+                usingDAP.set(false);
             }
         }
     }
@@ -105,8 +94,8 @@ public class InfinispanTransactionManager implements TransactionManager {
             logger.trace("Rollback transaction: " + getTransaction());
         }
         if (usingDAP.get()) {
-        	SimpleContextManager.removeContextInfo();
-        	usingDAP.set(false);
+            SimpleContextManager.removeContextInfo();
+            usingDAP.set(false);
         }
         delegateTxManager.rollback();
     }
@@ -121,6 +110,15 @@ public class InfinispanTransactionManager implements TransactionManager {
     }
 
     @Override
+    public <T> T withTransaction(CallableWithoutException<T> command, String transactionalClassId) {
+        try {
+            return withTransaction(command, null, transactionalClassId);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {
         return withTransaction(command, null, null);
     }
@@ -129,64 +127,10 @@ public class InfinispanTransactionManager implements TransactionManager {
     public <T> T withTransaction(Callable<T> command, String transactionalClassId) throws Exception {
         return withTransaction(command, null, transactionalClassId);
     }
-    
+
     @Override
     public <T> T withTransaction(Callable<T> command, Atomic atomic) throws Exception {
         return withTransaction(command, atomic, null);
-    }
-    
-    /**
-     * For now, it ignores the value of the atomic parameter.
-     */
-    private <T> T withTransaction(Callable<T> command, Atomic atomic, String transactionalClassId) throws Exception {
-    	while (true) {
-            boolean started = tryBegin(transactionalClassId);
-            boolean success = false;
-            boolean canRetry = false;
-            boolean finished;
-            T result = null;
-            try {
-                // do some work
-                result = command.call();
-                success = true;
-            } catch (CacheException e) {
-                if (logger.isErrorEnabled()) {
-                    logger.error("Error executing transaction " + getTransaction(), e);
-                }
-                canRetry = true;
-            } catch (RollBackOnlyException e) {
-                if (logger.isErrorEnabled()) {
-                    logger.error("Rollback only exception caught! An inner transaction wants to rollback: " +
-                            getTransaction());
-                }
-                canRetry = true;
-            } catch (RuntimeException e) {
-                if (logger.isErrorEnabled()) {
-                    logger.error("Unexpected error executing transaction " + getTransaction(), e);
-                }
-                throw e;
-            } catch (Exception e) {
-
-                if (logger.isErrorEnabled()) {
-                    logger.error("Application error executing transaction " + getTransaction(), e);
-                }
-                throw e;
-            } catch (Throwable t) {
-                if (logger.isErrorEnabled()) {
-                    logger.error("Unexpected error executing transaction " + getTransaction(), t);
-                }
-                throw new RuntimeException(t);
-            } finally {
-                finished = tryCommit(started, success, canRetry);
-            }
-            if (finished) {
-                return result;
-            }
-
-            if (logger.isTraceEnabled()) {
-                logger.trace("Retrying transaction: " + command);
-            }
-        }
     }
 
     @Override
@@ -228,6 +172,74 @@ public class InfinispanTransactionManager implements TransactionManager {
     @Override
     public void removeCommitListener(CommitListener listener) {
         listeners.remove(listener);
+    }
+
+    private void begin(boolean readOnly, String transactionalClassId) throws NotSupportedException, SystemException {
+        if (readOnly && logger.isWarnEnabled()) {
+            logger.warn("InfinispanBackEnd does not enforce read-only transactions. Starting as normal transaction");
+        }
+        if (transactionalClassId != null) {
+            SimpleContextManager.addContextInfo(new SimpleInfo(transactionalClassId, transactionalClassId));
+            usingDAP.set(true);
+        }
+        delegateTxManager.begin();
+        if (logger.isTraceEnabled()) {
+            logger.trace("Begin transaction: " + getTransaction());
+        }
+    }
+
+    /**
+     * For now, it ignores the value of the atomic parameter.
+     */
+    private <T> T withTransaction(Callable<T> command, Atomic atomic, String transactionalClassId) throws Exception {
+        while (true) {
+            boolean started = tryBegin(transactionalClassId);
+            boolean success = false;
+            boolean canRetry = false;
+            boolean finished;
+            T result = null;
+            try {
+                transactionClassManager.setTransactionClass(transactionalClassId);
+                result = command.call();
+                success = true;
+            } catch (CacheException e) {
+                if (logger.isErrorEnabled()) {
+                    logger.error("Error executing transaction " + getTransaction(), e);
+                }
+                canRetry = true;
+            } catch (RollBackOnlyException e) {
+                if (logger.isErrorEnabled()) {
+                    logger.error("Rollback only exception caught! An inner transaction wants to rollback: " +
+                            getTransaction());
+                }
+                canRetry = true;
+            } catch (RuntimeException e) {
+                if (logger.isErrorEnabled()) {
+                    logger.error("Unexpected error executing transaction " + getTransaction(), e);
+                }
+                throw e;
+            } catch (Exception e) {
+
+                if (logger.isErrorEnabled()) {
+                    logger.error("Application error executing transaction " + getTransaction(), e);
+                }
+                throw e;
+            } catch (Throwable t) {
+                if (logger.isErrorEnabled()) {
+                    logger.error("Unexpected error executing transaction " + getTransaction(), t);
+                }
+                throw new RuntimeException(t);
+            } finally {
+                finished = tryCommit(started, success, canRetry);
+            }
+            if (finished) {
+                return result;
+            }
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("Retrying transaction: " + command);
+            }
+        }
     }
 
     /**
@@ -317,6 +329,10 @@ public class InfinispanTransactionManager implements TransactionManager {
 
     private static class RollBackOnlyException extends RuntimeException {
 
+    }
+
+    public static interface TransactionClassManager {
+        void setTransactionClass(String transactionClass);
     }
 
 }

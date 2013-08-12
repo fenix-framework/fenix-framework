@@ -1,15 +1,6 @@
 package pt.ist.fenixframework.backend.infinispan;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
-
-import javax.transaction.SystemException;
-
+import eu.cloudtm.LocalityHints;
 import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.Configuration;
@@ -29,7 +20,6 @@ import org.infinispan.remoting.transport.Address;
 import org.infinispan.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
@@ -43,29 +33,29 @@ import pt.ist.fenixframework.backend.infinispan.messaging.LocalMessagingQueue;
 import pt.ist.fenixframework.backend.infinispan.messaging.RemoteMessagingQueue;
 import pt.ist.fenixframework.backend.infinispan.messaging.ThreadPoolRequestProcessor;
 import pt.ist.fenixframework.backend.infinispan.messaging.drd.DRDLoadBalancePolicy;
-import pt.ist.fenixframework.core.AbstractDomainObject;
-import pt.ist.fenixframework.core.DomainObjectAllocator;
-import pt.ist.fenixframework.core.Externalization;
-import pt.ist.fenixframework.core.IdentityMap;
-import pt.ist.fenixframework.core.SharedIdentityMap;
+import pt.ist.fenixframework.core.*;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.messaging.MessagingQueue;
-import eu.cloudtm.LocalityHints;
 
-public class InfinispanBackEnd implements BackEnd {
-    private static final Logger logger = LoggerFactory.getLogger(InfinispanBackEnd.class);
+import javax.transaction.SystemException;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
+public class InfinispanBackEnd implements BackEnd, InfinispanTransactionManager.TransactionClassManager {
     public static final String BACKEND_NAME = "ispn";
-
+    private static final Logger logger = LoggerFactory.getLogger(InfinispanBackEnd.class);
     private static final InfinispanBackEnd instance = new InfinispanBackEnd();
-    
     private static final BoundedConcurrentHashMap<String, Object> L2_CACHE = new BoundedConcurrentHashMap<String, Object>(4000000, 64, BoundedConcurrentHashMap.Eviction.LRU);
     // 4M references, approx 32MB in 64bit references + CHM structure (mostly eviction related) = at most 40MB for the L2 Cache
     // assuming average of 40 bytes per object, this would keep in memory 160MB of additional objects
     // so at most we'd keep additional 200MB 
-    
     protected final InfinispanTransactionManager transactionManager;
     protected Cache<String, Object> readCache;
     protected Cache<String, Object> writeCache;
@@ -75,7 +65,7 @@ public class InfinispanBackEnd implements BackEnd {
     private String loadBalancePolicyClass;
 
     private InfinispanBackEnd() {
-        this.transactionManager = new InfinispanTransactionManager();
+        this.transactionManager = new InfinispanTransactionManager(this);
     }
 
     public static InfinispanBackEnd getInstance() {
@@ -83,17 +73,17 @@ public class InfinispanBackEnd implements BackEnd {
     }
 
     public static <T> T getL2Cache(String key) {
-	return (T) L2_CACHE.get(key);
+        return (T) L2_CACHE.get(key);
     }
-    
+
     public static void putL2Cache(String key, Object obj) {
-	if (obj == null) {
-	    L2_CACHE.remove(key);
-	} else {
-	    L2_CACHE.put(key, obj);
-	}
+        if (obj == null) {
+            L2_CACHE.remove(key);
+        } else {
+            L2_CACHE.put(key, obj);
+        }
     }
-    
+
     @Override
     public String getName() {
         return BACKEND_NAME;
@@ -148,11 +138,135 @@ public class InfinispanBackEnd implements BackEnd {
         manager.stop();
     }
 
+    @Override
+    public void setTransactionClass(String transactionClass) {
+        if (transactionClass != null) {
+            writeCache.getAdvancedCache().setTransactionClass(transactionClass);
+        }
+    }
+
+    /**
+     * Store in Infinispan. This method supports null values. This method is used by the code
+     * generated in the Domain Objects.
+     */
+    public final void cachePut(String key, Object value) {
+        writeCache.put(key, (value != null) ? value : Externalization.NULL_OBJECT);
+    }
+
+    /**
+     * Reads from Infinispan a value with a given key. This method is used by the code generated in
+     * the Domain Objects.
+     */
+    public final <T> T cacheGet(String key) {
+        Object obj = readCache.get(key);
+        return (T) (obj instanceof Externalization.NullClass ? null : obj);
+    }
+
+    /**
+     * Reads from Infinispan a value with a given key such that the transactional context does not keep
+     * track of this key. This means that this read can never cause the transaction to abort.
+     * This method is used by the code generated in the Domain Objects.
+     */
+    public final <T> T cacheGetGhost(String key) {
+        Object obj = ghostCache.getAdvancedCache().withFlags(Flag.READ_WITHOUT_REGISTERING).get(key);
+        return (T) (obj instanceof Externalization.NullClass ? null : obj);
+    }
+
+    public final void registerGet(String key) {
+        AdvancedCache advCache = readCache.getAdvancedCache();
+        try {
+            advCache.getTxTable().getLocalTransaction(advCache.getTransactionManager().getTransaction()).addReadKey(key);
+        } catch (SystemException e) {
+            logger.error("Exception while getting the current JPA Transaction to register a key read", e);
+        }
+    }
+
+    /**
+     * WARNING: This is a backend-specific method. It was added as an hack to enable some tests by
+     * Algorithmica and will be removed later. The programmer should not use this method directly,
+     * because by doing so the code becomes backend-dependent.
+     */
+    @Deprecated
+    public final Cache getInfinispanCache() {
+        return this.readCache;
+    }
+
+    @Override
+    public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
+        String fullId = storageKey.substring(0, storageKey.lastIndexOf(':')); // ok, because it ends with the slot name
+        return fromOid(OID.recoverFromFullId(fullId));
+    }
+
+    @Override
+    public String[] getStorageKeys(DomainObject domainObject) {
+        if (domainObject == null) {
+            return new String[0];
+        }
+
+        DomainModel domainModel = FenixFramework.getDomainModel();
+        DomainClass domClass = domainModel.findClass(domainObject.getClass().getName());
+        if (domClass == null) {
+            return new String[0];
+        }
+
+        String oid = ((InfinispanDomainObject) domainObject).getOid().getFullId();
+
+        ArrayList<String> keys = new ArrayList<String>();
+        for (Slot slot : domClass.getSlotsList()) {
+            keys.add(oid + ':' + slot.getName());
+        }
+        return keys.toArray(new String[keys.size()]);
+    }
+
+    public final LocalityHints getLocalityHints(String externalId) {
+        return OID.getLocalityHint(externalId);
+    }
+
+    @Override
+    public ClusterInformation getClusterInformation() {
+        RpcManager rpcManager = readCache.getAdvancedCache().getRpcManager();
+        //if the cache does not have the rpc manager, then the cache is configured in local mode only
+        if (rpcManager == null) {
+            return ClusterInformation.LOCAL_MODE;
+        }
+        List<Address> members = rpcManager.getMembers();
+        int thisMemberIndex = members.indexOf(rpcManager.getAddress());
+        if (thisMemberIndex < 0) {
+            return ClusterInformation.NOT_AVAILABLE;
+        }
+
+        return new BasicClusterInformation(members.size(), thisMemberIndex);
+    }
+
+    @Override
+    public synchronized MessagingQueue createMessagingQueue(String appName) throws Exception {
+        if (appName == null || appName.isEmpty()) {
+            throw new IllegalArgumentException("Application name should be not null neither empty");
+        }
+        if (readCache == null) {
+            throw new IllegalStateException("Infinispan backend is not initialized!");
+        }
+        String localName = readCache.getName();
+        if (localName.equals(appName)) {
+            if (localMessagingQueue == null) {
+                throw new IllegalStateException("Local Message Queue is not initialized!");
+            }
+            return localMessagingQueue;
+        } else {
+            return new RemoteMessagingQueue(appName, localName, jgroupsMessagingConfigurationFile,
+                    readCache.getAdvancedCache().getComponentRegistry().getCacheMarshaller(), createLoadBalancePolicy());
+        }
+    }
+
     protected void configInfinispan(InfinispanConfig config) throws Exception {
         setupCache(config);
         setupTxManager();
         setupMessaging(config);
         config.waitForExpectedInitialNodes("backend-infinispan-init-barrier");
+    }
+
+    protected IdentityMap getIdentityMap() {
+        return SharedIdentityMap.getCache();
     }
 
     private void setupCache(InfinispanConfig config) {
@@ -242,7 +356,7 @@ public class InfinispanBackEnd implements BackEnd {
         localMessagingQueue = new LocalMessagingQueue(applicationName, readCache, jgroupsMessagingConfigurationFile,
                 threadPoolRequestProcessor, createLoadBalancePolicy());
     }
-    
+
     private LoadBalancePolicy createLoadBalancePolicy() throws Exception {
         if (loadBalancePolicyClass == null || loadBalancePolicyClass.isEmpty()) {
             return new DRDLoadBalancePolicy();
@@ -253,122 +367,5 @@ public class InfinispanBackEnd implements BackEnd {
             return new DRDLoadBalancePolicy();
         }
         return loadBalancePolicy.newInstance();
-    }
-
-    protected IdentityMap getIdentityMap() {
-        return SharedIdentityMap.getCache();
-    }
-
-    /**
-     * Store in Infinispan. This method supports null values. This method is used by the code
-     * generated in the Domain Objects.
-     */
-    public final void cachePut(String key, Object value) {
-        writeCache.put(key, (value != null) ? value : Externalization.NULL_OBJECT);
-    }
-
-    /**
-     * Reads from Infinispan a value with a given key. This method is used by the code generated in
-     * the Domain Objects.
-     */
-    public final <T> T cacheGet(String key) {
-        Object obj = readCache.get(key);
-        return (T) (obj instanceof Externalization.NullClass ? null : obj);
-    }
-
-    /**
-     * Reads from Infinispan a value with a given key such that the transactional context does not keep
-     * track of this key. This means that this read can never cause the transaction to abort.
-     * This method is used by the code generated in the Domain Objects.
-     */
-    public final <T> T cacheGetGhost(String key) {
-	Object obj = ghostCache.getAdvancedCache().withFlags(Flag.READ_WITHOUT_REGISTERING).get(key);
-        return (T)(obj instanceof Externalization.NullClass ? null : obj);
-    }
-
-    public final void registerGet(String key) {
-	AdvancedCache advCache = readCache.getAdvancedCache();
-	try {
-	    advCache.getTxTable().getLocalTransaction(advCache.getTransactionManager().getTransaction()).addReadKey(key);
-	} catch (SystemException e) {
-	    logger.error("Exception while getting the current JPA Transaction to register a key read", e);
-	}
-    }
-
-    /**
-     * WARNING: This is a backend-specific method. It was added as an hack to enable some tests by
-     * Algorithmica and will be removed later. The programmer should not use this method directly,
-     * because by doing so the code becomes backend-dependent.
-     */
-    @Deprecated
-    public final Cache getInfinispanCache() {
-        return this.readCache;
-    }
-
-    @Override
-    public <T extends DomainObject> T getOwnerDomainObject(String storageKey) {
-        String fullId = storageKey.substring(0, storageKey.lastIndexOf(':')); // ok, because it ends with the slot name
-        return fromOid(OID.recoverFromFullId(fullId));
-    }
-
-    @Override
-    public String[] getStorageKeys(DomainObject domainObject) {
-        if (domainObject == null) {
-            return new String[0];
-        }
-
-        DomainModel domainModel = FenixFramework.getDomainModel();
-        DomainClass domClass = domainModel.findClass(domainObject.getClass().getName());
-        if (domClass == null) {
-            return new String[0];
-        }
-
-        String oid = ((InfinispanDomainObject) domainObject).getOid().getFullId();
-
-        ArrayList<String> keys = new ArrayList<String>();
-        for (Slot slot : domClass.getSlotsList()) {
-            keys.add(oid + ':' + slot.getName());
-        }
-        return keys.toArray(new String[keys.size()]);
-    }
-
-    public final LocalityHints getLocalityHints(String externalId) {
-        return OID.getLocalityHint(externalId);
-    }
-
-    @Override
-    public ClusterInformation getClusterInformation() {
-        RpcManager rpcManager = readCache.getAdvancedCache().getRpcManager();
-        //if the cache does not have the rpc manager, then the cache is configured in local mode only
-        if (rpcManager == null) {
-            return ClusterInformation.LOCAL_MODE;
-        }
-        List<Address> members = rpcManager.getMembers();
-        int thisMemberIndex = members.indexOf(rpcManager.getAddress());
-        if (thisMemberIndex < 0) {
-            return ClusterInformation.NOT_AVAILABLE;
-        }
-
-        return new BasicClusterInformation(members.size(), thisMemberIndex);
-    }
-
-    @Override
-    public synchronized MessagingQueue createMessagingQueue(String appName) throws Exception {
-        if (appName == null || appName.isEmpty()) {
-            throw new IllegalArgumentException("Application name should be not null neither empty");
-        }
-        if (readCache == null) {
-            throw new IllegalStateException("Infinispan backend is not initialized!");
-        }
-        String localName = readCache.getName();
-        if (localName.equals(appName)) {
-            if (localMessagingQueue == null) {
-                throw new IllegalStateException("Local Message Queue is not initialized!");
-            }
-            return localMessagingQueue;
-        } else {
-            return new RemoteMessagingQueue(appName, localName, jgroupsMessagingConfigurationFile,
-                    readCache.getAdvancedCache().getComponentRegistry().getCacheMarshaller(), createLoadBalancePolicy());
-        }
     }
 }

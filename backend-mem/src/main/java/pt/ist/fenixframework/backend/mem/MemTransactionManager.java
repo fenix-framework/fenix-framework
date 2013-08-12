@@ -47,6 +47,11 @@ public class MemTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
+    public <T> T withTransaction(CallableWithoutException<T> command, String transactionalClassId) {
+        return withTransaction(command);
+    }
+
+    @Override
     public <T> T withTransaction(Callable<T> command) throws Exception {
 	if (transaction != null)
 	    return command.call();
