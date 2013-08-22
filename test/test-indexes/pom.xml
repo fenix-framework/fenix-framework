@@ -27,6 +27,7 @@
                     <!--<codeGeneratorClassName>pt.ist.fenixframework.backend.ogm.OgmCodeGenerator</codeGeneratorClassName>-->
                     <params>
                         <ptIstTxIntrospectorEnable>true</ptIstTxIntrospectorEnable>
+                        <automaticLocalityHints>true</automaticLocalityHints>
                     </params>
                 </configuration>
                 <executions>

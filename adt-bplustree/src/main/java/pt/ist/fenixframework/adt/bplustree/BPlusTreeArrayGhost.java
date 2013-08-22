@@ -8,6 +8,8 @@ import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.cloudtm.LocalityHints;
+
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
@@ -116,6 +118,11 @@ public class BPlusTreeArrayGhost<T extends Serializable> extends BPlusTreeArrayG
 
     public BPlusTreeArrayGhost() {
         initRoot();
+    }
+    
+    public BPlusTreeArrayGhost(LocalityHints hints) {
+    	super(hints);
+    	initRoot();
     }
 
     private void initRoot() {

@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import eu.cloudtm.LocalityHints;
+
 import pt.ist.fenixframework.adt.linkedlist.LinkedList_Base;
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
@@ -14,6 +16,11 @@ public class LinkedList<T extends Serializable> extends LinkedList_Base implemen
 	setHead(new ListNode<T>(null, null, null));
     }
 
+    public LinkedList(LocalityHints hints) {
+	super(hints);
+	setHead(new ListNode<T>(null, null, null));
+    }
+    
     public boolean insert(Comparable toInsert, T value) {
 	ListNode<T> previous = getHead();
 	ListNode<T> next = previous.getNext();

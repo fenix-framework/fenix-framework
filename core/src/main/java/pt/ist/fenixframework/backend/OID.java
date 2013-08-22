@@ -48,6 +48,8 @@ public class OID implements Comparable<OID>, Serializable {
      */
     private final String fullId; // includes class name to avoid repetitive computation
 
+    public static final boolean AUTOMATIC_LOCALITY_HINTS = Boolean.parseBoolean(System.getProperty("automaticLocalityHints", "false"));
+    
     /**
      * Create a new Object IDentifier for the given class. For the special class {@link DomainRoot}, it will always return the
      * same ROOT_OBJECT_ID. Any {@link LocalityHints} for the {@link DomainRoot} object are ignored, as this object always
@@ -66,7 +68,11 @@ public class OID implements Comparable<OID>, Serializable {
         } else {
             String uuid = UUID.randomUUID().toString();
             if (hints == null) {
-        	hints = new LocalityHints(new String[]{Constants.GROUP_ID, uuid});
+            	if (AUTOMATIC_LOCALITY_HINTS) {
+            		hints = new LocalityHints(new String[]{Constants.GROUP_ID, objClass.getName()});
+            	} else {
+            		hints = new LocalityHints(new String[]{Constants.GROUP_ID, uuid});
+            	}
             }
             OID oid = new OID(objClass, uuid, hints);
             if (logger.isTraceEnabled()) {

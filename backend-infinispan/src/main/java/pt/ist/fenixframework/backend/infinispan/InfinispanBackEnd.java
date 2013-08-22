@@ -55,7 +55,8 @@ public class InfinispanBackEnd implements BackEnd, InfinispanTransactionManager.
     private static final BoundedConcurrentHashMap<String, Object> L2_CACHE = new BoundedConcurrentHashMap<String, Object>(4000000, 64, BoundedConcurrentHashMap.Eviction.LRU);
     // 4M references, approx 32MB in 64bit references + CHM structure (mostly eviction related) = at most 40MB for the L2 Cache
     // assuming average of 40 bytes per object, this would keep in memory 160MB of additional objects
-    // so at most we'd keep additional 200MB 
+    // so at most we'd keep additional 200MB
+    
     protected final InfinispanTransactionManager transactionManager;
     protected Cache<String, Object> readCache;
     protected Cache<String, Object> writeCache;

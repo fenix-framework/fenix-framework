@@ -2,6 +2,9 @@ package pt.ist.fenixframework.backend.infinispan;
 
 import java.io.PrintWriter;
 
+import eu.cloudtm.Constants;
+import eu.cloudtm.LocalityHints;
+
 import pt.ist.fenixframework.atomic.ContextFactory;
 import pt.ist.fenixframework.atomic.DefaultContextFactory;
 import pt.ist.fenixframework.dml.CompilerArgs;
@@ -23,11 +26,18 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     protected static final String VT_DESERIALIZER = ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME + "."
             + ValueTypeSerializationGenerator.DESERIALIZATION_METHOD_PREFIX;
 
+    public static final String AUTOMATIC_LOCALITY_HINTS_KEY = "automaticLocalityHints";
+    public boolean generateAutomaticHints = false;
+    
     public InfinispanCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
         String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
         if (collectionName == null || collectionName.isEmpty()) {
             setCollectionToUse("pt.ist.fenixframework.adt.bplustree.ColocatedBPlusTree");
+        }
+        String hints = compArgs.getParams().get(AUTOMATIC_LOCALITY_HINTS_KEY);
+        if (hints != null && !hints.isEmpty()) {
+        	generateAutomaticHints = Boolean.parseBoolean(hints);
         }
     }
 
@@ -352,9 +362,9 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         
         // FIXME epic hack to get debugging on co-located trees
         if (collectionType.contains("ColocatedBPlusTree")) {
-            println(out, "internalSet = new " + collectionType + "(this.getLocalityHints(), \"" + role.getName() + "\");");
+            println(out, "internalSet = new " + collectionType + "(" + (generateAutomaticHints ? "\"" + role.getType().getFullName() + "\"" : "this.getLocalityHints()") + ", \"" + role.getName() + "\");");
         } else {
-            println(out, "internalSet = new " + collectionType + "();");
+            println(out, "internalSet = new " + collectionType + "(" + (generateAutomaticHints ? "new eu.cloudtm.LocalityHints(new String[]{eu.cloudtm.Constants.GROUP_ID, " + "\"" + role.getType().getFullName() + "\"" + "})" : "") + ");");
         }
         print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + role.getName()
                 + "\", internalSet.getOid());");

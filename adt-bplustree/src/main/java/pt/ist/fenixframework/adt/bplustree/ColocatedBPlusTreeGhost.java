@@ -19,4 +19,9 @@ public class ColocatedBPlusTreeGhost<T extends Serializable> extends ColocatedBP
                 localityHints.clone().addHint(Constants.RELATION_NAME, relationName));
     }
 
+    public ColocatedBPlusTreeGhost(String className, String relationName) {
+        super(new LocalityHints(new String[]{Constants.GROUP_ID, className, Constants.RELATION_NAME, relationName}));
+    }
+
+    
 }

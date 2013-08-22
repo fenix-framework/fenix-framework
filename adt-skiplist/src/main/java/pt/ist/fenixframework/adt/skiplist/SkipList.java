@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
+import eu.cloudtm.LocalityHints;
+
 import pt.ist.fenixframework.dml.runtime.DomainBasedMap;
 
 public class SkipList<T extends Serializable> extends SkipList_Base implements DomainBasedMap<T>{
@@ -22,6 +24,17 @@ public class SkipList<T extends Serializable> extends SkipList_Base implements D
     
     public SkipList() {
 	super();
+	setLevel(0);
+	SkipListNode<T> head = new SkipListNode<T>(maxLevel, MIN_VALUE, null);
+	SkipListNode<T> tail = new SkipListNode<T>(maxLevel, MAX_VALUE, null);
+	setHead(head);
+	for (int i = 0; i <= maxLevel; i++) {
+	    head.setForward(i, tail);
+	}
+    }
+    
+    public SkipList(LocalityHints hints) {
+	super(hints);
 	setLevel(0);
 	SkipListNode<T> head = new SkipListNode<T>(maxLevel, MIN_VALUE, null);
 	SkipListNode<T> tail = new SkipListNode<T>(maxLevel, MAX_VALUE, null);
