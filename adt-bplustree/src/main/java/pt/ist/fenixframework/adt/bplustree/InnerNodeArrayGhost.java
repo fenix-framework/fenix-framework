@@ -67,6 +67,7 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
     private DoubleArray<AbstractNodeArrayGhost> justInsert(Comparable middleKey, AbstractNodeArrayGhost subLeftNode, AbstractNodeArrayGhost subRightNode) {
 	DoubleArray<AbstractNodeArrayGhost> newArr = getSubNodes().duplicateAndAddKey(middleKey, subLeftNode, subRightNode);
 	setSubNodes(newArr);
+	registerGetSubNodes();
 	return newArr;
     }
 
@@ -96,6 +97,7 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
     // replaces the key for the given sub-node.  The deletedKey is expected to exist in this node
     private AbstractNodeArrayGhost replaceDeletedKey(Comparable deletedKey, Comparable replacementKey, AbstractNodeArrayGhost subNode) {
 	setSubNodes(getSubNodes().replaceKey(deletedKey, replacementKey, subNode));
+	registerGetSubNodes();
 	return getRoot();
     }
 
@@ -187,6 +189,7 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
 	entryValue.mergeWithLeftNode(previousEntryValue, null);
 	// remove the superfluous node
 	setSubNodes(getSubNodes().removeKey(previousEntryKey));
+	registerGetSubNodes();
     }
 
     void mergeWithLeftNode(AbstractNodeArrayGhost leftNode, Comparable splitKey) {
@@ -202,6 +205,7 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
 
 	DoubleArray<AbstractNodeArrayGhost> newArr = subNodes.mergeWith(splitKey, leftSubNodes);
 	setSubNodes(newArr);
+	registerGetSubNodes();
     }
 
     // Get the rightmost key-value pair from the left sub-node and move it to the given sub-node.  Update the split key
@@ -211,6 +215,7 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
 
 	// update the split key to be the key we just moved
 	setSubNodes(this.getSubNodes().replaceKey(leftEntryKey, leftBiggestKeyValue.key, leftEntryValue));
+	registerGetSubNodes();
     }
 
     // Get the leftmost key-value pair from the right sub-node and move it to the given sub-node.  Update the split key
@@ -222,6 +227,7 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
 	Comparable rightNextSmallestKey = rightValue.getSmallestKey();
 	DoubleArray<AbstractNodeArrayGhost> entries = this.getSubNodes();
 	setSubNodes(entries.replaceKey(leftEntryKey, rightNextSmallestKey, leftValue));
+	registerGetSubNodes();
     }
 
     /*
@@ -284,6 +290,7 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
 	entryValue.mergeWithLeftNode(previousEntryValue, previousEntryKey);
 	// remove the superfluous node
 	setSubNodes(getSubNodes().removeKey(previousEntryKey));
+	registerGetSubNodes();
     }
 
     private void rotateLeftToRight(Comparable leftEntryKey, InnerNodeArrayGhost leftSubNode, InnerNodeArrayGhost rightSubNode) {
@@ -305,9 +312,12 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
 
 	leftSubNode.setSubNodes(newLeftSubNodes);
 	rightSubNode.setSubNodes(newRightSubNodes);
+	leftSubNode.registerGetSubNodes();
+	rightSubNode.registerGetSubNodes();
 
 	// update the split-key to be the key we just removed from the left
 	setSubNodes(getSubNodes().replaceKey(leftEntryKey, leftHighestKey, leftSubNode));
+	registerGetSubNodes();
     }
 
     private void rotateRightToLeft(Comparable leftEntryKey, InnerNodeArrayGhost leftSubNode, InnerNodeArrayGhost rightSubNode) {
@@ -330,9 +340,12 @@ public class InnerNodeArrayGhost extends InnerNodeArrayGhost_Base {
 
 	leftSubNode.setSubNodes(newLeftSubNodes);
 	rightSubNode.setSubNodes(newRightSubNodes);
+	leftSubNode.registerGetSubNodes();
+	rightSubNode.registerGetSubNodes();
 
 	// update the split-key to be the key we just removed from the right
 	setSubNodes(getSubNodes().replaceKey(leftEntryKey, rightLowestEntry.key, leftSubNode));
+	registerGetSubNodes();
     }
 
     @Override

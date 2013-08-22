@@ -95,6 +95,7 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     	newMap.put(keyJustAfterMiddleKey, subRightNode); // this replaces the previous mapping
     	newMap.put(middleKey, subLeftNode); // this adds the new split
         setSubNodes(newMap);
+        registerGetSubNodes();
     	return newMap;
     }
     
@@ -127,6 +128,7 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     	newMap.remove(deletedKey);
     	newMap.put(replacementKey, subNode);
         setSubNodes(newMap);
+        registerGetSubNodes();
     	return getRoot();
     }
 
@@ -213,6 +215,7 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     	TreeMap<Comparable,AbstractNodeGhost> newMap = duplicateMap();
     	newMap.remove(previousEntry.getKey());
         setSubNodes(newMap);
+        registerGetSubNodes();
     }
 
     void mergeWithLeftNode(AbstractNodeGhost leftNode, Comparable splitKey) {
@@ -236,6 +239,7 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     	// merge the remaining left sub-nodes
     	newMap.putAll(newLeftSubNodes);
         setSubNodes(newMap);
+        registerGetSubNodes();
     }
 
     // Get the rightmost key-value pair from the left sub-node and move it to the given sub-node.  Update the split key
@@ -250,6 +254,7 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     	newMap.remove(leftEntry.getKey());
     	newMap.put(leftBiggestKeyValue.getKey(), leftSubNode);
         setSubNodes(newMap);
+        registerGetSubNodes();
     }
 
     // Get the leftmost key-value pair from the right sub-node and move it to the given sub-node.  Update the split key
@@ -266,6 +271,7 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     	newMap.remove(leftEntry.getKey());
     	newMap.put(rightNextSmallestKey, leftSubNode);
         setSubNodes(newMap);
+        registerGetSubNodes();
     }
 
     /*
@@ -321,6 +327,7 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
     	TreeMap<Comparable,AbstractNodeGhost> newMap = duplicateMap();
     	newMap.remove(splitKey);
         setSubNodes(newMap);
+        registerGetSubNodes();
     }
 
     private void rotateLeftToRight(Map.Entry<Comparable,InnerNodeGhost> leftEntry, Map.Entry<Comparable,InnerNodeGhost> rightEntry) {
@@ -343,12 +350,15 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
 
         leftSubNode.setSubNodes(newLeftSubNodeSubNodes);
         rightSubNode.setSubNodes(newRightSubNodeSubNodes);
+        leftSubNode.registerGetSubNodes();
+        rightSubNode.registerGetSubNodes();
 
     	// update the split-key to be the key we just removed from the left
     	TreeMap<Comparable,AbstractNodeGhost> newMap = duplicateMap();
     	newMap.remove(leftEntry.getKey());
     	newMap.put(leftHighestKey, leftSubNode);
         setSubNodes(newMap);
+        registerGetSubNodes();
     }
 
     private void rotateRightToLeft(Map.Entry<Comparable,InnerNodeGhost> leftEntry, Map.Entry<Comparable,InnerNodeGhost> rightEntry) {
@@ -372,12 +382,15 @@ public class InnerNodeGhost extends InnerNodeGhost_Base {
 
         leftSubNode.setSubNodes(newLeftSubNodeSubNodes);
         rightSubNode.setSubNodes(newRightSubNodeSubNodes);
+        leftSubNode.registerGetSubNodes();
+        rightSubNode.registerGetSubNodes();
 
     	// update the split-key to be the key we just removed from the right
     	TreeMap<Comparable,AbstractNodeGhost> newMap = duplicateMap();
     	newMap.remove(leftEntry.getKey());
     	newMap.put(rightLowestEntry.getKey(), leftSubNode);
         setSubNodes(newMap);
+        registerGetSubNodes();
     }
 
     @Override
