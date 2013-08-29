@@ -35,14 +35,7 @@ public class DRDLoadBalancePolicy implements LoadBalancePolicy {
     @Override
     public Iterator<Address> locate(ConsistentHash consistentHash, String hint, boolean primaryBackup, boolean write) {
         Set<org.infinispan.remoting.transport.Address> addressSetOrdered = new LinkedHashSet<org.infinispan.remoting.transport.Address>();
-        if (consistentHash.getNumSegments() == 1) {
-            //full replicated
-            copyMembers(consistentHash, addressSetOrdered);
-            if (log.isTraceEnabled()) {
-                log.trace("DRD Load Balance Policy [Full Replication]: " + addressSetOrdered);
-            }
-            return new ListDRDIterator(translation, addressSetOrdered).init();
-        } else if (primaryBackup && write) {
+        if (primaryBackup && write) {
             org.infinispan.remoting.transport.Address primary = consistentHash.getMembers().get(0);
             if (log.isTraceEnabled()) {
                 log.trace("DRD Load Balance Policy: [Primary Backup + Write]: " + primary);
@@ -65,6 +58,13 @@ public class DRDLoadBalancePolicy implements LoadBalancePolicy {
                 log.trace("DRD Load Balance Policy: [Primary Backup + Read]: " + addressSetOrdered);
             }
 
+            return new ListDRDIterator(translation, addressSetOrdered).init();
+        } else if (isFullReplication(consistentHash)) {
+            //full replicated
+            copyMembers(consistentHash, addressSetOrdered);
+            if (log.isTraceEnabled()) {
+                log.trace("DRD Load Balance Policy [Full Replication]: " + addressSetOrdered);
+            }
             return new ListDRDIterator(translation, addressSetOrdered).init();
         }
 
@@ -95,7 +95,7 @@ public class DRDLoadBalancePolicy implements LoadBalancePolicy {
     }
 
     private void copyOwnerAndMembers(ConsistentHash consistentHash, String key, Set<org.infinispan.remoting.transport.Address> orderedSet) {
-        if (key == null) {
+        if (key == null || isFullReplication(consistentHash)) {
             copyMembers(consistentHash, orderedSet);
         } else {
             List<org.infinispan.remoting.transport.Address> copy =
@@ -104,6 +104,10 @@ public class DRDLoadBalancePolicy implements LoadBalancePolicy {
             orderedSet.addAll(copy);
             copyMembers(consistentHash, orderedSet);
         }
+    }
+
+    private boolean isFullReplication(ConsistentHash consistentHash) {
+        return consistentHash.getNumSegments() == 1;
     }
 
     private <T> void shuffle(List<T> list) {
