@@ -12,6 +12,8 @@ import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.util.TxMap;
 
 import javax.transaction.*;
+
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -188,10 +190,19 @@ public class InfinispanTransactionManager implements TransactionManager {
         }
     }
 
+    public static transient boolean BACKOFF_ON_ABORT = Boolean.parseBoolean(System.getProperty("backoffOnAbort", "false"));
+    public static transient int INITIAL_BACKOFF = Integer.parseInt(System.getProperty("initialBackoffValue", "0"));
+    private static final transient ThreadLocal<Random> BACKOFF_RANDOM = new ThreadLocal<Random>() {
+	public Random initialValue() {
+	    return new Random();
+	}
+    };
+    
     /**
      * For now, it ignores the value of the atomic parameter.
      */
     private <T> T withTransaction(Callable<T> command, Atomic atomic, String transactionalClassId) throws Exception {
+	int restarts = 0;
         while (true) {
             boolean started = tryBegin(transactionalClassId);
             boolean success = false;
@@ -234,6 +245,9 @@ public class InfinispanTransactionManager implements TransactionManager {
             }
             if (finished) {
                 return result;
+            } else if (BACKOFF_ON_ABORT) {
+        	Thread.sleep(BACKOFF_RANDOM.get().nextInt(INITIAL_BACKOFF * (int)Math.pow(2, restarts)));
+        	restarts++;
             }
 
             if (logger.isTraceEnabled()) {
