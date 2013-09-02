@@ -58,14 +58,14 @@ public class DRDLoadBalancePolicy implements LoadBalancePolicy {
                 log.trace("DRD Load Balance Policy: [Primary Backup + Read]: " + addressSetOrdered);
             }
 
-            return new ListDRDIterator(translation, addressSetOrdered).init();
+            return new AddressListIterator(translation, addressSetOrdered);
         } else if (isFullReplication(consistentHash)) {
             //full replicated
             copyMembers(consistentHash, addressSetOrdered);
             if (log.isTraceEnabled()) {
                 log.trace("DRD Load Balance Policy [Full Replication]: " + addressSetOrdered);
             }
-            return new ListDRDIterator(translation, addressSetOrdered).init();
+            return new AddressListIterator(translation, addressSetOrdered);
         }
 
         copyOwnerAndMembers(consistentHash, hint, addressSetOrdered);
@@ -73,7 +73,7 @@ public class DRDLoadBalancePolicy implements LoadBalancePolicy {
         if (log.isTraceEnabled()) {
             log.trace("DRD Load Balance Policy: [Dynamic]: " + addressSetOrdered);
         }
-        return new ListDRDIterator(translation, addressSetOrdered).init();
+        return new AddressListIterator(translation, addressSetOrdered);
     }
 
     @Override
@@ -117,61 +117,6 @@ public class DRDLoadBalancePolicy implements LoadBalancePolicy {
             }
         } else if (list.size() > 2) {
             Collections.shuffle(list, random);
-        }
-    }
-
-    private class ListDRDIterator implements Iterator<Address> {
-
-        private final LoadBalanceTranslation translation;
-        private final Deque<org.infinispan.remoting.transport.Address> addressList;
-        private Address next;
-
-        public ListDRDIterator(LoadBalanceTranslation translation, Set<org.infinispan.remoting.transport.Address> addresses) {
-            this.translation = translation;
-            addressList = new ArrayDeque<org.infinispan.remoting.transport.Address>(addresses);
-        }
-
-        public final ListDRDIterator init() {
-            setNext();
-            return this;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return next != null;
-        }
-
-        @Override
-        public Address next() {
-            if (next == null) {
-                throw new NoSuchElementException();
-            }
-            Address toReturn = next;
-            setNext();
-            return toReturn;
-        }
-
-        @Override
-        public final void remove() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String toString() {
-            return "ListDRDIterator{" +
-                    "addressList=" + addressList +
-                    ", next=" + next +
-                    '}';
-        }
-
-        private void setNext() {
-            if (addressList.isEmpty()) {
-                next = null;
-                return;
-            }
-            do {
-                next = translation.translate(addressList.pollFirst());
-            } while (next == null && !addressList.isEmpty());
         }
     }
 }

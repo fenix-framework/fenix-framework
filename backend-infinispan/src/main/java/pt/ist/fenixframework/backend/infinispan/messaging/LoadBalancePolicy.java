@@ -101,11 +101,7 @@ public interface LoadBalancePolicy {
                                    Set<org.infinispan.remoting.transport.Address> addresses) {
             this.translation = translation;
             addressList = new ArrayDeque<org.infinispan.remoting.transport.Address>(addresses);
-        }
-
-        public final AddressListIterator init() {
             setNext();
-            return this;
         }
 
         @Override

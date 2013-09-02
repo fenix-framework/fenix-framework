@@ -13,6 +13,8 @@ import pt.ist.fenixframework.jmx.annotations.ManagedOperation;
 import java.io.IOException;
 import java.util.*;
 
+import static org.infinispan.dataplacement.ch.LCRDClusterUtil.createClusterMembers;
+
 /**
  * Locality-catalyzer Request Dispatching
  *
@@ -51,28 +53,22 @@ public class LCRDLoadBalancePolicy implements LoadBalancePolicy {
             return new AddressListIterator(translation, orderedAddressSet);
         }
         List<org.infinispan.remoting.transport.Address> members = consistentHash.getMembers();
-        MemberInterval interval = transactionClassMapping.interval(hint, members.size());
-        if (interval == null) {
+        org.infinispan.remoting.transport.Address[] addresses = transactionClassMapping.interval(hint, members,
+                consistentHash.getNumOwners());
+        if (addresses == null) {
             copyMembers(consistentHash, orderedAddressSet);
             return new AddressListIterator(translation, orderedAddressSet);
         }
-
-        for (int i = interval.begin; i < interval.end; ++i) {
-            orderedAddressSet.add(members.get(i));
-        }
-
+        orderedAddressSet.addAll(Arrays.asList(addresses));
         copyMembers(consistentHash, orderedAddressSet);
-
         return new AddressListIterator(translation, orderedAddressSet);
     }
 
     @Override
     public void getState(SendBuffer buffer, boolean worker, boolean coordinator) throws IOException {
-        if (coordinator) {
-            buffer.writeBoolean(transactionClassMapping != null);
-            if (transactionClassMapping != null) {
-                transactionClassMapping.toBuffer(buffer);
-            }
+        buffer.writeBoolean(coordinator && transactionClassMapping != null);
+        if (transactionClassMapping != null) {
+            transactionClassMapping.toBuffer(buffer);
         }
     }
 
@@ -92,7 +88,8 @@ public class LCRDLoadBalancePolicy implements LoadBalancePolicy {
     }
 
     @ManagedOperation(description = "Updates the LCRD mappings")
-    public final void updateMappings(Map<String, Integer> clusterMappings, Map<Integer, Float> clusterWeight) throws Exception {
+    public final void updateMappings(Map<String, Integer> clusterMappings, Map<Integer, Float> clusterWeight)
+            throws Exception {
         final float[] weight = new float[clusterWeight.size()];
         for (int i = 0; i < weight.length; ++i) {
             weight[i] = clusterWeight.get(i);
@@ -144,18 +141,13 @@ public class LCRDLoadBalancePolicy implements LoadBalancePolicy {
             }
         }
 
-        public final MemberInterval interval(String txClass, int numberOfNodes) {
+        public final org.infinispan.remoting.transport.Address[] interval(
+                String txClass, List<org.infinispan.remoting.transport.Address> members, int numberOfOwners) {
             Integer clusterId = clusterMapping.get(txClass);
             if (clusterId == null) {
                 return null;
             }
-            float weightBefore = 0;
-            for (int i = clusterId - 1; i >= 0; --i) {
-                weightBefore += clusterWeight[i];
-            }
-            int begin = (int) (weightBefore * numberOfNodes);
-            int end = (int) (begin + (clusterWeight[clusterId] * numberOfNodes));
-            return new MemberInterval(begin, end);
+            return createClusterMembers(clusterId, clusterWeight, members, numberOfOwners);
         }
 
         public final void toBuffer(SendBuffer buffer) throws IOException {
@@ -171,16 +163,4 @@ public class LCRDLoadBalancePolicy implements LoadBalancePolicy {
         }
 
     }
-
-    private class MemberInterval {
-        private final int begin;
-        private final int end;
-
-        public MemberInterval(int begin, int end) {
-            this.begin = begin;
-            this.end = end;
-        }
-    }
-
-
 }
