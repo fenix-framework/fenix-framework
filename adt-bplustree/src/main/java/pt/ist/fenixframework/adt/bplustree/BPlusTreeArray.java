@@ -8,6 +8,7 @@ import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.cloudtm.Constants;
 import eu.cloudtm.LocalityHints;
 
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -131,19 +132,24 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
 
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
     public boolean insert(Comparable key, T value) {
-        if (value == null) {
-            throw new UnsupportedOperationException("This B+Tree does not support nulls");
+    	try {
+    		if (value == null) {
+    			throw new UnsupportedOperationException("This B+Tree does not support nulls");
+    		}
+    		AbstractNodeArray rootNode = this.getRoot();
+    		AbstractNodeArray resultNode = rootNode.insert(key, value);
+    		
+    		if (resultNode == null) {
+    			return false;
+    		}
+    		if (rootNode != resultNode) {
+    			this.setRoot(resultNode);
+    		}
+    		return true;
+    	} catch (NullPointerException npe) {
+    		fixTree();
+        	return true;
         }
-        AbstractNodeArray rootNode = this.getRoot();
-        AbstractNodeArray resultNode = rootNode.insert(key, value);
-
-        if (resultNode == null) {
-            return false;
-        }
-        if (rootNode != resultNode) {
-            this.setRoot(resultNode);
-        }
-        return true;
     }
 
     // /** Removes the given element */
@@ -153,16 +159,21 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
 
     /** Removes the element with the given key */
     public boolean removeKey(Comparable key) {
-        AbstractNodeArray rootNode = this.getRoot();
-        AbstractNodeArray resultNode = rootNode.remove(key);
-
-        if (resultNode == null) {
-            return false;
+    	try {
+    		AbstractNodeArray rootNode = this.getRoot();
+    		AbstractNodeArray resultNode = rootNode.remove(key);
+    		
+    		if (resultNode == null) {
+    			return false;
+    		}
+    		if (rootNode != resultNode) {
+    			this.setRoot(resultNode);
+    		}
+    		return true;
+    	} catch (NullPointerException npe) {
+    		fixTree();
+        	return true;
         }
-        if (rootNode != resultNode) {
-            this.setRoot(resultNode);
-        }
-        return true;
     }
 
     /**
@@ -171,12 +182,22 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
      */
     @Override
     public T get(Comparable key) {
-        return ((AbstractNodeArray<T>) this.getRoot()).get(key);
+    	try {
+    		return ((AbstractNodeArray<T>) this.getRoot()).get(key);
+    	} catch (NullPointerException npe) {
+    		fixTree();
+        	return null;
+        }
     }
     
     @Override
     public T getCached(boolean forceMiss, Comparable key) {
-	return ((AbstractNodeArray<T>) this.getRootCached(forceMiss)).get(forceMiss, key);
+    	try {
+    		return ((AbstractNodeArray<T>) this.getRootCached(forceMiss)).get(forceMiss, key);
+    	} catch (NullPointerException npe) {
+    		fixTree();
+        	return null;
+        }
     }
 
     /**
@@ -203,7 +224,12 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
 
     /** Returns <code>true</code> if this map contains a mapping for the specified key. */
     public boolean containsKey(Comparable key) {
-        return this.getRoot().containsKey(key);
+    	try {
+    		return this.getRoot().containsKey(key);
+    	} catch (NullPointerException npe) {
+    		fixTree();
+        	return true;
+        }
     }
 
     /** Returns the number of key-value mappings in this map */
@@ -259,5 +285,17 @@ public class BPlusTreeArray<T extends Serializable> extends BPlusTreeArray_Base 
     @Override
     public boolean putIfMissing(Comparable key, T value) {
         return insert(key, value);
+    }
+    
+    public void fixTree() {
+    	LocalityHints lh = this.getLocalityHints();
+    	if (lh != null) {
+    		String relation = lh.get(Constants.RELATION_NAME);
+    		initRoot();
+    		logger.error("Reset on " + this.getClass().getName() + " for relation " + relation + " due to NPE.");
+    	} else {
+    		initRoot();
+    		logger.error("Reset on " + this.getClass().getName() + " due to NPE.");
+    	}
     }
 }

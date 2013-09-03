@@ -10,6 +10,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.cloudtm.Constants;
 import eu.cloudtm.LocalityHints;
 
 import pt.ist.fenixframework.DomainObject;
@@ -132,33 +133,43 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
 
     /** Inserts the given key-value pair, overwriting any previous entry for the same key */
     public boolean insert(Comparable key, T value) {
-        if (value == null) {
-            throw new UnsupportedOperationException("This B+Tree does not support nulls");
+    	try {
+    		if (value == null) {
+    			throw new UnsupportedOperationException("This B+Tree does not support nulls");
+    		}
+    		AbstractNode rootNode = this.getRoot();
+    		AbstractNode resultNode = rootNode.insert(key, value);
+    		
+    		if (resultNode == null) {
+    			return false;
+    		}
+    		if (rootNode != resultNode) {
+    			this.setRoot(resultNode);
+    		}
+    		return true;
+    	} catch (NullPointerException npe) {
+    		fixTree();
+        	return true;
         }
-        AbstractNode rootNode = this.getRoot();
-        AbstractNode resultNode = rootNode.insert(key, value);
-
-        if (resultNode == null) {
-            return false;
-        }
-        if (rootNode != resultNode) {
-            this.setRoot(resultNode);
-        }
-        return true;
     }
 
     /** Removes the element with the given key */
     public boolean removeKey(Comparable key) {
-        AbstractNode rootNode = this.getRoot();
-        AbstractNode resultNode = rootNode.remove(key);
-
-        if (resultNode == null) {
-            return false;
+    	try {
+    		AbstractNode rootNode = this.getRoot();
+    		AbstractNode resultNode = rootNode.remove(key);
+    		
+    		if (resultNode == null) {
+    			return false;
+    		}
+    		if (rootNode != resultNode) {
+    			this.setRoot(resultNode);
+    		}
+    		return true;
+    	} catch (NullPointerException npe) {
+    		fixTree();
+        	return true;
         }
-        if (rootNode != resultNode) {
-            this.setRoot(resultNode);
-        }
-        return true;
     }
 
     /**
@@ -167,12 +178,22 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
      */
     @Override
     public T get(Comparable key) {
-        return ((AbstractNode<T>) this.getRoot()).get(key);
+    	try {
+    		return ((AbstractNode<T>) this.getRoot()).get(key);
+    	} catch (NullPointerException npe) {
+    		fixTree();
+        	return null;
+        }
     }
     
     @Override
     public T getCached(boolean forceMiss, Comparable key) {
-	return ((AbstractNode<T>) this.getRootCached(forceMiss)).get(forceMiss, key);
+    	try {
+    		return ((AbstractNode<T>) this.getRootCached(forceMiss)).get(forceMiss, key);
+    	} catch (NullPointerException npe) {
+    		fixTree();
+    		return null;
+    	}
     }
 
     /**
@@ -199,7 +220,12 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
 
     /** Returns <code>true</code> if this map contains a mapping for the specified key. */
     public boolean containsKey(Comparable key) {
-        return this.getRoot().containsKey(key);
+    	try {
+    		return this.getRoot().containsKey(key);
+    	} catch (NullPointerException npe) {
+    		fixTree();
+        	return true;
+        }
     }
 
     /** Returns the number of key-value mappings in this map */
@@ -268,4 +294,15 @@ public class BPlusTree<T extends Serializable> extends BPlusTree_Base implements
         return insert(key, value);
     }
     
+    public void fixTree() {
+    	LocalityHints lh = this.getLocalityHints();
+    	if (lh != null) {
+    		String relation = lh.get(Constants.RELATION_NAME);
+    		initRoot();
+    		logger.error("Reset on " + this.getClass().getName() + " for relation " + relation + " due to NPE.");
+    	} else {
+    		initRoot();
+    		logger.error("Reset on " + this.getClass().getName() + " due to NPE.");
+    	}
+    }
 }
