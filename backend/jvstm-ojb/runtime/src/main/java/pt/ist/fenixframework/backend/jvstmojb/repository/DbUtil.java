@@ -123,16 +123,39 @@ public class DbUtil {
         }
     }
 
+    /**
+     * Opens a new Connection to the database,
+     * wrapping any exception.
+     * 
+     * @see openConnection()
+     * @return
+     *         A new connection
+     */
     static Connection getNewConnection() {
         try {
-            final JvstmOJBConfig config = getConfig();
-            final String url = "jdbc:mysql:" + config.getDbAlias();
-            final Connection connection = DriverManager.getConnection(url, config.getDbUsername(), config.getDbPassword());
-            connection.setAutoCommit(false);
-            return connection;
+            return openConnection();
         } catch (SQLException ex) {
             throw new Error(ex);
         }
+    }
+
+    /**
+     * Opens a NEW {@link Connection} to the database.
+     * 
+     * The caller must be responsible for manually closing
+     * the Connection.
+     * 
+     * @return
+     *         A new database Connection
+     * @throws SQLException
+     *             If it is not possible to establish a connection
+     */
+    static Connection openConnection() throws SQLException {
+        final JvstmOJBConfig config = getConfig();
+        final String url = "jdbc:mysql:" + config.getDbAlias();
+        final Connection connection = DriverManager.getConnection(url, config.getDbUsername(), config.getDbPassword());
+        connection.setAutoCommit(false);
+        return connection;
     }
 
     public static abstract class DBLockedCommand {
