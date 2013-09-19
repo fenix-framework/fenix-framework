@@ -10,6 +10,7 @@ import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 
+import jvstm.CommitException;
 import jvstm.Transaction;
 import jvstm.WriteOnReadException;
 
@@ -196,6 +197,13 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
                 if (!readOnly) {
                     tryReadOnly = false;
                 }
+                logTransactionRestart(commandName, e, tries);
+            } catch (CommitException e) {
+                /* actually, during the body of a transaction we're only interested
+                in the JVSTM-2' EarlyAbortException. However, that class is not
+                known in this module, which is only compiled with jvstm1.x.  But,
+                because EarlyAbortException is a subclass of the known CommitException
+                we're good. :-)*/
                 logTransactionRestart(commandName, e, tries);
             } catch (Exception e) {
                 // just log any other exception

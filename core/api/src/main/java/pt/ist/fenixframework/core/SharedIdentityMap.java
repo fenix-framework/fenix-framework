@@ -81,6 +81,13 @@ public class SharedIdentityMap implements IdentityMap {
         this.cache.remove(entry.key, entry);
     }
 
+    /**
+     * This method is invoked when shutting down. It clears the cache contents.
+     */
+    public void shutdown() {
+        this.cache.clear();
+    }
+
     /* This method stores the new value if an older one didn't exist already.  In either case it returns the value that was left
      * in the cache.  This implementation works as intended because we assume that we never store a null value in the
      * cache. Otherwise, map.putIfAbsent would not put a new value over a null entry.

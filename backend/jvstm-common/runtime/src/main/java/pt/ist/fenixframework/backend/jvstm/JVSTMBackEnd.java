@@ -24,6 +24,7 @@ import pt.ist.fenixframework.backend.jvstm.pstm.FenixFrameworkData;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelReadOnlyTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.NonPersistentTopLevelTransaction;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
+import pt.ist.fenixframework.backend.jvstm.pstm.VBoxCache;
 import pt.ist.fenixframework.backend.jvstm.repository.NoRepository;
 import pt.ist.fenixframework.backend.jvstm.repository.Repository;
 import pt.ist.fenixframework.core.AbstractDomainObject;
@@ -105,10 +106,10 @@ public class JVSTMBackEnd implements BackEnd {
      */
     public void init(JVSTMConfig jvstmConfig) {
         int serverId = obtainNewServerId();
-        localInit(jvstmConfig, serverId);
+        localInit(jvstmConfig, serverId, true);
     }
 
-    protected void localInit(JVSTMConfig jvstmConfig, int serverId) {
+    protected void localInit(JVSTMConfig jvstmConfig, int serverId, boolean firstNode) {
         logger.info("initializeRepository()");
         boolean repositoryIsNew = initializeRepository(jvstmConfig);
 
@@ -116,7 +117,7 @@ public class JVSTMBackEnd implements BackEnd {
         initializeDomainClassInfos(serverId);
 
         logger.info("setupJVSTM");
-        setupJVSTM();
+        setupJVSTM(firstNode);
 
         // We need to ensure that the DomainRoot instance exists and is correctly initialized BEFORE the execution of any code that may need it.
         logger.info("createDomainRootIfNeeded");
@@ -155,7 +156,7 @@ public class JVSTMBackEnd implements BackEnd {
         DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), serverId);
     }
 
-    protected void setupJVSTM() {
+    protected void setupJVSTM(boolean firstNode) {
         // by default use JVSTM's transaction classes
         initializeTransactionFactory();
 
@@ -214,6 +215,7 @@ public class JVSTMBackEnd implements BackEnd {
 
     @Override
     public void shutdown() {
+        VBoxCache.getCache().shutdown();
     }
 
     public Repository getRepository() {

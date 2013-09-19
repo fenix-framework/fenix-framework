@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,12 +20,9 @@ public class ServerId {
 
     private static int serverId = -1;
 
-    private static final long SERVER_ID_LEASE_SECS = 600;
-
     public static void ensureServerId() {
-        Connection connection = DbUtil.getNewConnection();
-
         try {
+            Connection connection = DbUtil.openConnection();
             boolean done = false;
             while (!done) {
                 Statement query = connection.createStatement();
@@ -63,12 +61,14 @@ public class ServerId {
                 update.close();
             }
 
+            connection.close();
+
             logger.info("Obtained server id: {}", serverId);
         } catch (SQLException e) {
             throw new Error("Could not obtain server id!", e);
         }
 
-        new ServerIdRenewalThread(connection).start();
+        new ServerIdRenewalThread().start();
     }
 
     public static int getServerId() {
@@ -80,13 +80,13 @@ public class ServerId {
 
     private static class ServerIdRenewalThread extends FenixFrameworkThread {
 
-        private final Connection connection;
+        private long interval;
 
-        private long interval = SERVER_ID_LEASE_SECS * 1000;
+        private DateTime validUntil;
 
-        public ServerIdRenewalThread(Connection connection) {
+        public ServerIdRenewalThread() {
             super("ServerIdRenewalThread");
-            this.connection = connection;
+            updateValidity();
             setDaemon(true);
         }
 
@@ -95,8 +95,20 @@ public class ServerId {
             while (true) {
                 try {
                     Thread.sleep(interval);
+
+                    /*
+                     * If the lease has expired, the only safe thing to do
+                     * is to shut down the application server.
+                     *
+                     * For now this is replaced with an error message, as the
+                     * server ID is not yet actively used to generate OIDs.
+                     */
+                    if (validUntil.isBeforeNow()) {
+                        logger.error("Server ID lease has expired! Was valid until {}", validUntil);
+                    }
+
                     renewLease();
-                    interval = SERVER_ID_LEASE_SECS * 1000;
+                    updateValidity();
                 } catch (InterruptedException e) {
                     return;
                 } catch (SQLException e) {
@@ -108,25 +120,37 @@ public class ServerId {
 
         private void renewLease() throws SQLException {
             logger.info("Renewing server id lease.");
-            Statement stmt = connection.createStatement();
-            stmt.executeUpdate("update FF$SERVER_ID_LEASE set EXPIRATION = now() + interval 20 minute where ID = " + serverId);
-            connection.commit();
-            stmt.close();
+            try (Connection connection = DbUtil.openConnection(); Statement stmt = connection.createStatement()) {
+                stmt.executeUpdate("update FF$SERVER_ID_LEASE set EXPIRATION = now() + interval 20 minute where ID = " + serverId);
+                connection.commit();
+            }
         }
 
         private void clearLease() throws SQLException {
             logger.info("Clearing server id lease.");
-            Statement stmt = connection.createStatement();
-            stmt.executeUpdate("update FF$SERVER_ID_LEASE set EXPIRATION = null where ID = " + serverId);
-            connection.commit();
-            stmt.close();
+            try (Connection connection = DbUtil.openConnection(); Statement stmt = connection.createStatement()) {
+                stmt.executeUpdate("update FF$SERVER_ID_LEASE set EXPIRATION = null where ID = " + serverId);
+                connection.commit();
+            }
+        }
+
+        /*
+         * Update the in-memory timestamp of the last successful
+         * lease renewal. The leases last 20 minutes, so set the
+         * timeout to 19 minutes, to give a one minute margin.
+         */
+        private void updateValidity() {
+            this.validUntil = new DateTime().plusMinutes(19);
+
+            // Renew the lease after ten minutes
+            this.interval = 10 * 60 * 1000;
+            logger.debug("Server ID Lease is now valid until {}", this.validUntil);
         }
 
         @Override
         protected void shutdown() {
             try {
                 clearLease();
-                connection.close();
             } catch (SQLException e) {
                 logger.warn("Exception while closing connection", e);
             }

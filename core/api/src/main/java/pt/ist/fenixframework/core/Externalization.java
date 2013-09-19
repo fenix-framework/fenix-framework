@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import com.google.gson.JsonElement;
+
 public class Externalization {
 
     // The NullClass and the NULL_OBJECT are public so that they can be used by anyone who needs an
@@ -22,6 +24,8 @@ public class Externalization {
     public static byte[] externalizeObject(Object obj) {
         if (obj == null) {
             return externalizeSerializable(NULL_OBJECT);
+        } else if (obj instanceof JsonElement) {
+            obj = new JsonElementWrapper((JsonElement) obj);
         } else if (!(obj instanceof Serializable)) {
             throw new UnsupportedOperationException(obj.getClass().getName());
         }

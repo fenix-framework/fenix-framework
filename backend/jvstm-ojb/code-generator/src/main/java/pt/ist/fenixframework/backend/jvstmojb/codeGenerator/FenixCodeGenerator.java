@@ -25,6 +25,7 @@ import pt.ist.fenixframework.dml.ExternalizationElement;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 import pt.ist.fenixframework.dml.ValueType;
+import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 
 public abstract class FenixCodeGenerator extends CodeGenerator {
 
@@ -33,7 +34,7 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
     protected static final String RESULT_SET_READER_CLASS = ResultSetReader.class.getName();
 
     protected static final String[] IMPORTS = new String[] { RelationList.class.getName(),
-            OJBFunctionalSetWrapper.class.getName() };
+            OJBFunctionalSetWrapper.class.getName(), ValueTypeSerializationGenerator.SERIALIZER_CLASS_FULL_NAME };
 
     protected static final String DOMAIN_CLASS_ROOT = AbstractDomainObject.class.getName();
 
@@ -41,8 +42,11 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
 
     protected static final String TRANSACTION_SUPPORT_CLASS = TransactionSupport.class.getName();
 
+    private final ValueType jsonElementVt;
+
     public FenixCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
+        jsonElementVt = domainModel.findValueType("JsonElement");
     }
 
     @Override
@@ -350,50 +354,29 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
     }
 
     protected String getExternalizationExpression(ValueType vt) {
+
         StringBuilder expression = new StringBuilder();
 
-        // start with the variable holding the slot value (not null)
-        expression.append("value");
+        // Use the ValueTypeSerializer class to get the final type, 
+        // and then convert it to the correct SQL type
 
-        // now, go through the externalization elements, externalizing this
-        // value
-        while (!(vt.isBuiltin() || vt.isEnum())) {
-            List<ExternalizationElement> extElems = vt.getExternalizationElements();
-            if (extElems.size() != 1) {
-                throw new Error("Can't handle value-types with more than one externalization element yet... ("
-                        + vt.getDomainName() + ")");
-            }
-
-            ExternalizationElement extElem = extElems.get(0);
-            String extMethodName = extElem.getMethodName();
-
-            if (extMethodName.contains(".")) {
-                // a static method
-                expression.insert(0, extMethodName + "(");
-                expression.append(")");
-            } else {
-                // a class-member method
-                expression.append(".");
-                expression.append(extMethodName);
-                expression.append("()");
-            }
-
-            vt = extElem.getType();
-        }
-
-        // wrap the expression with the final converter method call
-        // note that this is being constructed backwards...
+        expression.append(TO_SQL_CONVERTER_CLASS);
+        expression.append(".getValueFor");
         if (vt.isEnum()) {
-            expression.insert(0, "Enum(");
-        } else {
-            expression.insert(0, vt.getDomainName() + "(");
+            expression.append("Enum(value)");
+            return expression.toString();
         }
-
-        expression.insert(0, ".getValueFor");
-        expression.insert(0, TO_SQL_CONVERTER_CLASS);
-
-        // close the wrap-up
-        expression.append(")");
+        expression.append(ValueTypeSerializationGenerator.getSerializedFormTypeName(vt, true));
+        expression.append("(");
+        if (vt.isBuiltin() || vt.isEnum()) {
+            expression.append("value)");
+        } else {
+            expression.append(ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME);
+            expression.append(".");
+            expression.append(ValueTypeSerializationGenerator.SERIALIZATION_METHOD_PREFIX);
+            expression.append(ValueTypeSerializationGenerator.makeSafeValueTypeName(vt));
+            expression.append("(value))");
+        }
 
         return expression.toString();
     }
@@ -426,8 +409,9 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
         while (!(vt.isBuiltin() || vt.isEnum())) {
             List<ExternalizationElement> extElems = vt.getExternalizationElements();
             if (extElems.size() != 1) {
-                throw new Error("Can't handle value-types with more than one externalization element yet... ("
-                        + vt.getDomainName() + ")");
+                // Value Types with more than one externalization element
+                // are externalized to Json
+                return jsonElementVt;
             }
 
             ExternalizationElement extElem = extElems.get(0);
@@ -450,51 +434,20 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
         throw new Error("Something's wrong.  Couldn't find the appropriate base value type.");
     }
 
-    protected String getRsReaderExpression(ValueType type) {
-        StringBuilder buf = new StringBuilder();
-        buildReconstructionExpression(buf, type, 0);
-        return buf.toString();
-    }
-
-    protected int buildReconstructionExpression(StringBuilder buf, ValueType vt, int colNum) {
-
-        // first, check if is a built-in value type
-        // if it is, then process it and return
-        if (vt.isBuiltin()) {
-            buf.append("arg" + colNum);
-            return colNum + 1;
+    protected String getRsReaderExpression(ValueType vt) {
+        if (vt.isBuiltin() || vt.isEnum()) {
+            return "value";
         }
 
-        // it is not built-in, process it normally
-        String intMethodName = vt.getInternalizationMethodName();
+        StringBuilder builder = new StringBuilder();
 
-        // if no internalizationMethodName is present, then use the constructor
-        if (intMethodName == null) {
-            buf.append("new ");
-            buf.append(vt.getFullname());
-        } else {
-            if (!intMethodName.contains(".")) {
-                // assume that non-dotted names correspond to static methods of
-                // the ValueType vt
-                buf.append(vt.getFullname());
-                buf.append(".");
-            }
+        builder.append(ValueTypeSerializationGenerator.SERIALIZER_CLASS_SIMPLE_NAME);
+        builder.append(".");
+        builder.append(ValueTypeSerializationGenerator.DESERIALIZATION_METHOD_PREFIX);
+        builder.append(ValueTypeSerializationGenerator.makeSafeValueTypeName(vt));
+        builder.append("(value)");
 
-            buf.append(intMethodName);
-        }
-
-        buf.append("(");
-
-        for (ExternalizationElement extElem : vt.getExternalizationElements()) {
-            if (colNum > 0) {
-                buf.append(", ");
-            }
-            colNum = buildReconstructionExpression(buf, extElem.getType(), colNum);
-        }
-
-        buf.append(")");
-
-        return colNum;
+        return builder.toString();
     }
 
     protected void generateOJBSetter(String slotName, String typeName, PrintWriter out) {
@@ -598,21 +551,26 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
         print(out, "set$");
         print(out, name);
         print(out, "(");
-        printRsReaderExpressions(out, type, DbUtil.convertToDBStyle(name), 0);
+        printRsReaderExpressions(out, type, DbUtil.convertToDBStyle(name));
         print(out, ", txNumber);");
     }
 
-    protected int printRsReaderExpressions(PrintWriter out, ValueType vt, String colBaseName, int colNum) {
-        if (vt.isBuiltin()) {
-            printBuiltinReadExpression(out, vt, colBaseName, colNum);
-            return colNum + 1;
+    protected void printRsReaderExpressions(PrintWriter out, ValueType vt, String colBaseName) {
+        print(out, RESULT_SET_READER_CLASS);
+        print(out, ".read");
+
+        if (vt.isEnum()) {
+            print(out, "Enum(");
+            print(out, vt.getFullname());
+            print(out, ".class, ");
+        } else {
+            print(out, ValueTypeSerializationGenerator.getSerializedFormTypeName(vt, true));
+            print(out, "(");
         }
 
-        for (ExternalizationElement extElem : vt.getExternalizationElements()) {
-            colNum = printRsReaderExpressions(out, extElem.getType(), colBaseName, colNum);
-        }
-
-        return colNum;
+        print(out, "rs, \"");
+        print(out, colBaseName);
+        print(out, "\")");
     }
 
     protected void generateOneRoleSlotRsReader(PrintWriter out, String name) {
@@ -626,27 +584,6 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
         print(out, ".readDomainObject(rs, \"OID_");
         print(out, DbUtil.convertToDBStyle(name));
         print(out, "\"), txNumber);");
-    }
-
-    protected void printBuiltinReadExpression(PrintWriter out, ValueType vt, String colBaseName, int colNum) {
-        print(out, RESULT_SET_READER_CLASS);
-        print(out, ".read");
-
-        if (vt.isEnum()) {
-            print(out, "Enum(");
-            print(out, vt.getFullname());
-            print(out, ".class, ");
-        } else {
-            print(out, vt.getDomainName());
-            print(out, "(");
-        }
-
-        print(out, "rs, \"");
-        print(out, colBaseName);
-        if (colNum > 0) {
-            print(out, "__" + colNum);
-        }
-        print(out, "\")");
     }
 
     @Override

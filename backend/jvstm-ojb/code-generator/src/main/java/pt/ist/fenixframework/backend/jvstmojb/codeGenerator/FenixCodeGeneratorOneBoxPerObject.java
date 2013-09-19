@@ -15,6 +15,8 @@ import pt.ist.fenixframework.dml.ValueTypeSerializationGenerator;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RoleOne;
 
+import com.google.gson.JsonElement;
+
 public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
     private static final String DO_STATE_SUPER = OneBoxDomainObject.class.getName() + ".DO_State ";
@@ -213,8 +215,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
                     }
                     generateSlotDeclaration(out, actualType.getFullname(), slot.getName());
                 } else {
-                    generateSlotDeclaration(out, ValueTypeSerializationGenerator.makeSerializationValueTypeName(vt),
-                            slot.getName());
+                    generateSlotDeclaration(out, JsonElement.class.getName(), slot.getName());
                 }
             }
         }
@@ -374,7 +375,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
         print(out, "set$");
         print(out, name);
         print(out, "(");
-        printRsReaderExpressions(out, type, DbUtil.convertToDBStyle(name), 0);
+        printRsReaderExpressions(out, type, DbUtil.convertToDBStyle(name));
         print(out, ", state);");
     }
 
@@ -401,7 +402,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
 
         ValueType vt = getExternalizationType(type);
         print(out, vt.getFullname());
-        print(out, " arg0, ");
+        print(out, " value, ");
         print(out, DO_STATE_SUPER);
         print(out, " obj$state)");
 
@@ -413,7 +414,7 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
         print(out, ")(");
 
         if (DomainModel.isNullableType(vt)) {
-            print(out, "(arg0 == null) ? null : ");
+            print(out, "(value == null) ? null : ");
         }
 
         print(out, getRsReaderExpression(type));

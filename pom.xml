@@ -4,7 +4,7 @@
 
     <groupId>pt.ist</groupId>
     <artifactId>fenix-framework</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <packaging>pom</packaging>
 
     <name>Fenix Framework Distribution</name>
@@ -18,7 +18,7 @@
         <connection>scm:git:git@github.com:fenix-framework/fenix-framework.git</connection>
         <developerConnection>scm:git:git@github.com:fenix-framework/fenix-framework.git</developerConnection>
         <url>http://fenix-framework.github.io/</url>
-        <tag>v2.2.0</tag>
+        <tag>v2.3.0</tag>
     </scm>
 
     <properties>
@@ -33,9 +33,9 @@
         <version.commons.codec>1.7</version.commons.codec>
         <version.commons.io>2.4</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
-        <version.com.google.code.gson>2.2.3</version.com.google.code.gson>
+        <version.com.google.code.gson>2.2.4</version.com.google.code.gson>
         <version.dap-framework>2.0</version.dap-framework>
-        <version.hazelcast.api>2.5.1</version.hazelcast.api>
+        <version.hazelcast.api>3.0-RC1</version.hazelcast.api>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
@@ -50,6 +50,7 @@
         <version.jta>1.1</version.jta>
         <version.junit>4.10</version.junit>
         <version.jvstm-fenix>1.4</version.jvstm-fenix>
+        <version.jvstm-lock-free>2.1</version.jvstm-lock-free>
         <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
         <version.maven.build-helper-plugin>1.7</version.maven.build-helper-plugin>
         <version.maven.core>3.0.3</version.maven.core>
@@ -79,8 +80,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                     <proc>none</proc>
                 </configuration>
             </plugin>
@@ -179,6 +180,11 @@
                 <groupId>jvstm</groupId>
                 <artifactId>jvstm-fenix</artifactId>
                 <version>${version.jvstm-fenix}</version>
+            </dependency>
+            <dependency>
+                <groupId>jvstm</groupId>
+                <artifactId>jvstm</artifactId>
+                <version>${version.jvstm-lock-free}</version>
             </dependency>
             <dependency>
                 <groupId>pt.ist</groupId>
@@ -331,6 +337,11 @@
         <repository>
             <id>advice-repository</id>
             <url>http://inesc-id-esw.github.com/advice/maven-repo/</url>
+        </repository>
+
+        <repository>
+            <id>jvstm-lock-free-repository</id>
+            <url>http://inesc-id-esw.github.com/jvstm/maven-repo/</url>
         </repository>
 
         <repository>

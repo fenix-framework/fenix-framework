@@ -10,6 +10,7 @@ package pt.ist.fenixframework.backend.jvstm.repository;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import jvstm.VBoxBody;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.DomainClassInfo;
 import pt.ist.fenixframework.backend.jvstm.pstm.VBox;
@@ -80,6 +81,9 @@ public interface Repository {
 
     // reloads an attribute from the storage for the specified box
     public void reloadAttribute(VBox box);
+
+    // reloads an attribute from the storage for the specified box body only
+    public void reloadAttributeSingleVersion(VBox box, VBoxBody body);
 
     // stores persistently a set of changes
     // the third arguments represents the reference used by the stm to represent null objects.

@@ -12,6 +12,7 @@ import jvstm.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstm.JVSTMBackEnd;
 import pt.ist.fenixframework.backend.jvstm.JVSTMConfig;
 import pt.ist.fenixframework.backend.jvstm.pstm.ClusteredPersistentReadOnlyTransaction;
@@ -23,6 +24,10 @@ public abstract class JvstmClusterBackEnd extends JVSTMBackEnd {
 
     protected JvstmClusterBackEnd(Repository repository) {
         super(repository);
+    }
+
+    public static JvstmClusterBackEnd getInstance() {
+        return (JvstmClusterBackEnd) FenixFramework.getConfig().getBackEnd();
     }
 
     @Override
@@ -37,7 +42,7 @@ public abstract class JvstmClusterBackEnd extends JVSTMBackEnd {
 
         if (firstNode) {
             logger.info("This is the first node!");
-            localInit(thisConfig, serverId);
+            localInit(thisConfig, serverId, firstNode);
             // initialize the global lock value to the most recent commit tx number
             ClusterUtils.initGlobalLockNumber(Transaction.getMostRecentCommitedNumber());
             // any necessary distributed communication infrastructures must be configured/set before notifying others to proceed
@@ -49,7 +54,7 @@ public abstract class JvstmClusterBackEnd extends JVSTMBackEnd {
         } else {
             logger.info("This is NOT the first node.");
             ClusterUtils.waitForStartupFromFirstNode();
-            localInit(thisConfig, serverId);
+            localInit(thisConfig, serverId, firstNode);
         }
     }
 
@@ -63,11 +68,13 @@ public abstract class JvstmClusterBackEnd extends JVSTMBackEnd {
         jvstm.Transaction.setTransactionFactory(new jvstm.TransactionFactory() {
             @Override
             public jvstm.Transaction makeTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                logger.debug("Creating a new top-level transaction");
                 return new ClusteredPersistentTransaction(record);
             }
 
             @Override
             public jvstm.Transaction makeReadOnlyTopLevelTransaction(jvstm.ActiveTransactionsRecord record) {
+                logger.debug("Creating a new top-level READ-ONLY transaction");
                 return new ClusteredPersistentReadOnlyTransaction(record);
             }
         });

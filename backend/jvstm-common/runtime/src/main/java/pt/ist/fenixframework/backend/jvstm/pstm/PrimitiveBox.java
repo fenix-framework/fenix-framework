@@ -25,7 +25,7 @@ class PrimitiveBox<E> extends OwnedVBox<E> {
     @Override
     protected void doReload(/*Object obj, String attr*/) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Reload PrimitiveVBox: {} for {}", this.slotName, this.ownerObj.getExternalId());
+            logger.debug("Reload PrimitiveVBox: slot {} for id {}", this.slotName, this.ownerObj.getExternalId());
         }
 
         JVSTMBackEnd.getInstance().getRepository().reloadPrimitiveAttribute(this);

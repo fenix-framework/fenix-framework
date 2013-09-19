@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VBoxCache {
     private final static VBoxCache instance = new VBoxCache();
 
-    private static final ReferenceQueue<VBox> refQueue = new ReferenceQueue<VBox>();
+    private static final ReferenceQueue<StandaloneVBox> refQueue = new ReferenceQueue<StandaloneVBox>();
 
     private final ConcurrentHashMap<String, CacheEntry> cache;
 
@@ -23,7 +23,7 @@ public class VBoxCache {
         return this.cache.size();
     }
 
-    public VBox cache(VBox vbox) {
+    public StandaloneVBox cache(StandaloneVBox vbox) {
         processQueue();
         String key = vbox.getId();
         CacheEntry newEntry = new CacheEntry(vbox, key, this.refQueue);
@@ -31,13 +31,13 @@ public class VBoxCache {
         return cacheNewEntry(newEntry, vbox);
     }
 
-    private VBox cacheNewEntry(CacheEntry newEntry, VBox vbox) {
+    private StandaloneVBox cacheNewEntry(CacheEntry newEntry, StandaloneVBox vbox) {
         CacheEntry entryInCache = putIfAbsent(this.cache, newEntry.key, newEntry);
 
         if (entryInCache == newEntry) {
             return vbox;
         } else {
-            VBox vboxInCache = entryInCache.get();
+            StandaloneVBox vboxInCache = entryInCache.get();
             if (vboxInCache != null) {
                 return vboxInCache;
             } else {
@@ -48,11 +48,11 @@ public class VBoxCache {
         }
     }
 
-    public VBox lookup(String key) {
+    public StandaloneVBox lookup(String key) {
         processQueue();
         CacheEntry entry = this.cache.get(key);
         if (entry != null) {
-            VBox result = entry.get();
+            StandaloneVBox result = entry.get();
             if (result != null) {
                 return result;
             } else {
@@ -66,6 +66,13 @@ public class VBoxCache {
 
     private void removeEntry(CacheEntry entry) {
         this.cache.remove(entry.key, entry);
+    }
+
+    /**
+     * This method is invoked when shutting down. It clears the cache contents.
+     */
+    public void shutdown() {
+        this.cache.clear();
     }
 
     /* This method stores the new value if an older one didn't exist already.  In either case it returns the value that was left
@@ -88,10 +95,10 @@ public class VBoxCache {
         }
     }
 
-    private static class CacheEntry extends SoftReference<VBox> {
+    private static class CacheEntry extends SoftReference<StandaloneVBox> {
         private final String key;
 
-        CacheEntry(VBox vbox, String key, ReferenceQueue q) {
+        CacheEntry(StandaloneVBox vbox, String key, ReferenceQueue q) {
             super(vbox, q);
             this.key = key;
         }

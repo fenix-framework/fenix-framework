@@ -175,7 +175,7 @@ public abstract class Config {
         }
     }
 
-    protected final void setProperty(String propName, String value) {
+    protected void setProperty(String propName, String value) {
         // first check if it really exists
         Field field = null;
         try {
@@ -365,8 +365,8 @@ public abstract class Config {
      * orderly shutdown the framework.
      */
     protected void shutdown() {
-        getBackEnd().shutdown();
         FenixFrameworkThread.shutdownAllThreads();
+        getBackEnd().shutdown();
     }
 
     /* UTILITY METHODS TO CONVERT DIFFERENT FORMATS TO URL - BEGIN */

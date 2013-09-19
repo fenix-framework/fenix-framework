@@ -1,5 +1,16 @@
+/*
+ * Fenix Framework, a framework to develop Java Enterprise Applications.
+ *
+ * Copyright (C) 2013 Fenix Framework Team and/or its affiliates and other contributors as indicated by the @author tags.
+ *
+ * This file is part of the Fenix Framework.  Read the file COPYRIGHT.TXT for more copyright and licensing information.
+ */
 package pt.ist.fenixframework.backend.jvstm.datagrid.infinispan;
 
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
@@ -15,36 +26,30 @@ import org.infinispan.util.concurrent.IsolationLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.ConfigError;
-import pt.ist.fenixframework.backend.jvstm.datagrid.DataGrid;
-import pt.ist.fenixframework.backend.jvstm.datagrid.JvstmDataGridConfig;
+import pt.ist.fenixframework.backend.jvstm.lf.JvstmLockFreeConfig;
+import pt.ist.fenixframework.backend.jvstm.repository.DataGrid;
 import pt.ist.fenixframework.backend.jvstm.repository.PersistenceException;
 
 public class InfinispanDataGrid implements DataGrid {
 
     private static final Logger logger = LoggerFactory.getLogger(InfinispanDataGrid.class);
 
-    private static final String INCORRECT_CONFIG =
-            "The InfinispanDataGrid requires config.class=pt.ist.fenixframework.backend.jvstm.datagrid.infinispan.DataGridConfig";
+    /**
+     * This <strong>optional</strong> parameter specifies the location of the XML file used to configure Infinispan. This file
+     * should be available in the application's classpath. This can be set via FenixFramework config file by prefixing it with
+     * {@link JvstmLockFreeConfig#DATAGRID_PARAM_PREFIX}.
+     */
+    public static final String ISPN_CONFIG_FILE = "ispnConfigFile";
 
     static final String CACHE_NAME = "FFCache";
 
     DefaultCacheManager cacheManager;
+    Cache<Object, Object> cache;
     TransactionManager transactionManager;
-    Cache<String, Object> cache;
-    Cache<String, Object> cacheOptimizeWrites;
 
     @Override
-    public void init(JvstmDataGridConfig config) {
-        DataGridConfig dgConfig = null;
-        try {
-            dgConfig = (DataGridConfig) config;
-        } catch (ClassCastException e) {
-            logger.error(INCORRECT_CONFIG);
-            throw new ConfigError(INCORRECT_CONFIG);
-        }
-
-        String ispnConfigFile = dgConfig.getDataGridConfigFile();
+    public void init(JvstmLockFreeConfig config) {
+        String ispnConfigFile = config.getDataGridProperty(ISPN_CONFIG_FILE);
 
         createCacheContainer(ispnConfigFile);
         initTransactionManager();
@@ -53,52 +58,80 @@ public class InfinispanDataGrid implements DataGrid {
 
     @Override
     public void stop() {
+        logger.info("stop() invoked");
         this.cacheManager.stop();
+        this.cacheManager = null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Object get(Object key) {
-        return this.cache.get(key);
+    public <T> T get(Object key) {
+//        if (!inTransaction()) {
+//            logger.error("==========================================");
+//            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
+//            logger.error("==========================================");
+//            new Exception().printStackTrace();
+//            System.exit(1);
+//        }
+        return (T) this.cache.get(key);
     }
 
     @Override
     public void put(Object key, Object value) {
-        this.cacheOptimizeWrites.put(key.toString(), value);
+//        if (!inTransaction()) {
+//            logger.error("==========================================");
+//            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
+//            logger.error("==========================================");
+//            new Exception().printStackTrace();
+//            System.exit(1);
+//        }
+        this.cache.put(key, value);
+    }
+
+    @Override
+    public void putIfAbsent(Object key, Object value) {
+//        if (!inTransaction()) {
+//            logger.error("==========================================");
+//            logger.error("WHAT?!?! NO BACKING TRANSACTION!? REALLY?!");
+//            logger.error("==========================================");
+//            new Exception().printStackTrace();
+//            System.exit(1);
+//        }
+        this.cache.putIfAbsent(key, value);
     }
 
     @Override
     public void beginTransaction() {
+        TransactionManager tm = getTransactionManager();
         try {
-            getTransactionManager().begin();
-        } catch (Exception e) {
-            logger.warn("Failed to start a data grid transaction: {}", e);
-            throw new RuntimeException(e);
+            tm.begin();
+        } catch (NotSupportedException | SystemException e) {
+            logger.warn("Failed to beginTransaction.", e);
+            throw new PersistenceException(e);
         }
     }
 
     @Override
     public void commitTransaction() {
+        TransactionManager tm = getTransactionManager();
         try {
-            getTransactionManager().commit();
-        } catch (RuntimeException e) {
-            logger.warn("Failed to commit a data grid transaction: {}", e);
-            throw e;
-        } catch (Exception e) {
-            logger.warn("Failed to commit a data grid transaction: {}", e);
-            throw new RuntimeException(e);
+            tm.commit();
+        } catch (SecurityException | IllegalStateException | RollbackException | HeuristicMixedException
+                | HeuristicRollbackException | SystemException e) {
+            logger.warn("Failed to commitTransaction.", e);
+            throw new PersistenceException(e);
         }
     }
 
     @Override
     public void rollbackTransaction() {
+        TransactionManager tm = getTransactionManager();
         try {
-            getTransactionManager().rollback();
-        } catch (RuntimeException e) {
-            logger.warn("Failed to rollback a data grid transaction: {}", e);
-            throw e;
-        } catch (Exception e) {
-            logger.warn("Failed to rollback a data grid transaction: {}", e);
-            throw new RuntimeException(e);
+            tm.commit();
+        } catch (SecurityException | IllegalStateException | RollbackException | HeuristicMixedException
+                | HeuristicRollbackException | SystemException e) {
+            logger.warn("Failed to rollbackTransaction.", e);
+            throw new PersistenceException(e);
         }
     }
 
@@ -107,11 +140,12 @@ public class InfinispanDataGrid implements DataGrid {
         try {
             return getTransactionManager().getTransaction() != null;
         } catch (SystemException e) {
-            logger.warn("Failed to get transaction status for a data grid transaction: {}", e);
-            throw new RuntimeException(e);
+            logger.warn("Failed to compute inTransaction.", e);
+            throw new PersistenceException(e);
         }
     }
 
+    // creates the manager of caches for Infinispan
     private void createCacheContainer(String ispnConfigFile) {
         try {
             if (ispnConfigFile == null || ispnConfigFile.isEmpty()) {
@@ -208,15 +242,53 @@ public class InfinispanDataGrid implements DataGrid {
         logger.debug("Configuration for {} is: {}", CACHE_NAME, conf.toString());
 
         this.cacheManager.defineConfiguration(CACHE_NAME, conf);
-        this.cache = this.cacheManager.getCache(CACHE_NAME);
-        this.cacheOptimizeWrites = this.cache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
-//        this.cache = doWithinBackingTransactionIfNeeded(new Callable<Cache<String, Object>>() {
+
+        this.cache = this.cacheManager.getCache(CACHE_NAME).getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
+
+//        final DefaultCacheManager finalCacheManager = this.cacheManager;
+//        this.cache = doWithinBackingTransactionIfNeeded(new Callable<Cache<Object, Object>>() {
 //            @Override
-//            public Cache<String, Object> call() {
-//                return finalCacheManager.getCache(CACHE_NAME);
+//            public Cache<Object, Object> call() {
+//                return finalCacheManager.getCache(CACHE_NAME).getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
 //            }
 //        });
     }
+
+//    /* used internally to wrap every access to the dataGrid in a transaction.
+//    It only controls transactional operations when running 'control' operations,
+//    such as bootstrapping.  The user of this interface InfinispanDataGrid is
+//    responsible for starting data grid transactions whenever needed in all other
+//    cases */
+//    private <T> T doWithinBackingTransactionIfNeeded(Callable<T> command) {
+//        boolean inTopLevel = false;
+//        boolean commandFinished = false;
+//
+//        try {
+//            if (!inTransaction()) {
+//                beginTransaction();
+//                inTopLevel = true;
+//            }
+//
+//            T result = command.call();
+//            commandFinished = true;
+//
+//            return result;
+//        } catch (Exception e) {
+//            throw new PersistenceException(e);
+//        } finally {
+//            if (inTopLevel) {
+//                try {
+//                    if (commandFinished) {
+//                        commitTransaction();
+//                    } else {
+//                        rollbackTransaction();
+//                    }
+//                } catch (Exception e) {
+//                    throw new PersistenceException(e);
+//                }
+//            }
+//        }
+//    }
 
     private TransactionManager getTransactionManager() {
         return this.transactionManager;

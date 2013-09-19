@@ -17,7 +17,7 @@
             <defaultValue>pt.ist</defaultValue>
         </requiredProperty>
         <requiredProperty key="backEndArtifactId">
-            <defaultValue>fenix-framework-backend-mem</defaultValue>
+            <defaultValue>fenix-framework-backend-mem-code-generator</defaultValue>
         </requiredProperty>
         <requiredProperty key="backEndVersion">
             <defaultValue>@token.fenixFrameworkVersion@</defaultValue>

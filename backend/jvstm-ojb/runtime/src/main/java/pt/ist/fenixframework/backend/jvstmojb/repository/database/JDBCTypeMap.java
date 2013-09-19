@@ -48,6 +48,9 @@ public class JDBCTypeMap {
         BUILT_IN_JDBC_MAP.put("Partial", "LONGVARCHAR");
 
         BUILT_IN_JDBC_MAP.put("Serializable", "BLOB");
+
+        // JsonElement serializes to String
+        BUILT_IN_JDBC_MAP.put("JsonElement", "LONGVARCHAR");
     }
 
     public static String getJdbcTypeFor(DomainModel model, String valueType) {
@@ -62,7 +65,7 @@ public class JDBCTypeMap {
         } else {
             List<ExternalizationElement> extElems = vt.getExternalizationElements();
             if (extElems.size() != 1) {
-                throw new Error("Can't handle ValueTypes with more than one externalization element, yet!");
+                return BUILT_IN_JDBC_MAP.get("JsonElement");
             }
             jdbcType = getJdbcTypeFor(model, extElems.get(0).getType().getDomainName());
         }

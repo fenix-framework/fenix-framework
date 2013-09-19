@@ -1,7 +1,6 @@
 package ${package};
 
 import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 
 public class Main {
