@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,9 +17,11 @@ import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
 
+import pt.ist.fenixframework.DomainModelParser;
 import pt.ist.fenixframework.core.exception.NoProjectNameSpecifiedException;
 import pt.ist.fenixframework.core.exception.ProjectException;
 import pt.ist.fenixframework.core.exception.ProjectPropertiesNotFoundException;
+import pt.ist.fenixframework.dml.DomainModel;
 
 public class Project {
     private static final Map<String, Project> projects = new HashMap<String, Project>();
@@ -28,11 +31,11 @@ public class Project {
     private static final String DEPENDS_KEY = "depends";
     protected static final String SEPARATOR_CHAR = ",";
 
-    private String name;
-    private List<DmlFile> dmls;
-    private List<Project> dependencies;
-    private boolean shouldCompile;
-    private List<Project> depended = new ArrayList<Project>();
+    private final String name;
+    private final List<DmlFile> dmls;
+    private final List<Project> dependencies;
+    private final boolean shouldCompile;
+    private final List<Project> depended = new ArrayList<Project>();
 
     public Project(String name, List<DmlFile> dmls, List<Project> dependencies, boolean shouldCompile) throws ProjectException {
         this.name = name;
@@ -101,8 +104,9 @@ public class Project {
     }
 
     public void validate() throws ProjectException {
-        if (StringUtils.isBlank(name))
+        if (StringUtils.isBlank(name)) {
             throw new NoProjectNameSpecifiedException();
+        }
     }
 
     @Override
@@ -121,6 +125,14 @@ public class Project {
     @Override
     public int hashCode() {
         return name.hashCode();
+    }
+
+    public DomainModel getDomainModel() {
+        List<URL> urls = new ArrayList<URL>();
+        for (DmlFile file : getFullDmlSortedList()) {
+            urls.add(file.getUrl());
+        }
+        return DomainModelParser.getDomainModel(urls);
     }
 
     public void generateProjectProperties(String outputDirectory) throws IOException {
