@@ -83,7 +83,7 @@ public class DmlZipCreatorMojo extends AbstractMojo {
         List<String> classpath = new ArrayList<String>(compileClasspathElements);
 
         for (Artifact artifact : mavenProject.getDependencyArtifacts()) {
-            if (artifact.getFile().isDirectory()) {
+            if (artifact.getFile() != null && artifact.getFile().isDirectory()) {
                 classpath.add(artifact.getFile().getAbsolutePath());
             }
         }
