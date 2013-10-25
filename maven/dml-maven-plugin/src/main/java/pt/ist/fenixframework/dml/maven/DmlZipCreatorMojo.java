@@ -38,7 +38,7 @@ public class DmlZipCreatorMojo extends AbstractMojo {
      * 
      * @parameter default-value="${project}"
      */
-    private MavenProject mavenProject;
+    protected MavenProject mavenProject;
 
     /**
      * File Source Directory
@@ -47,7 +47,7 @@ public class DmlZipCreatorMojo extends AbstractMojo {
      * @readonly
      * @required
      */
-    private File dmlSourceDirectory;
+    protected File dmlSourceDirectory;
 
     /**
      * Zip File Destination Directory
@@ -56,14 +56,14 @@ public class DmlZipCreatorMojo extends AbstractMojo {
      * @readonly
      * @required
      */
-    private File zipDestinationDirectory;
+    protected File zipDestinationDirectory;
 
     /**
      * Verbose Mode Flag
      * 
      * @parameter expression="${verbose}" default-value="false"
      */
-    private boolean verbose;
+    protected boolean verbose;
 
     @Override
     public void execute() throws MojoExecutionException {
