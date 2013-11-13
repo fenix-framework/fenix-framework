@@ -309,31 +309,38 @@ public abstract class CodeGenerator {
     }
 
     protected void generateBaseClassBody(DomainClass domClass, PrintWriter out) {
+        comment(out, "Static Slots");
         generateStaticSlots(domClass, out);
         newline(out);
 
+        comment(out, "Slots");
         generateSlots(domClass.getSlots(), out);
         newline(out);
 
+        comment(out, "Role Slots");
         generateRoleSlots(domClass.getRoleSlots(), out);
         newline(out);
 
+        comment(out, "Init Instance");
         generateInitInstance(domClass, out);
-
-        // constructors
         newline(out);
+
+        comment(out, "Constructors");
         printMethod(out, "protected", "", domClass.getBaseName());
         startMethodBody(out);
         generateBaseClassConstructorsBody(domClass, out);
         endMethodBody(out);
+        newline(out);
 
-        // slots getters/setters
+        comment(out, "Getters and Setters");
         generateSlotsAccessors(domClass, out);
+        newline(out);
 
-        // roles methods
+        comment(out, "Role Methods");
         generateRoleSlotsMethods(domClass.getRoleSlots(), out);
+        newline(out);
 
-        // // generate slot consistency predicates
+        // comment(out, "Slot Consistency Predicates");
         // generateSlotConsistencyPredicates(domClass, out);
     }
 
@@ -399,7 +406,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateStaticKeyFunctionForRole(Role role, PrintWriter out) {
-        if (role.getMultiplicityUpper() == Role.MULTIPLICITY_MANY) {
+        if (role.getMultiplicityUpper() != 1) {
             println(out, generateMapKeyFunction(role.getName(), role.getType().getFullName(), "Comparable<?>", "Oid", false));
         }
     }
