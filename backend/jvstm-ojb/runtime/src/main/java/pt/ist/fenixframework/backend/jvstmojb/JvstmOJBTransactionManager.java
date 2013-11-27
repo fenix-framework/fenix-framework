@@ -11,6 +11,7 @@ import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 
+import jvstm.CommitException;
 import jvstm.Transaction;
 
 import org.slf4j.Logger;
@@ -220,7 +221,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
                             rollback();
                         }
                     }
-                } catch (RecoverableRollbackException e) {
+                } catch (RecoverableRollbackException | CommitException e) {
                     // Restart the transaction if the rollback was recoverable
                     if (tries > 3) {
                         logTransactionRestart(commandName, e, tries);
