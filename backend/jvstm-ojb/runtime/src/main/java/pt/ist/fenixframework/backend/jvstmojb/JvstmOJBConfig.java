@@ -3,9 +3,6 @@ package pt.ist.fenixframework.backend.jvstmojb;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import pt.ist.fenixframework.DomainFenixFrameworkRoot;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.jvstmojb.ojb.MetadataManager;
@@ -75,9 +72,7 @@ import pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicatesConfig;
  */
 public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(JvstmOJBConfig.class);
-
-    protected final BackEnd backEnd;
+    protected final JvstmOJBBackEnd backEnd;
 
     /**
      * This <strong>required</strong> parameter specifies the JDBC alias that
@@ -150,7 +145,8 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
         DbUtil.runWithinDBLock(new DBLockedCommand() {
             @Override
             public void run() {
-                RepositoryBootstrap.updateDataRepositoryStructureIfNeeded(getConnection());
+                backEnd.setNewInstance(RepositoryBootstrap.updateDataRepositoryStructureIfNeeded(JvstmOJBConfig.this,
+                        getConnection()));
                 ServerId.ensureServerId();
                 DomainClassInfo.initializeClassInfos(ServerId.getServerId());
                 DomainClassInfo.ensureDomainRoot();

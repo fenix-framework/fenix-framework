@@ -31,33 +31,23 @@ public class RepositoryBootstrap {
 
     private static final Logger logger = LoggerFactory.getLogger(RepositoryBootstrap.class);
 
-    public static void updateDataRepositoryStructureIfNeeded(Connection connection) {
+    public static boolean updateDataRepositoryStructureIfNeeded(JvstmOJBConfig config, Connection connection) {
         try {
-            JvstmOJBConfig config = FenixFramework.<JvstmOJBConfig> getConfig();
-            if (config.getCreateRepositoryStructureIfNotExists() || config.getUpdateRepositoryStructureIfNeeded()) {
-                boolean newInfrastructureCreated = false;
-                if (!infrastructureExists(connection) && config.getCreateRepositoryStructureIfNotExists()) {
-                    logger.info("Updating Repository Infrastructure");
-                    if (infrastructureNeedsUpdate(connection)) {
-                        updateInfrastructure(connection);
-                    } else {
-                        createInfrastructure(connection);
-                        newInfrastructureCreated = true;
-                    }
-                }
-                if (newInfrastructureCreated || config.getUpdateRepositoryStructureIfNeeded()) {
-                    logger.info("Updating Repository Structure");
-                    final String updates =
-                            SQLUpdateGenerator.generateSqlUpdates(FenixFramework.getDomainModel(), connection, null, false);
-                    executeSqlInstructions(connection, updates);
-                }
+            boolean infrastructureExists = infrastructureExists(connection);
+            if (!infrastructureExists) {
+                logger.info("Updating Repository Infrastructure");
+                createInfrastructure(connection);
             }
-            logger.info("Repository Structure update completed");
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            throw new Error(ex);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+            if (!infrastructureExists || config.getUpdateRepositoryStructureIfNeeded()) {
+                logger.info("Updating Repository Structure");
+                final String updates =
+                        SQLUpdateGenerator.generateSqlUpdates(FenixFramework.getDomainModel(), connection, null, false);
+                executeSqlInstructions(connection, updates);
+                logger.info("Repository Structure update completed");
+            }
+            return !infrastructureExists;
+        } catch (SQLException | IOException ex) {
+            logger.error("Could not update data repository", ex);
             throw new Error(ex);
         }
     }
@@ -66,14 +56,9 @@ public class RepositoryBootstrap {
         for (final String instruction : sqlInstructions.split(";")) {
             final String trimmed = instruction.trim();
             if (trimmed.length() > 0) {
-                Statement statement = null;
-                try {
-                    statement = connection.createStatement();
+                try (Statement statement = connection.createStatement()) {
+                    logger.trace("Executing SQL instruction: '{}'", instruction);
                     statement.execute(instruction);
-                } finally {
-                    if (statement != null) {
-                        statement.close();
-                    }
                 }
             }
         }
@@ -131,11 +116,4 @@ public class RepositoryBootstrap {
         }
     }
 
-    private static boolean infrastructureNeedsUpdate(final Connection connection) throws SQLException {
-        return tableExists(connection, "TX_CHANGE_LOGS");
-    }
-
-    private static void updateInfrastructure(final Connection connection) throws SQLException, IOException {
-        executeSqlStream(connection, "/rename-system-tables.sql");
-    }
 }

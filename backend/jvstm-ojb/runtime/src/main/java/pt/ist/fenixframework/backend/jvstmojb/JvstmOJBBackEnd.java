@@ -20,6 +20,8 @@ public class JvstmOJBBackEnd implements BackEnd {
 
     private final TransactionManager transactionManager;
 
+    private boolean newInstance = false;
+
     public JvstmOJBBackEnd() {
         transactionManager = new JvstmOJBTransactionManager();
     }
@@ -65,6 +67,15 @@ public class JvstmOJBBackEnd implements BackEnd {
     @Override
     public void shutdown() {
         DbUtil.deregisterDriver();
+    }
+
+    @Override
+    public boolean isNewInstance() {
+        return newInstance;
+    }
+
+    void setNewInstance(boolean newInstance) {
+        this.newInstance = newInstance;
     }
 
 }

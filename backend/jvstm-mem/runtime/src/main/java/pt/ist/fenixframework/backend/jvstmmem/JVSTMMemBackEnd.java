@@ -54,4 +54,10 @@ public class JVSTMMemBackEnd implements BackEnd {
     @Override
     public void shutdown() {
     }
+
+    @Override
+    public boolean isNewInstance() {
+        // In-Memory backend is always a new instance
+        return true;
+    }
 }
