@@ -1,3 +1,18 @@
 package pt.ist.fenixframework;
 
 class DomainRoot;
+
+valueType pt.ist.fenixframework.data.ModuleData as ModuleData {
+    externalizeWith {
+        JsonElement json();
+    }
+}
+
+class data.InstallationData {
+    ModuleData moduleData;
+}
+
+relation DomainRootHasInstallationData {
+    .pt.ist.fenixframework.DomainRoot playsRole domainRoot;
+    data.InstallationData playsRole installationData;
+}

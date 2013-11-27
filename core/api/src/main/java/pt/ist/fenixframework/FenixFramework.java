@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.BackEndId;
 import pt.ist.fenixframework.core.Project;
 import pt.ist.fenixframework.core.SharedIdentityMap;
+import pt.ist.fenixframework.data.InstallationData;
 import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.util.NodeBarrier;
 
@@ -341,10 +342,29 @@ public class FenixFramework {
                 e.printStackTrace();
                 throw e;
             }
+
+            initializeInstallationData();
+
             // DataAccessPatterns.init(FenixFramework.config);
             initialized = true;
         }
         logger.info("Initialization of Fenix Framework is now complete.");
+    }
+
+    private static void initializeInstallationData() {
+        getTransactionManager().withTransaction(new CallableWithoutException<Void>() {
+            @Override
+            public Void call() {
+                InstallationData data = getDomainRoot().getInstallationData();
+                if (data == null) {
+                    data = new InstallationData(getDomainRoot());
+                }
+                // In the future, automatic upgrade hooks may be invoked here
+
+                data.updateModuleData(getProject());
+                return null;
+            }
+        });
     }
 
     public static void initialize(MultiConfig configs) {
