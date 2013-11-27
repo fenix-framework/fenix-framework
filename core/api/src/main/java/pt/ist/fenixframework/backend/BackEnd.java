@@ -48,4 +48,9 @@ public interface BackEnd {
      */
     public void shutdown();
 
+    /**
+     * @see pt.ist.fenixframework.FenixFramework#isNewInstance()
+     */
+    public boolean isNewInstance();
+
 }

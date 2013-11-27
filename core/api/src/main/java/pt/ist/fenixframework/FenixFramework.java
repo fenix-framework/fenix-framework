@@ -411,6 +411,19 @@ public class FenixFramework {
     }
 
     /**
+     * Returns whether the current Fenix Framework instance is a newly created one.
+     * 
+     * The goal of this method is to allow applications to perform application-specific initialization,
+     * such as presenting a configuration wizard.
+     * 
+     * @return
+     *         {@code true} if this is a new Fenix Framework instance, {@code false} otherwise.
+     */
+    public static boolean isNewInstance() {
+        return getConfig().getBackEnd().isNewInstance();
+    }
+
+    /**
      * Inform the framework components that the application intends to shutdown. This allows for an
      * orderly termination of any running components. The default implementation delegates to the
      * backend the task of shutting down the framework. After invoking this method there is no
@@ -452,4 +465,5 @@ public class FenixFramework {
             return null;
         }
     }
+
 }
