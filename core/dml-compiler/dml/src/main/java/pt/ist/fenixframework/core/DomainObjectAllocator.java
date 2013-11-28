@@ -2,15 +2,17 @@ package pt.ist.fenixframework.core;
 
 import java.lang.reflect.Constructor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DomainObjectAllocator {
 
-    // public static AbstractDomainObject allocateObject(long oid) {
-    public static AbstractDomainObject allocateObject(Class objClass, Object oid) {
-        // Class objClass = DomainClassInfo.mapOidToClass(oid);
+    private static final Logger logger = LoggerFactory.getLogger(DomainObjectAllocator.class);
 
-        // if (objClass == null) {
-        //     throw new MissingObjectException();
-        // }
+    public static AbstractDomainObject allocateObject(Class objClass, Object oid) {
+        if (objClass == null) {
+            throw new RuntimeException("Cannot allocate object '" + oid + "'. Class not found");
+        }
 
         try {
             // the allocate-only constructor is the constructor 
@@ -20,13 +22,11 @@ public class DomainObjectAllocator {
         } catch (NoSuchMethodException nsme) {
             throw new Error("Could not allocate a domain object because the necessary constructor is missing", nsme);
         } catch (InstantiationException ie) {
-            System.out.println("++++++ Found an InstantiationException that prevented the allocation of an object of class "
-                    + objClass);
-            ie.printStackTrace();
+            logger.error("Found an InstantiationException that prevented the allocation of an object of class " + objClass,
+                    ie.getCause());
             throw new Error("Could not allocate a domain object because the allocation constructor failed", ie);
         } catch (Exception exc) {
-            System.out.println("++++++ Found an Exception that prevented the allocation of an object of class " + objClass);
-            exc.printStackTrace();
+            logger.error("Found an Exception that prevented the allocation of an object of class " + objClass, exc);
             throw new Error("Could not allocate a domain object because of an exception", exc);
         }
     }
