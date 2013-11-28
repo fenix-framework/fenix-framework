@@ -60,4 +60,10 @@ public class JVSTMMemBackEnd implements BackEnd {
         // In-Memory backend is always a new instance
         return true;
     }
+
+    @Override
+    public boolean isDomainObjectValid(DomainObject object) {
+        // In memory, if it is reachable, it is valid
+        return true;
+    }
 }

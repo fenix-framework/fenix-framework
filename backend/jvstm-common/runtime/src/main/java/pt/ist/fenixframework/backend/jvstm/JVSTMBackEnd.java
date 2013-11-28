@@ -229,4 +229,9 @@ public class JVSTMBackEnd implements BackEnd {
         return newInstance;
     }
 
+    @Override
+    public boolean isDomainObjectValid(DomainObject object) {
+        throw new UnsupportedOperationException("Sorry, cannot determine if the object is valid");
+    }
+
 }

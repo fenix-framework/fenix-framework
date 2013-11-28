@@ -53,4 +53,9 @@ public interface BackEnd {
      */
     public boolean isNewInstance();
 
+    /**
+     * @see pt.ist.fenixframework.FenixFramework#isDomainObjectValid(DomainObject)
+     */
+    public boolean isDomainObjectValid(DomainObject object);
+
 }

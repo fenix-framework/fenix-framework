@@ -211,4 +211,13 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
     protected Relation get$$relationFor(String attrName) {
         return null;
     }
+
+    public boolean isValid() {
+        try {
+            get$obj$state(false);
+            return true;
+        } catch (VersionNotAvailableException t) {
+            return false;
+        }
+    }
 }

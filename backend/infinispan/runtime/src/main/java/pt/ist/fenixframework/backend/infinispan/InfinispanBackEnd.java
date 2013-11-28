@@ -151,4 +151,9 @@ public class InfinispanBackEnd implements BackEnd {
         throw new UnsupportedOperationException("Cannot determine whether this instance is a new one");
     }
 
+    @Override
+    public boolean isDomainObjectValid(DomainObject object) {
+        throw new UnsupportedOperationException("Sorry, cannot determine if the object is valid");
+    }
+
 }

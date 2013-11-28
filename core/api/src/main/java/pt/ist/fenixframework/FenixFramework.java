@@ -444,6 +444,18 @@ public class FenixFramework {
     }
 
     /**
+     * Determines whether a given {@link DomainObject} is valid, meaning that its properties can be safely accessed.
+     * 
+     * @param object
+     *            The object to verify
+     * @return
+     *         {@code true} if the provided object is valid, {@code false} otherwise.
+     */
+    public static boolean isDomainObjectValid(DomainObject object) {
+        return getConfig().getBackEnd().isDomainObjectValid(object);
+    }
+
+    /**
      * Inform the framework components that the application intends to shutdown. This allows for an
      * orderly termination of any running components. The default implementation delegates to the
      * backend the task of shutting down the framework. After invoking this method there is no
