@@ -1,5 +1,6 @@
 package pt.ist.fenixframework.data;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -11,7 +12,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class ModuleData {
+public class ModuleData implements Serializable {
+
+    private static final long serialVersionUID = 3212877304522921585L;
 
     private final Set<ModuleInstallation> modules;
 

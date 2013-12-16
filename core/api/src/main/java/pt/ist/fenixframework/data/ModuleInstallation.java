@@ -1,10 +1,14 @@
 package pt.ist.fenixframework.data;
 
+import java.io.Serializable;
+
 import pt.ist.fenixframework.core.Project;
 
 import com.google.gson.JsonObject;
 
-public class ModuleInstallation {
+public class ModuleInstallation implements Serializable {
+
+    private static final long serialVersionUID = -1676474591380960131L;
 
     private final String name;
     private final String version;
