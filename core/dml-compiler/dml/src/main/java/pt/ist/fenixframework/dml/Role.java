@@ -3,7 +3,7 @@ package pt.ist.fenixframework.dml;
 import java.io.Serializable;
 import java.util.Comparator;
 
-public class Role implements Serializable {
+public class Role extends ModifiableEntity implements Serializable {
     public static final int MULTIPLICITY_MANY = -1;
 
     public static final Comparator<Role> COMPARATOR_BY_NAME_OR_TYPE = new Comparator<Role>() {

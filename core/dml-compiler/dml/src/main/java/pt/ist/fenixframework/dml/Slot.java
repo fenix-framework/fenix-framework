@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.Set;
 
-public class Slot implements Serializable {
+public class Slot extends ModifiableEntity implements Serializable {
 
     public enum Option {
         REQUIRED
