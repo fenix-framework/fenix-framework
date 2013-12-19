@@ -50,7 +50,7 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
         String slotName = role.getName();
         String capitalizedSlotName = capitalize(slotName);
         String slotAccessExpression = "get" + capitalizedSlotName + "()";
-        String methodModifiers = getMethodModifiers();
+        String methodModifiers = getMethodModifiers(role);
         if (isIndexed) {
             generateRoleSlotMethodsMultStarIndexed(role, out, methodModifiers, capitalizedSlotName, slotAccessExpression,
                     typeName, slotName);

@@ -224,7 +224,9 @@ public abstract class CodeGenerator {
 
     protected void generatePublicClass(DomainClass domClass, PrintWriter out) {
         String leafClassName = domClass.getName();
-        printWords(out, "public", "class", leafClassName, "extends", domClass.getBaseName());
+        // This should be the other way around, but that would cause API disruption
+        String modifier = domClass.hasModifier(Modifier.PROTECTED) ? "" : "public";
+        printWords(out, modifier, "class", leafClassName, "extends", domClass.getBaseName());
         newBlock(out);
 
         generatePublicClassConstructors(leafClassName, out);
@@ -291,7 +293,9 @@ public abstract class CodeGenerator {
 
     protected void generateBaseClass(DomainClass domClass, PrintWriter out) {
         newline(out);
-        printWords(out, "public", "abstract", "class", domClass.getBaseName(), "extends");
+        // This should be the other way around, but that would cause API disruption
+        String modifier = domClass.hasModifier(Modifier.PROTECTED) ? "" : "public";
+        printWords(out, modifier, "abstract", "class", domClass.getBaseName(), "extends");
         String superclassName = getEntityFullName(domClass.getSuperclass());
         printWords(out, (superclassName == null) ? getDomainClassRoot() : superclassName);
 
@@ -755,7 +759,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateSlotAccessors(Slot slot, PrintWriter out) {
-        generateSlotGetter(slot.getName(), slot.getTypeName(), out);
+        generateSlotGetter(chooseVisibilityModifier(slot), slot.getName(), slot.getTypeName(), out);
         generateSlotSetter(slot, out);
     }
 
@@ -764,7 +768,11 @@ public abstract class CodeGenerator {
     }
 
     protected void generateSlotGetter(String slotName, String typeName, PrintWriter out) {
-        generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
+        generateSlotGetter("public", slotName, typeName, out);
+    }
+
+    protected void generateSlotGetter(String modifier, String slotName, String typeName, PrintWriter out) {
+        generateGetter(modifier, "get" + capitalize(slotName), slotName, typeName, out);
     }
 
     protected void generateGetter(String visibility, String getterName, String slotName, String typeName, PrintWriter out) {
@@ -780,7 +788,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateSlotSetter(Slot slot, PrintWriter out) {
-        generateSetter("public", "set" + capitalize(slot.getName()), slot, out);
+        generateSetter(chooseVisibilityModifier(slot), "set" + capitalize(slot.getName()), slot, out);
     }
 
     //     protected void generateInternalSetter(String visibility, String setterName, String slotName, String typeName, PrintWriter out) {
@@ -842,14 +850,18 @@ public abstract class CodeGenerator {
         String slotName = role.getName();
 
         // public getter
-        generateRoleSlotMethodsMultOneGetter(slotName, typeName, out);
+        generateRoleSlotMethodsMultOneGetter(chooseVisibilityModifier(role), slotName, typeName, out);
 
         // public setter
         generateRoleSlotMethodsMultOneSetter(role, out);
     }
 
     protected void generateRoleSlotMethodsMultOneGetter(String slotName, String typeName, PrintWriter out) {
-        generateGetter("public", "get" + capitalize(slotName), slotName, typeName, out);
+        generateRoleSlotMethodsMultOneGetter("public", slotName, typeName, out);
+    }
+
+    protected void generateRoleSlotMethodsMultOneGetter(String modifier, String slotName, String typeName, PrintWriter out) {
+        generateGetter(modifier, "get" + capitalize(slotName), slotName, typeName, out);
     }
 
     protected void generateRoleSlotMethodsMultOneSetter(Role role, PrintWriter out) {
@@ -857,7 +869,7 @@ public abstract class CodeGenerator {
         String slotName = role.getName();
         String capitalizedSlotName = capitalize(slotName);
         String setterName = "set" + capitalizedSlotName;
-        String methodModifiers = getMethodModifiers();
+        String methodModifiers = getMethodModifiers(role);
 
         newline(out);
         printMethod(out, methodModifiers, "void", setterName, makeArg(typeName, slotName));
@@ -912,6 +924,11 @@ public abstract class CodeGenerator {
         return (compArgs.generateFinals ? "public final" : "public");
     }
 
+    protected String getMethodModifiers(Role role) {
+        String modifier = chooseVisibilityModifier(role);
+        return (compArgs.generateFinals ? modifier + " final" : modifier);
+    }
+
     protected void generateRoleSlotMethodsMultStar(Role role, PrintWriter out) {
         boolean isOrdered = role.isOrdered();
 
@@ -919,7 +936,7 @@ public abstract class CodeGenerator {
         String slotName = role.getName();
         String capitalizedSlotName = capitalize(slotName);
         String slotAccessExpression = "get" + capitalizedSlotName + "()";
-        String methodModifiers = getMethodModifiers();
+        String methodModifiers = getMethodModifiers(role);
 
         if (isOrdered) {
             generateRoleSlotMethodsMultStarOrdered(role, out, typeName, methodModifiers, capitalizedSlotName,
@@ -1011,7 +1028,7 @@ public abstract class CodeGenerator {
 
     protected void generateRelationGetter(String getterName, String valueToReturn, Role role, String typeName, PrintWriter out) {
         newline(out);
-        printFinalMethod(out, "public", typeName, getterName);
+        printFinalMethod(out, chooseVisibilityModifier(role), typeName, getterName);
 
         startMethodBody(out);
         generateRelationGetterBody(role, out);
@@ -1032,6 +1049,10 @@ public abstract class CodeGenerator {
         print(out, "keyFunction$$");
         print(out, role.getName());
         print(out, ");");
+    }
+
+    protected String chooseVisibilityModifier(ModifiableEntity entity) {
+        return entity.hasModifier(Modifier.PROTECTED) ? "protected" : "public";
     }
 
     public static String makeGenericType(String baseType, String... argTypes) {
