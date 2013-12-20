@@ -216,8 +216,25 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
         try {
             get$obj$state(false);
             return true;
-        } catch (VersionNotAvailableException t) {
+        } catch (VersionNotAvailableException | ClassCastException t) {
             return false;
+        }
+    }
+
+    @Override
+    protected void deleteDomainObject() {
+        super.deleteDomainObject();
+        // Mark the VState as deleted
+        obj$state.markAsDeleted();
+
+        // Ensure that all RelationLists exist...
+        create$allLists();
+
+        Cons<Pair<String, RelationList>> lists = relationLists;
+        while (lists != (Object) Cons.empty()) {
+            // ... and mark them as deleted
+            lists.first().second.markAsDeleted();
+            lists = lists.rest();
         }
     }
 }

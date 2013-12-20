@@ -192,6 +192,10 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
         return new RelationListIterator<E2>(this);
     }
 
+    void markAsDeleted() {
+        getElementsBox().markAsDeleted();
+    }
+
     private static class RelationListIterator<X extends AbstractDomainObject> implements Iterator<X> {
         private final RelationList<?, X> list;
         private final Iterator<X> iter;
