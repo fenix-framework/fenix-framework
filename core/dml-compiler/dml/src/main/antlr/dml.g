@@ -24,7 +24,7 @@ tokens {
     DOMAIN_DEFS; CLASS_DEF; EXTENDS_CLAUSE; OBJBLOCK; IMPLEMENTS_CLAUSE;
     RELATION_DEF; SLOT_DEF; RELATION_BLOCK; ROLE; ROLE_NAME; ROLE_OPTIONS;
     MULTIPLICITY; MULTIPLICITY_RANGE; EXTERNAL;
-    INDEXED; ORDERED; VALUE_TYPE; SLOT_OPTIONS; REQUIRED_OPTION;
+    INDEXED; ORDERED; VALUE_TYPE; SLOT_OPTIONS; REQUIRED_OPTION; MODIFIERS;
     ENUM_TYPE; PACKAGE; ABSOLUTE_NAME; VALUE_TYPE_BLOCK; EXTERNALIZATION_CLAUSE;
     EXTERNALIZATION_ELEMENT; INTERNALIZATION_CLAUSE; TYPE;
     WILDCARD; WILDCARD_EXTENDS; WILDCARD_SUPER;
@@ -104,7 +104,8 @@ packageDeclaration!
     ;
 
 classDefinition!
-	:	"class" 
+	:	mods:modifiers
+		"class" 
         id:entityTypeIdentifier
 		// it _might_ have a superclass...
 		sc:superClassClause
@@ -112,7 +113,7 @@ classDefinition!
 		ic:implementsClause
 		// now parse the body of the class
 		cb:classBlock
-		{#classDefinition = #(#[CLASS_DEF,"CLASS_DEF"], id, sc, ic, cb);}
+		{#classDefinition = #(#[CLASS_DEF,"CLASS_DEF"], id, sc, ic, mods, cb);}
 	;
 
 superClassClause!
@@ -129,6 +130,18 @@ implementsClause
 								 #implementsClause);}
     ;
 
+modifiers
+	:	(
+			(modifier)*
+		)
+		{#modifiers = #(#[MODIFIERS, "MODIFIERS"], #modifiers);}
+	;
+
+modifier
+	:	"public"
+	|	"protected"
+	;
+
 classBlock
 	:	( ( LCURLY! 
                 ( classSlot )* 
@@ -143,17 +156,18 @@ classBlock
 
 classSlot
     :
+    	mods:modifiers!
     	t:typeSpec!
-        classSlotInternal[#t]
+        classSlotInternal[#t, #mods]
     ;
 
 
-protected classSlotInternal![AST type]
+protected classSlotInternal![AST type, AST mods]
     :
 		id:IDENT
         so:slotOptions
         SEMI!
-		{#classSlotInternal = #(#[SLOT_DEF,"SLOT_DEF"], type, id, so);}
+		{#classSlotInternal = #(#[SLOT_DEF,"SLOT_DEF"], type, id, mods, so);}
     ;
 
 
@@ -227,19 +241,20 @@ relationBlock!
 rolesAndSlots
     :
         (
+            mods:modifiers!
             t:entityTypeIdentifier!
             // HACK! classSlotInternal should not have an entityTypeIdentifier
             // but since these are not currently used...
-            ( role[#t] | classSlotInternal[#t] )
+            ( role[#t, #mods] | classSlotInternal[#t, #mods] )
         )*
     ;
 
-role![AST type]
+role![AST type, AST mods]
     :
         "playsRole"
         rn:roleName
         ro:roleOptions
-        {#role = #([ROLE, "ROLE"], type, rn, ro);}
+        {#role = #([ROLE, "ROLE"], type, rn, mods, ro);}
     ;
 
 roleName
