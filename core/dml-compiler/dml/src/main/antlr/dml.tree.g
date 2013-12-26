@@ -46,6 +46,7 @@ domainDefinition[DomainModel model,String packageName,URL sourceFile] returns [S
                 }
                 DomainClass domClass = new DomainClass(sourceFile, name, superclass, ifs); 
             }
+            modifiers[domClass]
             classBlock[model, domClass]
             { 
                 model.addClass(domClass); 
@@ -136,6 +137,7 @@ classSlot[DomainModel model] returns [Slot slotDef = null]
             { 
                 slotDef = new Slot(name.getText(), slotType);
             }
+            modifiers[slotDef]
             slotOptions[slotDef]
         )
     ;
@@ -149,6 +151,20 @@ slotOptions[Slot slotDef]
 slotOption[Slot slotDef]
     : #(REQUIRED_OPTION { slotDef.addOption(Slot.Option.REQUIRED); } )
     ;
+
+modifiers[ModifiableEntity entityDef]
+	: #(MODIFIERS ( modifierDef[entityDef] )*)
+	;
+
+modifierDef[ModifiableEntity entityDef]
+	: name:modifier 
+		{ entityDef.addModifier(Modifier.valueOf(name.getText().toUpperCase())); }
+	;
+
+modifier
+	:	"public"
+	|	"protected"
+	;
 
 valueTypeBlock[DomainModel model, ValueType valueType]
     : #(VALUE_TYPE_BLOCK 
@@ -222,6 +238,7 @@ role[DomainModel model, String packageName] returns [Role roleDef = null]
                 }
                 roleDef = new Role(roleName, type);
             }
+            modifiers[roleDef]
             roleOptions[roleDef]
         )
     ;

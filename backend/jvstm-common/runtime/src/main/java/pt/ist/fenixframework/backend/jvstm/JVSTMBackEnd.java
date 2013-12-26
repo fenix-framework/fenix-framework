@@ -43,6 +43,8 @@ public class JVSTMBackEnd implements BackEnd {
     protected final Repository repository;
     protected final JVSTMTransactionManager transactionManager;
 
+    protected boolean newInstance;
+
     // this constructor is used by the JVSTMConfig when no sub-backend has been created 
     JVSTMBackEnd() {
         this(new NoRepository());
@@ -111,7 +113,7 @@ public class JVSTMBackEnd implements BackEnd {
 
     protected void localInit(JVSTMConfig jvstmConfig, int serverId, boolean firstNode) {
         logger.info("initializeRepository()");
-        boolean repositoryIsNew = initializeRepository(jvstmConfig);
+        this.newInstance = initializeRepository(jvstmConfig);
 
         logger.info("initializeDomainClassInfos");
         initializeDomainClassInfos(serverId);
@@ -121,7 +123,7 @@ public class JVSTMBackEnd implements BackEnd {
 
         // We need to ensure that the DomainRoot instance exists and is correctly initialized BEFORE the execution of any code that may need it.
         logger.info("createDomainRootIfNeeded");
-        if (repositoryIsNew) {
+        if (this.newInstance) {
             createDomainRoot();
         }
 
@@ -220,6 +222,16 @@ public class JVSTMBackEnd implements BackEnd {
 
     public Repository getRepository() {
         return this.repository;
+    }
+
+    @Override
+    public boolean isNewInstance() {
+        return newInstance;
+    }
+
+    @Override
+    public boolean isDomainObjectValid(DomainObject object) {
+        throw new UnsupportedOperationException("Sorry, cannot determine if the object is valid");
     }
 
 }

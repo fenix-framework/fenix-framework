@@ -3,7 +3,7 @@ package pt.ist.fenixframework.dml;
 import java.io.Serializable;
 import java.net.URL;
 
-public abstract class DomainEntity implements Serializable {
+public abstract class DomainEntity extends ModifiableEntity implements Serializable {
     private URL sourceFile;
     private String fullName;
     private String packageName = "";

@@ -146,4 +146,14 @@ public class InfinispanBackEnd implements BackEnd {
         return (T) (obj instanceof Externalization.NullClass ? null : obj);
     }
 
+    @Override
+    public boolean isNewInstance() {
+        throw new UnsupportedOperationException("Cannot determine whether this instance is a new one");
+    }
+
+    @Override
+    public boolean isDomainObjectValid(DomainObject object) {
+        throw new UnsupportedOperationException("Sorry, cannot determine if the object is valid");
+    }
+
 }

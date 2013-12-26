@@ -25,7 +25,7 @@ class VState extends PrimitiveBox {
 
     @Override
     public VBoxBody commit(Object newValue, int txNumber) {
-        if (newValue != NOT_LOADED_VALUE) {
+        if (newValue != NOT_LOADED_VALUE && newValue != DELETED_VALUE) {
             ((OneBoxDomainObject.DO_State) newValue).markCommitted();
         }
         return super.commit(newValue, txNumber);

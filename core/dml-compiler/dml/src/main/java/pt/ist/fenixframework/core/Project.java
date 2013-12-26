@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,9 +17,11 @@ import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
 
+import pt.ist.fenixframework.DomainModelParser;
 import pt.ist.fenixframework.core.exception.NoProjectNameSpecifiedException;
 import pt.ist.fenixframework.core.exception.ProjectException;
 import pt.ist.fenixframework.core.exception.ProjectPropertiesNotFoundException;
+import pt.ist.fenixframework.dml.DomainModel;
 
 public class Project {
     private static final Map<String, Project> projects = new HashMap<String, Project>();
@@ -26,16 +29,30 @@ public class Project {
     private static final String NAME_KEY = "name";
     private static final String DML_FILES_KEY = "dml-files";
     private static final String DEPENDS_KEY = "depends";
+    private static final String VERSION_KEY = "version";
+
+    public static final String VERSION_UNKNOWN = "_VERSION_UNKNOWN_";
     protected static final String SEPARATOR_CHAR = ",";
 
-    private String name;
-    private List<DmlFile> dmls;
-    private List<Project> dependencies;
-    private boolean shouldCompile;
-    private List<Project> depended = new ArrayList<Project>();
+    private final String name;
+    private final String version;
+    private final List<DmlFile> dmls;
+    private final List<Project> dependencies;
+    private final boolean shouldCompile;
+    private final List<Project> depended = new ArrayList<Project>();
 
+    /**
+     * @deprecated Use constructor with version
+     */
+    @Deprecated
     public Project(String name, List<DmlFile> dmls, List<Project> dependencies, boolean shouldCompile) throws ProjectException {
+        this(name, VERSION_UNKNOWN, dmls, dependencies, shouldCompile);
+    }
+
+    public Project(String name, String version, List<DmlFile> dmls, List<Project> dependencies, boolean shouldCompile)
+            throws ProjectException {
         this.name = name;
+        this.version = version;
         this.dmls = dmls;
         this.dependencies = dependencies;
         this.shouldCompile = shouldCompile;
@@ -48,6 +65,10 @@ public class Project {
 
     public String getName() {
         return name;
+    }
+
+    public String getVersion() {
+        return version;
     }
 
     public List<DmlFile> getDmls() {
@@ -101,8 +122,9 @@ public class Project {
     }
 
     public void validate() throws ProjectException {
-        if (StringUtils.isBlank(name))
+        if (StringUtils.isBlank(name)) {
             throw new NoProjectNameSpecifiedException();
+        }
     }
 
     @Override
@@ -123,9 +145,18 @@ public class Project {
         return name.hashCode();
     }
 
+    public DomainModel getDomainModel() {
+        List<URL> urls = new ArrayList<URL>();
+        for (DmlFile file : getFullDmlSortedList()) {
+            urls.add(file.getUrl());
+        }
+        return DomainModelParser.getDomainModel(urls);
+    }
+
     public void generateProjectProperties(String outputDirectory) throws IOException {
         Properties properties = new Properties();
         properties.setProperty(NAME_KEY, getName());
+        properties.setProperty(VERSION_KEY, getVersion());
         properties.setProperty(DML_FILES_KEY, StringUtils.join(getDmls(), SEPARATOR_CHAR));
         if (dependencies.size() > 0) {
             properties.setProperty(DEPENDS_KEY, StringUtils.join(getDependencyProjects(), SEPARATOR_CHAR));
@@ -151,6 +182,7 @@ public class Project {
 
     public static Project fromProperties(Properties properties) throws MalformedURLException, IOException, ProjectException {
         String name = properties.getProperty(NAME_KEY);
+        String version = properties.getProperty(VERSION_KEY, VERSION_UNKNOWN);
         if (!projects.containsKey(name)) {
             List<DmlFile> dependencyDmlFiles = DmlFile.parseDependencyDmlFiles(properties.getProperty(DML_FILES_KEY));
             List<Project> dependencies = new ArrayList<Project>();
@@ -159,7 +191,7 @@ public class Project {
                     dependencies.add(Project.fromName(projectName));
                 }
             }
-            new Project(name, dependencyDmlFiles, dependencies, false);
+            new Project(name, version, dependencyDmlFiles, dependencies, false);
         }
         return projects.get(name);
     }

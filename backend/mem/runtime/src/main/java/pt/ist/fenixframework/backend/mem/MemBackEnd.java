@@ -61,4 +61,16 @@ public class MemBackEnd implements BackEnd {
     @Override
     public void shutdown() {
     }
+
+    @Override
+    public boolean isNewInstance() {
+        // In-Memory backend is always a new instance
+        return true;
+    }
+
+    @Override
+    public boolean isDomainObjectValid(DomainObject object) {
+        // In memory, if it is reachable, it is valid
+        return true;
+    }
 }

@@ -15,6 +15,15 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
 
     static final Object NOT_LOADED_VALUE = new Object();
 
+    private static final class ThisObjectHasBeenDeleted {
+        @Override
+        public String toString() {
+            return "This object has been deleted";
+        }
+    }
+
+    protected static final Object DELETED_VALUE = new ThisObjectHasBeenDeleted();
+
     //initialized in the constructor
     private final DomainObject ownerObj;
     private final String slotName;
@@ -83,6 +92,11 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
 
     public void putNotLoadedValue() {
         this.put(VBox.<E> notLoadedValue());
+    }
+
+    @SuppressWarnings("unchecked")
+    void markAsDeleted() {
+        put((E) DELETED_VALUE);
     }
 
     protected void persistentLoad(E value) {

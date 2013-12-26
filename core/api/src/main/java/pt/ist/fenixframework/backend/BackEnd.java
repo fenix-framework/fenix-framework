@@ -48,4 +48,14 @@ public interface BackEnd {
      */
     public void shutdown();
 
+    /**
+     * @see pt.ist.fenixframework.FenixFramework#isNewInstance()
+     */
+    public boolean isNewInstance();
+
+    /**
+     * @see pt.ist.fenixframework.FenixFramework#isDomainObjectValid(DomainObject)
+     */
+    public boolean isDomainObjectValid(DomainObject object);
+
 }

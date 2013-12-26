@@ -8,6 +8,7 @@ import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
 import pt.ist.fenixframework.backend.BackEnd;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.DomainClassInfo;
+import pt.ist.fenixframework.backend.jvstmojb.pstm.OneBoxDomainObject;
 import pt.ist.fenixframework.backend.jvstmojb.repository.DbUtil;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
@@ -19,6 +20,8 @@ public class JvstmOJBBackEnd implements BackEnd {
     public static final String BACKEND_NAME = "jvstm-ojb";
 
     private final TransactionManager transactionManager;
+
+    private boolean newInstance = false;
 
     public JvstmOJBBackEnd() {
         transactionManager = new JvstmOJBTransactionManager();
@@ -65,6 +68,24 @@ public class JvstmOJBBackEnd implements BackEnd {
     @Override
     public void shutdown() {
         DbUtil.deregisterDriver();
+    }
+
+    @Override
+    public boolean isNewInstance() {
+        return newInstance;
+    }
+
+    void setNewInstance(boolean newInstance) {
+        this.newInstance = newInstance;
+    }
+
+    @Override
+    public boolean isDomainObjectValid(DomainObject object) {
+        if (object instanceof OneBoxDomainObject) {
+            return ((OneBoxDomainObject) object).isValid();
+        } else {
+            return false;
+        }
     }
 
 }

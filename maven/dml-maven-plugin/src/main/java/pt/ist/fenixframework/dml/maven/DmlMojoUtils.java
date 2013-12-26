@@ -64,7 +64,7 @@ public class DmlMojoUtils {
                 dmls.add(new DmlFile(url, null));
             }
         }
-        return new Project(project.getArtifactId(), dmls, dependencies, shouldCompile);
+        return new Project(project.getArtifactId(), project.getVersion(), dmls, dependencies, shouldCompile);
     }
 
     public static URLClassLoader augmentClassLoader(Log log, List<String> classpathElements) {

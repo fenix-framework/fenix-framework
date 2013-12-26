@@ -74,6 +74,16 @@ public class OgmBackEnd implements BackEnd {
         transactionManager.getEntityManager().persist(obj);
     }
 
+    @Override
+    public boolean isNewInstance() {
+        throw new UnsupportedOperationException("Cannot determine whether this instance is a new one");
+    }
+
+    @Override
+    public boolean isDomainObjectValid(DomainObject object) {
+        return transactionManager.getEntityManager().contains(object);
+    }
+
     // protected IdentityMap getIdentityMap() {
     //     return SharedIdentityMap.getCache();
     // }
