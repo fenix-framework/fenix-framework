@@ -243,6 +243,7 @@ public abstract class CodeGenerator {
     }
 
     protected void generateCurrentBackEndIdClass(String className, PrintWriter out) {
+        println(out, "@SuppressWarnings(\"all\")");
         printWords(out, "public", "class", className, "extends", ABSTRACT_BACKEND_ID_CLASS);
         newBlock(out);
         generateBackEndIdClassBody(out);
@@ -293,6 +294,7 @@ public abstract class CodeGenerator {
 
     protected void generateBaseClass(DomainClass domClass, PrintWriter out) {
         newline(out);
+        println(out, "@SuppressWarnings(\"all\")");
         // This should be the other way around, but that would cause API disruption
         String modifier = domClass.hasModifier(Modifier.PROTECTED) ? "" : "public";
         printWords(out, modifier, "abstract", "class", domClass.getBaseName(), "extends");

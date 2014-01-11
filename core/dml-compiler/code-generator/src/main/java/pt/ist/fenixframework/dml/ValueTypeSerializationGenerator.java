@@ -52,6 +52,7 @@ public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
 
         generateFilePreamble(SERIALIZER_CLASS_PACKAGE, this.out);
         newline(out);
+        println(out, "@SuppressWarnings(\"all\")");
         printWords(out, "public", "final", "class", SERIALIZER_CLASS_SIMPLE_NAME);
         newBlock(out);
         generateValueTypeSerializations();
