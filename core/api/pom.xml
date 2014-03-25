@@ -28,10 +28,6 @@
                         </goals>
                         <configuration>
                             <includePluginDependencies>true</includePluginDependencies>
-                            <executableDependency>
-                                <groupId>pt.ist.esw</groupId>
-                                <artifactId>advice-program</artifactId>
-                            </executableDependency>
                             <mainClass>pt.ist.esw.advice.GenerateAnnotationInstance</mainClass>
                             <arguments>
                                 <argument>pt.ist.fenixframework.Atomic</argument>
@@ -45,6 +41,11 @@
                         <groupId>pt.ist.esw</groupId>
                         <artifactId>advice-program</artifactId>
                         <version>${version.advice}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm-debug-all</artifactId>
+                        <version>${version.asm}</version>
                     </dependency>
                 </dependencies>
             </plugin>

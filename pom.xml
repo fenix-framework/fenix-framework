@@ -29,7 +29,7 @@
         <version.advice>1.8</version.advice>
         <version.antlr>2.7.7</version.antlr>
         <version.apache.ant>1.8.2</version.apache.ant>
-        <version.asm>4.0</version.asm>
+        <version.asm>5.0</version.asm>
         <version.commons.codec>1.7</version.commons.codec>
         <version.commons.io>2.4</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
