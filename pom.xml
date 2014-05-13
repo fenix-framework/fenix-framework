@@ -4,7 +4,7 @@
 
     <groupId>pt.ist</groupId>
     <artifactId>fenix-framework</artifactId>
-    <version>2.4.0</version>
+    <version>2.4.1</version>
     <packaging>pom</packaging>
 
     <name>Fenix Framework Distribution</name>
@@ -18,7 +18,7 @@
         <connection>scm:git:git@github.com:fenix-framework/fenix-framework.git</connection>
         <developerConnection>scm:git:git@github.com:fenix-framework/fenix-framework.git</developerConnection>
         <url>http://fenix-framework.github.io/</url>
-        <tag>v2.4.0</tag>
+        <tag>v2.4.1</tag>
     </scm>
 
     <properties>
@@ -29,7 +29,7 @@
         <version.advice>1.8</version.advice>
         <version.antlr>2.7.7</version.antlr>
         <version.apache.ant>1.8.2</version.apache.ant>
-        <version.asm>4.0</version.asm>
+        <version.asm>5.0</version.asm>
         <version.commons.codec>1.7</version.commons.codec>
         <version.commons.io>2.4</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
@@ -331,7 +331,7 @@
     <repositories>
         <repository>
             <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/maven-public</url>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
         </repository>
 
         <repository>
@@ -399,7 +399,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/maven-public</url>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
         </pluginRepository>
 
         <pluginRepository>

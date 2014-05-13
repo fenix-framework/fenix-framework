@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -496,6 +497,20 @@ public class FenixFramework {
             // just return nothing...
             return null;
         }
+    }
+
+    public static <T> T atomic(Callable<T> callable) throws Exception {
+        return getTransactionManager().withTransaction(callable);
+    }
+
+    public static void atomic(final Runnable runnable) {
+        getTransactionManager().withTransaction(new CallableWithoutException<Void>() {
+            @Override
+            public Void call() {
+                runnable.run();
+                return null;
+            }
+        });
     }
 
 }

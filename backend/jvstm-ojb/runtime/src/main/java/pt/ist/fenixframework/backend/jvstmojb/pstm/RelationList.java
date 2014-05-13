@@ -1,9 +1,8 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
 import java.lang.ref.SoftReference;
-import java.util.AbstractList;
+import java.util.AbstractSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import jvstm.PerTxBox;
 import pt.ist.fenixframework.backend.jvstmojb.dml.runtime.FunctionalSet;
@@ -11,8 +10,8 @@ import pt.ist.fenixframework.backend.jvstmojb.ojb.OJBFunctionalSetWrapper;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationBaseSet;
 
-public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends AbstractList<E2> implements
-        VersionedSubject, Set<E2>, RelationBaseSet<E2> {
+public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends AbstractSet<E2> implements
+        VersionedSubject, RelationBaseSet<E2> {
     private final E1 listHolder;
     private final Relation<E1, E2> relation;
     private final String attributeName;
@@ -147,44 +146,13 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
     }
 
     @Override
-    public E2 get(int index) {
-        return elementSet().get(index);
-    }
-
-    @Override
-    public E2 set(int index, E2 element) {
-        E2 oldElement = get(index);
-
-        int oldModCount = modCount;
-        if (oldElement != element) {
-            remove(oldElement);
-            add(index, element);
-        }
-        // After the remove and add the modCount would have been incremented twice
-        modCount = oldModCount + 1;
-        return oldElement;
-    }
-
-    @Override
-    public void add(int index, E2 element) {
-        relation.add(listHolder, element);
-        modCount++;
-    }
-
-    @Override
-    public E2 remove(int index) {
-        E2 elemToRemove = get(index);
-        remove(elemToRemove);
-        return elemToRemove;
+    public boolean add(E2 element) {
+        return relation.add(listHolder, element);
     }
 
     @Override
     public boolean remove(Object o) {
-        modCount++;
-        relation.remove(listHolder, (E2) o);
-        // HACK!!! What to return here?
-        // I wouldn't like to force a load of the list to be able to return the correct boolean value
-        return true;
+        return relation.remove(listHolder, (E2) o);
     }
 
     @Override
