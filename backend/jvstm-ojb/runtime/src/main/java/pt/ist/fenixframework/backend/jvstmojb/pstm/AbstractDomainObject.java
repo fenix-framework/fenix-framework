@@ -3,7 +3,6 @@ package pt.ist.fenixframework.backend.jvstmojb.pstm;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import jvstm.Transaction;
@@ -53,7 +52,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
         initMetaObject(false);
 
-        if ((!getClass().isAnnotationPresent(NoDomainMetaObjects.class)) && JvstmOJBConfig.canCreateDomainMetaObjects()) {
+        if (JvstmOJBConfig.canCreateDomainMetaObjects() && !getClass().isAnnotationPresent(NoDomainMetaObjects.class)) {
             DomainMetaObject metaObject = new DomainMetaObject();
             metaObject.setDomainObject(this);
 
@@ -134,7 +133,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     }
 
     private long get$oid() {
-        return getOid();
+        return oid;
     }
 
     VersionedSubject getSlotNamed(String attrName) {
@@ -232,19 +231,6 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         return DomainFenixFrameworkRoot.getInstance().getDomainMetaClass(this.getClass());
     }
 
-    protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,
-            final int columnCount) throws SQLException {
-        if (columnIndexes[columnCount] == null) {
-            synchronized (columnIndexes) {
-                if (columnIndexes[columnCount] == null) {
-                    int columnIndex = Integer.valueOf(resultSet.findColumn(columnName));
-                    columnIndexes[columnCount] = columnIndex;
-                }
-            }
-        }
-        return columnIndexes[columnCount].intValue();
-    }
-
     // serialization code
     @Override
     protected Object writeReplace() throws ObjectStreamException {
@@ -269,7 +255,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     public final String getExternalId() {
-        return String.valueOf(getOid());
+        return Long.toString(oid);
     }
 
     public static <T extends AbstractDomainObject> T fromExternalId(String extId) {

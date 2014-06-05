@@ -103,10 +103,13 @@ public class SQLTableChangeSet {
     }
 
     private static String escapeName(String name) {
-        if (name == null || name.length() == 0)
+        if (name == null || name.length() == 0) {
             return name;
+        }
         if (name.charAt(0) == '`')
+         {
             return name; // already escaped
+        }
         return "`" + name + "`";
     }
 

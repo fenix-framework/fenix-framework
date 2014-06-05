@@ -6,9 +6,9 @@ public class TransactionStatistics {
     private int numAborts = 0;
     private int numConflicts = 0;
 
-    private CounterStats readOnlyReads = new CounterStats();
-    private CounterStats readWriteReads = new CounterStats();
-    private CounterStats readWriteWrites = new CounterStats();
+    private final CounterStats readOnlyReads = new CounterStats();
+    private final CounterStats readWriteReads = new CounterStats();
+    private final CounterStats readWriteWrites = new CounterStats();
 
     TransactionStatistics() {
     }

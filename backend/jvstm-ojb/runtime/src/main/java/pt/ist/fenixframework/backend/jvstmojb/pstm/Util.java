@@ -3,33 +3,10 @@ package pt.ist.fenixframework.backend.jvstmojb.pstm;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.server.UID;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import pt.ist.fenixframework.FenixFramework;
 
 public class Util {
-
-    private static final Iterator EMPTY_ITER = new Iterator() {
-        @Override
-        public boolean hasNext() {
-            return false;
-        }
-
-        @Override
-        public Object next() {
-            throw new NoSuchElementException();
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    };
-
-    public static <T> Iterator<T> emptyIterator() {
-        return EMPTY_ITER;
-    }
 
     private static final String uidString = (new UID()).toString();
 

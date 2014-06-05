@@ -129,8 +129,9 @@ public class SQLTableInfo {
 
     public boolean containsColumn(String columnName) {
         for (Column column : columns) {
-            if (column.name.equals(columnName))
+            if (column.name.equals(columnName)) {
                 return true;
+            }
         }
         return false;
     }
@@ -174,7 +175,9 @@ public class SQLTableInfo {
             }
         }
         final String[] result = new String[strings.size()];
-        for (int i = 0; i < strings.size(); result[i] = strings.get(i++));
+        for (int i = 0; i < strings.size(); result[i] = strings.get(i++)) {
+            ;
+        }
         return result;
     }
 
@@ -207,10 +210,13 @@ public class SQLTableInfo {
     }
 
     private static String escapeName(String name) {
-        if (name == null || name.length() == 0)
+        if (name == null || name.length() == 0) {
             return name;
+        }
         if (name.charAt(0) == '`')
+         {
             return name; // already escaped
+        }
         return "`" + name + "`";
     }
 

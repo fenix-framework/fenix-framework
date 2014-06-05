@@ -246,10 +246,6 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         return result;
     }
 
-    public ReadSet getReadSet() {
-        return new ReadSet(bodiesRead);
-    }
-
     @Override
     public <T> void setBoxValue(jvstm.VBox<T> vbox, T value) {
         if (dbChanges == null) {
@@ -551,7 +547,7 @@ public class TopLevelTransaction extends ConsistentTopLevelTransaction implement
         if (!JvstmOJBConfig.canCreateDomainMetaObjects()) {
             // Dependence records are not used if the FenixFramework is not configured
             // to create meta objects
-            return Util.emptyIterator();
+            return Collections.emptyIterator();
         }
 
         Cons<Iterator<DependenceRecord>> iteratorsList = Cons.empty();

@@ -32,11 +32,6 @@ class ReadOnlyTopLevelTransaction extends TopLevelTransaction {
     }
 
     @Override
-    public ReadSet getReadSet() {
-        throw new Error("ReadOnly txs don't record their read sets...");
-    }
-
-    @Override
     public <T> T getBoxValue(VBox<T> vbox, Object obj, String attr) {
         numBoxReads++;
         VBoxBody<T> body = vbox.body.getBody(number);

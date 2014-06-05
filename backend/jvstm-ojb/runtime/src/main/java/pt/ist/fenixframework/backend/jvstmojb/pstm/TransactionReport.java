@@ -16,12 +16,8 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TransactionReport implements Serializable {
-
-    private static final Logger logger = LoggerFactory.getLogger(TransactionReport.class);
 
     private static final long serialVersionUID = 1L;
 
