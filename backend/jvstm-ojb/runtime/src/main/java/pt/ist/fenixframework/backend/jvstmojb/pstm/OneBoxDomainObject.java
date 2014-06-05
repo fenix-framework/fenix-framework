@@ -1,8 +1,5 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-
 import jvstm.Transaction;
 import jvstm.util.Cons;
 import jvstm.util.Pair;
@@ -112,7 +109,7 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
 
     protected abstract void readStateFromResultSet(java.sql.ResultSet rs, DO_State state) throws java.sql.SQLException;
 
-    public abstract static class DO_State implements Serializable {
+    public abstract static class DO_State {
         private boolean committed = false;
 
         void markCommitted() {
@@ -123,29 +120,6 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
             // there is nothing to copy at this level
         }
 
-        // serialization code
-        protected Object writeReplace() throws ObjectStreamException {
-            throw new RuntimeException("writeReplace not implemented at this level");
-        }
-
-        protected abstract static class SerializedForm implements Serializable {
-            private static final long serialVersionUID = 1L;
-
-            protected SerializedForm(DO_State obj) {
-                // there are no slots to serialize at this level
-            }
-
-            Object readResolve() throws ObjectStreamException {
-                throw new RuntimeException("readResolve not implemented at this level");
-            }
-
-            // subclasses must implement this method to set in the parameter the de-serialized
-            // fields from the SerializedForm
-            protected void fillInState(DO_State obj) {
-                obj.markCommitted();
-                // nothing to fill-in at this level
-            }
-        }
     }
 
     @Override
