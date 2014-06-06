@@ -58,10 +58,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
             <groupId>antlr</groupId>
             <artifactId>antlr</artifactId>
         </dependency>

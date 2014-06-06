@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
-
-import org.apache.commons.lang.StringUtils;
 
 import pt.ist.fenixframework.DomainModelParser;
 import pt.ist.fenixframework.core.exception.NoProjectNameSpecifiedException;
@@ -32,7 +31,7 @@ public class Project {
     private static final String VERSION_KEY = "version";
 
     public static final String VERSION_UNKNOWN = "_VERSION_UNKNOWN_";
-    protected static final String SEPARATOR_CHAR = ",";
+    protected static final char SEPARATOR_CHAR = ',';
 
     private final String name;
     private final String version;
@@ -122,7 +121,7 @@ public class Project {
     }
 
     public void validate() throws ProjectException {
-        if (StringUtils.isBlank(name)) {
+        if (name == null || name.trim().isEmpty()) {
             throw new NoProjectNameSpecifiedException();
         }
     }
@@ -157,13 +156,24 @@ public class Project {
         Properties properties = new Properties();
         properties.setProperty(NAME_KEY, getName());
         properties.setProperty(VERSION_KEY, getVersion());
-        properties.setProperty(DML_FILES_KEY, StringUtils.join(getDmls(), SEPARATOR_CHAR));
+        properties.setProperty(DML_FILES_KEY, join(getDmls()));
         if (dependencies.size() > 0) {
-            properties.setProperty(DEPENDS_KEY, StringUtils.join(getDependencyProjects(), SEPARATOR_CHAR));
+            properties.setProperty(DEPENDS_KEY, join(getDependencyProjects()));
         }
         File output = new File(outputDirectory + "/" + getName() + "/project.properties");
         output.getParentFile().mkdirs();
         properties.store(new FileWriter(output), null);
+    }
+
+    private final String join(Collection<?> collection) {
+        StringBuilder builder = new StringBuilder();
+        for (Object item : collection) {
+            if (builder.length() > 0) {
+                builder.append(SEPARATOR_CHAR);
+            }
+            builder.append(item);
+        }
+        return builder.toString();
     }
 
     public static Project fromName(String projectName) throws IOException, ProjectException, MalformedURLException {
@@ -187,7 +197,7 @@ public class Project {
             List<DmlFile> dependencyDmlFiles = DmlFile.parseDependencyDmlFiles(properties.getProperty(DML_FILES_KEY));
             List<Project> dependencies = new ArrayList<Project>();
             for (String projectName : properties.getProperty(DEPENDS_KEY, "").trim().split("\\s*,\\s*")) {
-                if (StringUtils.isNotEmpty(projectName)) {
+                if (projectName != null && !projectName.isEmpty()) {
                     dependencies.add(Project.fromName(projectName));
                 }
             }

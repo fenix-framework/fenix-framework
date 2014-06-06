@@ -4,14 +4,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-
 import pt.ist.fenixframework.core.exception.SpecifiedDmlFileNotFoundException;
 
 public class DmlFile {
-    private URL url;
+    private final URL url;
 
-    private String relative;
+    private final String relative;
 
     public DmlFile(URL url, String relative) {
         this.url = url;
@@ -43,8 +41,7 @@ public class DmlFile {
     public static List<DmlFile> parseDependencyDmlFiles(String dmlFilesField) throws SpecifiedDmlFileNotFoundException {
         List<DmlFile> dmlFileList = new ArrayList<DmlFile>();
         for (String dmlFileName : dmlFilesField.trim().split("\\s*,\\s*")) {
-            if (StringUtils.isNotEmpty(dmlFileName)) {
-                // if (dmlFileName != null && !dmlFileName.isEmpty()) { // alternative to not depend on StringUtils :-/
+            if (dmlFileName != null && !dmlFileName.isEmpty()) {
                 URL dmlFileUrl = Thread.currentThread().getContextClassLoader().getResource(dmlFileName);
                 if (dmlFileUrl == null) {
                     throw new SpecifiedDmlFileNotFoundException(dmlFileName);
