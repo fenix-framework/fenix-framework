@@ -25,11 +25,19 @@ public abstract class AbstractAtomicProcessorMojo extends AbstractMojo {
 
         try {
             new ProcessAnnotations(new ProcessAnnotations.ProgramArgs(Atomic.class, AtomicContextFactory.class,
-                    getClassesDirectory())).process();
+                    getClassesDirectory())) {
+                @Override
+                protected void processClassFile(File classFile) {
+                    if (!classFile.getName().contains("_Base")) {
+                        super.processClassFile(classFile);
+                    }
+                };
+            }.process();
 
         } catch (Exception e) {
             getLog().error(e);
             throw new MojoExecutionException("Something went wrong with the post processing", e);
         }
     }
+
 }
