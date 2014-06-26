@@ -235,9 +235,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
                         throw e;
                     }
                 } catch (UnableToDetermineIdException e) {
-                    if (tries > 3) {
-                        logTransactionRestart(commandName, e, tries);
-                    }
+                    logTransactionRestart(commandName, e, tries);
                 } catch (WriteOnReadError e) {
                     logger.trace("Restarting transaction due to WriteOnReadError");
                     knownWriteServices.put(commandName, commandName);

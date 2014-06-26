@@ -2,7 +2,6 @@ package pt.ist.fenixframework.backend.jvstmojb.ojb;
 
 import org.apache.ojb.broker.metadata.ConnectionPoolDescriptor;
 import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
-import org.apache.ojb.broker.metadata.SequenceDescriptor;
 import org.apache.ojb.broker.util.configuration.impl.OjbConfiguration;
 
 import pt.ist.fenixframework.FenixFramework;
@@ -81,11 +80,6 @@ public class MetadataManager {
         cpd.setLogAbandoned(false);
         cpd.setRemoveAbandoned(false);
         cpd.setRemoveAbandonedTimeout(300);
-
-        SequenceDescriptor sd = new SequenceDescriptor(jcd);
-        jcd.setSequenceDescriptor(sd);
-        sd.setSequenceManagerClass(org.apache.ojb.broker.util.sequence.SequenceManagerHighLowImpl.class);
-        sd.addAttribute("grabSize", "200");
 
         return jcd;
     }

@@ -122,10 +122,7 @@ public class OJBMetadataGenerator {
         DomainEntity domEntity = domClass;
         int fieldID = 1;
 
-        addPrimaryFieldDescriptor(domainModel, "idInternal", "int", fieldID++, classDescriptor, persistentFieldClass);
-
-        // write the OID also
-        addFieldDescriptor(domainModel, "oid", "long", fieldID++, classDescriptor, persistentFieldClass);
+        addPrimaryFieldDescriptor(domainModel, "oid", "long", fieldID++, classDescriptor, persistentFieldClass);
 
         // write the domainMetaObject for all domain objects
         addFieldDescriptor(domainModel, "oidDomainMetaObject", "Long", fieldID++, classDescriptor, persistentFieldClass);

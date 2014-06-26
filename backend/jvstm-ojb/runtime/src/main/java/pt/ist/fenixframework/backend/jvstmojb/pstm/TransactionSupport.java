@@ -1,10 +1,13 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
+import java.sql.Connection;
+
 import jvstm.ActiveTransactionsRecord;
 import jvstm.Transaction;
 import jvstm.cps.ConsistentTransaction;
 
 import org.apache.ojb.broker.PersistenceBroker;
+import org.apache.ojb.broker.accesslayer.LookupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +81,14 @@ public final class TransactionSupport {
 
     public static PersistenceBroker getOJBBroker() {
         return currentFenixTransaction().getOJBBroker();
+    }
+
+    public static Connection getCurrentSQLConnection() {
+        try {
+            return getOJBBroker().serviceConnectionManager().getConnection();
+        } catch (LookupException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

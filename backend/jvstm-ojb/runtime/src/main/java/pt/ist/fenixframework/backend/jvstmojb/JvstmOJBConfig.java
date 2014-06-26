@@ -148,7 +148,7 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
                 backEnd.setNewInstance(RepositoryBootstrap.updateDataRepositoryStructureIfNeeded(JvstmOJBConfig.this,
                         getConnection()));
                 ServerId.ensureServerId();
-                DomainClassInfo.initializeClassInfos(ServerId.getServerId());
+                DomainClassInfo.initializeClassInfos();
                 DomainClassInfo.ensureDomainRoot();
                 TransactionSupport.setupJVSTM();
                 DomainFenixFrameworkRoot.bootstrap();

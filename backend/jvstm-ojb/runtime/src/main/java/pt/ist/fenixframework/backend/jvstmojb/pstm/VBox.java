@@ -62,11 +62,7 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject {
     }
 
     public void put(Object obj, String attrName, E newValue) {
-        // TODO: eventually remove this 
-        if (!(attrName.equals("idInternal") || attrName.equals("ackOptLock"))) {
-            // the set of the idInternal or ackOptLock is performed by OJB and should not be logged
-            TransactionSupport.storeObject((AbstractDomainObject) obj, attrName);
-        }
+        TransactionSupport.storeObject((AbstractDomainObject) obj, attrName);
         put(newValue);
     }
 

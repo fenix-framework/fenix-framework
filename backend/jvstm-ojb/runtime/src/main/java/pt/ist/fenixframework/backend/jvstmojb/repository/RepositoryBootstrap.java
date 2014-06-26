@@ -72,7 +72,6 @@ public class RepositoryBootstrap {
 
     private static void createInfrastructure(final Connection connection) throws SQLException, IOException {
         executeSqlStream(connection, "/transactional-system-ddl.sql");
-        executeSqlStream(connection, "/ojb-ddl.sql");
     }
 
     private static boolean infrastructureExists(final Connection connection) throws SQLException {
