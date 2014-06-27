@@ -1,33 +1,54 @@
 package pt.ist.fenixframework.core;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import sun.reflect.ReflectionFactory;
 
+@SuppressWarnings("restriction")
 public class DomainObjectAllocator {
 
-    private static final Logger logger = LoggerFactory.getLogger(DomainObjectAllocator.class);
+    private final ConcurrentMap<String, Constructor<?>> cache = new ConcurrentHashMap<>();
 
-    public static AbstractDomainObject allocateObject(Class objClass, Object oid) {
+    private final Constructor<?> baseCtor;
+
+    public DomainObjectAllocator(Class<?> baseType) {
+        this.baseCtor = getConstructor(baseType);
+    }
+
+    public <T extends AbstractDomainObject> T allocateObject(Class<T> objClass, Object oid) {
         if (objClass == null) {
             throw new RuntimeException("Cannot allocate object '" + oid + "'. Class not found");
         }
-
         try {
-            // the allocate-only constructor is the constructor 
-            // with a single argument with the type of the static inner class OID below
-            Constructor constructor = objClass.getDeclaredConstructor(OID.class);
-            return (AbstractDomainObject) constructor.newInstance(new OID(oid));
-        } catch (NoSuchMethodException nsme) {
-            throw new Error("Could not allocate a domain object because the necessary constructor is missing", nsme);
-        } catch (InstantiationException ie) {
-            logger.error("Found an InstantiationException that prevented the allocation of an object of class " + objClass,
-                    ie.getCause());
-            throw new Error("Could not allocate a domain object because the allocation constructor failed", ie);
-        } catch (Exception exc) {
-            logger.error("Found an Exception that prevented the allocation of an object of class " + objClass, exc);
-            throw new Error("Could not allocate a domain object because of an exception", exc);
+            return getInstantiatorOf(objClass).newInstance(new OID(oid));
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            throw new RuntimeException("Could not allocate object " + oid + " of class " + objClass.getName(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> Constructor<T> getInstantiatorOf(Class<T> clazz) {
+        Constructor<?> instantiator = cache.get(clazz.getName());
+        if (instantiator == null) {
+            Constructor<?> newInstantiator =
+                    ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, baseCtor);
+            newInstantiator.setAccessible(true);
+            instantiator = cache.putIfAbsent(clazz.getName(), newInstantiator);
+            if (instantiator == null) {
+                instantiator = newInstantiator;
+            }
+        }
+        return (Constructor<T>) instantiator;
+    }
+
+    private Constructor<?> getConstructor(Class<?> baseType) {
+        try {
+            return baseType.getDeclaredConstructor(new Class<?>[] { DomainObjectAllocator.OID.class });
+        } catch (NoSuchMethodException e) {
+            throw new Error("Base type " + baseType.getName() + " does not declare the required constructor!");
         }
     }
 
@@ -38,4 +59,5 @@ public class DomainObjectAllocator {
             this.oid = oid;
         }
     }
+
 }

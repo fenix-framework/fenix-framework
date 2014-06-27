@@ -21,6 +21,8 @@ public class JvstmOJBBackEnd implements BackEnd {
 
     private final TransactionManager transactionManager;
 
+    private final DomainObjectAllocator allocator = new DomainObjectAllocator(OneBoxDomainObject.class);
+
     private boolean newInstance = false;
 
     public JvstmOJBBackEnd() {
@@ -35,7 +37,7 @@ public class JvstmOJBBackEnd implements BackEnd {
         AbstractDomainObject obj = SharedIdentityMap.getCache().lookup(oid);
 
         if (obj == null) {
-            obj = DomainObjectAllocator.allocateObject(DomainClassInfo.mapOidToClass(((Long) oid).longValue()), oid);
+            obj = allocator.allocateObject(DomainClassInfo.mapOidToClass(((Long) oid).longValue()), oid);
             obj = SharedIdentityMap.getCache().cache(obj);
         }
 

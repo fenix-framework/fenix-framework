@@ -15,6 +15,7 @@ import pt.ist.fenixframework.dml.maven.DmlPostProcessorMojo;
  * @requiresDependencyResolution runtime
  * @threadSafe
  */
+@Deprecated
 public class FFDmlPostProcessorMojo extends DmlPostProcessorMojo {
 
     /**

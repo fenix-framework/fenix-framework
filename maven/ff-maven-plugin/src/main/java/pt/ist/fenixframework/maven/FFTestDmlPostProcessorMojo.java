@@ -15,6 +15,7 @@ import pt.ist.fenixframework.dml.maven.TestDmlPostProcessorMojo;
  * @requiresDependencyResolution test
  * @threadSafe
  */
+@Deprecated
 public class FFTestDmlPostProcessorMojo extends TestDmlPostProcessorMojo {
 
     /**

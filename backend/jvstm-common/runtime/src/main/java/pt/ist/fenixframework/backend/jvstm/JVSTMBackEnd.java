@@ -39,6 +39,8 @@ public class JVSTMBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(JVSTMBackEnd.class);
     public static final String BACKEND_NAME = "jvstm";
 
+    private final DomainObjectAllocator allocator = new DomainObjectAllocator(JVSTMDomainObject.class);
+
     // the repository instance used to persist the changes
     protected final Repository repository;
     protected final JVSTMTransactionManager transactionManager;
@@ -92,7 +94,7 @@ public class JVSTMBackEnd implements BackEnd {
                 logger.debug("Object not found in IdentityMap: {}", Long.toHexString(longOid));
             }
 
-            obj = DomainObjectAllocator.allocateObject(DomainClassInfo.mapOidToClass(longOid), oid);
+            obj = allocator.allocateObject(DomainClassInfo.mapOidToClass(longOid), oid);
             // cache object and return the canonical object
             obj = SharedIdentityMap.getCache().cache(obj);
         }
