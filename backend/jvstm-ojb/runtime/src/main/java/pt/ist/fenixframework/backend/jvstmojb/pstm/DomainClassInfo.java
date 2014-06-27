@@ -1,14 +1,12 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ojb.broker.PersistenceBroker;
@@ -19,21 +17,17 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.ojb.OJBMetadataGenerator;
+import pt.ist.fenixframework.backend.jvstmojb.repository.ServerId;
 import pt.ist.fenixframework.dml.DomainClass;
 import pt.ist.fenixframework.dml.DomainModel;
 
-public class DomainClassInfo implements Serializable {
+public class DomainClassInfo {
 
     private static final Logger logger = LoggerFactory.getLogger(DomainClassInfo.class);
     private volatile static Map<Class, DomainClassInfo> classInfoMap;
     private volatile static DomainClassInfo[] classInfoById;
-    private volatile static long serverOidBase;
 
-    public static void initializeClassInfos(int serverId) {
-
-        logger.info("Initializing DomainClassInfos for server {}", serverId);
-
-        serverOidBase = (long) serverId << 48;  // the server id provides de 16 most significant bits of the OID
+    public static void initializeClassInfos() {
 
         PersistenceBroker broker = null;
         ResultSet rs = null;
@@ -51,7 +45,7 @@ public class DomainClassInfo implements Serializable {
 
                 rs = stmt.executeQuery("SELECT DOMAIN_CLASS_NAME,DOMAIN_CLASS_ID FROM FF$DOMAIN_CLASS_INFO");
 
-                Map<Class, DomainClassInfo> map = new IdentityHashMap<Class, DomainClassInfo>();
+                Map<Class, DomainClassInfo> map = new HashMap<Class, DomainClassInfo>();
                 ArrayList<DomainClassInfo> array = new ArrayList<DomainClassInfo>();
 
                 int maxId = 0;
@@ -98,7 +92,7 @@ public class DomainClassInfo implements Serializable {
                     array.toArray(classInfoById);
                     return;
                 } catch (SQLException e) {
-                    logger.info("The registration of new DomainClassInfos failed.  Retrying...");
+                    logger.error("The registration of new DomainClassInfos failed.  Retrying...");
                     // the inserts into the database or the commit may fail if a
                     // concurrent execution tries to create new records also
                     // if that happens, abort the current transaction and retry
@@ -162,14 +156,6 @@ public class DomainClassInfo implements Serializable {
         }
     }
 
-    public static int mapClassToId(Class objClass) {
-        DomainClassInfo domainClassInfo = classInfoMap.get(objClass);
-        if (domainClassInfo == null) {
-            throw new RuntimeException("Domain class not registered: " + objClass.getCanonicalName());
-        }
-        return domainClassInfo.classId;
-    }
-
     private static Class mapIdToClass(int cid) {
         if (cid < 0 || cid >= classInfoById.length) {
             return null;
@@ -192,7 +178,7 @@ public class DomainClassInfo implements Serializable {
         return mapIdToClass(mapOidToClassId(oid));
     }
 
-    public static long getNextOidFor(Class objClass) throws Exception {
+    public static long getNextOidFor(Class<?> objClass) throws SQLException {
         int nextKey;
         DomainClassInfo info = classInfoMap.get(objClass);
 
@@ -206,116 +192,61 @@ public class DomainClassInfo implements Serializable {
             info.setLastKey(nextKey);
         }
 
-        //logger.trace("Server(" + (int) (serverOidBase >> 48) + ")");
-        //logger.trace(", Class(" + info.classId + ")");
-        //logger.trace(", Object(" + nextKey + ")");
-        //logger.trace(": " + serverOidBase + " + " + ((long) info.classId << 32) + " + " + nextKey + " = "
-        //        + (serverOidBase + ((long) info.classId << 32) + nextKey));
-
-        return serverOidBase + ((long) info.classId << 32) + nextKey;
+        return ServerId.getServerOidBase() + ((long) info.classId << 32) + nextKey;
     }
 
     /* Invocations to this method should be synchronized in the <code>info</code> argument */
-    private static int initLastKeyFor(DomainClassInfo info) throws Exception {
-        long baseRange = serverOidBase + ((long) info.classId << 32);
+    private static int initLastKeyFor(DomainClassInfo info) throws SQLException {
+        long baseRange = ServerId.getServerOidBase() + ((long) info.classId << 32);
         long maxId = getMaxIdForClass(info.domainClass.getName(), baseRange, baseRange + 0xFFFFFFFFL);
         return (int) maxId; // the lower 32 bit are the object's relative id.
     }
 
-    public static long getMaxIdForClass(String className, long lowestId, long highestId) throws Exception {
-        PersistenceBroker broker = null;
-        Statement stmt = null;
-
-        try {
-            broker = PersistenceBrokerFactory.defaultPersistenceBroker();
-            broker.beginTransaction();
-
-            Connection conn = broker.serviceConnectionManager().getConnection();
-            stmt = conn.createStatement();
+    private static long getMaxIdForClass(String className, long lowestId, long highestId) throws SQLException {
+        Connection conn = TransactionSupport.getCurrentSQLConnection();
+        try (Statement stmt = conn.createStatement()) {
 
             StringBuilder sqlStmtText = new StringBuilder();
-            sqlStmtText.append("SELECT MAX(OID) FROM ");
+            sqlStmtText.append("SELECT MAX(OID) FROM `");
             DomainClass domainClass = FenixFramework.getDomainModel().findClass(className);
             sqlStmtText.append(OJBMetadataGenerator.getExpectedTableName(domainClass));
-            sqlStmtText.append(" WHERE OID > ");
+            sqlStmtText.append("` WHERE OID > ");
             sqlStmtText.append(lowestId);
             sqlStmtText.append(" AND OID <= ");
             sqlStmtText.append(highestId);
             sqlStmtText.append(";");
 
             ResultSet rs = stmt.executeQuery(sqlStmtText.toString());
-            broker.commitTransaction();
 
             rs.first();
             return rs.getLong(1); // getLong() will return 0 in case there is no line matching the query
-        } finally {
-            if (broker != null) {
-                if (broker.isInTransaction()) {
-                    broker.abortTransaction();
-                }
-                broker.close();
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException e) {
-                    // nothing can be done now.
-                }
-            }
         }
     }
 
-    private static final int UNKNOWN_KEY = 0;
+    private static final int UNKNOWN_KEY = -1;
 
     // the non-static part starts here
 
-    public final String domainClassName;
-    public final transient Class domainClass;
-    public final int classId;
+    private final Class<?> domainClass;
+    private final int classId;
     /** The maximum object key used for objects of this class in this server */
-    private transient int lastKey = UNKNOWN_KEY;
+    private int lastKey = UNKNOWN_KEY;
 
-    public DomainClassInfo(Class domainClass, int classId) {
-        this(domainClass.getName(), domainClass, classId);
-    }
-
-    public DomainClassInfo(String domainClassName, int classId) {
-        this(domainClassName, findClass(domainClassName), classId);
-    }
-
-    public DomainClassInfo(String domainClassName, Class domainClass, int classId) {
-        this.domainClassName = domainClassName;
+    private DomainClassInfo(Class<?> domainClass, int classId) {
         this.domainClass = domainClass;
         this.classId = classId;
     }
 
-    protected int getLastKey() {
+    private DomainClassInfo(String domainClassName, int classId) {
+        this(findClass(domainClassName), classId);
+    }
+
+    private int getLastKey() {
         return this.lastKey;
     }
 
-    protected void setLastKey(int lastKey) {
+    private void setLastKey(int lastKey) {
         this.lastKey = lastKey;
-    }
-
-    // serialization code
-    protected Object writeReplace() throws ObjectStreamException {
-        return new SerializedForm(this);
-    }
-
-    private static class SerializedForm implements Serializable {
-        private static final long serialVersionUID = 1L;
-
-        private final String className;
-        private final int classId;
-
-        SerializedForm(DomainClassInfo obj) {
-            this.className = obj.domainClassName;
-            this.classId = obj.classId;
-        }
-
-        Object readResolve() throws ObjectStreamException, ClassNotFoundException {
-            return new DomainClassInfo(this.className, this.classId);
-        }
     }
 
     public static void ensureDomainRoot() {
@@ -335,7 +266,7 @@ public class DomainClassInfo implements Serializable {
 
             if (!hasRoot) {
                 logger.info("DomainRoot not found. Initializing...");
-                int value = stm.executeUpdate("INSERT INTO DOMAIN_ROOT (OID, ID_INTERNAL) VALUES (1,1)");
+                int value = stm.executeUpdate("INSERT INTO DOMAIN_ROOT (OID) VALUES (1)");
 
                 if (value == 0) {
                     logger.error("Could not initialize DomainRoot!");

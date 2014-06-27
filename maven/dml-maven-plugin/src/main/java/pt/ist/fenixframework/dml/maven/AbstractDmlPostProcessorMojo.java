@@ -10,6 +10,11 @@ import org.apache.maven.project.MavenProject;
 
 import pt.ist.fenixframework.core.FullPostProcessDomainClasses;
 
+/**
+ * @deprecated Dml Post-Processing is no longer required, and as such, usage of this Mojo is no longer needed
+ *
+ */
+@Deprecated
 public abstract class AbstractDmlPostProcessorMojo extends AbstractMojo {
 
     protected abstract MavenProject getMavenProject();

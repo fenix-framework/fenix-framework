@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.backend.jvstmojb.pstm.Util;
 import pt.ist.fenixframework.util.FenixFrameworkThread;
 
-import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
-
 public class ServerId {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerId.class);
@@ -21,47 +19,37 @@ public class ServerId {
     private static int serverId = -1;
 
     public static void ensureServerId() {
-        try {
-            Connection connection = DbUtil.openConnection();
-            boolean done = false;
-            while (!done) {
-                Statement query = connection.createStatement();
-                ResultSet rs =
-                        query.executeQuery("select ID from FF$SERVER_ID_LEASE"
-                                + " where EXPIRATION is null or EXPIRATION < now() order by EXPIRATION limit 1;");
+        try (Connection connection = DbUtil.openConnection()) {
+            Statement query = connection.createStatement();
+            ResultSet rs =
+                    query.executeQuery("select ID from FF$SERVER_ID_LEASE"
+                            + " where EXPIRATION is null or EXPIRATION < now() order by EXPIRATION limit 1 FOR UPDATE;");
 
-                String updateStr;
-                // leases not refreshed since leaseLimit will be considered available           
-                if (rs.next()) {
-                    serverId = rs.getInt("ID");
-                    updateStr =
-                            "update FF$SERVER_ID_LEASE set EXPIRATION = now() + interval 20 minute, SERVER = '"
-                                    + Util.getServerName() + "' where ID = " + serverId;
-                } else { // No available record, search for Max
-                    ResultSet maxRs = query.executeQuery("select max(ID) from FF$SERVER_ID_LEASE");
-                    maxRs.next();
+            String updateStr;
+            // leases not refreshed since leaseLimit will be considered available
+            if (rs.next()) {
+                serverId = rs.getInt("ID");
+                updateStr =
+                        "update FF$SERVER_ID_LEASE set EXPIRATION = now() + interval 20 minute, SERVER = '"
+                                + Util.getServerName() + "' where ID = " + serverId;
+            } else { // No available record, search for Max
+                try (ResultSet maxRs = query.executeQuery("select max(ID) from FF$SERVER_ID_LEASE")) {
+                    maxRs.first();
                     serverId = maxRs.getInt(1) + 1;
                     updateStr =
                             "INSERT INTO FF$SERVER_ID_LEASE (ID, SERVER, EXPIRATION) VALUES (" + serverId + ", '"
                                     + Util.getServerName() + "', now() + interval 20 minute)";
-                    maxRs.close();
                 }
-
-                rs.close();
-
-                Statement update = connection.createStatement();
-                try {
-                    update.executeUpdate(updateStr);
-                    done = true;
-                    connection.commit();
-                } catch (MySQLIntegrityConstraintViolationException ex) {
-                    logger.warn("Server Id conflict, retrying");
-                }
-                query.close();
-                update.close();
             }
 
-            connection.close();
+            rs.close();
+
+            try (Statement update = connection.createStatement()) {
+                update.executeUpdate(updateStr);
+            }
+
+            query.close();
+            connection.commit();
 
             logger.info("Obtained server id: {}", serverId);
         } catch (SQLException e) {
@@ -73,9 +61,13 @@ public class ServerId {
 
     public static int getServerId() {
         if (serverId == -1) {
-            throw new RuntimeException("Cannot call getServerId before ensureServerId is called");
+            throw new RuntimeException("Server ID is not defined. Cannot create new objects!");
         }
         return serverId;
+    }
+
+    public static long getServerOidBase() {
+        return (long) getServerId() << 48;
     }
 
     private static class ServerIdRenewalThread extends FenixFrameworkThread {
@@ -104,7 +96,10 @@ public class ServerId {
                      * server ID is not yet actively used to generate OIDs.
                      */
                     if (validUntil.isBeforeNow()) {
-                        logger.error("Server ID lease has expired! Was valid until {}", validUntil);
+                        logger.error("Server ID lease has expired! Was valid until {}. Object creation disabled.", validUntil);
+                        // Reset the server id. This will prevent new objects from being created
+                        serverId = -1;
+                        return;
                     }
 
                     renewLease();

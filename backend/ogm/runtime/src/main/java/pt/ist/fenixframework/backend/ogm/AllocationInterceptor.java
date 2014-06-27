@@ -12,6 +12,8 @@ import pt.ist.fenixframework.core.DomainObjectAllocator;
 public class AllocationInterceptor extends EmptyInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(AllocationInterceptor.class);
 
+    private final DomainObjectAllocator allocator = new DomainObjectAllocator(OgmDomainObject.class);
+
     // @Override
     // public Boolean isTransient(Object entity) {
     //     logger.trace("isTransient(" + entity.getClass().getName() + ")?");
@@ -35,7 +37,7 @@ public class AllocationInterceptor extends EmptyInterceptor {
         try {
             Class clazz = Class.forName(entityName);
             OgmOID oid = new OgmOID(clazz, (String) id);
-            return DomainObjectAllocator.allocateObject(clazz, oid);
+            return allocator.allocateObject(clazz, oid);
         } catch (ClassNotFoundException ex) {
             // Should not occur.
             logger.error("ClassNotFoundException for " + entityName);

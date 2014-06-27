@@ -10,7 +10,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class aggregates the whole post-processing required on the domain classes.
+ * 
+ * @deprecated Domain Post-Processing is no longer required
  */
+@Deprecated
 public class FullPostProcessDomainClasses {
     private static final Logger logger = LoggerFactory.getLogger(FullPostProcessDomainClasses.class);
 
@@ -88,6 +91,8 @@ public class FullPostProcessDomainClasses {
      * @param parentClassLoader the class loader on which to delegate the loading of classes
      */
     public static void apply(String projectName, File classesDirectory, ClassLoader parentClassLoader) throws Exception {
+        System.out.println("[WARNING @ FF] Post-processing of domain classes has been deprecated,"
+                + " and will be removed in a later release.");
         injectCode(projectName, parentClassLoader);
     }
 

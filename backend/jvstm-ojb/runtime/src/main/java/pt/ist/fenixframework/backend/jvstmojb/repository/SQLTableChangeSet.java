@@ -75,8 +75,8 @@ public class SQLTableChangeSet {
             }
         }
         if (table.primaryKey.isEmpty()) {
-            if (fields.containsKey("ID_INTERNAL")) {
-                definitions.add((table.exists ? "add " : "") + "primary key (ID_INTERNAL)");
+            if (fields.containsKey("OID")) {
+                definitions.add((table.exists ? "add " : "") + "primary key (OID)");
             } else {
                 definitions.add((table.exists ? "add " : "") + "primary key (" + StringUtils.join(fields.keySet(), ", ") + ")");
             }
@@ -103,10 +103,12 @@ public class SQLTableChangeSet {
     }
 
     private static String escapeName(String name) {
-        if (name == null || name.length() == 0)
+        if (name == null || name.length() == 0) {
             return name;
-        if (name.charAt(0) == '`')
+        }
+        if (name.charAt(0) == '`') {
             return name; // already escaped
+        }
         return "`" + name + "`";
     }
 

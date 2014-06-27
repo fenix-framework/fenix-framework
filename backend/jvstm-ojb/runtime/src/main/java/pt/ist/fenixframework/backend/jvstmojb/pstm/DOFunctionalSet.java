@@ -36,7 +36,7 @@ public class DOFunctionalSet<E extends AbstractDomainObject> extends FunctionalS
     private static class SerializedForm implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        private long[] oids;
+        private final long[] oids;
         private transient int pos;
 
         SerializedForm(int size) {

@@ -16,6 +16,7 @@ import org.apache.maven.project.MavenProject;
  * @requiresDependencyResolution runtime
  * @threadSafe
  */
+@Deprecated
 public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
 
     /**

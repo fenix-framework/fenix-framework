@@ -32,8 +32,6 @@ public class OJBMetadataGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(OJBMetadataGenerator.class);
 
-    private static String classToDebug = null;
-
     public static void updateOJBMappingFromDomainModel(DomainModel domainModel) throws Exception {
 
         final DescriptorRepository descriptorRepository = MetadataManager.getInstance().getGlobalRepository();
@@ -62,10 +60,6 @@ public class OJBMetadataGenerator {
                 updateFields(domainModel, classDescriptor, domClass, ojbMetadata, clazz);
                 if (!Modifier.isAbstract(clazz.getModifiers())) {
                     updateRelations(classDescriptor, domClass, ojbMetadata, clazz);
-                }
-
-                if (classToDebug != null && classDescriptor.getClassNameOfObject().contains(classToDebug)) {
-                    logger.info(classDescriptor.toXML());
                 }
             }
         }
@@ -122,10 +116,7 @@ public class OJBMetadataGenerator {
         DomainEntity domEntity = domClass;
         int fieldID = 1;
 
-        addPrimaryFieldDescriptor(domainModel, "idInternal", "int", fieldID++, classDescriptor, persistentFieldClass);
-
-        // write the OID also
-        addFieldDescriptor(domainModel, "oid", "long", fieldID++, classDescriptor, persistentFieldClass);
+        addPrimaryFieldDescriptor(domainModel, "oid", "long", fieldID++, classDescriptor, persistentFieldClass);
 
         // write the domainMetaObject for all domain objects
         addFieldDescriptor(domainModel, "oidDomainMetaObject", "Long", fieldID++, classDescriptor, persistentFieldClass);

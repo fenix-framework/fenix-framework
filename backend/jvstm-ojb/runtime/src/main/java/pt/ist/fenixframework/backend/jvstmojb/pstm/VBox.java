@@ -8,8 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
 
-public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
-        pt.ist.fenixframework.backend.jvstmojb.dml.runtime.FenixVBox<E> {
+public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject {
 
     private static final Logger logger = LoggerFactory.getLogger(VBox.class);
 
@@ -58,18 +57,12 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
         return this.slotName;
     }
 
-    @Override
     public E get(Object obj, String attrName) {
         return TransactionSupport.currentFenixTransaction().getBoxValue(this, obj, attrName);
     }
 
-    @Override
     public void put(Object obj, String attrName, E newValue) {
-        // TODO: eventually remove this 
-        if (!(attrName.equals("idInternal") || attrName.equals("ackOptLock"))) {
-            // the set of the idInternal or ackOptLock is performed by OJB and should not be logged
-            TransactionSupport.storeObject((AbstractDomainObject) obj, attrName);
-        }
+        TransactionSupport.storeObject((AbstractDomainObject) obj, attrName);
         put(newValue);
     }
 

@@ -32,11 +32,6 @@ class ReadOnlyTopLevelTransaction extends TopLevelTransaction {
     }
 
     @Override
-    public ReadSet getReadSet() {
-        throw new Error("ReadOnly txs don't record their read sets...");
-    }
-
-    @Override
     public <T> T getBoxValue(VBox<T> vbox, Object obj, String attr) {
         numBoxReads++;
         VBoxBody<T> body = vbox.body.getBody(number);
@@ -47,7 +42,7 @@ class ReadOnlyTopLevelTransaction extends TopLevelTransaction {
                     // after the reload, the same body should have a new value
                     // if not, then something gone wrong and its better to abort
                     if (body.value == VBox.NOT_LOADED_VALUE) {
-                        logger.error("Couldn't load the attribute {} for class {}", attr, obj.getClass());
+                        logger.error("Couldn't load the attribute {} for class {}", attr, obj.getClass().getName());
                         throw new VersionNotAvailableException("Couldn't load the attribute " + attr + " for instance " + obj);
                     }
                 }

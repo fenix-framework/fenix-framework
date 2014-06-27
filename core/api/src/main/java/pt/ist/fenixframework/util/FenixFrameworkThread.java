@@ -23,7 +23,7 @@ public abstract class FenixFrameworkThread extends Thread {
     private static final ConcurrentLinkedQueue<FenixFrameworkThread> threads = new ConcurrentLinkedQueue<FenixFrameworkThread>();
 
     protected FenixFrameworkThread(String name) {
-        super(name);
+        super("FenixFramework-" + name);
         threads.add(this);
     }
 

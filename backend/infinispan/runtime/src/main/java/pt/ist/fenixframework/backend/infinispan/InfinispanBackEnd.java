@@ -31,6 +31,8 @@ public class InfinispanBackEnd implements BackEnd {
 
     private static final InfinispanBackEnd instance = new InfinispanBackEnd();
 
+    private final DomainObjectAllocator allocator = new DomainObjectAllocator(InfinispanDomainObject.class);
+
     protected final InfinispanTransactionManager transactionManager;
     protected Cache<String, Object> domainCache;
 
@@ -76,7 +78,7 @@ public class InfinispanBackEnd implements BackEnd {
             if (logger.isTraceEnabled()) {
                 logger.trace("Object not found in IdentityMap: " + internalId.getFullId());
             }
-            obj = DomainObjectAllocator.allocateObject(internalId.getObjClass(), internalId);
+            obj = allocator.allocateObject(internalId.getObjClass(), internalId);
 
             // cache object and return the canonical object
             obj = cache.cache(obj);

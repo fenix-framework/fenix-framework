@@ -3,13 +3,10 @@ package pt.ist.fenixframework.backend.jvstmojb.pstm;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import jvstm.Transaction;
 
-import org.apache.ojb.broker.PersistenceBroker;
-import org.apache.ojb.broker.metadata.ClassDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +26,6 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractDomainObject.class);
 
-    // this should be final, but the ensureIdInternal method prevents it
     private long oid;
 
     private VBox<DomainMetaObject> domainMetaObject;
@@ -44,16 +40,11 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     protected AbstractDomainObject() {
         super();
-        // All domain objects become persistent upon their creation.
-        // Ensure that this object gets an idInternal
-        // jcachopo: This should be changed in the future...
-        ensureIdInternal();
-        // ensureOid();
         TransactionSupport.storeNewObject(this);
 
         initMetaObject(false);
 
-        if ((!getClass().isAnnotationPresent(NoDomainMetaObjects.class)) && JvstmOJBConfig.canCreateDomainMetaObjects()) {
+        if (JvstmOJBConfig.canCreateDomainMetaObjects() && !getClass().isAnnotationPresent(NoDomainMetaObjects.class)) {
             DomainMetaObject metaObject = new DomainMetaObject();
             metaObject.setDomainObject(this);
 
@@ -62,8 +53,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     }
 
     protected AbstractDomainObject(DomainObjectAllocator.OID oid) {
-        // this constructor exists only as part of the allocate-instance
-        // protocol
+        super(oid);
         this.oid = ((Long) oid.oid).longValue();
 
         initMetaObject(true);
@@ -73,14 +63,6 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         domainMetaObject = VBox.makeNew(this, "domainMetaObject", allocateOnly, false);
     }
 
-    public final Integer getIdInternal() {
-        return (int) (this.oid & 0x7FFFFFFF);
-    }
-
-    private Integer get$idInternal() {
-        return getIdInternal();
-    }
-
     @Deprecated
     public Long getOID() {
         return getOid();
@@ -88,7 +70,6 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     protected void ensureOid() {
-        /*
         try {
             // find successive ids until one is available
             while (true) {
@@ -99,31 +80,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
                     return;
                 }
             }
-        } catch (Exception e) {
-            throw new UnableToDetermineIdException(e);
-        }
-        */
-    }
-
-    protected void ensureIdInternal() {
-        try {
-            PersistenceBroker broker = TransactionSupport.getOJBBroker();
-            Class myClass = this.getClass();
-            ClassDescriptor cld = broker.getClassDescriptor(myClass);
-
-            long cid = ((long) DomainClassInfo.mapClassToId(myClass) << 32);
-
-            // find successive ids until one is available
-            while (true) {
-                Integer id = (Integer) broker.serviceSequenceManager().getUniqueValue(cld.getFieldDescriptorByName("idInternal"));
-                this.oid = cid + id;
-                Object cached = SharedIdentityMap.getCache().cache(this);
-                if (cached == this) {
-                    // break the loop once we got this instance cached
-                    return;
-                }
-            }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new UnableToDetermineIdException(e);
         }
     }
@@ -134,7 +91,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     }
 
     private long get$oid() {
-        return getOid();
+        return oid;
     }
 
     VersionedSubject getSlotNamed(String attrName) {
@@ -232,19 +189,6 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         return DomainFenixFrameworkRoot.getInstance().getDomainMetaClass(this.getClass());
     }
 
-    protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,
-            final int columnCount) throws SQLException {
-        if (columnIndexes[columnCount] == null) {
-            synchronized (columnIndexes) {
-                if (columnIndexes[columnCount] == null) {
-                    int columnIndex = Integer.valueOf(resultSet.findColumn(columnName));
-                    columnIndexes[columnCount] = columnIndex;
-                }
-            }
-        }
-        return columnIndexes[columnCount].intValue();
-    }
-
     // serialization code
     @Override
     protected Object writeReplace() throws ObjectStreamException {
@@ -269,7 +213,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     public final String getExternalId() {
-        return String.valueOf(getOid());
+        return Long.toString(oid);
     }
 
     public static <T extends AbstractDomainObject> T fromExternalId(String extId) {

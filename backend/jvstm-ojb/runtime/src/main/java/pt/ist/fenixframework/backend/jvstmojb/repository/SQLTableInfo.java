@@ -30,7 +30,7 @@ public class SQLTableInfo {
             mySqlTypeTranslation.put("TIME", "time");
             mySqlTypeTranslation.put("TIMESTAMP", "timestamp NULL default NULL");
             mySqlTypeTranslation.put("VARCHAR", "text");
-            mySqlTypeTranslation.put("BLOB", "blob");
+            mySqlTypeTranslation.put("BLOB", "longblob");
             mySqlTypeTranslation.put("BIGINT", "bigint(20)");
 
             mySqlTypeTranslation.put(null, "tinyint(1)");
@@ -54,9 +54,7 @@ public class SQLTableInfo {
         }
 
         private String sqlType() {
-            if (name.equals("ID_INTERNAL")) {
-                return "int(11) NOT NULL auto_increment";
-            } else if (name.startsWith("OID")) {
+            if (name.startsWith("OID")) {
                 return "bigint unsigned";
             } else {
                 return mySqlTypeTranslation.get(type);
@@ -129,8 +127,9 @@ public class SQLTableInfo {
 
     public boolean containsColumn(String columnName) {
         for (Column column : columns) {
-            if (column.name.equals(columnName))
+            if (column.name.equals(columnName)) {
                 return true;
+            }
         }
         return false;
     }
@@ -174,7 +173,9 @@ public class SQLTableInfo {
             }
         }
         final String[] result = new String[strings.size()];
-        for (int i = 0; i < strings.size(); result[i] = strings.get(i++));
+        for (int i = 0; i < strings.size(); result[i] = strings.get(i++)) {
+            ;
+        }
         return result;
     }
 
@@ -207,10 +208,12 @@ public class SQLTableInfo {
     }
 
     private static String escapeName(String name) {
-        if (name == null || name.length() == 0)
+        if (name == null || name.length() == 0) {
             return name;
-        if (name.charAt(0) == '`')
+        }
+        if (name.charAt(0) == '`') {
             return name; // already escaped
+        }
         return "`" + name + "`";
     }
 

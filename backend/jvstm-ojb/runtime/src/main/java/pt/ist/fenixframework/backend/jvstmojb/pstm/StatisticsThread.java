@@ -22,7 +22,7 @@ class StatisticsThread extends FenixFrameworkThread {
     private int numReport = 0;
 
     StatisticsThread() {
-        super("StatisticsThread-" + server);
+        super("StatisticsThread");
         setDaemon(true);
     }
 
