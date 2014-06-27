@@ -3,6 +3,7 @@ package pt.ist.fenixframework.backend.jvstmojb.pstm;
 import java.lang.ref.SoftReference;
 import java.util.AbstractSet;
 import java.util.Iterator;
+import java.util.Objects;
 
 import jvstm.PerTxBox;
 import pt.ist.fenixframework.backend.jvstmojb.dml.runtime.FunctionalSet;
@@ -147,6 +148,7 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
 
     @Override
     public boolean add(E2 element) {
+        Objects.requireNonNull(element);
         return relation.add(listHolder, element);
     }
 
