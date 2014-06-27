@@ -39,10 +39,15 @@ public class DmlFile {
     }
 
     public static List<DmlFile> parseDependencyDmlFiles(String dmlFilesField) throws SpecifiedDmlFileNotFoundException {
+        return parseDependencyDmlFiles(dmlFilesField, Thread.currentThread().getContextClassLoader());
+    }
+
+    public static List<DmlFile> parseDependencyDmlFiles(String dmlFilesField, ClassLoader loader)
+            throws SpecifiedDmlFileNotFoundException {
         List<DmlFile> dmlFileList = new ArrayList<DmlFile>();
         for (String dmlFileName : dmlFilesField.trim().split("\\s*,\\s*")) {
             if (dmlFileName != null && !dmlFileName.isEmpty()) {
-                URL dmlFileUrl = Thread.currentThread().getContextClassLoader().getResource(dmlFileName);
+                URL dmlFileUrl = loader.getResource(dmlFileName);
                 if (dmlFileUrl == null) {
                     throw new SpecifiedDmlFileNotFoundException(dmlFileName);
                 }

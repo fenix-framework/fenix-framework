@@ -177,8 +177,13 @@ public class Project {
     }
 
     public static Project fromName(String projectName) throws IOException, ProjectException, MalformedURLException {
+        return fromName(projectName, Thread.currentThread().getContextClassLoader());
+    }
+
+    public static Project fromName(String projectName, ClassLoader loader) throws IOException, ProjectException,
+            MalformedURLException {
         Properties properties = new Properties();
-        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(projectName + "/project.properties");
+        InputStream is = loader.getResourceAsStream(projectName + "/project.properties");
         if (is == null) {
             throw new ProjectPropertiesNotFoundException(projectName);
         }
@@ -187,18 +192,23 @@ public class Project {
             is.close();
         } catch (Throwable ignore) {
         }
-        return Project.fromProperties(properties);
+        return Project.fromProperties(properties, loader);
     }
 
     public static Project fromProperties(Properties properties) throws MalformedURLException, IOException, ProjectException {
+        return fromProperties(properties, Thread.currentThread().getContextClassLoader());
+    }
+
+    public static Project fromProperties(Properties properties, ClassLoader loader) throws MalformedURLException, IOException,
+            ProjectException {
         String name = properties.getProperty(NAME_KEY);
         String version = properties.getProperty(VERSION_KEY, VERSION_UNKNOWN);
         if (!projects.containsKey(name)) {
-            List<DmlFile> dependencyDmlFiles = DmlFile.parseDependencyDmlFiles(properties.getProperty(DML_FILES_KEY));
+            List<DmlFile> dependencyDmlFiles = DmlFile.parseDependencyDmlFiles(properties.getProperty(DML_FILES_KEY), loader);
             List<Project> dependencies = new ArrayList<Project>();
             for (String projectName : properties.getProperty(DEPENDS_KEY, "").trim().split("\\s*,\\s*")) {
                 if (projectName != null && !projectName.isEmpty()) {
-                    dependencies.add(Project.fromName(projectName));
+                    dependencies.add(Project.fromName(projectName, loader));
                 }
             }
             new Project(name, version, dependencyDmlFiles, dependencies, false);
