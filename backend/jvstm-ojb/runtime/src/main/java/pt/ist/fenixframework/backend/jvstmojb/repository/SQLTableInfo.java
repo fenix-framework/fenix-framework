@@ -54,9 +54,7 @@ public class SQLTableInfo {
         }
 
         private String sqlType() {
-            if (name.equals("ID_INTERNAL")) {
-                return "int(11) NOT NULL auto_increment";
-            } else if (name.startsWith("OID")) {
+            if (name.startsWith("OID")) {
                 return "bigint unsigned";
             } else {
                 return mySqlTypeTranslation.get(type);
@@ -213,8 +211,7 @@ public class SQLTableInfo {
         if (name == null || name.length() == 0) {
             return name;
         }
-        if (name.charAt(0) == '`')
-         {
+        if (name.charAt(0) == '`') {
             return name; // already escaped
         }
         return "`" + name + "`";
