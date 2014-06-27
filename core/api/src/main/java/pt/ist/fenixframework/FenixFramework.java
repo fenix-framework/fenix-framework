@@ -113,8 +113,6 @@ public class FenixFramework {
      */
     private static final Object INFER_APP_NAME = "INFER_APP_NAME";
 
-    private static final String FENIX_FRAMEWORK_LOGGING_CONFIG = "fenix-framework-log4j.properties";
-
     private static final Object INIT_LOCK = new Object();
 
     // private static boolean bootstrapped = false;
@@ -130,27 +128,10 @@ public class FenixFramework {
 
     private static NodeBarrier barrier;
 
-    // private static Logger logger = null;
     static {
-        // System.out.println("out.ERROR?: " + logger.isErrorEnabled());
-        // System.out.println("out.WARN?: " + logger.isWarnEnabled());
-        // System.out.println("out.INFO?: " + logger.isInfoEnabled());
-        // System.out.println("out.DEBUG?: " + logger.isDebugEnabled());
-        // System.out.println("out.TRACE?: " + logger.isTraceEnabled());
-        // System.err.println("err.ERROR?: " + logger.isErrorEnabled());
-        // System.err.println("err.WARN?: " + logger.isWarnEnabled());
-        // System.err.println("err.INFO?: " + logger.isInfoEnabled());
-        // System.err.println("err.DEBUG?: " + logger.isDebugEnabled());
-        // System.err.println("err.TRACE?: " + logger.isTraceEnabled());
-        // logger.error("INIT FF");
-        // logger.warn("INIT FF");
-        // logger.info("INIT FF");
-        // logger.debug("INIT FF");
-        // logger.trace("INIT FF");
-
         logger.trace("Static initializer block for FenixFramework class [BEGIN]");
         synchronized (INIT_LOCK) {
-            logger.info("Trying auto-initialization with configuration by convention");
+            logger.debug("Trying auto-initialization with configuration by convention");
             tryAutoInit();
         }
         logger.trace("Static initializer block for FenixFramework class [END]");
@@ -197,7 +178,7 @@ public class FenixFramework {
 
         InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
         if (in == null) {
-            logger.info("Resource '" + resourceName + "' not found");
+            logger.debug("Resource '" + resourceName + "' not found");
             return props;
         }
 
@@ -318,7 +299,7 @@ public class FenixFramework {
                 throw new ConfigError("A configuration must be provided");
             }
 
-            logger.info("Initializing Fenix Framework with config.class=" + newConfig.getClass().getName());
+            logger.info("Initializing Fenix Framework with backend config: " + newConfig.getClass().getSimpleName());
             FenixFramework.config = newConfig;
 
             // domainModelURLs should have been set by now

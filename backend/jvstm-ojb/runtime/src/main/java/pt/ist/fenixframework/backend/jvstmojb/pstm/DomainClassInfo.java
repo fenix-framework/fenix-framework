@@ -29,8 +29,6 @@ public class DomainClassInfo {
 
     public static void initializeClassInfos() {
 
-        logger.info("Initializing DomainClassInfos for server {}", ServerId.getServerId());
-
         PersistenceBroker broker = null;
         ResultSet rs = null;
         Statement stmt = null;
@@ -94,7 +92,7 @@ public class DomainClassInfo {
                     array.toArray(classInfoById);
                     return;
                 } catch (SQLException e) {
-                    logger.info("The registration of new DomainClassInfos failed.  Retrying...");
+                    logger.error("The registration of new DomainClassInfos failed.  Retrying...");
                     // the inserts into the database or the commit may fail if a
                     // concurrent execution tries to create new records also
                     // if that happens, abort the current transaction and retry

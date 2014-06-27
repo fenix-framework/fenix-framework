@@ -32,8 +32,6 @@ public class OJBMetadataGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(OJBMetadataGenerator.class);
 
-    private static String classToDebug = null;
-
     public static void updateOJBMappingFromDomainModel(DomainModel domainModel) throws Exception {
 
         final DescriptorRepository descriptorRepository = MetadataManager.getInstance().getGlobalRepository();
@@ -62,10 +60,6 @@ public class OJBMetadataGenerator {
                 updateFields(domainModel, classDescriptor, domClass, ojbMetadata, clazz);
                 if (!Modifier.isAbstract(clazz.getModifiers())) {
                     updateRelations(classDescriptor, domClass, ojbMetadata, clazz);
-                }
-
-                if (classToDebug != null && classDescriptor.getClassNameOfObject().contains(classToDebug)) {
-                    logger.info(classDescriptor.toXML());
                 }
             }
         }
