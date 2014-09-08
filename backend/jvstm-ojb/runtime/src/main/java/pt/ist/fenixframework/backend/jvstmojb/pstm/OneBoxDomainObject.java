@@ -186,10 +186,9 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
         return null;
     }
 
-    public boolean isValid() {
+    public final boolean is$$do$$Valid() {
         try {
-            get$obj$state(false);
-            return true;
+            return get$obj$state(false) != null;
         } catch (VersionNotAvailableException | ClassCastException t) {
             return false;
         }
