@@ -84,7 +84,7 @@ public class JvstmOJBBackEnd implements BackEnd {
     @Override
     public boolean isDomainObjectValid(DomainObject object) {
         if (object instanceof OneBoxDomainObject) {
-            return ((OneBoxDomainObject) object).isValid();
+            return ((OneBoxDomainObject) object).is$$do$$Valid();
         } else {
             return false;
         }
