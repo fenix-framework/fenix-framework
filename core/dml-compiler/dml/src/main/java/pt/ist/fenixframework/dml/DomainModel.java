@@ -74,40 +74,6 @@ public class DomainModel implements Serializable {
         for (String[] valueType : builtinValueTypes) {
             newValueType(valueType[1], valueType[0]);
         }
-        // // primitive types
-        // newValueType("boolean", "boolean");
-        // newValueType("byte", "byte");
-        // newValueType("char", "char");
-        // newValueType("short", "short");
-        // newValueType("int", "int");
-        // newValueType("float", "float");
-        // newValueType("long", "long");
-        // newValueType("double", "double");
-
-        // // their wrappers
-        // newValueType("Boolean", "java.lang.Boolean");
-        // newValueType("Byte", "java.lang.Byte");
-        // newValueType("Character", "java.lang.Character");
-        // newValueType("Short", "java.lang.Short");
-        // newValueType("Integer", "java.lang.Integer");
-        // newValueType("Float", "java.lang.Float");
-        // newValueType("Long", "java.lang.Long");
-        // newValueType("Double", "java.lang.Double");
-
-        // // String is, of course, essential
-        // newValueType("String", "java.lang.String");
-
-        // // we need something binary, also
-        // newValueType("bytearray", "byte[]");
-
-        // // JodaTime types
-        // newValueType("DateTime", "org.joda.time.DateTime");
-        // newValueType("LocalDate", "org.joda.time.LocalDate");
-        // newValueType("LocalTime", "org.joda.time.LocalTime");
-        // newValueType("Partial", "org.joda.time.Partial");
-
-        // // also anything Serializable is acceptable
-        // newValueType("Serializable", "java.io.Serializable");
     }
 
     public static boolean isBuiltinValueTypeFullName(String name) {
