@@ -1,10 +1,10 @@
 package pt.ist.fenixframework.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import static pt.ist.fenixframework.FenixFramework.getDomainModel;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.dml.DeletionListener;
+import pt.ist.fenixframework.dml.DeletionListener.DeletionAdapter;
 
 /**
  * This class contains useful code, required by concrete {@link DomainObject}s. Backend
@@ -12,13 +12,42 @@ import pt.ist.fenixframework.FenixFramework;
  * of DomainObject.
  */
 public class AbstractDomainObjectAdapter extends AbstractDomainObject {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractDomainObjectAdapter.class);
 
     protected AbstractDomainObjectAdapter() {
     }
 
     protected AbstractDomainObjectAdapter(DomainObjectAllocator.OID oid) {
         super(oid);
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>
+     * By default, checks with registered {@link DeletionAdapter}s if it can be safely deleted.
+     * </p>
+     */
+    @Override
+    protected boolean canBeDeleted() {
+        for (DeletionListener<DomainObject> listener : getDomainModel().getDeletionListenersForType(getClass())) {
+            if (listener instanceof DeletionAdapter && !((DeletionAdapter<DomainObject>) listener).canBeDeleted(this)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Invokes all the registered {@link DeletionListener}s for this type.
+     * 
+     * <p>
+     * This method (or an equivalent one) <strong>MUST</strong> be invoked by backends that support object deletion.
+     * </p>
+     */
+    protected final void invokeDeletionListeners() {
+        for (DeletionListener<DomainObject> listener : getDomainModel().getDeletionListenersForType(getClass())) {
+            listener.deleting(this);
+        }
     }
 
     // serialization code

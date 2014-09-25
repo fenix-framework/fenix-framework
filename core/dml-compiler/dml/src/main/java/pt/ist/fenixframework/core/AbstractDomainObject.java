@@ -95,6 +95,17 @@ public abstract class AbstractDomainObject implements DomainObject {
         return super.equals(obj);
     }
 
+    /**
+     * Determines whether this object can safely be deleted, from a business-logic point of view.
+     * Subclasses may override and use this method to properly determine the object's status.
+     * 
+     * @return
+     *         Whether this object can safely be deleted.
+     */
+    protected boolean canBeDeleted() {
+        return true;
+    }
+
     protected void deleteDomainObject() {
         throw new UnsupportedOperationException("deleteDomainObject not implemented at this level");
     }

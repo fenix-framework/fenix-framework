@@ -2,11 +2,18 @@ package pt.ist.fenixframework.dml;
 
 import java.io.Serializable;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.core.AbstractDomainObject;
+import pt.ist.fenixframework.dml.DeletionListener.DeletionAdapter;
 
 public class DomainModel implements Serializable {
 
@@ -14,6 +21,8 @@ public class DomainModel implements Serializable {
     protected Map<String, DomainEntity> external = new HashMap<String, DomainEntity>();
     protected Map<String, DomainClass> classes = new HashMap<String, DomainClass>();
     protected Map<String, DomainRelation> relations = new HashMap<String, DomainRelation>();
+
+    private final Collection<ListenerRegistration<?>> listeners = new ConcurrentLinkedQueue<>();
     private boolean finalized = false;
 
     public DomainModel() {
@@ -146,6 +155,39 @@ public class DomainModel implements Serializable {
         if (!aliasName.equals(name)) {
             external.put(name, ent);
         }
+    }
+
+    /**
+     * Registers a new {@link DeletionListener} or {@link DeletionAdapter} for the given type.
+     * 
+     * The listener will be invoked whenever an object compatible with the given type (i.e. the concrete type or
+     * a sub-class) is being deleted (by calling its {@link DeletionListener#deleting(DomainObject)} method).
+     * 
+     * If the listener also implements {@link DeletionAdapter}, its {@link DeletionAdapter#canBeDeleted(DomainObject)} will be
+     * invoked when {@link AbstractDomainObject#canBeDeleted} is invoked on an object compatible with the given type.
+     * 
+     * @param type
+     *            The type for which this listener will be invoked.
+     * @param listener
+     *            The listener to register.
+     * @throws IllegalStateException
+     *             If the DomainModel is still being assembled.
+     */
+    public <T extends DomainObject> void registerDeletionListener(Class<T> type, DeletionListener<T> listener) {
+        if (!finalized) {
+            throw new IllegalStateException("Cannot register deletion listeners before the DomainModel is finalized!");
+        }
+        listeners.add(new ListenerRegistration<T>(type, listener));
+    }
+
+    public <T extends DomainObject> Iterable<DeletionListener<T>> getDeletionListenersForType(Class<?> type) {
+        List<DeletionListener<T>> result = new ArrayList<>();
+        for (ListenerRegistration<?> listener : listeners) {
+            if (listener.matches(type)) {
+                result.add(listener.<T> getListener());
+            }
+        }
+        return result;
     }
 
     public Iterator<DomainClass> getClasses() {
@@ -288,4 +330,26 @@ public class DomainModel implements Serializable {
             throw new RuntimeException("Duplicate name: " + name);
         }
     }
+
+    private static final class ListenerRegistration<T extends DomainObject> {
+
+        private final Class<?> type;
+        private final DeletionListener<T> listener;
+
+        public ListenerRegistration(Class<T> type, DeletionListener<T> listener) {
+            this.type = Objects.requireNonNull(type);
+            this.listener = Objects.requireNonNull(listener);
+        }
+
+        public boolean matches(Class<?> target) {
+            return type.isAssignableFrom(target);
+        }
+
+        @SuppressWarnings("unchecked")
+        public <R extends DomainObject> DeletionListener<R> getListener() {
+            return (DeletionListener<R>) listener;
+        }
+
+    }
+
 }

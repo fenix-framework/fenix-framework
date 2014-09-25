@@ -180,6 +180,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     protected void deleteDomainObject() {
+        invokeDeletionListeners();
         checkDisconnected();
         deleteDomainMetaObject();
         TransactionSupport.deleteObject(this);
