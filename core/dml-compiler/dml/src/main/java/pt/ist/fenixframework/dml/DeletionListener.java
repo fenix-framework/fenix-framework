@@ -1,5 +1,7 @@
 package pt.ist.fenixframework.dml;
 
+import java.util.List;
+
 import pt.ist.fenixframework.DomainObject;
 
 /**
@@ -43,7 +45,7 @@ public interface DeletionListener<T extends DomainObject> {
          * @return
          *         Whether the given object can safely be deleted.
          */
-        public boolean canBeDeleted(T object);
+        public List<String> getDeletionBlockers(T object);
 
     }
 }

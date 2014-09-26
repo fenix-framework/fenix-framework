@@ -2,6 +2,8 @@ package pt.ist.fenixframework.core;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,8 +104,8 @@ public abstract class AbstractDomainObject implements DomainObject {
      * @return
      *         Whether this object can safely be deleted.
      */
-    protected boolean canBeDeleted() {
-        return true;
+    protected List<String> getDeletionBlockers() {
+        return Collections.emptyList();
     }
 
     protected void deleteDomainObject() {

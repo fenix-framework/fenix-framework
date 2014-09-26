@@ -1,6 +1,10 @@
 package pt.ist.fenixframework.core;
 
 import static pt.ist.fenixframework.FenixFramework.getDomainModel;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.dml.DeletionListener;
@@ -28,13 +32,14 @@ public class AbstractDomainObjectAdapter extends AbstractDomainObject {
      * </p>
      */
     @Override
-    protected boolean canBeDeleted() {
+    protected List<String> getDeletionBlockers() {
+        List<String> result = new ArrayList<>();
         for (DeletionListener<DomainObject> listener : getDomainModel().getDeletionListenersForType(getClass())) {
-            if (listener instanceof DeletionAdapter && !((DeletionAdapter<DomainObject>) listener).canBeDeleted(this)) {
-                return false;
+            if (listener instanceof DeletionAdapter) {
+                result.addAll(((DeletionAdapter<DomainObject>) listener).getDeletionBlockers(this));
             }
         }
-        return true;
+        return result;
     }
 
     /**
