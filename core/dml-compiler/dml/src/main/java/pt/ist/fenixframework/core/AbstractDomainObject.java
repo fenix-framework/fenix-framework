@@ -98,11 +98,18 @@ public abstract class AbstractDomainObject implements DomainObject {
     }
 
     /**
-     * Determines whether this object can safely be deleted, from a business-logic point of view.
+     * Returns a list of all the blockers that prevent this object from being deleted.
+     * 
+     * In this context, a blocker is a business rule that dictates that the object is in no condition to be deleted.
+     * 
+     * Each blocker must be returned as a human-friendly textual description of the blocker, ideally in the
+     * user's preferred language (if applicable).
+     * 
      * Subclasses may override and use this method to properly determine the object's status.
      * 
      * @return
-     *         Whether this object can safely be deleted.
+     *         All the blockers that may prevent this object from being deleted. If the object is safe to delete,
+     *         this method must return an empty list.
      */
     protected List<String> getDeletionBlockers() {
         return Collections.emptyList();

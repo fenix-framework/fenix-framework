@@ -37,13 +37,16 @@ public interface DeletionListener<T extends DomainObject> {
     public static interface DeletionAdapter<T extends DomainObject> extends DeletionListener<T> {
 
         /**
-         * Determines whether this object can safely be deleted, from a business-logic point of view.
-         * Subclasses may override and use this method to properly determine the object's status.
+         * Returns a list of all the blockers that prevent this object from being deleted.
+         * 
+         * Each blocker must be returned as a human-friendly textual description of the blocker, ideally in the
+         * user's preferred language (if applicable).
          * 
          * @param object
          *            The object being checked.
          * @return
-         *         Whether the given object can safely be deleted.
+         *         The blockers that may prevent this object from being deleted. If, from this adapter's perspective,
+         *         the object is safe to delete, this method must return an empty list.
          */
         public List<String> getDeletionBlockers(T object);
 

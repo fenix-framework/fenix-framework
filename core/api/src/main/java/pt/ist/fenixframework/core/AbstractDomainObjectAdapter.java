@@ -28,7 +28,7 @@ public class AbstractDomainObjectAdapter extends AbstractDomainObject {
      * {@inheritDoc}
      * 
      * <p>
-     * By default, checks with registered {@link DeletionAdapter}s if it can be safely deleted.
+     * By default, collects all blockers from registered {@link DeletionAdapter}s.
      * </p>
      */
     @Override
