@@ -496,6 +496,8 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
             println(out, "super.checkDisconnected();");
         }
 
+        println(out, "DO_State castedState = (DO_State)this.get$obj$state(false);");
+
         Iterator<Role> roleSlotsIter = domClass.getRoleSlots();
         while (roleSlotsIter.hasNext()) {
             Role role = roleSlotsIter.next();
@@ -503,13 +505,18 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
             if (role.getName() != null) {
                 onNewline(out);
 
-                print(out, "if (get");
-                print(out, capitalize(role.getName()));
+                print(out, "if (");
+
                 if (role.getMultiplicityUpper() == 1) {
-                    print(out, "() != null");
+                    print(out, "castedState.");
+                    print(out, role.getName());
+                    print(out, " != null");
                 } else {
-                    print(out, "Set().size() > 0");
+                    print(out, "get$rl$");
+                    print(out, role.getName());
+                    print(out, "().size() > 0");
                 }
+
                 print(out, ") handleAttemptToDeleteConnectedObject(\"");
                 print(out, capitalize(role.getName()));
                 println(out, "\");");
