@@ -37,7 +37,7 @@ public class Project {
     private final String version;
     private final List<DmlFile> dmls;
     private final List<Project> dependencies;
-    private final boolean shouldCompile;
+    private final List<Project> optionalDependencies;
     private final List<Project> depended = new ArrayList<Project>();
 
     /**
@@ -48,13 +48,22 @@ public class Project {
         this(name, VERSION_UNKNOWN, dmls, dependencies, shouldCompile);
     }
 
+    /**
+     * @deprecated Use constructor with optionalDependencies and without shouldCompile
+     */
+    @Deprecated
     public Project(String name, String version, List<DmlFile> dmls, List<Project> dependencies, boolean shouldCompile)
+            throws ProjectException {
+        this(name, version, dmls, dependencies, Collections.<Project> emptyList());
+    }
+
+    public Project(String name, String version, List<DmlFile> dmls, List<Project> dependencies, List<Project> optionalDependencies)
             throws ProjectException {
         this.name = name;
         this.version = version;
         this.dmls = dmls;
         this.dependencies = dependencies;
-        this.shouldCompile = shouldCompile;
+        this.optionalDependencies = optionalDependencies;
         for (Project project : dependencies) {
             project.depended.add(this);
         }
@@ -74,12 +83,20 @@ public class Project {
         return dmls;
     }
 
+    /**
+     * @deprecated Without replacement. For compatibility reasons, always returns true.
+     */
+    @Deprecated
     public boolean shouldCompile() {
-        return shouldCompile;
+        return true;
     }
 
     public List<Project> getDependencyProjects() {
         return dependencies;
+    }
+
+    public List<Project> getOptionalDependencies() {
+        return optionalDependencies;
     }
 
     public List<DmlFile> getFullDmlSortedList() {
@@ -156,18 +173,21 @@ public class Project {
         Properties properties = new Properties();
         properties.setProperty(NAME_KEY, getName());
         properties.setProperty(VERSION_KEY, getVersion());
-        properties.setProperty(DML_FILES_KEY, join(getDmls()));
+        properties.setProperty(DML_FILES_KEY, join(getDmls(), Collections.emptyList()));
         if (dependencies.size() > 0) {
-            properties.setProperty(DEPENDS_KEY, join(getDependencyProjects()));
+            properties.setProperty(DEPENDS_KEY, join(getDependencyProjects(), getOptionalDependencies()));
         }
         File output = new File(outputDirectory + "/" + getName() + "/project.properties");
         output.getParentFile().mkdirs();
         properties.store(new FileWriter(output), null);
     }
 
-    private final String join(Collection<?> collection) {
+    private final String join(Collection<?> collection, Collection<?> toExclude) {
         StringBuilder builder = new StringBuilder();
         for (Object item : collection) {
+            if (toExclude.contains(item)) {
+                continue;
+            }
             if (builder.length() > 0) {
                 builder.append(SEPARATOR_CHAR);
             }
