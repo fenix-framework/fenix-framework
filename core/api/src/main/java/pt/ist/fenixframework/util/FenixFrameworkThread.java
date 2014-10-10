@@ -38,7 +38,7 @@ public abstract class FenixFrameworkThread extends Thread {
         try {
             this.interrupt();
             this.join(10 * 1000);
-            logger.info("Shutting down thread {}", this);
+            logger.debug("Shutting down thread {}", this);
         } catch (InterruptedException e) {
             logger.warn("Exception in shutdown", e);
         }
