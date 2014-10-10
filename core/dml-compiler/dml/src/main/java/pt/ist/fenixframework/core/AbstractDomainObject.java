@@ -2,13 +2,15 @@ package pt.ist.fenixframework.core;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.dml.DeletionBlockerListener;
+import pt.ist.fenixframework.dml.DomainModel;
 
 /**
  * This is the top-level class for every DomainObject. Each backend should provide a subclass of
@@ -105,14 +107,29 @@ public abstract class AbstractDomainObject implements DomainObject {
      * Each blocker must be returned as a human-friendly textual description of the blocker, ideally in the
      * user's preferred language (if applicable).
      * 
-     * Subclasses may override and use this method to properly determine the object's status.
-     * 
      * @return
-     *         All the blockers that may prevent this object from being deleted. If the object is safe to delete,
-     *         this method must return an empty list.
+     *         All the blockers that may prevent this object from being deleted.
      */
-    protected List<String> getDeletionBlockers() {
-        return Collections.emptyList();
+    protected final List<String> getDeletionBlockers() {
+        List<String> result = new ArrayList<>();
+        checkForDeletionBlockers(result);
+        for (DeletionBlockerListener<DomainObject> listener : getDomainModel().getDeletionBlockerListenersForType(getClass())) {
+            listener.getDeletionBlockers(this, result);
+        }
+        return result;
+    }
+
+    /**
+     * Subclasses may override this method to provide their own logic for deletion blockers.
+     * 
+     * @param blockers
+     *            A mutable collection where all the blockers that may prevent this object from being deleted should be added.
+     */
+    protected void checkForDeletionBlockers(List<String> blockers) {
+    }
+
+    protected DomainModel getDomainModel() {
+        throw new UnsupportedOperationException("getDomainModel not implemented at this level");
     }
 
     protected void deleteDomainObject() {
