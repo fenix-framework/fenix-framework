@@ -3,7 +3,7 @@ package pt.ist.fenixframework.core;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,8 +110,8 @@ public abstract class AbstractDomainObject implements DomainObject {
      * @return
      *         All the blockers that may prevent this object from being deleted.
      */
-    protected final List<String> getDeletionBlockers() {
-        List<String> result = new ArrayList<>();
+    protected final Collection<String> getDeletionBlockers() {
+        Collection<String> result = new ArrayList<>();
         checkForDeletionBlockers(result);
         for (DeletionBlockerListener<DomainObject> listener : getDomainModel().getDeletionBlockerListenersForType(getClass())) {
             listener.getDeletionBlockers(this, result);
@@ -125,7 +125,7 @@ public abstract class AbstractDomainObject implements DomainObject {
      * @param blockers
      *            A mutable collection where all the blockers that may prevent this object from being deleted should be added.
      */
-    protected void checkForDeletionBlockers(List<String> blockers) {
+    protected void checkForDeletionBlockers(Collection<String> blockers) {
     }
 
     protected DomainModel getDomainModel() {
