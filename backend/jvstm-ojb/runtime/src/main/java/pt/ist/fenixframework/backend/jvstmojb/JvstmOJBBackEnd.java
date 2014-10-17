@@ -49,7 +49,12 @@ public class JvstmOJBBackEnd implements BackEnd {
         if (externalId == null) {
             return null;
         }
-        return fromOid(Long.parseLong(externalId));
+        try {
+            return fromOid(Long.parseLong(externalId));
+        } catch (NumberFormatException e) {
+            logger.trace("External ID '{}' is not semantically valid!", externalId);
+            return null;
+        }
     }
 
     @Override
