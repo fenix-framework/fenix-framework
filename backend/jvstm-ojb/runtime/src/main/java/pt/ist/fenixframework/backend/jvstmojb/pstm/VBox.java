@@ -129,15 +129,11 @@ public class VBox<E> extends jvstm.VBox<E> implements VersionedSubject {
         return this.get(obj, attrName);
     }
 
-    boolean reload(Object obj, String attr) {
+    void reload(Object obj, String attr) {
         try {
             doReload(obj, attr);
-            return true;
         } catch (Throwable e) {
-            // what to do?
-            logger.error("Couldn't reload attribute '{}': {}", attr, e.getMessage());
-            //e.printStackTrace();
-            return false;
+            throw new VersionNotAvailableException(attr, obj, e);
         }
     }
 

@@ -10,9 +10,9 @@ public class Slot extends ModifiableEntity implements Serializable {
         REQUIRED
     }
 
-    private String name;
-    private ValueType type;
-    private Set<Option> slotOptions = EnumSet.noneOf(Option.class);
+    private final String name;
+    private final ValueType type;
+    private final Set<Option> slotOptions = EnumSet.noneOf(Option.class);
 
     public Slot(String name, ValueType type) {
         this.name = name;
@@ -48,41 +48,4 @@ public class Slot extends ModifiableEntity implements Serializable {
         return slotOptions.contains(option);
     }
 
-//     public void generateSlotDeclaration(CodeWriter out) {
-//         out.write(type);
-//         out.write(" ");
-//         out.write(name);
-//         out.writeln(";");
-//     }
-
-//     public void generateSlotAccessors(CodeWriter out) {
-//         // getter
-//         out.write("public ");
-//         out.write(type);
-//         out.write("get");
-//         out.write(capitalizeFirstChar(name));
-//         out.write("() ");
-//         out.newBlock();
-//         out.write("return getBodyForGet().");
-//         out.write(name);
-//         out.writeln(";");
-//         out.closeBlock();
-
-//         // setter
-//         out.write("public void ");
-//         out.write("set");
-//         out.write(capitalizeFirstChar(name));
-//         out.write("(");
-//         out.write(type);
-//         out.write(" ");
-//         out.write(name);
-//         out.write(") ");
-//         out.newBlock();
-//         out.write("getBodyForSet().");
-//         out.write(name);
-//         out.writeln(" = ");
-//         out.writeln(name);
-//         out.writeln(";");
-//         out.closeBlock();
-//     }
 }

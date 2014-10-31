@@ -2,11 +2,15 @@ package pt.ist.fenixframework.core;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pt.ist.fenixframework.DomainObject;
+import pt.ist.fenixframework.dml.DeletionBlockerListener;
+import pt.ist.fenixframework.dml.DomainModel;
 
 /**
  * This is the top-level class for every DomainObject. Each backend should provide a subclass of
@@ -95,79 +99,42 @@ public abstract class AbstractDomainObject implements DomainObject {
         return super.equals(obj);
     }
 
-    // VersionedSubject getSlotNamed(String attrName) {
-    //     Class myClass = this.getClass();
-    //     while (myClass != Object.class) {
-    //         try {
-    //     	Field f = myClass.getDeclaredField(attrName);
-    //     	f.setAccessible(true);
-    //     	return (VersionedSubject) f.get(this);
-    //         } catch (NoSuchFieldException nsfe) {
-    //     	myClass = myClass.getSuperclass();
-    //         } catch (IllegalAccessException iae) {
-    //     	throw new Error("Couldn't find attribute " + attrName + ": " + iae);
-    //         } catch (SecurityException se) {
-    //     	throw new Error("Couldn't find attribute " + attrName + ": " + se);
-    //         }
-    //     }
+    /**
+     * Returns a list of all the blockers that prevent this object from being deleted.
+     * 
+     * In this context, a blocker is a business rule that dictates that the object is in no condition to be deleted.
+     * 
+     * Each blocker must be returned as a human-friendly textual description of the blocker, ideally in the
+     * user's preferred language (if applicable).
+     * 
+     * @return
+     *         All the blockers that may prevent this object from being deleted.
+     */
+    protected final Collection<String> getDeletionBlockers() {
+        Collection<String> result = new ArrayList<>();
+        checkForDeletionBlockers(result);
+        for (DeletionBlockerListener<DomainObject> listener : getDomainModel().getDeletionBlockerListenersForType(getClass())) {
+            listener.getDeletionBlockers(this, result);
+        }
+        return result;
+    }
 
-    //     return null;
-    // }
+    /**
+     * Subclasses may override this method to provide their own logic for deletion blockers.
+     * 
+     * @param blockers
+     *            A mutable collection where all the blockers that may prevent this object from being deleted should be added.
+     */
+    protected void checkForDeletionBlockers(Collection<String> blockers) {
+    }
 
-    // Object getCurrentValueFor(String attrName) {
-    //     return getSlotNamed(attrName).getCurrentValue(this, attrName);
-    // }
-
-    // jvstm.VBoxBody addNewVersion(String attrName, int txNumber) {
-    //     VersionedSubject vs = getSlotNamed(attrName);
-    //     if (vs != null) {
-    //         return vs.addNewVersion(attrName, txNumber);
-    //     }
-
-    //     System.out.println("!!! WARNING !!!: addNewVersion couldn't find the appropriate slot");
-    //     return null;
-    // }
-
-    // public void readFromResultSet(java.sql.ResultSet rs) throws java.sql.SQLException {
-    //     int txNumber = Transaction.current().getNumber();
-    //     readSlotsFromResultSet(rs, txNumber);
-    // }
-
-    // protected abstract void readSlotsFromResultSet(java.sql.ResultSet rs, int txNumber) throws java.sql.SQLException;
-
-    // public boolean isDeleted() {
-    //     throw new UnsupportedOperationException();
-    // }
-
-    // protected void checkDisconnected() {
-    // }
-
-    // protected void handleAttemptToDeleteConnectedObject() {
-    //     if (FenixFramework.getConfig().isErrorfIfDeletingObjectNotDisconnected()) {
-    //         throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this);
-    //     } else {
-    //         System.out.println("!!! WARNING !!!: Deleting a DomainObject that is still connected to other objects: " + this);
-    //     }	
-    // }
+    protected DomainModel getDomainModel() {
+        throw new UnsupportedOperationException("getDomainModel not implemented at this level");
+    }
 
     protected void deleteDomainObject() {
         throw new UnsupportedOperationException("deleteDomainObject not implemented at this level");
-        //     checkDisconnected();
-        //     Transaction.deleteObject(this);
     }
-
-    // protected int getColumnIndex(final ResultSet resultSet, final String columnName, final Integer[] columnIndexes,
-    //         final int columnCount) throws SQLException {
-    //     if (columnIndexes[columnCount] == null) {
-    //         synchronized (columnIndexes) {
-    //     	if (columnIndexes[columnCount] == null) {
-    //     	    int columnIndex = Integer.valueOf(resultSet.findColumn(columnName));
-    //     	    columnIndexes[columnCount] = columnIndex;
-    //     	}
-    //         }
-    //     }
-    //     return columnIndexes[columnCount].intValue();
-    // }
 
     // Serialization Code
 
@@ -234,20 +201,6 @@ public abstract class AbstractDomainObject implements DomainObject {
             throw new UnsupportedOperationException("fromExternalID not implemented at this level");
         }
     }
-
-    // public static <T extends DomainObject> T fromExternalId(String extId) {
-    //     if (extId == null) {
-    //         return null;
-    //     } else {
-    //         return AbstractDomainObject.<T> fromOID(Long.valueOf(extId));
-    //     }
-    // }
-
-    // protected void doCheckDisconnectedAction(java.util.List<String> relationList) {
-    //     for(String relation : relationList) {
-    //         System.out.println("Relation not disconnected" + relation);
-    //     }
-    // }
 
     @Override
     public String toString() {

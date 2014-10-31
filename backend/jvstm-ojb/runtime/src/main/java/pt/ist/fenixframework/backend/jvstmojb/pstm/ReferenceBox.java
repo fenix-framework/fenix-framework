@@ -34,8 +34,7 @@ class ReferenceBox<E> extends VBox<E> {
                 // assume a null value...
                 setFromOJB(obj, attr, null);
             } else {
-                pbe.printStackTrace();
-                throw new Error("Couldn't retrieve " + attr + " for class " + obj.getClass() + " which is mapped in OJB: " + pbe);
+                throw pbe;
             }
         }
     }

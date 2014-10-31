@@ -69,10 +69,6 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
         DmlMojoUtils.augmentClassLoader(getLog(), classpath);
 
-        CompilerArgs compArgs = null;
-        long latestBuildTime = getGeneratedSourcesDirectory().lastModified();
-
-        boolean shouldCompile = getMavenProject().getArtifact().getType().trim().equalsIgnoreCase("war");
         List<URL> dmlFiles = new ArrayList<URL>();
         if (getDmlSourceDirectory().exists()) {
             DirectoryScanner scanner = new DirectoryScanner();
@@ -96,11 +92,6 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 } catch (MalformedURLException e) {
                     getLog().error(e);
                 }
-                boolean isModified = file.lastModified() > latestBuildTime;
-                if (verbose()) {
-                    getLog().info(includedFile + " : " + (isModified ? "not up to date" : "up to date"));
-                }
-                shouldCompile = shouldCompile || isModified;
             }
             Collections.sort(dmlFiles, new Comparator<URL>() {
                 @Override
@@ -137,6 +128,10 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
             } else {
                 final String prevDmlMd5 = FileUtils.readFileToString(checksumFile);
                 checksumShouldCompile = !prevDmlMd5.equals(dmlMd5);
+                if (checksumShouldCompile) {
+                    // Write the new checksum to the file
+                    FileUtils.writeStringToFile(checksumFile, dmlMd5);
+                }
             }
 
             project.generateProjectProperties(getOutputDirectoryPath());
@@ -163,7 +158,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 }
                 Map<String, String> realParams = getParams() == null ? new HashMap<String, String>() : getParams();
 
-                compArgs =
+                CompilerArgs compArgs =
                         new CompilerArgs(getMavenProject().getArtifactId(), getSourcesDirectory(),
                                 getGeneratedSourcesDirectory(), getPackageName(), generateFinals(), getCodeGeneratorClass(),
                                 localDmls, externalDmls, realParams);

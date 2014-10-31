@@ -1,7 +1,5 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
 
@@ -14,7 +12,6 @@ import pt.ist.fenixframework.DomainFenixFrameworkRoot;
 import pt.ist.fenixframework.DomainMetaClass;
 import pt.ist.fenixframework.DomainMetaObject;
 import pt.ist.fenixframework.DomainObject;
-import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.NoDomainMetaObjects;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
 import pt.ist.fenixframework.backend.jvstmojb.repository.ResultSetReader;
@@ -166,10 +163,6 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     protected abstract void readSlotsFromResultSet(java.sql.ResultSet rs, int txNumber) throws java.sql.SQLException;
 
-    public boolean isDeleted() {
-        throw new UnsupportedOperationException();
-    }
-
     protected void checkDisconnected() {
     }
 
@@ -180,6 +173,7 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
 
     @Override
     protected void deleteDomainObject() {
+        invokeDeletionListeners();
         checkDisconnected();
         deleteDomainMetaObject();
         TransactionSupport.deleteObject(this);
@@ -189,44 +183,9 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
         return DomainFenixFrameworkRoot.getInstance().getDomainMetaClass(this.getClass());
     }
 
-    // serialization code
-    @Override
-    protected Object writeReplace() throws ObjectStreamException {
-        return new SerializedForm(this);
-    }
-
-    private static class SerializedForm implements Serializable {
-        private static final long serialVersionUID = 1L;
-
-        // use string to allow future expansion of an OID
-        private final String oid;
-
-        SerializedForm(AbstractDomainObject obj) {
-            this.oid = String.valueOf(obj.getOid());
-        }
-
-        Object readResolve() throws ObjectStreamException {
-            long objOid = Long.parseLong(this.oid);
-            return FenixFramework.getConfig().getBackEnd().fromOid(objOid);
-        }
-    }
-
     @Override
     public final String getExternalId() {
         return Long.toString(oid);
-    }
-
-    public static <T extends AbstractDomainObject> T fromExternalId(String extId) {
-        if (extId == null) {
-            return null;
-        }
-        return FenixFramework.getConfig().getBackEnd().fromOid(Long.valueOf(extId));
-    }
-
-    protected void doCheckDisconnectedAction(java.util.List<String> relationList) {
-        for (String relation : relationList) {
-            logger.warn("Relation not disconnected" + relation);
-        }
     }
 
     @Override

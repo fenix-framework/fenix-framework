@@ -48,13 +48,8 @@ public class DomainModelParser {
                 DmlParser parser = new DmlParser(lexer);
                 parser.domainDefinitions();
                 AST t = parser.getAST();
-                // System.out.println(t.toStringTree());
-
-                // ASTFrame fr = new ASTFrame("Tree Viewer", t);
-                // fr.setVisible(true);
 
                 walker.domainDefinitions(t, model, dmlFileURL);
-                // System.out.println("Model = " + model);
             } catch (ANTLRException e) {
                 throw new Error(e);
             } catch (IOException ioe) {

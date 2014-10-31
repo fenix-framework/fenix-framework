@@ -23,10 +23,13 @@ public class JvstmOJBBackEnd implements BackEnd {
 
     private final DomainObjectAllocator allocator = new DomainObjectAllocator(OneBoxDomainObject.class);
 
+    private final DomainRoot domainRoot;
+
     private boolean newInstance = false;
 
     public JvstmOJBBackEnd() {
         transactionManager = new JvstmOJBTransactionManager();
+        domainRoot = (DomainRoot) SharedIdentityMap.getCache().cache(allocator.allocateObject(DomainRoot.class, 1l));
     }
 
     @Override
@@ -49,12 +52,17 @@ public class JvstmOJBBackEnd implements BackEnd {
         if (externalId == null) {
             return null;
         }
-        return fromOid(Long.parseLong(externalId));
+        try {
+            return fromOid(Long.parseLong(externalId));
+        } catch (NumberFormatException e) {
+            logger.trace("External ID '{}' is not semantically valid!", externalId);
+            return null;
+        }
     }
 
     @Override
     public DomainRoot getDomainRoot() {
-        return fromOid(1L);
+        return domainRoot;
     }
 
     @Override

@@ -1,10 +1,9 @@
 package pt.ist.fenixframework.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
+import pt.ist.fenixframework.dml.DeletionListener;
+import pt.ist.fenixframework.dml.DomainModel;
 
 /**
  * This class contains useful code, required by concrete {@link DomainObject}s. Backend
@@ -12,13 +11,25 @@ import pt.ist.fenixframework.FenixFramework;
  * of DomainObject.
  */
 public class AbstractDomainObjectAdapter extends AbstractDomainObject {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractDomainObjectAdapter.class);
 
     protected AbstractDomainObjectAdapter() {
     }
 
     protected AbstractDomainObjectAdapter(DomainObjectAllocator.OID oid) {
         super(oid);
+    }
+
+    /**
+     * Invokes all the registered {@link DeletionListener}s for this type.
+     * 
+     * <p>
+     * This method (or an equivalent one) <strong>MUST</strong> be invoked by backends that support object deletion.
+     * </p>
+     */
+    protected final void invokeDeletionListeners() {
+        for (DeletionListener<DomainObject> listener : getDomainModel().getDeletionListenersForType(getClass())) {
+            listener.deleting(this);
+        }
     }
 
     // serialization code
@@ -39,6 +50,11 @@ public class AbstractDomainObjectAdapter extends AbstractDomainObject {
         protected DomainObject fromExternalId(String externalId) {
             return FenixFramework.getDomainObject(externalId);
         }
+    }
+
+    @Override
+    protected DomainModel getDomainModel() {
+        return FenixFramework.getDomainModel();
     }
 
 }

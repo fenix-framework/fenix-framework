@@ -23,24 +23,14 @@ public class DmlMojoUtils {
     public static Project getProject(MavenProject project, File srcDirectoryFile, File generatedSourcesDirectoryFile,
             List<URL> dmlFiles, Log log, boolean verbose) throws IOException, ProjectException, MalformedURLException {
         List<Project> dependencies = new ArrayList<Project>();
-
-        boolean shouldCompile = false;
+        List<Project> optionalDependencies = new ArrayList<>();
 
         for (Artifact artifact : project.getDependencyArtifacts()) {
             if (artifact.getFile() == null) {
                 continue;
             }
             String absolutePath = artifact.getFile().getAbsolutePath();
-
             // check the need to compile
-            File file = new File(absolutePath);
-            if (file.lastModified() > generatedSourcesDirectoryFile.lastModified()) {
-                if (verbose) {
-                    log.info("Dependency " + artifact.getArtifactId()
-                            + " was last modified after this project generated sources.");
-                }
-                shouldCompile = true;
-            }
             boolean hasProjectProperties = false;
 
             if (artifact.getFile().isDirectory()) {
@@ -51,7 +41,11 @@ public class DmlMojoUtils {
                 jarFile.close();
             }
             if (hasProjectProperties) {
-                dependencies.add(Project.fromName(artifact.getArtifactId()));
+                Project ffProject = Project.fromName(artifact.getArtifactId());
+                dependencies.add(ffProject);
+                if (artifact.isOptional()) {
+                    optionalDependencies.add(ffProject);
+                }
             }
         }
 
@@ -64,7 +58,7 @@ public class DmlMojoUtils {
                 dmls.add(new DmlFile(url, null));
             }
         }
-        return new Project(project.getArtifactId(), project.getVersion(), dmls, dependencies, shouldCompile);
+        return new Project(project.getArtifactId(), project.getVersion(), dmls, dependencies, optionalDependencies);
     }
 
     public static URLClassLoader augmentClassLoader(Log log, List<String> classpathElements) {

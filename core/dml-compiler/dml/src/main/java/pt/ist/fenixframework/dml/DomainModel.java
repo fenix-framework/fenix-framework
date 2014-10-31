@@ -2,11 +2,16 @@ package pt.ist.fenixframework.dml;
 
 import java.io.Serializable;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import pt.ist.fenixframework.DomainObject;
 
 public class DomainModel implements Serializable {
 
@@ -14,6 +19,9 @@ public class DomainModel implements Serializable {
     protected Map<String, DomainEntity> external = new HashMap<String, DomainEntity>();
     protected Map<String, DomainClass> classes = new HashMap<String, DomainClass>();
     protected Map<String, DomainRelation> relations = new HashMap<String, DomainRelation>();
+
+    private final Collection<ListenerRegistration<DeletionListener<?>>> deletionListeners = new ConcurrentLinkedQueue<>();
+    private final Collection<ListenerRegistration<DeletionBlockerListener<?>>> blockerListeners = new ConcurrentLinkedQueue<>();
     private boolean finalized = false;
 
     public DomainModel() {
@@ -74,40 +82,6 @@ public class DomainModel implements Serializable {
         for (String[] valueType : builtinValueTypes) {
             newValueType(valueType[1], valueType[0]);
         }
-        // // primitive types
-        // newValueType("boolean", "boolean");
-        // newValueType("byte", "byte");
-        // newValueType("char", "char");
-        // newValueType("short", "short");
-        // newValueType("int", "int");
-        // newValueType("float", "float");
-        // newValueType("long", "long");
-        // newValueType("double", "double");
-
-        // // their wrappers
-        // newValueType("Boolean", "java.lang.Boolean");
-        // newValueType("Byte", "java.lang.Byte");
-        // newValueType("Character", "java.lang.Character");
-        // newValueType("Short", "java.lang.Short");
-        // newValueType("Integer", "java.lang.Integer");
-        // newValueType("Float", "java.lang.Float");
-        // newValueType("Long", "java.lang.Long");
-        // newValueType("Double", "java.lang.Double");
-
-        // // String is, of course, essential
-        // newValueType("String", "java.lang.String");
-
-        // // we need something binary, also
-        // newValueType("bytearray", "byte[]");
-
-        // // JodaTime types
-        // newValueType("DateTime", "org.joda.time.DateTime");
-        // newValueType("LocalDate", "org.joda.time.LocalDate");
-        // newValueType("LocalTime", "org.joda.time.LocalTime");
-        // newValueType("Partial", "org.joda.time.Partial");
-
-        // // also anything Serializable is acceptable
-        // newValueType("Serializable", "java.io.Serializable");
     }
 
     public static boolean isBuiltinValueTypeFullName(String name) {
@@ -180,6 +154,84 @@ public class DomainModel implements Serializable {
         if (!aliasName.equals(name)) {
             external.put(name, ent);
         }
+    }
+
+    /**
+     * Registers a new {@link DeletionListener} for the given type.
+     * 
+     * The listener will be invoked whenever an object compatible with the given type (i.e. the concrete type or
+     * a sub-class) is being deleted (by calling its {@link DeletionListener#deleting(DomainObject)} method).
+     * 
+     * @param type
+     *            The type for which this listener will be invoked.
+     * @param listener
+     *            The listener to register.
+     * @throws IllegalStateException
+     *             If the DomainModel is still being assembled.
+     */
+    public <T extends DomainObject> void registerDeletionListener(Class<T> type, DeletionListener<T> listener) {
+        if (!finalized) {
+            throw new IllegalStateException("Cannot register deletion listeners before the DomainModel is finalized!");
+        }
+        deletionListeners.add(new ListenerRegistration<DeletionListener<?>>(type, listener));
+    }
+
+    /**
+     * Registers a new {@link DeletionBlockerListener} for the given type.
+     * 
+     * The listener will be invoked whenever an object compatible with the given type (i.e. the concrete type or
+     * a sub-class) requests all its {@link DeletionBlocker}s.
+     * 
+     * @param type
+     *            The type for which this listener will be invoked.
+     * @param listener
+     *            The listener to register.
+     * @throws IllegalStateException
+     *             If the DomainModel is still being assembled.
+     */
+    public <T extends DomainObject> void registerDeletionBlockerListener(Class<T> type, DeletionBlockerListener<T> listener) {
+        if (!finalized) {
+            throw new IllegalStateException("Cannot register deletion listeners before the DomainModel is finalized!");
+        }
+        blockerListeners.add(new ListenerRegistration<DeletionBlockerListener<?>>(type, listener));
+    }
+
+    /**
+     * Returns all the registered {@link DeletionListener}s that are compatible with the given type.
+     * 
+     * @param type
+     *            The type for which to retrieve the deletion listeners.
+     * @return
+     *         All the listeners for the given type.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends DomainObject> Iterable<DeletionListener<T>> getDeletionListenersForType(Class<?> type) {
+        List<DeletionListener<T>> result = new ArrayList<>();
+        for (ListenerRegistration<?> listener : deletionListeners) {
+            if (listener.matches(type)) {
+                result.add((DeletionListener<T>) listener.getListener());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns all the registered {@link DeletionBlockerListener}s that are compatible with the given type.
+     * 
+     * @param type
+     *            The type for which to retrieve the deletion listeners.
+     * @return
+     *         All the listeners for the given type.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends DomainObject> Iterable<DeletionBlockerListener<T>> getDeletionBlockerListenersForType(Class<?> type) {
+        List<DeletionBlockerListener<T>> result = new ArrayList<>();
+        for (ListenerRegistration<?> listener : blockerListeners) {
+            if (listener.matches(type)) {
+                result.add((DeletionBlockerListener<T>) listener.getListener());
+            }
+        }
+        return result;
     }
 
     public Iterator<DomainClass> getClasses() {
@@ -322,4 +374,25 @@ public class DomainModel implements Serializable {
             throw new RuntimeException("Duplicate name: " + name);
         }
     }
+
+    private static final class ListenerRegistration<T> {
+
+        private final Class<?> type;
+        private final T listener;
+
+        public ListenerRegistration(Class<?> type, T listener) {
+            this.type = Objects.requireNonNull(type);
+            this.listener = Objects.requireNonNull(listener);
+        }
+
+        public boolean matches(Class<?> target) {
+            return type.isAssignableFrom(target);
+        }
+
+        public T getListener() {
+            return listener;
+        }
+
+    }
+
 }

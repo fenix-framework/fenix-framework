@@ -275,7 +275,7 @@ public final class JsonConverter {
         return value.getAsFloat();
     }
 
-    private static DateTimeFieldType[] DATE_TIME_FIELDS = new DateTimeFieldType[] { DateTimeFieldType.era(),
+    private static final DateTimeFieldType[] DATE_TIME_FIELDS = new DateTimeFieldType[] { DateTimeFieldType.era(),
             DateTimeFieldType.yearOfEra(), DateTimeFieldType.centuryOfEra(), DateTimeFieldType.yearOfCentury(),
             DateTimeFieldType.year(), DateTimeFieldType.monthOfYear(), DateTimeFieldType.dayOfMonth(),
             DateTimeFieldType.weekyearOfCentury(), DateTimeFieldType.weekyear(), DateTimeFieldType.weekOfWeekyear(),

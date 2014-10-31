@@ -123,6 +123,8 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
     public <T> T withTransaction(CallableWithoutException<T> command) {
         try {
             return handleWriteCommand(command, false);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new Error("Exception ocurred while running transaction", e);
         }
