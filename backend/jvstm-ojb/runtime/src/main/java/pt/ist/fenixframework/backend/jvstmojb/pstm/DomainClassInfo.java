@@ -130,7 +130,12 @@ public class DomainClassInfo {
 
     private static Class findClass(String classname) {
         try {
-            return Class.forName(classname);
+            Class<?> type = Class.forName(classname);
+            if (!OneBoxDomainObject.class.isAssignableFrom(type)) {
+                logger.error("Type '{}' is no longer a domain object!", classname);
+                return null;
+            }
+            return type;
         } catch (ClassNotFoundException cnfe) {
             // domain classes may disappear, but their id should not be reused
             // so, if the corresponding Java class does not exist, return null
