@@ -14,6 +14,8 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
+import com.mysql.jdbc.AbandonedConnectionCleanupThread;
+
 public class JvstmOJBBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(JvstmOJBBackEnd.class);
 
@@ -77,6 +79,11 @@ public class JvstmOJBBackEnd implements BackEnd {
 
     @Override
     public void shutdown() {
+        try {
+            AbandonedConnectionCleanupThread.shutdown();
+        } catch (InterruptedException e) {
+            logger.info("Error while shutting down AbandonedConnectionCleanupThread", e);
+        }
         DbUtil.deregisterDriver();
     }
 
