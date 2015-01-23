@@ -19,14 +19,14 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
 
     private SoftReference<VBox<FunctionalSet<E2>>> elementsRef;
 
-    private final PerTxBox<FunctionalSet<E2>> elementsToAdd = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+    private final PerTxBox<FunctionalSet<E2>> elementsToAdd = new PerTxBox<FunctionalSet<E2>>(FunctionalSet.EMPTY) {
         @Override
         public void commit(FunctionalSet<E2> toAdd) {
             consolidateElementsIfLoaded();
         }
     };
 
-    private final PerTxBox<FunctionalSet<E2>> elementsToRemove = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+    private final PerTxBox<FunctionalSet<E2>> elementsToRemove = new PerTxBox<FunctionalSet<E2>>(FunctionalSet.EMPTY) {
         @Override
         public void commit(FunctionalSet<E2> toRemove) {
             consolidateElementsIfLoaded();
@@ -42,7 +42,7 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
         if (allocateOnly) {
             elementsBox = SoftReferencedVBox.makeNew(listHolder, attributeName, allocateOnly);
         } else {
-            elementsBox = new SoftReferencedVBox<FunctionalSet<E2>>(listHolder, attributeName, DOFunctionalSet.EMPTY);
+            elementsBox = new SoftReferencedVBox<FunctionalSet<E2>>(listHolder, attributeName, FunctionalSet.EMPTY);
         }
         this.elementsRef = new SoftReference<VBox<FunctionalSet<E2>>>(elementsBox);
     }
@@ -99,7 +99,7 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
             while (iter.hasNext()) {
                 newSet = newSet.remove(iter.next());
             }
-            elementsToRemove.put(DOFunctionalSet.EMPTY);
+            elementsToRemove.put(FunctionalSet.EMPTY);
         }
 
         if (elementsToAdd.get().size() > 0) {
@@ -107,7 +107,7 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
             while (iter.hasNext()) {
                 newSet = newSet.add(iter.next());
             }
-            elementsToAdd.put(DOFunctionalSet.EMPTY);
+            elementsToAdd.put(FunctionalSet.EMPTY);
         }
 
         if (newSet != origSet) {

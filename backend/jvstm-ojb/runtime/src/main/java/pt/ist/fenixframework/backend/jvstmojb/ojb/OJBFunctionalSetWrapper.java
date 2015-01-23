@@ -8,7 +8,6 @@ import org.apache.ojb.broker.PersistenceBroker;
 import org.apache.ojb.broker.PersistenceBrokerException;
 
 import pt.ist.fenixframework.backend.jvstmojb.dml.runtime.FunctionalSet;
-import pt.ist.fenixframework.backend.jvstmojb.pstm.DOFunctionalSet;
 
 public class OJBFunctionalSetWrapper implements ManageableCollection {
     private static final Iterator EMPTY_ITER = new Iterator() {
@@ -28,7 +27,7 @@ public class OJBFunctionalSetWrapper implements ManageableCollection {
         }
     };
 
-    private FunctionalSet elements = DOFunctionalSet.EMPTY;
+    private FunctionalSet elements = FunctionalSet.EMPTY;
 
     public OJBFunctionalSetWrapper() {
     }
