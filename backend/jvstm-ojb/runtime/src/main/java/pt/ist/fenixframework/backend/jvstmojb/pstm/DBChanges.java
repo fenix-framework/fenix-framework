@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
+import pt.ist.fenixframework.backend.jvstmojb.repository.DomainModelMetadata;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
 class DBChanges {
@@ -182,6 +183,8 @@ class DBChanges {
     }
 
     void makePersistent(PersistenceBroker pb, int txNumber) throws SQLException, LookupException {
+        Connection conn = pb.serviceConnectionManager().getConnection();
+
         // store new objects
         if (newObjs != null) {
             for (Object obj : newObjs) {
@@ -209,8 +212,18 @@ class DBChanges {
 
         // delete objects
         if (objsToDelete != null) {
-            for (Object obj : objsToDelete) {
-                pb.delete(obj);
+            try (Statement stmt = conn.createStatement()) {
+                int i = 0;
+                for (Object obj : objsToDelete) {
+                    OneBoxDomainObject domainObject = (OneBoxDomainObject) obj;
+                    DomainModelMetadata metadata = DomainModelMetadata.getMetadataForType(domainObject.getClass());
+                    stmt.addBatch(metadata.getDeleteQuery(domainObject.getOid()));
+                    i++;
+                    if (i % 100 == 0) {
+                        stmt.executeBatch();
+                    }
+                }
+                stmt.executeBatch();
             }
         }
 
@@ -222,7 +235,6 @@ class DBChanges {
         }
 
         // write change logs
-        Connection conn = pb.serviceConnectionManager().getConnection();
         writeAttrChangeLogs(conn, txNumber);
     }
 
