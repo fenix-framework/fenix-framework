@@ -5,7 +5,7 @@ import java.util.NoSuchElementException;
 
 import jvstm.util.Cons;
 
-public class FunctionalSet<E> {
+public final class FunctionalSet<E> {
     public static final FunctionalSet EMPTY = new FunctionalSet(0, Cons.empty());
 
     protected final int size;

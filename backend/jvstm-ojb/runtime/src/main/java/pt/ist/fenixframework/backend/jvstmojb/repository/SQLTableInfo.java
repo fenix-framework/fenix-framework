@@ -28,7 +28,7 @@ public class SQLTableInfo {
             mySqlTypeTranslation.put("INTEGER", "int(11)");
             mySqlTypeTranslation.put("LONGVARCHAR", "text");
             mySqlTypeTranslation.put("TIME", "time");
-            mySqlTypeTranslation.put("TIMESTAMP", "timestamp NULL default NULL");
+            mySqlTypeTranslation.put("TIMESTAMP", "datetime NULL default NULL");
             mySqlTypeTranslation.put("VARCHAR", "text");
             mySqlTypeTranslation.put("BLOB", "longblob");
             mySqlTypeTranslation.put("BIGINT", "bigint(20)");

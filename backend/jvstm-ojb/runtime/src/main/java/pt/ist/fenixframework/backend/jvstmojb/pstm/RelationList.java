@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.Objects;
 
 import jvstm.PerTxBox;
+import jvstm.util.Cons;
 import pt.ist.fenixframework.backend.jvstmojb.dml.runtime.FunctionalSet;
 import pt.ist.fenixframework.backend.jvstmojb.ojb.OJBFunctionalSetWrapper;
 import pt.ist.fenixframework.dml.runtime.Relation;
@@ -19,16 +20,16 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
 
     private SoftReference<VBox<FunctionalSet<E2>>> elementsRef;
 
-    private final PerTxBox<FunctionalSet<E2>> elementsToAdd = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+    private final PerTxBox<Cons<E2>> elementsToAdd = new PerTxBox<Cons<E2>>(Cons.<E2> empty()) {
         @Override
-        public void commit(FunctionalSet<E2> toAdd) {
+        public void commit(Cons<E2> toAdd) {
             consolidateElementsIfLoaded();
         }
     };
 
-    private final PerTxBox<FunctionalSet<E2>> elementsToRemove = new PerTxBox<FunctionalSet<E2>>(DOFunctionalSet.EMPTY) {
+    private final PerTxBox<Cons<E2>> elementsToRemove = new PerTxBox<Cons<E2>>(Cons.<E2> empty()) {
         @Override
-        public void commit(FunctionalSet<E2> toRemove) {
+        public void commit(Cons<E2> toRemove) {
             consolidateElementsIfLoaded();
         }
     };
@@ -42,7 +43,7 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
         if (allocateOnly) {
             elementsBox = SoftReferencedVBox.makeNew(listHolder, attributeName, allocateOnly);
         } else {
-            elementsBox = new SoftReferencedVBox<FunctionalSet<E2>>(listHolder, attributeName, DOFunctionalSet.EMPTY);
+            elementsBox = new SoftReferencedVBox<FunctionalSet<E2>>(listHolder, attributeName, FunctionalSet.EMPTY);
         }
         this.elementsRef = new SoftReference<VBox<FunctionalSet<E2>>>(elementsBox);
     }
@@ -99,7 +100,7 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
             while (iter.hasNext()) {
                 newSet = newSet.remove(iter.next());
             }
-            elementsToRemove.put(DOFunctionalSet.EMPTY);
+            elementsToRemove.put(Cons.<E2> empty());
         }
 
         if (elementsToAdd.get().size() > 0) {
@@ -107,7 +108,7 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
             while (iter.hasNext()) {
                 newSet = newSet.add(iter.next());
             }
-            elementsToAdd.put(DOFunctionalSet.EMPTY);
+            elementsToAdd.put(Cons.<E2> empty());
         }
 
         if (newSet != origSet) {
@@ -124,8 +125,8 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
     @Override
     public boolean justAdd(E2 obj) {
         TransactionSupport.logAttrChange(listHolder, attributeName);
-        elementsToAdd.put(elementsToAdd.get().add(obj));
-        elementsToRemove.put(elementsToRemove.get().remove(obj));
+        elementsToAdd.put(elementsToAdd.get().cons(obj));
+        elementsToRemove.put(elementsToRemove.get().removeAll(obj));
         // HACK!!! This is to be fixed upon migration to RelationAwareSet
         // I wouldn't like to force a load of the list to be able to return the correct boolean value
         return true;
@@ -134,8 +135,8 @@ public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDo
     @Override
     public boolean justRemove(E2 obj) {
         TransactionSupport.logAttrChange(listHolder, attributeName);
-        elementsToRemove.put(elementsToRemove.get().add(obj));
-        elementsToAdd.put(elementsToAdd.get().remove(obj));
+        elementsToRemove.put(elementsToRemove.get().cons(obj));
+        elementsToAdd.put(elementsToAdd.get().removeAll(obj));
         // HACK!!! This is to be fixed upon migration to RelationAwareSet
         // I wouldn't like to force a load of the list to be able to return the correct boolean value
         return true;
