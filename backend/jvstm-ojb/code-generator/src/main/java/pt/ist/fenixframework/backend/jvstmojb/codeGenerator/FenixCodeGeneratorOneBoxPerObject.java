@@ -48,6 +48,9 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
         generateMakeNewStateMethod(out);
         generateCreateAllListsMethod(domClass, out);
         generateDOStateInnerClass(domClass, out);
+        
+        // qubIT comment: addding the auditMap at the end of the base class
+        generateValueMapForAuditing(domClass,out);
     }
 
     protected void generateMethodGetRelationFor(DomainClass domClass, PrintWriter out) {
@@ -365,5 +368,42 @@ public class FenixCodeGeneratorOneBoxPerObject extends FenixCodeGenerator {
         startMethodBody(out);
         print(out, "return get" + capitalize(role.getName()) + "Set().size();");
         endMethodBody(out);
+    }
+
+    // qubIT comment: added metohd to generate get$auditInfo()
+    protected void generateValueMapForAuditing(DomainClass domClass, PrintWriter out) {
+        onNewline(out);
+        print(out, "public java.util.Map<String, Object> get$auditInfo()");
+
+        newBlock(out);
+        onNewline(out);
+        // all the slots
+        String superclassName = getEntityFullName(domClass.getSuperclass());
+
+        print(out, "java.util.Map<String, Object> map = super.get$auditInfo();");
+
+        for (Slot slot : domClass.getSlotsList()) {
+            onNewline(out);
+            print(out, "Object " + slot.getName() + " = ((DO_State) this.get$obj$state(false))." + slot.getName() + ";");
+            onNewline(out);
+            print(out, "if (" + slot.getName() + " != null)");
+            newBlock(out);
+            print(out, "map.put(\"" + slot.getName() + "\", " + slot.getName() + ");");
+            closeBlock(out);
+        }
+
+        for (Role role : domClass.getRoleSlotsList()) {
+            if ((role.getName() != null) && (role.getMultiplicityUpper() == 1)) {
+                onNewline(out);
+                print(out, "Object " + role.getName() + " = ((DO_State) this.get$obj$state(false))." + role.getName() + ";");
+                onNewline(out);
+                print(out, "if (" + role.getName() + " != null)");
+                newBlock(out);
+                print(out, "map.put(\"" + role.getName() + "\", " + role.getName() + ");");
+                closeBlock(out);
+            }
+        }
+        print(out, "return map;");
+        closeBlock(out);
     }
 }
