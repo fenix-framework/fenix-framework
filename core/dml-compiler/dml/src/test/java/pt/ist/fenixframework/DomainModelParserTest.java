@@ -25,6 +25,13 @@ public class DomainModelParserTest {
         assertNotNull(model);
     }
 
+    @Test
+    public void testCommentEOF() throws IOException {
+        URL url = dml("class stuff;\n//");
+        DomainModel model = DomainModelParser.getDomainModel(Collections.singletonList(url));
+        assertNotNull(model);
+    }
+
     private URL dml(String contents) throws IOException {
         File file = File.createTempFile("dml", "tmp");
         file.deleteOnExit();
