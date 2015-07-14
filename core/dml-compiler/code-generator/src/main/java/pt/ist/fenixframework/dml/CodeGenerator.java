@@ -59,6 +59,14 @@ public abstract class CodeGenerator {
         }
     }
 
+    public boolean isDefaultCodeGenerator() {
+        return getClass().equals(DefaultCodeGenerator.class);
+    }
+
+    public void printUnsupported(PrintWriter out) {
+        print(out, "throw new UnsupportedOperationException(\"Not implemented in default code generator\");");
+    }
+
     public void setCollectionToUse(String newCollectionName) {
         this.collectionToUse = newCollectionName;
     }
@@ -319,17 +327,19 @@ public abstract class CodeGenerator {
         generateStaticSlots(domClass, out);
         newline(out);
 
-        comment(out, "Slots");
-        generateSlots(domClass.getSlots(), out);
-        newline(out);
+        if (!isDefaultCodeGenerator()) {
+            comment(out, "Slots");
+            generateSlots(domClass.getSlots(), out);
+            newline(out);
 
-        comment(out, "Role Slots");
-        generateRoleSlots(domClass.getRoleSlots(), out);
-        newline(out);
+            comment(out, "Role Slots");
+            generateRoleSlots(domClass.getRoleSlots(), out);
+            newline(out);
 
-        comment(out, "Init Instance");
-        generateInitInstance(domClass, out);
-        newline(out);
+            comment(out, "Init Instance");
+            generateInitInstance(domClass, out);
+            newline(out);
+        }
 
         comment(out, "Constructors");
         printMethod(out, "protected", "", domClass.getBaseName());
@@ -393,10 +403,12 @@ public abstract class CodeGenerator {
 
     protected void generateStaticSlots(DomainClass domClass, PrintWriter out) {
         Iterator roleSlotsIter = domClass.getRoleSlots();
-        while (roleSlotsIter.hasNext()) {
-            Role role = (Role) roleSlotsIter.next();
-            if (role.getName() != null) {
-                generateStaticRoleSlots(role, out);
+        if (!isDefaultCodeGenerator()) {
+            while (roleSlotsIter.hasNext()) {
+                Role role = (Role) roleSlotsIter.next();
+                if (role.getName() != null) {
+                    generateStaticRoleSlots(role, out);
+                }
             }
         }
 
@@ -405,7 +417,9 @@ public abstract class CodeGenerator {
             Role role = (Role) roleSlotsIter.next();
             if (role.getName() != null) {
                 generateStaticRelationSlots(role, out);
-                generateStaticKeyFunctionForRole(role, out);
+                if (!isDefaultCodeGenerator()) {
+                    generateStaticKeyFunctionForRole(role, out);
+                }
             }
         }
 
@@ -544,7 +558,7 @@ public abstract class CodeGenerator {
         String directRelationType = getDirectRelationType();
         String methodName = "getRelation" + role.getRelation().getName();
 
-        if (isDirectRelation) {
+        if (!isDefaultCodeGenerator() && isDirectRelation) {
             print(out, "private final static class ");
             print(out, relationSlotName);
             newBlock(out);
@@ -570,13 +584,18 @@ public abstract class CodeGenerator {
         if (isDirectRelation || !role.getType().equals(otherRole.getType())) {
             printMethod(out, "public static", getDirectRelationInterfaceType() + genericType, methodName);
             startMethodBody(out);
-            print(out, "return ");
-            if (isDirectRelation) {
-                print(out, relationSlotName + ".relation");
+            if (isDefaultCodeGenerator()) {
+                printWords(out, "return", "new", "pt.ist.fenixframework.dml.runtime.DirectRelation(null, null)");
+                print(out, ";");
             } else {
-                print(out, role.getType().getFullName() + "." + methodName + "()");
+                print(out, "return ");
+                if (isDirectRelation) {
+                    print(out, relationSlotName + ".relation");
+                } else {
+                    print(out, role.getType().getFullName() + "." + methodName + "()");
+                }
+                print(out, ";");
             }
-            print(out, ";");
             endMethodBody(out);
         }
     }
@@ -786,7 +805,11 @@ public abstract class CodeGenerator {
     }
 
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
-        printWords(out, "return", getSlotExpression(slotName) + ";");
+        if (isDefaultCodeGenerator()) {
+            printUnsupported(out);
+        } else {
+            printWords(out, "return", getSlotExpression(slotName) + ";");
+        }
     }
 
     protected void generateSlotSetter(Slot slot, PrintWriter out) {
@@ -808,7 +831,11 @@ public abstract class CodeGenerator {
     }
 
     protected void generateSetterBody(String setterName, Slot slot, PrintWriter out) {
-        printWords(out, getSlotSetterExpression(slot, slot.getName()) + ";");
+        if (isDefaultCodeGenerator()) {
+            printUnsupported(out);
+        } else {
+            printWords(out, getSlotSetterExpression(slot, slot.getName()) + ";");
+        }
     }
 
     protected String getSlotSetterExpression(Slot slot, String value) {
@@ -876,7 +903,11 @@ public abstract class CodeGenerator {
         newline(out);
         printMethod(out, methodModifiers, "void", setterName, makeArg(typeName, slotName));
         startMethodBody(out);
-        generateRelationAddMethodCall(role, slotName, null, out);
+        if (isDefaultCodeGenerator()) {
+            printUnsupported(out);
+        } else {
+            generateRelationAddMethodCall(role, slotName, null, out);
+        }
         endMethodBody(out);
     }
 
@@ -951,7 +982,11 @@ public abstract class CodeGenerator {
         newline(out);
         printMethod(out, methodModifiers, "void", adderMethodName, makeArg(typeName, slotName));
         startMethodBody(out);
-        generateRelationAddMethodCall(role, slotName, (isOrdered ? "-1" : null), out);
+        if (isDefaultCodeGenerator()) {
+            printUnsupported(out);
+        } else {
+            generateRelationAddMethodCall(role, slotName, (isOrdered ? "-1" : null), out);
+        }
         endMethodBody(out);
 
         if (isOrdered) {
@@ -970,7 +1005,11 @@ public abstract class CodeGenerator {
         newline(out);
         printMethod(out, methodModifiers, "void", removerMethodName, makeArg(typeName, slotName));
         startMethodBody(out);
-        generateRelationRemoveMethodCall(role, slotName, out);
+        if (isDefaultCodeGenerator()) {
+            printUnsupported(out);
+        } else {
+            generateRelationRemoveMethodCall(role, slotName, out);
+        }
         endMethodBody(out);
 
         generateRoleSlotMethodsMultStarGetters(role, out);
@@ -1033,7 +1072,11 @@ public abstract class CodeGenerator {
         printFinalMethod(out, chooseVisibilityModifier(role), typeName, getterName);
 
         startMethodBody(out);
-        generateRelationGetterBody(role, out);
+        if (isDefaultCodeGenerator()) {
+            printUnsupported(out);
+        } else {
+            generateRelationGetterBody(role, out);
+        }
         endMethodBody(out);
     }
 
