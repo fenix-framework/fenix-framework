@@ -291,7 +291,7 @@ public class TransactionChangeLogs {
 
                 // delete previous record for this server and insert a new one
                 stmt.executeUpdate("DELETE FROM FF$LAST_TX_PROCESSED WHERE SERVER = '" + server
-                        + "' or LAST_UPDATE < (NOW() - 3600)");
+                        + "' or LAST_UPDATE < (NOW() - interval 3600 second)");
                 stmt.executeUpdate("INSERT INTO FF$LAST_TX_PROCESSED VALUES ('" + server + "'," + lastTxNumber + ",null)");
 
                 broker.commitTransaction();
@@ -334,8 +334,8 @@ public class TransactionChangeLogs {
 
                 // delete obsolete values
                 ResultSet rs =
-                        stmt.executeQuery("SELECT MIN(LAST_TX) FROM FF$LAST_TX_PROCESSED WHERE LAST_UPDATE > NOW() - "
-                                + (2 * SECONDS_BETWEEN_UPDATES));
+                        stmt.executeQuery("SELECT MIN(LAST_TX) FROM FF$LAST_TX_PROCESSED WHERE LAST_UPDATE > NOW() - interval "
+                                + (2 * SECONDS_BETWEEN_UPDATES) + " second");
                 int min = (rs.next() ? rs.getInt(1) : 0);
                 if (min > 0) {
                     stmt.executeUpdate("DELETE FROM FF$TX_CHANGE_LOGS WHERE TX_NUMBER < " + min);
