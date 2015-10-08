@@ -59,7 +59,6 @@
                     <execution>
                         <goals>
                             <goal>generate-domain</goal>
-                            <goal>post-compile</goal>
                         </goals>
                     </execution>
                 </executions>

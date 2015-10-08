@@ -372,7 +372,6 @@ The parametrization is set through the pom.xml as many other parameters. An exam
                     <execution>
                         <goals>
                             <goal>generate-domain</goal>
-                            <goal>post-compile</goal>
                         </goals>
                     </execution>
                 </executions>

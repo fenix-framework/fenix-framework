@@ -22,7 +22,6 @@ To activate this module, the DML Compiler needs to be invoked with the property 
                     <execution>
                         <goals>
                             <goal>generate-domain</goal>
-                            <goal>post-compile</goal>
                         </goals>
                     </execution>
                 </executions>
