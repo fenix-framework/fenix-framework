@@ -363,7 +363,7 @@ WS  :   (   ' '
 // Single-line comments
 SL_COMMENT
     :   "//"
-        (~('\n'|'\r'))* ('\n'|'\r'('\n')?)
+        (~('\n'|'\r'))* ('\n'|'\r'('\n')?)?
         {$setType(Token.SKIP); newline();}
     ;
 

@@ -102,7 +102,6 @@ can be achieved with the following.
                     <execution>
                         <goals>
                             <goal>ff-generate-domain</goal>
-                            <goal>ff-post-compile</goal>
                             <goal>ff-process-atomic-annotations</goal>
                         </goals>
                     </execution>
@@ -200,7 +199,6 @@ following example:
                     <execution>
                         <goals>
                             <goal>ff-generate-domain</goal>
-                            <goal>ff-post-compile</goal>
                             <goal>ff-process-atomic-annotations</goal>
                         </goals>
                     </execution>

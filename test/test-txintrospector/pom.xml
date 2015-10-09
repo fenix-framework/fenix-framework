@@ -5,7 +5,7 @@
 		<groupId>pt.ist</groupId>
 		<artifactId>fenix-framework-test</artifactId>
 		<!-- Perhaps in Maven 3.1 the version may be ommitted -->
-		<version>2.6.1</version>
+		<version>2.6.2</version>
 	</parent>
 
 	<artifactId>fenix-framework-test-txintrospector</artifactId>
@@ -33,7 +33,6 @@
 					<execution>
 						<goals>
 							<goal>ff-test-generate-domain</goal>
-							<goal>ff-test-post-compile</goal>
 							<goal>ff-test-process-atomic-annotations</goal>
 						</goals>
 					</execution>
