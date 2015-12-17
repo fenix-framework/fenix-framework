@@ -682,4 +682,9 @@ public abstract class FenixCodeGenerator extends CodeGenerator {
         return JvstmOJBConfig.class.getName();
     }
 
+    @Override
+    protected void generateStaticKeyFunctionForRole(Role role, PrintWriter out) {
+        // Nothing to do, this backend does not use Key Functions
+    }
+
 }
