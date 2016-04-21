@@ -35,7 +35,7 @@ public class DmlMojoUtils {
 
             if (artifact.getFile().isDirectory()) {
                 hasProjectProperties = new File(absolutePath + "/" + artifact.getArtifactId() + "/project.properties").exists();
-            } else {
+            } else if (!"pom".equals(artifact.getType())) {
                 JarFile jarFile = new JarFile(absolutePath);
                 hasProjectProperties = jarFile.getJarEntry(artifact.getArtifactId() + "/project.properties") != null;
                 jarFile.close();
