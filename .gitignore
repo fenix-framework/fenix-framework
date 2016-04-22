@@ -5,3 +5,6 @@ transaction.log
 .classpath
 .project
 .DS_Store
+
+.idea/
+*.iml
