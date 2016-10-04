@@ -495,10 +495,11 @@ public abstract class CodeGenerator {
         print(out, getTypeFullName(otherRole.getType()));
         print(out, " o1)");
         startMethodBody(out);
-        print(out, "return (" + getConcreteSetTypeDeclarationFor(role) + ")");
-        print(out, "o1.get");
-        print(out, capitalize(role.getName()));
-        print(out, "Set();");
+        print(out, "return (" + getConcreteSetTypeDeclarationFor(role) + ") ((");
+        print(out, otherRole.getType().getBaseName());
+        print(out, ") o1).");
+        print(out, role.getName());
+        print(out, ";");
         endMethodBody(out);
     }
 
