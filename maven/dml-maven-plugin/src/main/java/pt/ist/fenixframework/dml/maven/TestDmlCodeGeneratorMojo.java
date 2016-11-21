@@ -5,6 +5,9 @@
 package pt.ist.fenixframework.dml.maven;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -118,6 +121,11 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
             super.execute();
             getMavenProject().addTestCompileSourceRoot(getGeneratedSourcesDirectory().getAbsolutePath());
         }
+    }
+
+    @Override
+    protected File getMainDmlDirectory() throws MalformedURLException {
+        return new File(mavenProject.getBasedir() + "/src/main/dml");
     }
 
     @Override

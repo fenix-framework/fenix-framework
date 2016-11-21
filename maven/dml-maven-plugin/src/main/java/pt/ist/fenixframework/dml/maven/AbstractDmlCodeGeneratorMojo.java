@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -69,42 +70,19 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
         DmlMojoUtils.augmentClassLoader(getLog(), classpath);
 
-        List<URL> dmlFiles = new ArrayList<URL>();
-        if (getDmlSourceDirectory().exists()) {
-            DirectoryScanner scanner = new DirectoryScanner();
-            scanner.setBasedir(getDmlSourceDirectory());
-
-            String[] includes = { "**\\*.dml" };
-            scanner.setIncludes(includes);
-            scanner.scan();
-
-            Resource resource = new Resource();
-            resource.setDirectory(getDmlSourceDirectory().getAbsolutePath());
-            resource.addInclude("*.dml");
-            getMavenProject().addResource(resource);
-            getMavenProject().addTestResource(resource);
-
-            for (String includedFile : scanner.getIncludedFiles()) {
-                String filePath = getDmlSourceDirectory().getAbsolutePath() + "/" + includedFile;
-                File file = new File(filePath);
-                try {
-                    dmlFiles.add(file.toURI().toURL());
-                } catch (MalformedURLException e) {
-                    getLog().error(e);
-                }
-            }
-            Collections.sort(dmlFiles, new Comparator<URL>() {
-                @Override
-                public int compare(URL o1, URL o2) {
-                    return o1.toExternalForm().compareTo(o2.toExternalForm());
-                }
-            });
-        }
+        List<URL> dmlFiles = scanDmlDirectory(getDmlSourceDirectory());
 
         try {
             Project project =
                     DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(), getGeneratedSourcesDirectory(), dmlFiles,
                             getLog(), verbose());
+
+            ArrayList<DmlFile> sourceDmls = new ArrayList<>();
+            for(URL dml : scanDmlDirectory(getMainDmlDirectory())){
+                sourceDmls.add(new DmlFile(dml,
+                    StringUtils.removeStart(dml.toExternalForm(), getMainDmlDirectory().toURI().toURL().toExternalForm())));
+            }
+            project.setSourceDmls(sourceDmls);
 
             List<URL> allDmls = new ArrayList<URL>();
             for (DmlFile dmlFile : project.getFullDmlSortedList()) {
@@ -174,6 +152,46 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
             throw new MojoExecutionException("Something went wrong with the Code Generation", e);
         }
     }
+    
+    private List<URL> scanDmlDirectory(File directory) {
+        List<URL> dmlFiles = new ArrayList<URL>();
+        if (directory!=null && directory.exists()) {
+            DirectoryScanner scanner = new DirectoryScanner();
+            scanner.setBasedir(directory);
+
+            String[] includes = { "**\\*.dml" };
+            scanner.setIncludes(includes);
+            scanner.scan();
+
+            Resource resource = new Resource();
+            resource.setDirectory(directory.getAbsolutePath());
+            resource.addInclude("*.dml");
+            getMavenProject().addResource(resource);
+            getMavenProject().addTestResource(resource);
+
+            for (String includedFile : scanner.getIncludedFiles()) {
+                String filePath = directory.getAbsolutePath() + "/" + includedFile;
+                File file = new File(filePath);
+                try {
+                    dmlFiles.add(file.toURI().toURL());
+                } catch (MalformedURLException e) {
+                    getLog().error(e);
+                }
+            }
+            Collections.sort(dmlFiles, new Comparator<URL>() {
+                @Override
+                public int compare(URL o1, URL o2) {
+                    return o1.toExternalForm().compareTo(o2.toExternalForm());
+                }
+            });
+        }
+        return dmlFiles;
+    }
+    
+    protected File getMainDmlDirectory() throws MalformedURLException {
+        return null;
+    }
+    
 
     public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
         return (Class<? extends CodeGenerator>) Class.forName(getCodeGeneratorClassName());

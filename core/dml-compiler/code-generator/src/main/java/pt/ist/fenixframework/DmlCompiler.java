@@ -49,7 +49,7 @@ public class DmlCompiler {
         }
     }
 
-    public static DomainModel getDomainModel(CompilerArgs compArgs) throws DmlCompilerException {
+    public static DomainModel   getDomainModel(CompilerArgs compArgs) throws DmlCompilerException {
         // IMPORTANT: external specs must be first.  The order is important for the DmlCompiler
         List<URL> dmlSpecs = new ArrayList<URL>(compArgs.getExternalDomainSpecs());
         dmlSpecs.addAll(compArgs.getLocalDomainSpecs());

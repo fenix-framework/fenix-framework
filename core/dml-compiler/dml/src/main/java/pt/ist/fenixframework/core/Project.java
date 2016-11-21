@@ -39,6 +39,7 @@ public class Project {
     private final List<Project> dependencies;
     private final List<Project> optionalDependencies;
     private final List<Project> depended = new ArrayList<Project>();
+    private ArrayList<DmlFile> sourceDmls = new ArrayList<>();;
 
     /**
      * @deprecated Use constructor with version
@@ -104,6 +105,7 @@ public class Project {
         for (Project dependencyProject : getProjects()) {
             dmlFiles.addAll(dependencyProject.getDmls());
         }
+        dmlFiles.addAll(sourceDmls);
         return dmlFiles;
     }
 
@@ -173,7 +175,10 @@ public class Project {
         Properties properties = new Properties();
         properties.setProperty(NAME_KEY, getName());
         properties.setProperty(VERSION_KEY, getVersion());
-        properties.setProperty(DML_FILES_KEY, join(getDmls(), Collections.emptyList()));
+        ArrayList<DmlFile> dmls = new ArrayList<>();
+        dmls.addAll(getDmls());
+        dmls.addAll(sourceDmls);
+        properties.setProperty(DML_FILES_KEY, join(dmls, Collections.emptyList()));
         if (dependencies.size() > 0) {
             properties.setProperty(DEPENDS_KEY, join(getDependencyProjects(), getOptionalDependencies()));
         }
@@ -234,5 +239,9 @@ public class Project {
             new Project(name, version, dependencyDmlFiles, dependencies, false);
         }
         return projects.get(name);
+    }
+
+    public void setSourceDmls(ArrayList<DmlFile> sourceDmls) {
+        this.sourceDmls = sourceDmls;
     }
 }
