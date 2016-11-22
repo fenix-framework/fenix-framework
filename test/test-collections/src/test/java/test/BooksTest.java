@@ -2,6 +2,7 @@ package test;
 
 import static org.junit.Assert.assertTrue;
 
+import java.awt.datatransfer.FlavorEvent;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -44,11 +45,11 @@ public class BooksTest {
 //    @Atomic
 //    public void test00() {
 //	DomainRoot domainRoot = FenixFramework.getDomainRoot();
-//	
+//
 //	assertTrue(domainRoot.getTheBookSet().size() == NUMBER_ELEMENTS);
 //	assertTrue(domainRoot.getTheAuthorSet().size() == NUMBER_ELEMENTS);
 //	assertTrue(domainRoot.getThePublisherSet().size() == NUMBER_ELEMENTS);
-//	
+//
 //        for (Book book : domainRoot.getTheBookSet()) {
 //            domainRoot.removeTheBook(book);
 //        }
@@ -60,15 +61,15 @@ public class BooksTest {
 //        for (Publisher publisher : domainRoot.getThePublisherSet()) {
 //            domainRoot.removeThePublisher(publisher);
 //        }
-//        
+//
 //        System.out.println("Books: " + domainRoot.getTheBookSet().size());
 //        System.out.println("Authors: " + domainRoot.getTheAuthorSet().size());
 //        System.out.println("Publishers: " + domainRoot.getThePublisherSet().size());
-//        
+//
 //	assertTrue(domainRoot.getTheBookSet().size() == 0);
 //	assertTrue(domainRoot.getTheAuthorSet().size() == 0);
 //	assertTrue(domainRoot.getThePublisherSet().size() == 0);
-//        
+//
 //    }
 
     @Test
@@ -180,6 +181,7 @@ public class BooksTest {
         test03part02();
     }
 
+    
     @Atomic
     public void test03part01() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
@@ -211,6 +213,15 @@ public class BooksTest {
 
         assertTrue(domainRoot.getThePublisherSet().contains(getPublisherById(KEY_THREE)));
         assertTrue(domainRoot.getThePublisherSet().size() == (NUMBER_ELEMENTS + 1));
+    }
+    
+    @Atomic
+    @Test
+    public void test04() {
+        DomainRoot domainRoot = FenixFramework.getDomainRoot();
+        Set<Author> authors = domainRoot.getTheAuthorSet();
+        Book book = new Book(NUMBER_ELEMENTS + 1, NUMBER_ELEMENTS);
+        authors.iterator().next().addBook(book);
     }
 
     private void checkArrayCount(int[] arrayCount) {
