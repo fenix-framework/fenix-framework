@@ -123,8 +123,7 @@ public class DmlZipCreatorMojo extends AbstractMojo {
 
         try {
             Project project =
-                    DmlMojoUtils.getProject(mavenProject, dmlSourceDirectory, zipDestinationDirectory, dmlFiles, getLog(),
-                            verbose);
+                    DmlMojoUtils.getProject(mavenProject, dmlSourceDirectory, zipDestinationDirectory, dmlFiles, getLog(),verbose);
 
             List<URL> dmls = new ArrayList<URL>();
             for (DmlFile dmlFile : project.getFullDmlSortedList()) {
