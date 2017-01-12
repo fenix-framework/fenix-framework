@@ -92,14 +92,14 @@ public class ServerId {
                      * If the lease has expired, the only safe thing to do
                      * is to shut down the application server.
                      *
-                     * For now this is replaced with an error message, as the
-                     * server ID is not yet actively used to generate OIDs.
                      */
                     if (validUntil.isBeforeNow()) {
-                        logger.error("Server ID lease has expired! Was valid until {}. Object creation disabled.", validUntil);
-                        // Reset the server id. This will prevent new objects from being created
                         serverId = -1;
-                        return;
+                        logger.error(
+                                "Server ID lease has expired! Was valid until {}. Object creation is not possible. "
+                                        + "Shutting down the system",
+                                validUntil);
+                        System.exit(-1);
                     }
 
                     renewLease();
