@@ -158,6 +158,11 @@ public class DbUtil {
         return connection;
     }
 
+    static int getServerIdLeaseTime() {
+        final JvstmOJBConfig config = getConfig();
+        return config.getServerIdLeaseTime();
+    }
+
     public static abstract class DBLockedCommand {
 
         public DBLockedCommand() {
