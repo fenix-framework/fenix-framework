@@ -130,6 +130,17 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
      */
     protected boolean updateRepositoryStructureIfNeeded = false;
 
+    /**
+     * This <strong>optional</strong> parameter indicates the ServerId lease time
+     * in minutes. The default value is false. If your application is subject to
+     * being suspended for long periods of time then you may want to increase this
+     * value. The greater the value of this lease time, the longer it will take
+     * for other running applications to determine that a member has stopped, and
+     * this may result in an excessive amount of entries in the change logs,
+     * making the system run slower.
+     */
+    protected int serverIdLeaseTime = 20;
+
     /*
      * Initialization methods
      */
@@ -210,6 +221,10 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
         updateRepositoryStructureIfNeeded = Boolean.parseBoolean(value);
     }
 
+    protected void serverIdLeaseTimeFromString(String value) {
+        serverIdLeaseTime = Integer.parseInt(value);
+    }
+
     /*
      * Public Getters
      */
@@ -245,6 +260,10 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
 
     public boolean getUpdateRepositoryStructureIfNeeded() {
         return updateRepositoryStructureIfNeeded;
+    }
+
+    public int getServerIdLeaseTime() {
+        return serverIdLeaseTime;
     }
 
 }
