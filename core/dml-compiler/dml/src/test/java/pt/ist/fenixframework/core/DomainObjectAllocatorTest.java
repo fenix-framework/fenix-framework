@@ -11,7 +11,25 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class DomainObjectAllocatorTest {
 
-    static class MyADO extends AbstractDomainObject {
+    static abstract class AbstractDO extends AbstractDomainObject {
+        private final Object oid;
+
+        public AbstractDO() {
+            throw new RuntimeException("Thow shall not be called!");
+        }
+
+        public AbstractDO(DomainObjectAllocator.OID oid) {
+            super(oid);
+            this.oid = oid.oid;
+        }
+
+        @Override
+        public String getExternalId() {
+            return oid.toString();
+        }
+    }
+
+    static class MyADO extends AbstractDO {
         private final Object oid;
 
         public MyADO() {
@@ -63,6 +81,21 @@ public class DomainObjectAllocatorTest {
         }
         BigDecimal total = BigDecimal.valueOf(System.nanoTime() - start).divide(BigDecimal.valueOf(MAX));
         System.out.println("Each allocation with new mechanism took " + total + "ns");
+    }
+
+    @Test
+    public void allocatorAbstractClasses() {
+        final DomainObjectAllocator allocator = new DomainObjectAllocator(AbstractDO.class);
+        boolean ok = false;
+        try {
+            allocator.allocateObject(AbstractDO.class, "xpto");
+            ok = true;
+        } catch (final RuntimeException ex) {
+            ok = false;
+        }
+        if (ok) {
+            throw new AssertionError("Allocation of abstract class should fail.");
+        }
     }
 
 }
