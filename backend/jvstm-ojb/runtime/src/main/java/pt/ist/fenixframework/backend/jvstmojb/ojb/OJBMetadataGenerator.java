@@ -121,6 +121,13 @@ public class OJBMetadataGenerator {
         // write the domainMetaObject for all domain objects
         addFieldDescriptor(domainModel, "oidDomainMetaObject", "Long", fieldID++, classDescriptor, persistentFieldClass);
 
+        // qubIT comment: adding hardcoded fields for the creationEnttiy and updateEntity 
+        // TODO: check if fields should be entered hardcoded or on some FF DML
+        addFieldDescriptor(domainModel, "creationEntity", "String", fieldID++, classDescriptor, persistentFieldClass);
+        addFieldDescriptor(domainModel, "creationEntityDate", "DateTime", fieldID++, classDescriptor, persistentFieldClass);
+        addFieldDescriptor(domainModel, "updateEntity", "String", fieldID++, classDescriptor, persistentFieldClass);
+        addFieldDescriptor(domainModel, "updateEntityDate", "DateTime", fieldID++, classDescriptor, persistentFieldClass);
+        
         while (domEntity instanceof DomainClass) {
             DomainClass dClass = (DomainClass) domEntity;
 

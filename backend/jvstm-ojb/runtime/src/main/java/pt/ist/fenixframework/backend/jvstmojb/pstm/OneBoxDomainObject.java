@@ -1,8 +1,14 @@
 package pt.ist.fenixframework.backend.jvstmojb.pstm;
 
+import java.io.Serializable;
+
+import org.apache.commons.lang.StringUtils;
+
 import jvstm.Transaction;
 import jvstm.util.Cons;
 import jvstm.util.Pair;
+import pt.ist.fenixframework.backend.jvstmojb.pstm.OneBoxDomainObject;
+import pt.ist.fenixframework.backend.jvstmojb.repository.ToSqlConverter;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.dml.runtime.Relation;
 
@@ -109,15 +115,69 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
 
     protected abstract void readStateFromResultSet(java.sql.ResultSet rs, DO_State state) throws java.sql.SQLException;
 
-    public abstract static class DO_State {
+    protected static class DO_State {
         private boolean committed = false;
 
         void markCommitted() {
             this.committed = true;
         }
 
+        // qubIT Comment: Added to DO state the creationEntity/updateEntity fields
+        //
+        //
+        private java.lang.String creationEntity;
+        private org.joda.time.DateTime creationEntityDate;
+        private UpdateEntity updateEntity;
+        private UpdateTimestamp updateEntityDate;
+
         protected void copyTo(DO_State newState) {
-            // there is nothing to copy at this level
+            DO_State newCasted = (DO_State) newState;
+            newCasted.creationEntity = this.creationEntity;
+            newCasted.creationEntityDate = this.creationEntityDate;
+            newCasted.updateEntity = this.updateEntity;
+            newCasted.updateEntityDate = this.updateEntityDate;
+
+        }
+
+        // serialization code
+        protected Object writeReplace() throws java.io.ObjectStreamException {
+            return new SerializedForm(this);
+        }
+
+        // TODO latest FF does not have serialization form is it really needed?
+        protected static class SerializedForm implements Serializable {
+            private static final long serialVersionUID = 1L;
+
+            private final java.lang.String creationEntity;
+            private final org.joda.time.DateTime creationEntityDate;
+            private final pt.ist.fenixframework.backend.jvstmojb.pstm.ValueTypeSerializationGenerator.Serialized$UpdateEntity updateEntity;
+            private final pt.ist.fenixframework.backend.jvstmojb.pstm.ValueTypeSerializationGenerator.Serialized$UpdateTimestamp updateEntityDate;
+
+            protected SerializedForm(DO_State obj) {
+                super();
+                this.creationEntity = obj.creationEntity;
+                this.creationEntityDate = obj.creationEntityDate;
+                this.updateEntity =
+                        pt.ist.fenixframework.backend.jvstmojb.pstm.ValueTypeSerializationGenerator
+                                .serialize$UpdateEntity(obj.updateEntity);
+                this.updateEntityDate = ValueTypeSerializationGenerator.serialize$UpdateTimestamp(obj.updateEntityDate);
+
+            }
+
+            Object readResolve() throws java.io.ObjectStreamException {
+                DO_State newState = new DO_State();
+                fillInState(newState);
+                return newState;
+            }
+
+            protected void fillInState(OneBoxDomainObject.DO_State obj) {
+                DO_State state = (DO_State) obj;
+                state.creationEntity = this.creationEntity;
+                state.creationEntityDate = this.creationEntityDate;
+                state.updateEntity = ValueTypeSerializationGenerator.deSerialize$UpdateEntity(this.updateEntity);
+                state.updateEntityDate = ValueTypeSerializationGenerator.deSerialize$UpdateTimestamp(this.updateEntityDate);
+            }
+
         }
 
     }
@@ -209,5 +269,136 @@ public abstract class OneBoxDomainObject extends AbstractDomainObject {
             lists.first().second.markAsDeleted();
             lists = lists.rest();
         }
+    }
+
+    // Adding functionality for CreationEntity and UpdateEntity
+    public java.lang.String getCreationEntity() {
+        return this.get$obj$state(false).creationEntity;
+    }
+
+    public String getCreatorUsername() {
+        String result = null;
+
+        final String creationEntity = getCreationEntity();
+        if (StringUtils.isNotBlank(creationEntity)) {
+            String[] split = creationEntity.split(":");
+            if (split.length == 2) {
+                result = split[1];
+            } else {
+                result = creationEntity;
+            }
+        }
+
+        return result;
+    }
+
+    public String getUpdatorUsername() {
+        String result = null;
+
+        final UpdateEntity updateEntity = getUpdateEntity();
+        if (updateEntity != null) {
+            result = getUpdateEntity().getUsername();
+        }
+
+        return result;
+    }
+
+    public String getUpdatorServiceName() {
+        String result = null;
+
+        final UpdateEntity updateEntity = getUpdateEntity();
+        if (updateEntity != null) {
+            result = getUpdateEntity().getServiceName();
+        }
+
+        return result;
+    }
+
+    public void setCreationEntity(java.lang.String creationEntity) {
+        this.get$obj$state(true).creationEntity = creationEntity;
+    }
+
+    private java.lang.String get$creationEntity() {
+        java.lang.String value = this.get$obj$state(false).creationEntity;
+        return (value == null) ? null : ToSqlConverter.getValueForString(value);
+    }
+
+    private final void set$creationEntity(java.lang.String arg0, OneBoxDomainObject.DO_State obj$state) {
+        ((DO_State) obj$state).creationEntity = ((arg0 == null) ? null : arg0);
+    }
+
+    public org.joda.time.DateTime getCreationEntityDate() {
+        return this.get$obj$state(false).creationEntityDate;
+    }
+
+    public void setCreationEntityDate(org.joda.time.DateTime creationEntityDate) {
+        this.get$obj$state(true).creationEntityDate = creationEntityDate;
+    }
+
+    private java.sql.Timestamp get$creationEntityDate() {
+        org.joda.time.DateTime value = this.get$obj$state(false).creationEntityDate;
+        return (value == null) ? null : ToSqlConverter.getValueForDateTime(value);
+    }
+
+    private final void set$creationEntityDate(org.joda.time.DateTime arg0, OneBoxDomainObject.DO_State obj$state) {
+        ((DO_State) obj$state).creationEntityDate = ((arg0 == null) ? null : arg0);
+    }
+
+    public UpdateEntity getUpdateEntity() {
+        return this.get$obj$state(false).updateEntity;
+    }
+
+    public void setUpdateEntity(UpdateEntity updateEntity) {
+        this.get$obj$state(true).updateEntity = updateEntity;
+    }
+
+    private java.lang.String get$updateEntity() {
+        UpdateEntity value = this.get$obj$state(false).updateEntity;
+        return (value == null) ? null : ToSqlConverter.getValueForString(value.externalize());
+    }
+
+    private final void set$updateEntity(java.lang.String arg0, OneBoxDomainObject.DO_State obj$state) {
+        ((DO_State) obj$state).updateEntity = ((arg0 == null) ? null : new UpdateEntity(arg0));
+    }
+
+    public UpdateTimestamp getUpdateEntityDate() {
+        return this.get$obj$state(false).updateEntityDate;
+    }
+
+    public void setUpdateEntityDate(UpdateTimestamp updateEntityDate) {
+        this.get$obj$state(true).updateEntityDate = updateEntityDate;
+    }
+
+    private java.sql.Timestamp get$updateEntityDate() {
+        UpdateTimestamp value = this.get$obj$state(false).updateEntityDate;
+        return (value == null) ? null : ToSqlConverter.getValueForDateTime(value.externalize());
+    }
+
+    private final void set$updateEntityDate(org.joda.time.DateTime arg0, OneBoxDomainObject.DO_State obj$state) {
+        ((DO_State) obj$state).updateEntityDate = ((arg0 == null) ? null : new UpdateTimestamp(arg0));
+    }
+
+    // qubIT comment: base get$auditInfo() method, the generator should then generate
+    // a get$auditInfo() method in each baseClass with the associated information
+    //
+    public java.util.Map<String, Object> get$auditInfo() {
+        java.util.Map<String, Object> map = new java.util.HashMap<String, Object>();
+        Object creationEntity = this.get$obj$state(false).creationEntity;
+        if (creationEntity != null) {
+            map.put("creationEntity", creationEntity);
+        }
+        Object creationEntityDate = this.get$obj$state(false).creationEntityDate;
+        if (creationEntityDate != null) {
+            map.put("creationEntityDate", creationEntityDate);
+        }
+        Object updateEntity = this.get$obj$state(false).updateEntity;
+        if (updateEntity != null) {
+            map.put("updateEntity", updateEntity);
+        }
+        Object updateEntityDate = this.get$obj$state(false).updateEntityDate;
+        if (updateEntityDate != null) {
+            map.put("updateEntityDate", updateEntityDate);
+        }
+        return map;
     }
 }
