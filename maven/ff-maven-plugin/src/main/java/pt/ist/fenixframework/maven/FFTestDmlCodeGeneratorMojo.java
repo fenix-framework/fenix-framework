@@ -29,7 +29,7 @@ public class FFTestDmlCodeGeneratorMojo extends TestDmlCodeGeneratorMojo {
     /**
      * Set this to 'true' to bypass compilation of dml test sources.
      * 
-     * @parameter expression="${maven.test.skip}"
+     * @parameter property="maven.test.skip"
      */
     protected boolean skip;
 
@@ -63,7 +63,7 @@ public class FFTestDmlCodeGeneratorMojo extends TestDmlCodeGeneratorMojo {
     /**
      * Code Generator Class Name
      * 
-     * @parameter expression="${generate-domain.codeGeneratorClassName}"
+     * @parameter property="generate-domain.codeGeneratorClassName"
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
     protected String codeGeneratorClassName;
@@ -71,14 +71,14 @@ public class FFTestDmlCodeGeneratorMojo extends TestDmlCodeGeneratorMojo {
     /**
      * Package name
      * 
-     * @parameter expression="${test-generate-domain.packageName}"
+     * @parameter property="test-generate-domain.packageName"
      */
     protected final String packageName = "";
 
     /**
      * Generate Finals Flag
      * 
-     * @parameter expression="${test-generate-domain.generateFinals}"
+     * @parameter property="test-generate-domain.generateFinals"
      *            default-value="false"
      */
     protected boolean generateFinals;
@@ -86,7 +86,7 @@ public class FFTestDmlCodeGeneratorMojo extends TestDmlCodeGeneratorMojo {
     /**
      * Verbose Mode Flag
      * 
-     * @parameter expression="${verbose}"
+     * @parameter property="verbose"
      *            default-value="false"
      */
     protected boolean verbose;
@@ -94,7 +94,7 @@ public class FFTestDmlCodeGeneratorMojo extends TestDmlCodeGeneratorMojo {
     /**
      * Generate Project Properties Flag
      * 
-     * @parameter expression="${test-generate-domain.generateProjectProperties}"
+     * @parameter property="test-generate-domain.generateProjectProperties"
      *            default-value="false"
      */
     protected boolean generateProjectProperties;

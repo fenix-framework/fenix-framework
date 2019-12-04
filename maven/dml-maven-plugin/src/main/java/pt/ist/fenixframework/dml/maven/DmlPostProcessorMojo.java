@@ -47,7 +47,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
     /**
      * Code Generator Class Name
      * 
-     * @parameter expression="${generate-domain.codeGeneratorClassName}"
+     * @parameter property="generate-domain.codeGeneratorClassName"
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
     protected String codeGeneratorClassName;
@@ -55,7 +55,7 @@ public class DmlPostProcessorMojo extends AbstractDmlPostProcessorMojo {
     /**
      * Verbose Mode Flag
      * 
-     * @parameter expression="${generate-domain.verbose}"
+     * @parameter property="generate-domain.verbose"
      *            default-value="false"
      */
     protected boolean verbose;
