@@ -26,45 +26,45 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- PLEASE KEEP THIS LIST SORTED ALPHABETICALLY!!! THANKS -->
-        <version.advice>1.8</version.advice>
+        <version.advice>1.9</version.advice>
         <version.antlr>2.7.7</version.antlr>
-        <version.apache.ant>1.8.2</version.apache.ant>
-        <version.asm>5.0</version.asm>
-        <version.commons.codec>1.7</version.commons.codec>
-        <version.commons.io>2.4</version.commons.io>
+        <version.apache.ant>1.10.7</version.apache.ant>
+        <version.asm>7.2</version.asm>
+        <version.commons.codec>1.13</version.commons.codec>
+        <version.commons.io>2.6</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
-        <version.com.google.code.gson>2.2.4</version.com.google.code.gson>
+        <version.com.google.code.gson>2.8.6</version.com.google.code.gson>
         <version.dap-framework>2.0</version.dap-framework>
-        <version.hazelcast.api>3.0-RC1</version.hazelcast.api>
+        <version.hazelcast.api>3.12.4</version.hazelcast.api>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
         <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
         <version.hibernate>4.0.1.Final</version.hibernate>
         <version.infinispan>5.2.1.Final</version.infinispan>
-        <version.jboss.logging>3.1.0.GA</version.jboss.logging>
-        <version.jbossjta>4.16.3.Final</version.jbossjta>
-        <version.jgroups>3.2.7.Final</version.jgroups>
-        <version.jodatime>1.6.2</version.jodatime>
-        <version.jpa>1.0</version.jpa>
+        <version.jboss.logging>3.4.1.Final</version.jboss.logging>
+        <version.jbossjta>4.16.6.Final</version.jbossjta>
+        <version.jgroups>3.6.19.Final</version.jgroups>
+        <version.jodatime>2.10.5</version.jodatime>
+        <version.jpa>1.0.2</version.jpa>
         <version.jta>1.1</version.jta>
-        <version.junit>4.10</version.junit>
+        <version.junit>4.12</version.junit>
         <version.jvstm-fenix>1.4</version.jvstm-fenix>
-        <version.jvstm-lock-free>2.1</version.jvstm-lock-free>
+        <version.jvstm-lock-free>2.3</version.jvstm-lock-free>
         <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
         <version.maven.build-helper-plugin>1.7</version.maven.build-helper-plugin>
-        <version.maven.core>3.0.3</version.maven.core>
-        <version.maven.exec-plugin>1.2.1</version.maven.exec-plugin>
-        <version.maven.jar-plugin>2.4</version.maven.jar-plugin>
-        <version.maven.javadoc-plugin>2.8.1</version.maven.javadoc-plugin>
+        <version.maven.core>3.6.3</version.maven.core>
+        <version.maven.exec-plugin>1.6.0</version.maven.exec-plugin>
+        <version.maven.jar-plugin>3.2.0</version.maven.jar-plugin>
+        <version.maven.javadoc-plugin>3.1.1</version.maven.javadoc-plugin>
         <version.maven.plexus-plugin>1.3.8</version.maven.plexus-plugin>
-        <version.maven.release.plugin>2.5</version.maven.release.plugin>
+        <version.maven.release.plugin>2.5.3</version.maven.release.plugin>
         <version.maven.replacer-plugin>1.5.2</version.maven.replacer-plugin>
         <version.maven.umlgraph-doclet-plugin>5.1</version.maven.umlgraph-doclet-plugin>
-        <version.mysql.connector>5.1.34</version.mysql.connector>
+        <version.mysql.connector>5.1.47</version.mysql.connector>
         <version.ojb>1.0.0-escaped</version.ojb>
         <version.rhq.helpers>3.0.4</version.rhq.helpers>
-        <version.slf4j.api>1.7.2</version.slf4j.api>
+        <version.slf4j.api>1.7.29</version.slf4j.api>
 
         <!-- Used in surefire plugin -->
         <!-- to play on the safe side when do not run tests in parallel. To do so run maven, e.g. with -DforkCount=1.5C -->
@@ -78,17 +78,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>3.8.1</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <proc>none</proc>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.2</version>
+                <version>1.4.1</version>
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
@@ -108,7 +108,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.14</version>
+                <version>2.22.0</version>
                 <configuration>
                     <reuseForks>false</reuseForks>
                     <forkCount>${forkCount}</forkCount>
@@ -161,6 +161,11 @@
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>3.6.0</version>
             </plugin>
         </plugins>
     </build>
@@ -288,7 +293,7 @@
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
-                <artifactId>asm-debug-all</artifactId>
+                <artifactId>asm</artifactId>
                 <version>${version.asm}</version>
             </dependency>
             <dependency>
@@ -337,14 +342,19 @@
                 <artifactId>gson</artifactId>
                 <version>${version.com.google.code.gson}</version>
             </dependency>
+            <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>1.3.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <!-- Repositories -->
     <repositories>
         <repository>
-            <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
+            <id>fenixedu-maven-repository</id>
+            <url>https://repo.fenixedu.org/fenixedu-maven-repository</url>
         </repository>
 
         <repository>
@@ -411,8 +421,8 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>fenix-ashes-maven-repository</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/groups/fenix-ashes-maven-repository</url>
+            <id>fenixedu-maven-repository</id>
+            <url>https://repo.fenixedu.org/fenixedu-maven-repository</url>
         </pluginRepository>
 
         <pluginRepository>

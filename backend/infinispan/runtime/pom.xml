@@ -141,20 +141,6 @@
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
-        <repository>
-            <id>pruivo-public-repository-group</id>
-            <name>Pedro Ruivo Public Maven Repository Group</name>
-            <url>http://homepages.gsd.inesc-id.pt/~pruivo/maven-repo/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-            </snapshots>
-        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -170,21 +156,6 @@
             <snapshots>
                 <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>
-            </snapshots>
-        </pluginRepository>
-
-        <pluginRepository>
-            <id>pruivo-public-repository-group</id>
-            <name>Pedro Ruivo Public Maven Repository Group</name>
-            <url>http://homepages.gsd.inesc-id.pt/~pruivo/maven-repo/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
             </snapshots>
         </pluginRepository>
     </pluginRepositories>

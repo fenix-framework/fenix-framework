@@ -79,11 +79,7 @@ public class JvstmOJBBackEnd implements BackEnd {
 
     @Override
     public void shutdown() {
-        try {
-            AbandonedConnectionCleanupThread.shutdown();
-        } catch (InterruptedException e) {
-            logger.info("Error while shutting down AbandonedConnectionCleanupThread", e);
-        }
+        AbandonedConnectionCleanupThread.shutdown();
         DbUtil.deregisterDriver();
     }
 
