@@ -44,7 +44,7 @@ public class FFDmlZipCreatorMojo extends DmlZipCreatorMojo {
     /**
      * Verbose Mode Flag
      * 
-     * @parameter expression="${verbose}" default-value="false"
+     * @parameter property="verbose" default-value="false"
      */
     private boolean verbose;
 

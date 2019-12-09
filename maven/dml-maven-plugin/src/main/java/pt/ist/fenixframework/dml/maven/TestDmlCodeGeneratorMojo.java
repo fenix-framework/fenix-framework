@@ -36,7 +36,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     /**
      * Set this to 'true' to bypass compilation of dml test sources.
      * 
-     * @parameter expression="${maven.test.skip}"
+     * @parameter property="maven.test.skip"
      */
     protected boolean skip;
 
@@ -70,7 +70,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     /**
      * Code Generator Class Name
      * 
-     * @parameter expression="${generate-domain.codeGeneratorClassName}"
+     * @parameter property="generate-domain.codeGeneratorClassName"
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
     protected String codeGeneratorClassName;
@@ -78,14 +78,14 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     /**
      * Package name
      * 
-     * @parameter expression="${test-generate-domain.packageName}"
+     * @parameter property="test-generate-domain.packageName"
      */
     protected String packageName = "";
 
     /**
      * Generate Finals Flag
      * 
-     * @parameter expression="${test-generate-domain.generateFinals}"
+     * @parameter property="test-generate-domain.generateFinals"
      *            default-value="false"
      */
     protected boolean generateFinals;
@@ -93,7 +93,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     /**
      * Verbose Mode Flag
      * 
-     * @parameter expression="${verbose}"
+     * @parameter property="verbose"
      *            default-value="false"
      */
     protected boolean verbose;
@@ -101,7 +101,7 @@ public class TestDmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     /**
      * Generate Project Properties Flag
      * 
-     * @parameter expression="${test-generate-domain.generateProjectProperties}"
+     * @parameter property="test-generate-domain.generateProjectProperties"
      *            default-value="false"
      */
     protected boolean generateProjectProperties;

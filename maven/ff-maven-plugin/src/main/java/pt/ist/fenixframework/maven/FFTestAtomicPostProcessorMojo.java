@@ -27,7 +27,7 @@ public class FFTestAtomicPostProcessorMojo extends TestAtomicPostProcessorMojo {
     /**
      * Setting this to 'true' skips this post-processing
      * 
-     * @parameter expression="${maven.test.skip}"
+     * @parameter property="maven.test.skip"
      */
     protected boolean skip;
 

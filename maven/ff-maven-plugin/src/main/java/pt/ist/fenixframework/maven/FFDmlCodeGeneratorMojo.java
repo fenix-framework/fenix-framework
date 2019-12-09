@@ -56,7 +56,7 @@ public class FFDmlCodeGeneratorMojo extends DmlCodeGeneratorMojo {
     /**
      * Code Generator Class Name
      * 
-     * @parameter expression="${generate-domain.codeGeneratorClassName}"
+     * @parameter property="generate-domain.codeGeneratorClassName"
      *            default-value="pt.ist.fenixframework.dml.DefaultCodeGenerator"
      */
     protected String codeGeneratorClassName;
@@ -64,28 +64,28 @@ public class FFDmlCodeGeneratorMojo extends DmlCodeGeneratorMojo {
     /**
      * Package name
      * 
-     * @parameter expression="${generate-domain.packageName}"
+     * @parameter property="generate-domain.packageName"
      */
     protected final String packageName = "";
 
     /**
      * Generate Finals Flag
      * 
-     * @parameter expression="${generate-domain.generateFinals}" default-value="false"
+     * @parameter property="generate-domain.generateFinals" default-value="false"
      */
     protected boolean generateFinals;
 
     /**
      * Verbose Mode Flag
      * 
-     * @parameter expression="${verbose}" default-value="false"
+     * @parameter property="verbose" default-value="false"
      */
     protected boolean verbose;
 
     /**
      * Generate Project Properties Flag
      * 
-     * @parameter expression="${generate-domain.generateProjectProperties}" default-value="false"
+     * @parameter property="generate-domain.generateProjectProperties" default-value="false"
      */
     protected boolean generateProjectProperties;
 

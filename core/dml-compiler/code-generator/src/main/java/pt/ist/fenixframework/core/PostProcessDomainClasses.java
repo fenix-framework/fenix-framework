@@ -67,7 +67,7 @@ public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
         private boolean warnOnFiels = false;
 
         public AddOJBConstructorClassAdapter(ClassVisitor cv) {
-            super(Opcodes.ASM4, cv);
+            super(Opcodes.ASM7, cv);
         }
 
         @Override

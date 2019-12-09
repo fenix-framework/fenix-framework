@@ -61,7 +61,7 @@ public class DmlZipCreatorMojo extends AbstractMojo {
     /**
      * Verbose Mode Flag
      * 
-     * @parameter expression="${verbose}" default-value="false"
+     * @parameter property="verbose" default-value="false"
      */
     protected boolean verbose;
 
