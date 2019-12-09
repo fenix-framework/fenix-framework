@@ -2,6 +2,7 @@ package pt.ist.fenixframework.core;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -21,6 +22,9 @@ public class DomainObjectAllocator {
     public <T extends AbstractDomainObject> T allocateObject(Class<T> objClass, Object oid) {
         if (objClass == null) {
             throw new RuntimeException("Cannot allocate object '" + oid + "'. Class not found");
+        }
+        if (Modifier.isAbstract( objClass.getModifiers() )) {
+            throw new RuntimeException("Cannot allocate object '" + oid + "'. Class is abstract");
         }
         try {
             return getInstantiatorOf(objClass).newInstance(new OID(oid));
