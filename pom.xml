@@ -450,12 +450,8 @@
     <distributionManagement>
         <repository>
             <id>fenix-framework-releases</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-releases</url>
+            <url>https://repo.fenixedu.org/fenixedu-releases</url>
         </repository>
-        <snapshotRepository>
-            <id>fenix-framework-snapshots</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/content/repositories/fenix-framework-snapshots</url>
-        </snapshotRepository>
     </distributionManagement>
 
 </project>
