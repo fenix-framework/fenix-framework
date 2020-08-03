@@ -61,7 +61,7 @@
         <version.maven.release.plugin>2.5.3</version.maven.release.plugin>
         <version.maven.replacer-plugin>1.5.2</version.maven.replacer-plugin>
         <version.maven.umlgraph-doclet-plugin>5.1</version.maven.umlgraph-doclet-plugin>
-        <version.mysql.connector>5.1.47</version.mysql.connector>
+        <version.mysql.connector>8.0.21</version.mysql.connector>
         <version.ojb>1.0.0-escaped</version.ojb>
         <version.rhq.helpers>3.0.4</version.rhq.helpers>
         <version.slf4j.api>1.7.29</version.slf4j.api>

@@ -1,9 +1,6 @@
 package pt.ist.fenixframework.backend.jvstmojb.repository;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,8 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.mysql.jdbc.exceptions.MySQLSyntaxErrorException;
 
 public class SQLTableInfo {
     public static class Column {
@@ -111,9 +106,7 @@ public class SQLTableInfo {
             } else {
                 exists = false;
             }
-        } catch (final MySQLSyntaxErrorException mySQLSyntaxErrorException) {
-            exists = false;
-        } catch (com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException ex) {
+        } catch (final SQLSyntaxErrorException mySQLSyntaxErrorException) {
             exists = false;
         } finally {
             if (resultSet != null) {
