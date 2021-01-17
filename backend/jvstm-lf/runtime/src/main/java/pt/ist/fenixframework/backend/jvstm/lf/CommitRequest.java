@@ -40,8 +40,8 @@ public class CommitRequest implements DataSerializable {
     decide, they will conclude the same and the value will never revert back to
     UNSET. */
 //    private volatile ValidationStatus validationStatus = ValidationStatus.UNSET; // AtomicReference?
-    private final AtomicReference<ValidationStatus> validationStatus = new AtomicReference<ValidationStatus>(
-            ValidationStatus.UNSET); // AtomicReference?
+    private final AtomicReference<ValidationStatus> validationStatus =
+            new AtomicReference<ValidationStatus>(ValidationStatus.UNSET); // AtomicReference?
 
     public static synchronized CommitRequest makeSentinelRequest() {
         return new CommitRequest() {
@@ -204,8 +204,7 @@ public class CommitRequest implements DataSerializable {
             logger.debug("Commit Request {} threw CommitException. Exception will be discarded.", this.getId());
         } catch (Throwable e) {
             if (logger.isDebugEnabled()) {
-                logger.debug(
-                        "Handling localCommit for request {} threw {}.  It will be obfuscated by the return of this method.",
+                logger.debug("Handling localCommit for request {} threw {}.  It will be obfuscated by the return of this method.",
                         this.getId(), e);
                 e.printStackTrace();
             }

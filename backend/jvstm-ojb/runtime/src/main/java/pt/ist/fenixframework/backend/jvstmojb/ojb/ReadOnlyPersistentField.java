@@ -38,8 +38,8 @@ public class ReadOnlyPersistentField extends FenixPersistentField {
         try {
             return getterMethod.invoke(anObject);
         } catch (Throwable e) {
-            throw new MetadataException("Error invoking method:" + getterMethod.getName() + " in object "
-                    + anObject.getClass().getName(), e);
+            throw new MetadataException(
+                    "Error invoking method:" + getterMethod.getName() + " in object " + anObject.getClass().getName(), e);
         }
     }
 }

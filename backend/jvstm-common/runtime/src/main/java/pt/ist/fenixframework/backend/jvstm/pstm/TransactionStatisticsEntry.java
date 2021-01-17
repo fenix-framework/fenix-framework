@@ -11,8 +11,8 @@ import pt.ist.fenixframework.backend.jvstm.pstm.TransactionStatistics.CounterSta
 public class TransactionStatisticsEntry extends TransactionStatisticsEntry_Base {
 
     public TransactionStatisticsEntry(String server, int numReport, long numReads, long numWrites, long numAborts,
-            long numConflicts, long secondsBetweenReports, DateTime when, CounterStats readOnlyReads,
-            CounterStats readWriteReads, CounterStats readWriteWrites) {
+            long numConflicts, long secondsBetweenReports, DateTime when, CounterStats readOnlyReads, CounterStats readWriteReads,
+            CounterStats readWriteWrites) {
         super();
         setServer(server);
         setNumReport(numReport);

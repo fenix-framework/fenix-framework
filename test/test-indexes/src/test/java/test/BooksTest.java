@@ -1,15 +1,14 @@
 package test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +16,6 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 
-@RunWith(JUnit4.class)
 public class BooksTest {
 
     private static final Logger logger = LoggerFactory.getLogger(BooksTest.class);
@@ -33,7 +31,7 @@ public class BooksTest {
     private static final String FEW_MOON = "Few Moon";
     private static final String DRACULA = "Dracula";
 
-    @AfterClass
+    @AfterAll
     public static void shutdown() {
         FenixFramework.shutdown();
     }
@@ -130,7 +128,7 @@ public class BooksTest {
         assertTrue(little.getPublishedBookByBookName(FEW_MOON) == null);
     }
 
-    @Before
+    @BeforeEach
     @Atomic
     public void init() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
@@ -175,7 +173,7 @@ public class BooksTest {
         twolights.setSequel(fewMoons);
     }
 
-    @After
+    @AfterEach
     @Atomic
     public void reset() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();

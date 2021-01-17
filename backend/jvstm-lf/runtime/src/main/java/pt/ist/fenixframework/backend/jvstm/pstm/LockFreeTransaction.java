@@ -251,8 +251,8 @@ public class LockFreeTransaction extends ConsistentTopLevelTransaction implement
     }
 
     private static void persistWriteSet(CommitRequest commitRequest) {
-        JvstmLockFreeBackEnd.getInstance().getRepository()
-                .persistWriteSet(commitRequest.getId(), commitRequest.getWriteSet(), NULL_VALUE);
+        JvstmLockFreeBackEnd.getInstance().getRepository().persistWriteSet(commitRequest.getId(), commitRequest.getWriteSet(),
+                NULL_VALUE);
     }
 
     protected void helpedTryCommit(CommitRequest myRequest) throws CommitException {

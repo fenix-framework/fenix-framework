@@ -17,18 +17,18 @@ public class Author extends Author_Base {
         setId(id);
         setAge(age);
     }
-    
+
     @Override
     public Set<Book> getBookSet() {
         HashSet<Book> bookSet = new HashSet<>();
-        for(Book book : super.getBookSet()){
-            if(book.getAuthor().getId() % 3 == 0){
+        for (Book book : super.getBookSet()) {
+            if (book.getAuthor().getId() % 3 == 0) {
                 bookSet.add(book);
             }
         }
         return bookSet;
     }
-    
+
     @Override
     public String toString() {
         return "Author " + getId();

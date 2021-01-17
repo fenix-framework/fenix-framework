@@ -243,11 +243,9 @@ public class PublicConsistencyPredicate extends PublicConsistencyPredicate_Base 
     public void delete() {
         PublicConsistencyPredicate overriddenPredicate = getPublicConsistencyPredicateOverridden();
         if (overriddenPredicate != null) {
-            logger.info("The deleted predicate "
-                    + getPredicate()
+            logger.info("The deleted predicate " + getPredicate()
                     + ((getPredicate() == null) ? " of " + getDomainMetaClass().getDomainClass() : "")
-                    + "was overriding the predicate: "
-                    + overriddenPredicate.getPredicate()
+                    + "was overriding the predicate: " + overriddenPredicate.getPredicate()
                     + ((overriddenPredicate.getPredicate() == null) ? " of "
                             + overriddenPredicate.getDomainMetaClass().getDomainClass() : "")
                     + " which must be executed from the former class downwards.");

@@ -53,9 +53,7 @@ public class DomainModel implements Serializable {
     private static String[][] builtinValueTypes = { /* { fullname, alias } */
             // primitive types
             { "boolean", "boolean" }, { "byte", "byte" }, { "char", "char" }, { "short", "short" }, { "int", "int" },
-            { "float", "float" },
-            { "long", "long" },
-            { "double", "double" },
+            { "float", "float" }, { "long", "long" }, { "double", "double" },
 
             // their wrappers
             { "java.lang.Boolean", "Boolean" }, { "java.lang.Byte", "Byte" }, { "java.lang.Character", "Character" },
@@ -94,7 +92,7 @@ public class DomainModel implements Serializable {
     }
 
     private static String[][] builtinEntities = { /* { fullname, alias } */
-    { "pt.ist.fenixframework.DomainObject", "DomainObject" },
+            { "pt.ist.fenixframework.DomainObject", "DomainObject" },
             { "pt.ist.fenixframework.core.AbstractDomainObject", "AbstractDomainObject" } };
 
     protected void initializeBuiltinEntities() {
@@ -312,8 +310,8 @@ public class DomainModel implements Serializable {
         if (checkForMissingExternals) {
             for (String externalName : external.keySet()) {
                 if (!isBuiltinEntity(externalName) && !classes.containsKey(externalName)) {
-                    throw new RuntimeException(externalName
-                            + " was defined as an external entity but there is no concrete definition of it!");
+                    throw new RuntimeException(
+                            externalName + " was defined as an external entity but there is no concrete definition of it!");
                 }
             }
         }

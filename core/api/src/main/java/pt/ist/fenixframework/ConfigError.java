@@ -6,17 +6,17 @@ package pt.ist.fenixframework;
 public class ConfigError extends Error {
     public static final String CONFIG_CLASS_NOT_FOUND = "Could not get the configuration class: ";
 
-    public static final String MISSING_CONFIG = "Config is absent."
-            + " Explicitly initialize the FenixFramework with FenixFramework.initialize(Config)"
-            + " or via convention by providing a fenix-framework-<NNN>.properties resource before attempting getConfig()"
-            + " (where <NNN> is the name of a BackEnd).";
+    public static final String MISSING_CONFIG =
+            "Config is absent." + " Explicitly initialize the FenixFramework with FenixFramework.initialize(Config)"
+                    + " or via convention by providing a fenix-framework-<NNN>.properties resource before attempting getConfig()"
+                    + " (where <NNN> is the name of a BackEnd).";
 
     public static final String MISSING_REQUIRED_FIELD = "A required configuration of the Fenix Framework was not specified: ";
 
     public static final String UNKNOWN_PROPERTY = "Unknown runtime configuration property: ";
 
-    public static final String COULD_NOT_SET_PROPERTY = "No method <propName>" + Config.SETTER_FROM_STRING
-            + "(String) given, and property is not assignable from String: ";
+    public static final String COULD_NOT_SET_PROPERTY =
+            "No method <propName>" + Config.SETTER_FROM_STRING + "(String) given, and property is not assignable from String: ";
 
     // public static final String NO_PROPERTY_SETTER = "No setter method for property.";
 

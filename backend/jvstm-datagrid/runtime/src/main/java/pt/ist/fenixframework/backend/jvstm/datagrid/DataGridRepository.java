@@ -245,8 +245,8 @@ public class DataGridRepository implements Repository {
         }
     }
 
-    private void initConcreteDataGrid(JvstmDataGridConfig jvstmDataGridConfig) throws ClassNotFoundException,
-            InstantiationException, IllegalAccessException {
+    private void initConcreteDataGrid(JvstmDataGridConfig jvstmDataGridConfig)
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         String dataGridClassName = jvstmDataGridConfig.getDatagridClassName();
         Class<? extends DataGrid> dataGridClass = Class.forName(dataGridClassName).asSubclass(DataGrid.class);
         this.dataGrid = dataGridClass.newInstance();
@@ -315,8 +315,8 @@ public class DataGridRepository implements Repository {
                         current = (DataVersionHolder) dataGrid.get(makeVersionedKey(key, current.previousVersion));
                     }
                 }
-                throw new PersistenceException("Version of vbox " + vbox.getId() + " not found for transaction number "
-                        + desiredVersion);
+                throw new PersistenceException(
+                        "Version of vbox " + vbox.getId() + " not found for transaction number " + desiredVersion);
             }
         });
     }

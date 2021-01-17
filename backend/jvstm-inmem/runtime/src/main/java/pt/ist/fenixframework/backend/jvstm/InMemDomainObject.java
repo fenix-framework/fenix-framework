@@ -10,8 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by diutsu on 30/11/16.
  */
 public class InMemDomainObject extends JVSTMDomainObject {
-    
-    
+
     @Override
     protected void deleteDomainObject() {
         this.invokeDeletionListeners();
@@ -20,8 +19,7 @@ public class InMemDomainObject extends JVSTMDomainObject {
             cacheField.setAccessible(true);
             ConcurrentHashMap<Object, ?> cache = (ConcurrentHashMap<Object, ?>) cacheField.get(SharedIdentityMap.getCache());
             cache.remove(this.getOid());
-            ((InMemDomainObjectValidBackEnd) FenixFramework.getConfig().getBackEnd())
-                .deleteObject(this.getOid());
+            ((InMemDomainObjectValidBackEnd) FenixFramework.getConfig().getBackEnd()).deleteObject(this.getOid());
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }

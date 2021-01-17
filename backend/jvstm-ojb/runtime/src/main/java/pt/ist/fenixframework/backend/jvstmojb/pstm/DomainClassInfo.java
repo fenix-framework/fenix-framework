@@ -43,8 +43,8 @@ public class DomainClassInfo {
                 Connection conn = broker.serviceConnectionManager().getConnection();
                 stmt = conn.createStatement();
 
-                rs =
-                        stmt.executeQuery("SELECT DOMAIN_CLASS_NAME,DOMAIN_CLASS_ID FROM FF$DOMAIN_CLASS_INFO ORDER BY DOMAIN_CLASS_ID");
+                rs = stmt.executeQuery(
+                        "SELECT DOMAIN_CLASS_NAME,DOMAIN_CLASS_ID FROM FF$DOMAIN_CLASS_INFO ORDER BY DOMAIN_CLASS_ID");
 
                 Map<Class, DomainClassInfo> map = new HashMap<Class, DomainClassInfo>();
                 ArrayList<DomainClassInfo> array = new ArrayList<DomainClassInfo>();

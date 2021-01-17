@@ -84,8 +84,8 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    public void resume(javax.transaction.Transaction tobj) throws InvalidTransactionException, IllegalStateException,
-            SystemException {
+    public void resume(javax.transaction.Transaction tobj)
+            throws InvalidTransactionException, IllegalStateException, SystemException {
         if (!(tobj instanceof JvstmOJBTransaction)) {
             throw new InvalidTransactionException("Expected JvstmOJBTransaction, got " + tobj);
         }

@@ -37,8 +37,8 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 @NoDomainMetaObjects
 public class DomainMetaClass extends DomainMetaClass_Base {
 
-    private static final Class<? extends AbstractDomainObject> BOTTOM_GENERATED_SUPERCLASS = BackEndId.getBackEndId()
-            .getDomainClassRoot();
+    private static final Class<? extends AbstractDomainObject> BOTTOM_GENERATED_SUPERCLASS =
+            BackEndId.getBackEndId().getDomainClassRoot();
 
     private static final Logger logger = LoggerFactory.getLogger(DomainMetaClass.class);
 

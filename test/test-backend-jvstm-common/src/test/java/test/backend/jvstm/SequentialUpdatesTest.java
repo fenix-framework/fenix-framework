@@ -1,7 +1,8 @@
 package test.backend.jvstm;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public class SequentialUpdatesTest {
         }
 
         // total should match # of incs X # of threads
-        Assert.assertEquals(MAX_THREADS * INCS_PER_THREAD, getCounterValue(c));
+        assertEquals(MAX_THREADS * INCS_PER_THREAD, getCounterValue(c));
     }
 
     @Atomic(mode = TxMode.WRITE)

@@ -490,8 +490,8 @@ public class InfinispanRepository implements Repository {
                         current = cache.get(makeVersionedKey(key, current.previousVersion));
                     }
                 }
-                throw new PersistenceException("Version of vbox " + vbox.getId() + " not found for transaction number "
-                        + desiredVersion);
+                throw new PersistenceException(
+                        "Version of vbox " + vbox.getId() + " not found for transaction number " + desiredVersion);
             }
         });
     }
@@ -566,22 +566,22 @@ public class InfinispanRepository implements Repository {
 
     /*
       Notes on the usage of Infinispan:
-
+    
       One of the goals is to enable the usage of infinispan in READ_COMMITTED
       mode (thus no writeSkew checks, no versioning).  This is supposedly more
       efficient.  Moreover, this is  work already being performed by the STM.
-
+    
       Part of the strategy to accomplish this is to ensure that the cache is
       "write-only".  If this were true, then we could say that regardless of
       what is seen in other STM transactions, it never changed, which would make
       correctness proof attempts easier.
-
+    
       However, that is not the case.  Still we argue that whenever the value of
       some key changes, the system as a whole behaves as expected. Here are some
       things to consider:
-
+    
       - Keys are never removed.  At most their corresponding value is updated.
-
+    
       - The domain cache contains the domain entities. When committing (to
       persistence), a given VBox, we store its most recent value in a key built
       from the slotName + ownerOid.  Thus, this key's value will change over
@@ -589,7 +589,7 @@ public class InfinispanRepository implements Repository {
       already exist somewhere else (in another key).  The previous values in
       history are written each in their own key built from slotName + ownerOid
       + #version.  Everything else in the domain cache is write-only.
-
+    
       - The system cache may be updated.  I'll look further into this.  For now,
       these updates are performed within a global (cluster-wide) commit lock,
       so no two updates will ever be attempted on the same key.  Thus, at most,
@@ -597,12 +597,12 @@ public class InfinispanRepository implements Repository {
       have been written by another meanwhile committing/committed transaction.
       We need to ensure that whatever is seen is not problematic from the point
       of view of the running transaction.  For now, this can be:
-
+    
       1. initialization marker and updates to the domain class infos.  This
       should only occur at startup time and is work performed by a single node.
       It occurs  before the system is actually up and running, so it's not a
       problem.
-
+    
       2. updates to the highest committed tx number: should occurs within the
       global commit
       
@@ -615,6 +615,6 @@ public class InfinispanRepository implements Repository {
       that only on attempt is made to grab it for ispn's cache. I.e. when updating
       the highest number per class, by definition, such number is already updated
       in memory.
-
+    
      */
 }

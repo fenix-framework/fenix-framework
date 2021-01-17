@@ -58,9 +58,8 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
         String metaObjectsToDeleteQuery =
                 "select OID from DOMAIN_META_OBJECT where OID_DOMAIN_META_CLASS = '" + domainMetaClass.getExternalId() + "'";
 
-        String clearDomainObjectsQuery =
-                "update `" + tableName + "` set OID_DOMAIN_META_OBJECT = null " + "where OID_DOMAIN_META_OBJECT in ("
-                        + metaObjectsToDeleteQuery + ")";
+        String clearDomainObjectsQuery = "update `" + tableName + "` set OID_DOMAIN_META_OBJECT = null "
+                + "where OID_DOMAIN_META_OBJECT in (" + metaObjectsToDeleteQuery + ")";
 
         try {
             getCurrentJdbcConnection().createStatement().executeUpdate(clearDomainObjectsQuery);
@@ -70,9 +69,8 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
             e.printStackTrace();
         }
 
-        String clearDependenceRecordsQuery =
-                "delete from DOMAIN_DEPENDENCE_RECORD where OID_DEPENDENT_DOMAIN_META_OBJECT " + "in ("
-                        + metaObjectsToDeleteQuery + ")";
+        String clearDependenceRecordsQuery = "delete from DOMAIN_DEPENDENCE_RECORD where OID_DEPENDENT_DOMAIN_META_OBJECT "
+                + "in (" + metaObjectsToDeleteQuery + ")";
 
         try {
             getCurrentJdbcConnection().createStatement().executeUpdate(clearDependenceRecordsQuery);
@@ -80,9 +78,8 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
             throw new Error(e);
         }
 
-        String clearIndirectionTable =
-                "delete from DEPENDED_DOMAIN_META_OBJECTS_DEPENDING_DEPENDENCE_RECORDS" + " where OID_DOMAIN_META_OBJECT in ("
-                        + metaObjectsToDeleteQuery + ")";
+        String clearIndirectionTable = "delete from DEPENDED_DOMAIN_META_OBJECTS_DEPENDING_DEPENDENCE_RECORDS"
+                + " where OID_DOMAIN_META_OBJECT in (" + metaObjectsToDeleteQuery + ")";
 
         try {
             getCurrentJdbcConnection().createStatement().executeUpdate(clearIndirectionTable);
@@ -164,11 +161,10 @@ public class JvstmOJBConsistencyPredicateSupport extends ConsistencyPredicateSup
 
         String metaObjectOidsQuery = "select OID from DOMAIN_META_OBJECT";
 
-        String query =
-                "select OID from `" + tableName
-                        + "`, FF$DOMAIN_CLASS_INFO where OID >> 32 = DOMAIN_CLASS_ID and DOMAIN_CLASS_NAME = '" + className
-                        + "' and (OID_DOMAIN_META_OBJECT is null or OID_DOMAIN_META_OBJECT not in (" + metaObjectOidsQuery
-                        + ")) order by OID limit " + getBatchSize();
+        String query = "select OID from `" + tableName
+                + "`, FF$DOMAIN_CLASS_INFO where OID >> 32 = DOMAIN_CLASS_ID and DOMAIN_CLASS_NAME = '" + className
+                + "' and (OID_DOMAIN_META_OBJECT is null or OID_DOMAIN_META_OBJECT not in (" + metaObjectOidsQuery
+                + ")) order by OID limit " + getBatchSize();
 
         ArrayList<String> oids = new ArrayList<String>();
         try {

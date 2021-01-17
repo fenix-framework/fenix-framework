@@ -28,7 +28,7 @@ public class OID implements Comparable<OID>, Serializable {
         this.fullId = objClass.getName() + OID_SEPARATOR + objId;
     }
 
-    public/* smf: tirar o public */OID(String externalId) {
+    public/* smf: tirar o public */ OID(String externalId) {
         String[] tokens = externalId.split(OID_SEPARATOR);
         try {
             this.objClass = Class.forName(tokens[0]);

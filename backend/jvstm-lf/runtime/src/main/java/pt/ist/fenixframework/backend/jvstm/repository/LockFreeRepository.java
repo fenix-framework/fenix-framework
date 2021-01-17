@@ -359,8 +359,8 @@ public class LockFreeRepository implements ExtendedRepository {
         }
     }
 
-    private void initConcreteDataGrid(JvstmLockFreeConfig jvstmLockFreeConfig) throws ClassNotFoundException,
-            InstantiationException, IllegalAccessException {
+    private void initConcreteDataGrid(JvstmLockFreeConfig jvstmLockFreeConfig)
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         String dataGridClassName = jvstmLockFreeConfig.getDatagridClassName();
         Class<? extends DataGrid> dataGridClass = Class.forName(dataGridClassName).asSubclass(DataGrid.class);
         this.dataGrid = dataGridClass.newInstance();
@@ -628,8 +628,8 @@ public class LockFreeRepository implements ExtendedRepository {
             } else {
                 logger.debug("No such key: {}", key);
                 if (versionToLoad == 0) {
-                    throw new PersistenceException("Version of vbox " + box.getId() + " not found for transaction number "
-                            + txNumber);
+                    throw new PersistenceException(
+                            "Version of vbox " + box.getId() + " not found for transaction number " + txNumber);
                 }
             }
 

@@ -168,8 +168,8 @@ public class TxStats implements TxIntrospector {
         public void beforeAdd(Relation<DomainObject, DomainObject> rel, DomainObject o1, DomainObject o2) {
             if (o1 == null || o2 == null)
                 return; // Ignore relations with null
-            ((TxStats) FenixFramework.getTransaction().getTxIntrospector()).addModifiedRelation(new RelationChangelog(rel
-                    .getName(), o1, o2, false));
+            ((TxStats) FenixFramework.getTransaction().getTxIntrospector())
+                    .addModifiedRelation(new RelationChangelog(rel.getName(), o1, o2, false));
         }
 
         @Override
@@ -181,8 +181,8 @@ public class TxStats implements TxIntrospector {
         public void beforeRemove(Relation<DomainObject, DomainObject> rel, DomainObject o1, DomainObject o2) {
             if (o1 == null || o2 == null)
                 return; // Ignore relations with null
-            ((TxStats) FenixFramework.getTransaction().getTxIntrospector()).addModifiedRelation(new RelationChangelog(rel
-                    .getName(), o1, o2, true));
+            ((TxStats) FenixFramework.getTransaction().getTxIntrospector())
+                    .addModifiedRelation(new RelationChangelog(rel.getName(), o1, o2, true));
         }
 
         @Override

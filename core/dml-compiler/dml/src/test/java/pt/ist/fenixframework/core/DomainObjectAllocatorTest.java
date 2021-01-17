@@ -1,14 +1,12 @@
 package pt.ist.fenixframework.core;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
 
-@RunWith(JUnit4.class)
 public class DomainObjectAllocatorTest {
 
     static abstract class AbstractDO extends AbstractDomainObject {
@@ -57,9 +55,11 @@ public class DomainObjectAllocatorTest {
         new DomainObjectAllocator(MyADO.class);
     }
 
-    @Test(expected = Error.class)
+    @Test
     public void shouldThrowErrorOnMissingConstructor() {
-        new DomainObjectAllocator(Object.class);
+        assertThrows(Error.class, () -> {
+            new DomainObjectAllocator(Object.class);
+        });
     }
 
     @Test

@@ -44,11 +44,11 @@ import pt.ist.fenixframework.util.FenixFrameworkThread;
  * <pre>
  * 
  * Config config = new MemConfig() { // any subclass of Config should be ok
- *             {
- *                 this.domainModelURLs = resourceToURLArray(&quot;path/to/domain.dml&quot;);
- *                 this.appName = &quot;MyAppName&quot;;
- *             }
- *         };
+ *     {
+ *         this.domainModelURLs = resourceToURLArray(&quot;path/to/domain.dml&quot;);
+ *         this.appName = &quot;MyAppName&quot;;
+ *     }
+ * };
  * 
  * </pre>
  * 
@@ -188,9 +188,8 @@ public abstract class Config {
         }
 
         // note that lazy evaluation is used on purpose!
-        boolean success =
-                attemptSetPropertyUsingMethod(getSetterFor(this.getClass(), propName + SETTER_FROM_STRING), value)
-                        || attemptSetPropertyUsingField(field, value);
+        boolean success = attemptSetPropertyUsingMethod(getSetterFor(this.getClass(), propName + SETTER_FROM_STRING), value)
+                || attemptSetPropertyUsingField(field, value);
 
         if (!success) {
             throw new ConfigError(ConfigError.COULD_NOT_SET_PROPERTY, propName);

@@ -16,8 +16,8 @@ import org.objectweb.asm.Type;
 public class PostProcessDomainClasses extends AbstractDomainPostProcessor {
     private static final String OID_INNER_CLASS_INTERNAL_NAME = Type.getInternalName(DomainObjectAllocator.OID.class);
 
-    private static final String CONSTRUCTOR_DESC = Type.getMethodDescriptor(Type.VOID_TYPE,
-            new Type[] { Type.getType(DomainObjectAllocator.OID.class) });
+    private static final String CONSTRUCTOR_DESC =
+            Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] { Type.getType(DomainObjectAllocator.OID.class) });
 
     private PostProcessDomainClasses() {
         super();

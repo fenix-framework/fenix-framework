@@ -1,18 +1,15 @@
 package pt.ist.fenixframework.dml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
 
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
-@RunWith(JUnit4.class)
 public class DeletionBlockerListenerTest {
 
     @Test
@@ -32,8 +29,8 @@ public class DeletionBlockerListenerTest {
     public void testBlockerListener() {
         DomainModel model = new DomainModel();
         model.finalizeDomain();
-        model.registerDeletionBlockerListener(MyDomainObject.class, new TestDeletionBlockerListener<MyDomainObject>(
-                "Test From Blocker Listener"));
+        model.registerDeletionBlockerListener(MyDomainObject.class,
+                new TestDeletionBlockerListener<MyDomainObject>("Test From Blocker Listener"));
 
         Collection<String> blockers = new MyDomainObject(model, null).blockers();
         assertEquals(blockers.size(), 1);
@@ -54,8 +51,8 @@ public class DeletionBlockerListenerTest {
     public void testBlockerListenerWithOwnBlocker() {
         DomainModel model = new DomainModel();
         model.finalizeDomain();
-        model.registerDeletionBlockerListener(MyDomainObject.class, new TestDeletionBlockerListener<MyDomainObject>(
-                "Test From Blocker Listener"));
+        model.registerDeletionBlockerListener(MyDomainObject.class,
+                new TestDeletionBlockerListener<MyDomainObject>("Test From Blocker Listener"));
 
         Collection<String> blockers = new MyDomainObject(model, "Test From Object").blockers();
         assertEquals(blockers.size(), 2);
@@ -67,8 +64,8 @@ public class DeletionBlockerListenerTest {
     public void testBlockerListenerAbstractType() {
         DomainModel model = new DomainModel();
         model.finalizeDomain();
-        model.registerDeletionBlockerListener(AbstractDomainObject.class, new TestDeletionBlockerListener<AbstractDomainObject>(
-                "Test From Blocker Listener"));
+        model.registerDeletionBlockerListener(AbstractDomainObject.class,
+                new TestDeletionBlockerListener<AbstractDomainObject>("Test From Blocker Listener"));
 
         Collection<String> blockers = new MyDomainObject(model, null).blockers();
         assertEquals(blockers.size(), 1);
@@ -79,8 +76,8 @@ public class DeletionBlockerListenerTest {
     public void testBlockerListenerWrongType() {
         DomainModel model = new DomainModel();
         model.finalizeDomain();
-        model.registerDeletionBlockerListener(DummyDomainObject.class, new TestDeletionBlockerListener<DummyDomainObject>(
-                "Test From Blocker Listener"));
+        model.registerDeletionBlockerListener(DummyDomainObject.class,
+                new TestDeletionBlockerListener<DummyDomainObject>("Test From Blocker Listener"));
 
         Collection<String> blockers = new MyDomainObject(model, null).blockers();
         assertEquals(blockers.size(), 0);

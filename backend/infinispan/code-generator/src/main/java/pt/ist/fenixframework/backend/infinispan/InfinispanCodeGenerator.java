@@ -86,13 +86,7 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         String otherRoleTypeFullName = getTypeFullName(otherRole.getType());
         String roleTypeFullName = getTypeFullName(role.getType());
 
-        printMethod(
-                out,
-                "public",
-                "boolean",
-                "add",
-                makeArg(otherRoleTypeFullName, "o1"),
-                makeArg(roleTypeFullName, "o2"),
+        printMethod(out, "public", "boolean", "add", makeArg(otherRoleTypeFullName, "o1"), makeArg(roleTypeFullName, "o2"),
                 makeArg(makeGenericType("pt.ist.fenixframework.dml.runtime.Relation", otherRoleTypeFullName, roleTypeFullName),
                         "relation"));
         startMethodBody(out);
@@ -150,9 +144,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
     protected void generateInfinispanGetterBody(Slot slot, PrintWriter out, String cacheGetMethod) {
         generateGetterDAPStatement(dC, slot.getName(), slot.getTypeName(), out);//DAP read stats update statement
 
-        println(out,
-                "Object obj = InfinispanBackEnd.getInstance()." + cacheGetMethod + "(getOid().getFullId() + \":" + slot.getName()
-                        + "\");");
+        println(out, "Object obj = InfinispanBackEnd.getInstance()." + cacheGetMethod + "(getOid().getFullId() + \":"
+                + slot.getName() + "\");");
 
         String defaultValue;
         PrimitiveToWrapperEntry wrapperEntry = findWrapperEntry(slot.getTypeName());
@@ -167,9 +160,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         if (vt.isBuiltin() || vt.isEnum()) {
             returnExpression += "obj";
         } else {
-            returnExpression +=
-                    VT_DESERIALIZER + ValueTypeSerializationGenerator.makeSafeValueTypeName(vt) + "(("
-                            + getReferenceType(ValueTypeSerializationGenerator.getSerializedFormTypeName(vt)) + ")obj)";
+            returnExpression += VT_DESERIALIZER + ValueTypeSerializationGenerator.makeSafeValueTypeName(vt) + "(("
+                    + getReferenceType(ValueTypeSerializationGenerator.getSerializedFormTypeName(vt)) + ")obj)";
         }
         returnExpression += ";";
         print(out, returnExpression);
@@ -218,9 +210,10 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printMethod(out, methodModifiers, "void", setterName + "$unidirectional", makeArg(typeName, slotName));
         startMethodBody(out);
-        print(out, "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName + "\", (" + slotName
-                + " == null ? Externalization.NULL_OBJECT : ((pt.ist.fenixframework.core.AbstractDomainObject)" + slotName
-                + ").getOid()));");
+        print(out,
+                "InfinispanBackEnd.getInstance().cachePut(getOid().getFullId() + \":" + slotName + "\", (" + slotName
+                        + " == null ? Externalization.NULL_OBJECT : ((pt.ist.fenixframework.core.AbstractDomainObject)" + slotName
+                        + ").getOid()));");
         endMethodBody(out);
     }
 
@@ -250,7 +243,8 @@ public class InfinispanCodeGenerator extends IndexesCodeGenerator {
 
         String collectionType = getDefaultCollectionFor(role);
         println(out, collectionType + " internalSet;");
-        println(out, "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + role.getName() + "\");");
+        println(out,
+                "Object oid = InfinispanBackEnd.getInstance().cacheGet(getOid().getFullId() + \":" + role.getName() + "\");");
         print(out, "if (oid == null || oid instanceof Externalization.NullClass)");
         newBlock(out);
         println(out, "internalSet = new " + collectionType + "();");

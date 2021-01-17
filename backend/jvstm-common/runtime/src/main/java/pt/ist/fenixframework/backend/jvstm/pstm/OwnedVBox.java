@@ -132,7 +132,8 @@ public abstract class OwnedVBox<E> extends VBox<E> {
         return this.slotName;
     }
 
-    public static <T> OwnedVBox<T> makeNew(JVSTMDomainObject ownerObj, String slotName, boolean allocateOnly, boolean isReference) {
+    public static <T> OwnedVBox<T> makeNew(JVSTMDomainObject ownerObj, String slotName, boolean allocateOnly,
+            boolean isReference) {
         if (isReference) {
             if (allocateOnly) {
                 // when a box is allocated, it is safe 

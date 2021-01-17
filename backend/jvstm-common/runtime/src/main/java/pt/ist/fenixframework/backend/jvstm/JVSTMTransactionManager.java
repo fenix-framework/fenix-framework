@@ -101,8 +101,8 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    public void resume(javax.transaction.Transaction tobj) throws InvalidTransactionException, IllegalStateException,
-            SystemException {
+    public void resume(javax.transaction.Transaction tobj)
+            throws InvalidTransactionException, IllegalStateException, SystemException {
         if (!(tobj instanceof JVSTMTransaction)) {
             throw new InvalidTransactionException("Expected JVSTMTransaction, got " + tobj);
         }
@@ -262,13 +262,13 @@ public class JVSTMTransactionManager extends AbstractTransactionManager {
     }
 
     private void logTransactionRestart(String commandName, Throwable cause, int tries) {
-        logger.debug("Transaction {} has been restarted {} time(s) because of {}", commandName, tries, cause.getClass()
-                .getSimpleName());
+        logger.debug("Transaction {} has been restarted {} time(s) because of {}", commandName, tries,
+                cause.getClass().getSimpleName());
     }
 
     private void logTransactionAbort(String commandName, Throwable cause, int tries) {
-        logger.debug("Aborting transaction {} after {} executions because of {}", commandName, tries, cause.getClass()
-                .getSimpleName());
+        logger.debug("Aborting transaction {} after {} executions because of {}", commandName, tries,
+                cause.getClass().getSimpleName());
     }
 
     private void logGenericException(String commandName, Throwable cause, int tries) {

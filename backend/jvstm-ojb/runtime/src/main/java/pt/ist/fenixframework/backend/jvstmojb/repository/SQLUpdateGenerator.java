@@ -62,8 +62,8 @@ public class SQLUpdateGenerator {
                 if (indirectionTablename != null) {
                     if (!changes.containsKey(indirectionTablename)) {
                         existingTables.remove(indirectionTablename);
-                        changes.put(indirectionTablename, new SQLTableChangeSet(
-                                new SQLTableInfo(indirectionTablename, connection)));
+                        changes.put(indirectionTablename,
+                                new SQLTableChangeSet(new SQLTableInfo(indirectionTablename, connection)));
                     }
                     SQLTableChangeSet change = changes.get(indirectionTablename);
                     change.addCollectionDescriptor(collectionDescriptor);

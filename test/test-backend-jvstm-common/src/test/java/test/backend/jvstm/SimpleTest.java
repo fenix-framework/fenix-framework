@@ -1,7 +1,8 @@
 package test.backend.jvstm;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 
 import pt.ist.fenixframework.Atomic;
 import test.backend.jvstm.domain.Counter;
@@ -11,7 +12,7 @@ public class SimpleTest {
     @Test
     public void test() {
         int result = runTransaction();
-        Assert.assertEquals(2, result);
+        assertEquals(2, result);
     }
 
     @Atomic

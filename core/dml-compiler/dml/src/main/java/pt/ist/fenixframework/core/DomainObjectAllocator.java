@@ -23,7 +23,7 @@ public class DomainObjectAllocator {
         if (objClass == null) {
             throw new RuntimeException("Cannot allocate object '" + oid + "'. Class not found");
         }
-        if (Modifier.isAbstract( objClass.getModifiers() )) {
+        if (Modifier.isAbstract(objClass.getModifiers())) {
             throw new RuntimeException("Cannot allocate object '" + oid + "'. Class is abstract");
         }
         try {

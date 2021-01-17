@@ -90,7 +90,8 @@ public class FenixPersistenceBroker extends PersistenceBrokerImpl {
         ClassDescriptor cld = getClassDescriptor(obj.getClass());
         CollectionDescriptor cds = cld.getCollectionDescriptorByName(pAttributeName);
         if (cds == null) {
-            throw new PersistenceBrokerException("In the Fenix Framework retrieveReference should be called only for collections");
+            throw new PersistenceBrokerException(
+                    "In the Fenix Framework retrieveReference should be called only for collections");
         }
 
         // this collection type will be used:

@@ -39,9 +39,8 @@ public class DmlCompiler {
     public static DomainModel compile(CompilerArgs compArgs) throws DmlCompilerException {
         try {
             DomainModel model = getDomainModel(compArgs);
-            CodeGenerator generator =
-                    compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class)
-                            .newInstance(compArgs, model);
+            CodeGenerator generator = compArgs.getCodeGenerator().getConstructor(CompilerArgs.class, DomainModel.class)
+                    .newInstance(compArgs, model);
             generator.generateCode();
             return model;
         } catch (Exception e) {
@@ -49,7 +48,7 @@ public class DmlCompiler {
         }
     }
 
-    public static DomainModel   getDomainModel(CompilerArgs compArgs) throws DmlCompilerException {
+    public static DomainModel getDomainModel(CompilerArgs compArgs) throws DmlCompilerException {
         // IMPORTANT: external specs must be first.  The order is important for the DmlCompiler
         List<URL> dmlSpecs = new ArrayList<URL>(compArgs.getExternalDomainSpecs());
         dmlSpecs.addAll(compArgs.getLocalDomainSpecs());

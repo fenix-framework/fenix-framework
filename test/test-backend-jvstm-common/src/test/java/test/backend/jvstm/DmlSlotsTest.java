@@ -1,5 +1,9 @@
 package test.backend.jvstm;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -11,9 +15,9 @@ import org.joda.time.DateTimeFieldType;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.Partial;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +80,7 @@ public class DmlSlotsTest {
     // entity in relation to many
     static private Set<Counter> counters;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         // set builtin types
         slotBooleanPrimitive = true;
@@ -164,33 +168,33 @@ public class DmlSlotsTest {
     private void confirmBuiltInTypes() {
         BuiltInTypes bt = FenixFramework.getDomainRoot().getBuiltInTypes();
 
-        Assert.assertEquals(slotBooleanPrimitive, bt.getSlotBooleanPrimitive());
-        Assert.assertEquals(slotBytePrimitive, bt.getSlotBytePrimitive());
-        Assert.assertEquals(slotCharPrimitive, bt.getSlotCharPrimitive());
-        Assert.assertEquals(slotShortPrimitive, bt.getSlotShortPrimitive());
-        Assert.assertEquals(slotIntPrimitive, bt.getSlotIntPrimitive());
-        Assert.assertEquals(slotFloatPrimitive, bt.getSlotFloatPrimitive(), 0);
-        Assert.assertEquals(slotLongPrimitive, bt.getSlotLongPrimitive());
-        Assert.assertEquals(slotDoublePrimitive, bt.getSlotDoublePrimitive(), 0);
+        assertEquals(slotBooleanPrimitive, bt.getSlotBooleanPrimitive());
+        assertEquals(slotBytePrimitive, bt.getSlotBytePrimitive());
+        assertEquals(slotCharPrimitive, bt.getSlotCharPrimitive());
+        assertEquals(slotShortPrimitive, bt.getSlotShortPrimitive());
+        assertEquals(slotIntPrimitive, bt.getSlotIntPrimitive());
+        assertEquals(slotFloatPrimitive, bt.getSlotFloatPrimitive(), 0);
+        assertEquals(slotLongPrimitive, bt.getSlotLongPrimitive());
+        assertEquals(slotDoublePrimitive, bt.getSlotDoublePrimitive(), 0);
 
-        Assert.assertEquals(slotBoolean, bt.getSlotBoolean());
-        Assert.assertEquals(slotByte, bt.getSlotByte());
-        Assert.assertEquals(slotCharacter, bt.getSlotCharacter());
-        Assert.assertEquals(slotShort, bt.getSlotShort());
-        Assert.assertEquals(slotInteger, bt.getSlotInteger());
-        Assert.assertEquals(slotFloat, bt.getSlotFloat());
-        Assert.assertEquals(slotLong, bt.getSlotLong());
-        Assert.assertEquals(slotDouble, bt.getSlotDouble());
+        assertEquals(slotBoolean, bt.getSlotBoolean());
+        assertEquals(slotByte, bt.getSlotByte());
+        assertEquals(slotCharacter, bt.getSlotCharacter());
+        assertEquals(slotShort, bt.getSlotShort());
+        assertEquals(slotInteger, bt.getSlotInteger());
+        assertEquals(slotFloat, bt.getSlotFloat());
+        assertEquals(slotLong, bt.getSlotLong());
+        assertEquals(slotDouble, bt.getSlotDouble());
 
-        Assert.assertEquals(slotString, bt.getSlotString());
+        assertEquals(slotString, bt.getSlotString());
 
-        Assert.assertArrayEquals(slotBytearray, bt.getSlotBytearray());
+        assertArrayEquals(slotBytearray, bt.getSlotBytearray());
 
-        Assert.assertEquals(slotDatetime, bt.getSlotDatetime());
-        Assert.assertEquals(slotLocaldate, bt.getSlotLocaldate());
-        Assert.assertEquals(slotLocaltime, bt.getSlotLocaltime());
-        Assert.assertEquals(slotPartial, bt.getSlotPartial());
-        Assert.assertEquals(slotSerializable, bt.getSlotSerializable());
+        assertEquals(slotDatetime, bt.getSlotDatetime());
+        assertEquals(slotLocaldate, bt.getSlotLocaldate());
+        assertEquals(slotLocaltime, bt.getSlotLocaltime());
+        assertEquals(slotPartial, bt.getSlotPartial());
+        assertEquals(slotSerializable, bt.getSlotSerializable());
     }
 
     @Test
@@ -219,14 +223,14 @@ public class DmlSlotsTest {
     private void confirmValueTypes() {
         ValueTypes vt = FenixFramework.getDomainRoot().getValueTypes();
 
-        Assert.assertEquals(aBigDecimalAuto, vt.getABigDecimalAuto());
-        Assert.assertEquals(aBigDecimalManual, vt.getABigDecimalManual());
-        Assert.assertEquals(aCompositeValueType, vt.getACompositeValueType());
-        Assert.assertEquals(aBigInteger, vt.getABigInteger());
-        Assert.assertEquals(anotherCompositeValueType, vt.getAnotherCompositeValueType());
-        Assert.assertEquals(yetAnotherCompositeValueType, vt.getYetAnotherCompositeValueType());
-        Assert.assertEquals(aParametricValueType, vt.getAParametricValueType());
-        Assert.assertEquals(anotherParametricValueType, vt.getAnotherParametricValueType());
+        assertEquals(aBigDecimalAuto, vt.getABigDecimalAuto());
+        assertEquals(aBigDecimalManual, vt.getABigDecimalManual());
+        assertEquals(aCompositeValueType, vt.getACompositeValueType());
+        assertEquals(aBigInteger, vt.getABigInteger());
+        assertEquals(anotherCompositeValueType, vt.getAnotherCompositeValueType());
+        assertEquals(yetAnotherCompositeValueType, vt.getYetAnotherCompositeValueType());
+        assertEquals(aParametricValueType, vt.getAParametricValueType());
+        assertEquals(anotherParametricValueType, vt.getAnotherParametricValueType());
 
     }
 
@@ -247,8 +251,8 @@ public class DmlSlotsTest {
     private void confirmRelationToOne() {
         Counter c = FenixFramework.getDomainRoot().getCounter();
 
-        Assert.assertEquals(counter, c);
-        Assert.assertEquals(counter.getValue(), c.getValue());
+        assertEquals(counter, c);
+        assertEquals(counter.getValue(), c.getValue());
     }
 
     @Test
@@ -273,7 +277,7 @@ public class DmlSlotsTest {
     private void confirmRelationToMany() {
         Set<Counter> actualCounters = FenixFramework.getDomainRoot().getMultipleCounterSet();
 
-        Assert.assertEquals(counters, actualCounters);
+        assertEquals(counters, actualCounters);
     }
 
     public static void main(String[] args) {

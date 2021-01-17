@@ -1,6 +1,6 @@
 package pt.ist.fenixframework;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -9,18 +9,15 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.Collections;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import pt.ist.fenixframework.dml.DomainModel;
 
-@RunWith(JUnit4.class)
 public class DomainModelParserTest {
 
     @Test
-    @Ignore
+    @Disabled
     /*
      * Allowing keywords in the DML is likely not to be possible.
      * 

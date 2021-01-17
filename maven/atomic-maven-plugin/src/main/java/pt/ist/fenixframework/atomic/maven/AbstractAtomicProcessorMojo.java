@@ -24,8 +24,8 @@ public abstract class AbstractAtomicProcessorMojo extends AbstractMojo {
         }
 
         try {
-            new ProcessAnnotations(new ProcessAnnotations.ProgramArgs(Atomic.class, AtomicContextFactory.class,
-                    getClassesDirectory())) {
+            new ProcessAnnotations(
+                    new ProcessAnnotations.ProgramArgs(Atomic.class, AtomicContextFactory.class, getClassesDirectory())) {
                 @Override
                 protected void processClassFile(File classFile) {
                     if (!classFile.getName().contains("_Base")) {

@@ -47,8 +47,8 @@ public class CommitHelper extends FenixFrameworkThread {
             or current head hasn't been processed yet (head != lastProcessed)
             */
             if (head != tail || head != lastProcessed) {
-                logger.debug("Helping to process the queue (head={}, tail={}, lastProcessed={}).", head.getId().toString(), tail
-                        .getId().toString(), lastProcessed.getId().toString());
+                logger.debug("Helping to process the queue (head={}, tail={}, lastProcessed={}).", head.getId().toString(),
+                        tail.getId().toString(), lastProcessed.getId().toString());
                 lastProcessed = processCommitRequests(head);
                 logger.debug("Finished processing (lastProcessed={}).", lastProcessed.getId().toString());
             }

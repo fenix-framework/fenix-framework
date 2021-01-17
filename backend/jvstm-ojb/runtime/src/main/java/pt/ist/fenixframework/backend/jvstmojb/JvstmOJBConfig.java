@@ -156,8 +156,8 @@ public class JvstmOJBConfig extends ConsistencyPredicatesConfig {
         DbUtil.runWithinDBLock(new DBLockedCommand() {
             @Override
             public void run() {
-                backEnd.setNewInstance(RepositoryBootstrap.updateDataRepositoryStructureIfNeeded(JvstmOJBConfig.this,
-                        getConnection()));
+                backEnd.setNewInstance(
+                        RepositoryBootstrap.updateDataRepositoryStructureIfNeeded(JvstmOJBConfig.this, getConnection()));
                 ServerId.ensureServerId();
                 DomainClassInfo.initializeClassInfos();
                 DomainClassInfo.ensureDomainRoot();

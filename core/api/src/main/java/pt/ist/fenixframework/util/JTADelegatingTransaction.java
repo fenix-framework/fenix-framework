@@ -31,8 +31,8 @@ public class JTADelegatingTransaction extends FenixAbstractTransaction {
     }
 
     @Override
-    public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException,
-            SystemException {
+    public void commit()
+            throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException, SystemException {
         getDelegateTx().commit();
     }
 
