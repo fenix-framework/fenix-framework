@@ -12,8 +12,8 @@ import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationAwareSet;
 import pt.ist.fenixframework.indexes.UnmodifiableDomainBaseSet;
 
-public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends
-        RelationAwareSet<E1, E2> {
+public class RelationMulValuesIndexedAwareSet<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject>
+        extends RelationAwareSet<E1, E2> {
 
     // All accesses to the internalMap should go through the getInternalMap() method!
     private DomainBasedMap<LinkedList<E2>> multiValueMap;

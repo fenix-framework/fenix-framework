@@ -1,14 +1,12 @@
 package test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +15,6 @@ import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
-@RunWith(JUnit4.class)
 public class BooksTest {
 
     private static final Logger logger = LoggerFactory.getLogger(BooksTest.class);
@@ -34,7 +31,7 @@ public class BooksTest {
     private static final String ECLIPSE = "Eclipse";
     private static final String DRACULA = "Dracula";
 
-    @AfterClass
+    @AfterAll
     public static void shutdown() {
         FenixFramework.shutdown();
     }
@@ -270,9 +267,9 @@ public class BooksTest {
     @Atomic
     public void test12() {
         TxIntrospector txIntrospector = FenixFramework.getTransaction().getTxIntrospector();
-        printTest("Create a new book, add a 1-* relation between the new book and '" + LITTLE
-                + "', and then change relation to '" + ARCHIBALD + "'\n\t" + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['"
-                + ARCHIBALD + "']; RCL: ['PublisherWithBooks'])");
+        printTest("Create a new book, add a 1-* relation between the new book and '" + LITTLE + "', and then change relation to '"
+                + ARCHIBALD + "'\n\t" + "(New: [ '" + ECLIPSE + "']; DM: []; M: ['" + ARCHIBALD
+                + "']; RCL: ['PublisherWithBooks'])");
 
         VampireBook eclipse = createEclipse(txIntrospector);
         Publisher little = getPublisherByName(LITTLE);
@@ -502,7 +499,7 @@ public class BooksTest {
         logger.trace("############################ " + test + " ############################\n\t" + desc);
     }
 
-    @Before
+    @BeforeEach
     @Atomic
     public void init() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
@@ -545,7 +542,7 @@ public class BooksTest {
         twolights.setSequel(fewMoons);
     }
 
-    @After
+    @AfterEach
     @Atomic
     public void reset() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();

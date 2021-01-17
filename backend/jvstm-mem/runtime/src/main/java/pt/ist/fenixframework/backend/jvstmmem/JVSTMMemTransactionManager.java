@@ -46,8 +46,8 @@ public class JVSTMMemTransactionManager implements TransactionManager {
     }
 
     @Override
-    public void resume(javax.transaction.Transaction tx) throws InvalidTransactionException, IllegalStateException,
-            SystemException {
+    public void resume(javax.transaction.Transaction tx)
+            throws InvalidTransactionException, IllegalStateException, SystemException {
     }
 
     @Override

@@ -167,8 +167,8 @@ public abstract class AbstractDomainObject extends AbstractDomainObjectAdapter {
     }
 
     protected void handleAttemptToDeleteConnectedObject(String roleName) {
-        throw new Error("Trying to delete a DomainObject that is still connected to other objects: " + this + " by role: "
-                + roleName);
+        throw new Error(
+                "Trying to delete a DomainObject that is still connected to other objects: " + this + " by role: " + roleName);
     }
 
     @Override

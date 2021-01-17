@@ -1,6 +1,5 @@
 package pt.ist.fenixframework.dml;
 
-
 public class DefaultCodeGenerator extends CodeGenerator {
 
     public DefaultCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {

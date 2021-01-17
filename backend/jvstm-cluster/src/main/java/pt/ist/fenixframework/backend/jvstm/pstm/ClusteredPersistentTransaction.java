@@ -100,8 +100,8 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
                 **before** reading the last committed tx from the repository.*/
 
                 logger.debug("Creating remote commit (within lock) to send others");
-                ClusterUtils.sendCommitInfoToOthers(new RemoteCommit(DomainClassInfo.getServerId(), this.getNumber(),
-                        this.boxesWritten));
+                ClusterUtils.sendCommitInfoToOthers(
+                        new RemoteCommit(DomainClassInfo.getServerId(), this.getNumber(), this.boxesWritten));
             }
             commitSuccess = true;
 
@@ -153,7 +153,7 @@ public class ClusteredPersistentTransaction extends PersistentTransaction {
         if (ClusterUtils.getRemoteCommits().isEmpty()) {
 //            logger.debug("No remote commits to apply. Great.");
             /* we need to always return the most recent committed number:
-
+            
             - if inside a commit (already holding the commit lock), this ensures
             that we're able to detect record advances caused by the processing
             of the remote commits queue (e.g. while we were waiting to acquire

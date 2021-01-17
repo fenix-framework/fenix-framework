@@ -411,9 +411,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
             Set<Method> existingPredicateMethods = getDeclaredConsistencyPredicateMethods(metaClass);
             for (DomainConsistencyPredicate declaredPredicate : metaClass.getDeclaredConsistencyPredicateSet()) {
                 Method predicateMethod = declaredPredicate.getPredicate();
-                if ((predicateMethod == null)
-                        || (!predicateMethod.isAnnotationPresent(ConsistencyPredicate.class) && !predicateMethod
-                                .isAnnotationPresent(jvstm.cps.ConsistencyPredicate.class))) {
+                if ((predicateMethod == null) || (!predicateMethod.isAnnotationPresent(ConsistencyPredicate.class)
+                        && !predicateMethod.isAnnotationPresent(jvstm.cps.ConsistencyPredicate.class))) {
                     oldPredicatesToRemove.add(declaredPredicate);
                 } else {
                     existingDomainPredicates.put(declaredPredicate.getPredicate(), declaredPredicate);
@@ -637,8 +636,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
                 continue;
             }
 
-            logger.info("Resuming the initialization of the consistency predicate: "
-                    + consistencyPredicate.getPredicate().getName());
+            logger.info(
+                    "Resuming the initialization of the consistency predicate: " + consistencyPredicate.getPredicate().getName());
             consistencyPredicate.executeConsistencyPredicateForMetaClassAndSubclasses(metaClass);
 
             // Because the executeConsistencyPredicateForMetaClassAndSubclasses method is split among several transactions,
@@ -677,7 +676,8 @@ public class DomainFenixFrameworkRoot extends DomainFenixFrameworkRoot_Base {
      */
     private void deleteAllMetaObjectsAndClasses() {
         if (!getDomainMetaClassSet().isEmpty()) {
-            logger.info("Deleting all DomainMetaObjects, DomainMetaClasses, DomainConsistencyPredicates and DomainDependenceRecords");
+            logger.info(
+                    "Deleting all DomainMetaObjects, DomainMetaClasses, DomainConsistencyPredicates and DomainDependenceRecords");
             for (DomainMetaClass metaClass : getDomainMetaClassSet()) {
                 // Commits the current, and starts a new write transaction.
                 // This is necessary to split the load of the mass deletion of objects among several transactions.

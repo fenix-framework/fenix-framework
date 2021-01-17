@@ -168,8 +168,8 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
             }
         }
 
-        logger.info("Transaction finished. Number of processed " + metaClass.getDomainClass().getSimpleName() + " objects: "
-                + count);
+        logger.info(
+                "Transaction finished. Number of processed " + metaClass.getDomainClass().getSimpleName() + " objects: " + count);
         DomainFenixFrameworkRoot.checkpointTransaction();
     }
 
@@ -288,10 +288,11 @@ public abstract class DomainConsistencyPredicate extends DomainConsistencyPredic
         return (PredicateT) DomainMetaClass.readDomainMetaClass(domainClass).getDeclaredConsistencyPredicate(predicateName);
     }
 
-    public static <PredicateT extends DomainConsistencyPredicate> PredicateT readDomainConsistencyPredicate(Method predicateMethod) {
-        return (PredicateT) DomainMetaClass.readDomainMetaClass(
-                (Class<? extends DomainObject>) predicateMethod.getDeclaringClass()).getDeclaredConsistencyPredicate(
-                predicateMethod);
+    public static <PredicateT extends DomainConsistencyPredicate> PredicateT readDomainConsistencyPredicate(
+            Method predicateMethod) {
+        return (PredicateT) DomainMetaClass
+                .readDomainMetaClass((Class<? extends DomainObject>) predicateMethod.getDeclaringClass())
+                .getDeclaredConsistencyPredicate(predicateMethod);
     }
 
     /**

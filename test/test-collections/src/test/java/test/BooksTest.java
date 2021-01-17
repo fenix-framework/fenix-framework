@@ -1,18 +1,16 @@
 package test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.datatransfer.FlavorEvent;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,12 +18,11 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.FenixFramework;
 
-@RunWith(JUnit4.class)
 public class BooksTest {
 
     private static final Logger logger = LoggerFactory.getLogger(BooksTest.class);
 
-    @AfterClass
+    @AfterAll
     public static void shutdown() {
         FenixFramework.shutdown();
     }
@@ -181,7 +178,6 @@ public class BooksTest {
         test03part02();
     }
 
-    
     @Atomic
     public void test03part01() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
@@ -214,7 +210,7 @@ public class BooksTest {
         assertTrue(domainRoot.getThePublisherSet().contains(getPublisherById(KEY_THREE)));
         assertTrue(domainRoot.getThePublisherSet().size() == (NUMBER_ELEMENTS + 1));
     }
-    
+
     @Atomic
     @Test
     public void test04() {
@@ -244,7 +240,7 @@ public class BooksTest {
         return count;
     }
 
-    @Before
+    @BeforeEach
     @Atomic
     public void init() {
         DomainRoot domainRoot = FenixFramework.getDomainRoot();
@@ -256,7 +252,7 @@ public class BooksTest {
         }
     }
 
-    @After
+    @AfterEach
     @Atomic
     public void reset() {
 

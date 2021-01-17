@@ -249,13 +249,7 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         String otherRoleTypeFullName = getTypeFullName(otherRole.getType());
         String roleTypeFullName = getTypeFullName(role.getType());
 
-        printMethod(
-                out,
-                "public",
-                "boolean",
-                "add",
-                makeArg(otherRoleTypeFullName, "o1"),
-                makeArg(roleTypeFullName, "o2"),
+        printMethod(out, "public", "boolean", "add", makeArg(otherRoleTypeFullName, "o1"), makeArg(roleTypeFullName, "o2"),
                 makeArg(makeGenericType("pt.ist.fenixframework.dml.runtime.Relation", otherRoleTypeFullName, roleTypeFullName),
                         "relation"));
         startMethodBody(out);
@@ -294,9 +288,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
     @Override
     protected void generateRoleMethodGetInverseRole(Role role, Role otherRole, PrintWriter out) {
         // the getInverseRole method
-        String inverseRoleType =
-                makeGenericType("pt.ist.fenixframework.dml.runtime.Role", getTypeFullName(role.getType()),
-                        getTypeFullName(otherRole.getType()));
+        String inverseRoleType = makeGenericType("pt.ist.fenixframework.dml.runtime.Role", getTypeFullName(role.getType()),
+                getTypeFullName(otherRole.getType()));
         printMethod(out, "public", inverseRoleType, "getInverseRole");
         startMethodBody(out);
         print(out, "return ");
@@ -436,9 +429,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         startMethodBody(out);
         generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);
         String collectionType = getDefaultCollectionFor(role);
-        println(out,
-                collectionType + " internalSet = OgmBackEnd.getInstance().getDomainObject(" + makeForeignKeyName(role.getName())
-                        + ");");
+        println(out, collectionType + " internalSet = OgmBackEnd.getInstance().getDomainObject("
+                + makeForeignKeyName(role.getName()) + ");");
 
         print(out, "return new ");
         print(out, getRelationAwareTypeFor(role));
@@ -477,8 +469,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         printFinalMethod(out, "private", "void", "set" + addHibernateToSlotName(capitalize(role.getName())),
                 makeArg(getSetTypeDeclarationFor(role), role.getName()));
         startMethodBody(out);
-        printWords(out, "((" + getRelationAwareTypeFor(role) + ")this." + role.getName() + ").setFromHibernate(" + role.getName()
-                + ");");
+        printWords(out,
+                "((" + getRelationAwareTypeFor(role) + ")this." + role.getName() + ").setFromHibernate(" + role.getName() + ");");
         endMethodBody(out);
     }
 
@@ -543,8 +535,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         buf.append("    xsi:schemaLocation=\"http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd\"\n");
         buf.append("    version=\"2.0\">\n\n");
 
-        buf.append("    <mapped-superclass class=\"" + getDomainClassRoot()
-                + "\" access=\"FIELD\" metadata-complete=\"false\">\n");
+        buf.append(
+                "    <mapped-superclass class=\"" + getDomainClassRoot() + "\" access=\"FIELD\" metadata-complete=\"false\">\n");
         buf.append("        <attributes>\n");
         buf.append("            <id name=\"hibernate$primaryKey\" />\n");
         buf.append("        </attributes>\n");
@@ -751,7 +743,8 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         StringBuilder text = new StringBuilder();
         text.append("<persistence xmlns=\"http://java.sun.com/xml/ns/persistence\"\n");
         text.append("             xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
-        text.append("             xsi:schemaLocation=\"http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd\"\n");
+        text.append(
+                "             xsi:schemaLocation=\"http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd\"\n");
         text.append("             version=\"2.0\">\n");
         text.append("\n");
         text.append("    <persistence-unit name=\"fenixframework-persistence-unit\" transaction-type=\"JTA\">\n");
@@ -774,16 +767,19 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         text.append("\n");
         text.append("            <!-- Added because JBoss startup complains with:\n");
         text.append("\n");
-        text.append("                     org.hibernate.HibernateException: Connection cannot be null when 'hibernate.dialect' not set\n");
+        text.append(
+                "                     org.hibernate.HibernateException: Connection cannot be null when 'hibernate.dialect' not set\n");
         text.append("            -->\n");
         text.append("            <property name=\"hibernate.dialect\" value=\"org.hibernate.ogm.dialect.NoopDialect\"/>\n");
         text.append("\n");
         text.append("\n");
         text.append("            <!-- or any transaction manager lookup implementation you want in your environment -->\n");
         text.append("            <!-- <property name=\"hibernate.transaction.jta.platform\"  -->\n");
-        text.append("            <!--           value=\"org.hibernate.service.jta.platform.internal.JBossStandAloneJtaPlatform\" /> -->\n");
+        text.append(
+                "            <!--           value=\"org.hibernate.service.jta.platform.internal.JBossStandAloneJtaPlatform\" /> -->\n");
         text.append("\n");
-        text.append("            <!-- <property name=\"hibernate.cache.provider_class\" value=\"org.hibernate.cache.EhCacheProvider\" /> -->\n");
+        text.append(
+                "            <!-- <property name=\"hibernate.cache.provider_class\" value=\"org.hibernate.cache.EhCacheProvider\" /> -->\n");
         text.append("\n");
         text.append("            <!-- <property name=\"hibernate.connection.datasource\" value=\"XPTO\" /> -->\n");
         text.append("\n");
@@ -794,8 +790,10 @@ public class OgmCodeGenerator extends IndexesCodeGenerator {
         text.append("                 container managed JPA access to the persistence unit. -->\n");
         text.append("            <property name=\"jboss.as.jpa.managed\" value=\"false\" />\n");
         text.append("\n");
-        text.append("            <property name=\"hibernate.ejb.interceptor\" value=\"pt.ist.fenixframework.backend.ogm.AllocationInterceptor\" />\n");
-        text.append("            <!-- <property name=\"hibernate.ogm.infinispan.configuration_resourcename\" value=\"infinispanNoFile.xml\" /> -->\n");
+        text.append(
+                "            <property name=\"hibernate.ejb.interceptor\" value=\"pt.ist.fenixframework.backend.ogm.AllocationInterceptor\" />\n");
+        text.append(
+                "            <!-- <property name=\"hibernate.ogm.infinispan.configuration_resourcename\" value=\"infinispanNoFile.xml\" /> -->\n");
         text.append("            <!-- <property name=\"hibernate.cache.use_query_cache\" value=\"true\" /> -->\n");
         text.append("        </properties>\n");
         text.append("    </persistence-unit>\n");

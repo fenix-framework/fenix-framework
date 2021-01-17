@@ -17,7 +17,8 @@ import pt.ist.fenixframework.backend.jvstm.repository.PersistenceException;
 import pt.ist.fenixframework.core.TransactionError;
 import pt.ist.fenixframework.core.WriteOnReadError;
 
-public class PersistentTransaction extends ConsistentTopLevelTransaction implements StatisticsCapableTransaction/*, TxIntrospector*/{
+public class PersistentTransaction extends ConsistentTopLevelTransaction
+        implements StatisticsCapableTransaction/*, TxIntrospector*/ {
 
     private static final Logger logger = LoggerFactory.getLogger(PersistentTransaction.class);
 

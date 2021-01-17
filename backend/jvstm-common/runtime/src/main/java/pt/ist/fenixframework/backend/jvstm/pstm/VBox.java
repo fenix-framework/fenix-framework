@@ -70,8 +70,8 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
             remote commit is applied, but after such remote commit data is already
             persisted.  In that case, just return null, because we are not
             responsible for what will happen to that vboxbody */
-            logger.debug("tried to add an older version for a box: id=" + getId() + " -> " + body.version + " is not < "
-                    + txNumber);
+            logger.debug(
+                    "tried to add an older version for a box: id=" + getId() + " -> " + body.version + " is not < " + txNumber);
             return null;
         }
     }
@@ -96,11 +96,11 @@ public abstract class VBox<E> extends jvstm.VBox<E> implements VersionedSubject,
     // synchronized here processes reloads of the same box one at a time, thus avoiding concurrent accesses to the persistence to
     // load the same box
     /* removed synchronized.
-
+    
     It is not strictly necessary.  It only existed to prevent two reload
     requests regarding the same vbox to hit the repository.  However, the
     actual required synchronization is performed in the mergeVersions method.
-
+    
     Now that VBox is used also in the lock-free implementation, the extraneous
     synchronized was removed so that it does not prevent the lock-free
     behavior.

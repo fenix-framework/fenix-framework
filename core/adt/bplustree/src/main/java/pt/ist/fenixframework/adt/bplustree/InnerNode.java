@@ -111,7 +111,8 @@ public class InnerNode extends InnerNode_Base {
         }
     }
 
-    private TreeMap<Comparable, AbstractNode> justInsert(Comparable middleKey, AbstractNode subLeftNode, AbstractNode subRightNode) {
+    private TreeMap<Comparable, AbstractNode> justInsert(Comparable middleKey, AbstractNode subLeftNode,
+            AbstractNode subRightNode) {
         TreeMap<Comparable, AbstractNode> newMap = duplicateMap();
 
         // find smallest key greater than middleKey

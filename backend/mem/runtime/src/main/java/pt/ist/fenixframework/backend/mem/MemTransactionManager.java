@@ -86,8 +86,8 @@ public class MemTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    public void resume(javax.transaction.Transaction tobj) throws InvalidTransactionException, IllegalStateException,
-            SystemException {
+    public void resume(javax.transaction.Transaction tobj)
+            throws InvalidTransactionException, IllegalStateException, SystemException {
         if (!(tobj instanceof MemTransaction))
             throw new InvalidTransactionException(String.valueOf(tobj));
 

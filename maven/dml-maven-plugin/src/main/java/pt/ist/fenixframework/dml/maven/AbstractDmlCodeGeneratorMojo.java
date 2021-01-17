@@ -73,14 +73,13 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
         List<URL> dmlFiles = scanDmlDirectory(getDmlSourceDirectory());
 
         try {
-            Project project =
-                    DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(), getGeneratedSourcesDirectory(), dmlFiles,
-                            getLog(), verbose());
+            Project project = DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(), getGeneratedSourcesDirectory(),
+                    dmlFiles, getLog(), verbose());
 
             ArrayList<DmlFile> sourceDmls = new ArrayList<>();
-            for(URL dml : scanDmlDirectory(getMainDmlDirectory())){
+            for (URL dml : scanDmlDirectory(getMainDmlDirectory())) {
                 sourceDmls.add(new DmlFile(dml,
-                    StringUtils.removeStart(dml.toExternalForm(), getMainDmlDirectory().toURI().toURL().toExternalForm())));
+                        StringUtils.removeStart(dml.toExternalForm(), getMainDmlDirectory().toURI().toURL().toExternalForm())));
             }
             project.setSourceDmls(sourceDmls);
 
@@ -137,9 +136,8 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 Map<String, String> realParams = getParams() == null ? new HashMap<String, String>() : getParams();
 
                 CompilerArgs compArgs =
-                        new CompilerArgs(getMavenProject().getArtifactId(), getSourcesDirectory(),
-                                getGeneratedSourcesDirectory(), getPackageName(), generateFinals(), getCodeGeneratorClass(),
-                                localDmls, externalDmls, realParams);
+                        new CompilerArgs(getMavenProject().getArtifactId(), getSourcesDirectory(), getGeneratedSourcesDirectory(),
+                                getPackageName(), generateFinals(), getCodeGeneratorClass(), localDmls, externalDmls, realParams);
 
                 DmlCompiler.compile(compArgs);
             } else {
@@ -152,10 +150,10 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
             throw new MojoExecutionException("Something went wrong with the Code Generation", e);
         }
     }
-    
+
     private List<URL> scanDmlDirectory(File directory) {
         List<URL> dmlFiles = new ArrayList<URL>();
-        if (directory!=null && directory.exists()) {
+        if (directory != null && directory.exists()) {
             DirectoryScanner scanner = new DirectoryScanner();
             scanner.setBasedir(directory);
 
@@ -187,11 +185,10 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
         }
         return dmlFiles;
     }
-    
+
     protected File getMainDmlDirectory() throws MalformedURLException {
         return null;
     }
-    
 
     public Class<? extends CodeGenerator> getCodeGeneratorClass() throws ClassNotFoundException {
         return (Class<? extends CodeGenerator>) Class.forName(getCodeGeneratorClassName());

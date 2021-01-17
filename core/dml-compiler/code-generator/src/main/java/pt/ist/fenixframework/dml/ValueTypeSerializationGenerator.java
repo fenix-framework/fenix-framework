@@ -109,8 +109,8 @@ public class ValueTypeSerializationGenerator extends DefaultCodeGenerator {
 
     protected void generateValueTypeSerialization(ValueType vt) {
         onNewline(out);
-        printMethod(out, "public static final", getSerializedFormTypeName(vt), SERIALIZATION_METHOD_PREFIX
-                + makeSafeValueTypeName(vt), makeArg(vt.getFullname(), "obj"));
+        printMethod(out, "public static final", getSerializedFormTypeName(vt),
+                SERIALIZATION_METHOD_PREFIX + makeSafeValueTypeName(vt), makeArg(vt.getFullname(), "obj"));
         startMethodBody(out);
         if (vt.getExternalizationElements().size() == 1) {
             print(out, "return (obj == null) ? null : ");

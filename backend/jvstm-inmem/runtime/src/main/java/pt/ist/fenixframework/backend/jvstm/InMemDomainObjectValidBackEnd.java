@@ -16,17 +16,16 @@ import java.util.HashSet;
  * 
  */
 public class InMemDomainObjectValidBackEnd extends JVSTMBackEnd {
-    
+
     public static final String BACKEND_NAME = "inmem-backend";
-    
-    
+
     protected final HashSet<Object> deletedObjects;
-    
+
     public InMemDomainObjectValidBackEnd() {
         super(new NoRepository());
         deletedObjects = new HashSet<>();
     }
-    
+
     @Override
     public <T extends DomainObject> T fromOid(Object oid) {
         if (deletedObjects.contains(oid))
@@ -34,16 +33,14 @@ public class InMemDomainObjectValidBackEnd extends JVSTMBackEnd {
         else
             return super.fromOid(oid);
     }
-    
-    protected void deleteObject(Object oid){
+
+    protected void deleteObject(Object oid) {
         deletedObjects.add(oid);
     }
-    
+
     @Override
     public boolean isDomainObjectValid(DomainObject object) {
         return object != null && !deletedObjects.contains(object.getExternalId());
     }
 
-    
-    
 }

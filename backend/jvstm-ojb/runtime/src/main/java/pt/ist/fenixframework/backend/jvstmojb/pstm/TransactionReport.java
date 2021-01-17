@@ -128,9 +128,7 @@ public class TransactionReport implements Serializable {
 
     private String mekeQueryString() {
         return "select left(SERVER, locate(':', SERVER) - 1), NUM_READS, NUM_WRITES, NUM_ABORTS, NUM_CONFLICTS, STATS_WHEN from FF$TRANSACTION_STATISTICS "
-                + "where STATS_WHEN >='"
-                + dateTimeFormatter.print(startOfReport.toDateMidnight())
-                + "' and STATS_WHEN < '"
+                + "where STATS_WHEN >='" + dateTimeFormatter.print(startOfReport.toDateMidnight()) + "' and STATS_WHEN < '"
                 + dateTimeFormatter.print(endOfReport.toDateMidnight()) + "'";
     }
 

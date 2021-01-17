@@ -31,12 +31,12 @@ public abstract class CodeGenerator {
         }
     }
 
-    protected static PrimitiveToWrapperEntry[] primitiveToWrapperTypes = {
-            new PrimitiveToWrapperEntry("boolean", "Boolean", "false"), new PrimitiveToWrapperEntry("byte", "Byte", "(byte)0"),
-            new PrimitiveToWrapperEntry("char", "Character", "'\\u0000'"),
-            new PrimitiveToWrapperEntry("short", "Short", "(short)0"), new PrimitiveToWrapperEntry("int", "Integer", "0"),
-            new PrimitiveToWrapperEntry("float", "Float", "0.0f"), new PrimitiveToWrapperEntry("long", "Long", "0L"),
-            new PrimitiveToWrapperEntry("double", "Double", "0.0d") };
+    protected static PrimitiveToWrapperEntry[] primitiveToWrapperTypes =
+            { new PrimitiveToWrapperEntry("boolean", "Boolean", "false"), new PrimitiveToWrapperEntry("byte", "Byte", "(byte)0"),
+                    new PrimitiveToWrapperEntry("char", "Character", "'\\u0000'"),
+                    new PrimitiveToWrapperEntry("short", "Short", "(short)0"), new PrimitiveToWrapperEntry("int", "Integer", "0"),
+                    new PrimitiveToWrapperEntry("float", "Float", "0.0f"), new PrimitiveToWrapperEntry("long", "Long", "0L"),
+                    new PrimitiveToWrapperEntry("double", "Double", "0.0d") };
 
     private final CompilerArgs compArgs;
     private final DomainModel domainModel;
@@ -48,9 +48,8 @@ public abstract class CodeGenerator {
         this.compArgs = compArgs;
         this.domainModel = domainModel;
         this.destDirectory = getPackageDirectory(compArgs.destDirectory, compArgs.packageName);
-        this.destDirectoryBase =
-                getPackageDirectory((compArgs.destDirectoryBase == null) ? compArgs.destDirectory : compArgs.destDirectoryBase,
-                        compArgs.packageName);
+        this.destDirectoryBase = getPackageDirectory(
+                (compArgs.destDirectoryBase == null) ? compArgs.destDirectory : compArgs.destDirectoryBase, compArgs.packageName);
         String collectionName = compArgs.getParams().get(COLLECTION_CLASS_NAME_KEY);
         if (collectionName == null || collectionName.isEmpty()) {
             this.collectionToUse = DEFAULT_DOMAIN_BASED_MAP;
@@ -272,8 +271,8 @@ public abstract class CodeGenerator {
         startMethodBody(out);
         print(out, "try");
         newBlock(out);
-        printWords(out, "return", "(Class<? extends pt.ist.fenixframework.Config>)Class.forName(\"" + getDefaultConfigClassName()
-                + "\");");
+        printWords(out, "return",
+                "(Class<? extends pt.ist.fenixframework.Config>)Class.forName(\"" + getDefaultConfigClassName() + "\");");
         closeBlock(out);
         printWords(out, "catch", "(Exception e)");
         newBlock(out);
@@ -505,9 +504,8 @@ public abstract class CodeGenerator {
 
     protected void generateRoleMethodGetInverseRole(Role role, Role otherRole, PrintWriter out) {
         // the getInverseRole method
-        String inverseRoleType =
-                makeGenericType("pt.ist.fenixframework.dml.runtime.Role", getTypeFullName(role.getType()),
-                        getTypeFullName(otherRole.getType()));
+        String inverseRoleType = makeGenericType("pt.ist.fenixframework.dml.runtime.Role", getTypeFullName(role.getType()),
+                getTypeFullName(otherRole.getType()));
         printMethod(out, "public", inverseRoleType, "getInverseRole");
         startMethodBody(out);
         print(out, "return ");
@@ -550,9 +548,8 @@ public abstract class CodeGenerator {
         Role otherRole = role.getOtherRole();
         boolean isDirectRelation = role.isDirect();
 
-        String genericType =
-                "<" + getTypeFullName((isDirectRelation ? otherRole : role).getType()) + ","
-                        + getTypeFullName((isDirectRelation ? role : otherRole).getType()) + ">";
+        String genericType = "<" + getTypeFullName((isDirectRelation ? otherRole : role).getType()) + ","
+                + getTypeFullName((isDirectRelation ? role : otherRole).getType()) + ">";
 
         // The relation slot
         String relationSlotName = role.getRelation().getName();
@@ -611,7 +608,8 @@ public abstract class CodeGenerator {
     }
 
     protected String getRoleBaseType(Role role) {
-        return ((role.getName() == null) ? "pt.ist.fenixframework.dml.runtime.RoleEmpty" : ((role.getMultiplicityUpper() == 1) ? getRoleOneBaseType() : getRoleManyBaseType()));
+        return ((role.getName() == null) ? "pt.ist.fenixframework.dml.runtime.RoleEmpty" : ((role
+                .getMultiplicityUpper() == 1) ? getRoleOneBaseType() : getRoleManyBaseType()));
     }
 
     protected String getRoleArgs(Role role) {

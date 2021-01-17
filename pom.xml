@@ -15,8 +15,8 @@
     </description>
 
     <scm>
-        <connection>scm:git:git@github.com:fenix-framework/fenix-framework.git</connection>
-        <developerConnection>scm:git:git@github.com:fenix-framework/fenix-framework.git</developerConnection>
+        <connection>scm:git:git@repo.dsi.tecnico.ulisboa.pt::fenix-framework/fenix-framework.git</connection>
+        <developerConnection>scm:git:git@repo.dsi.tecnico.ulisboa.pt::fenix-framework/fenix-framework</developerConnection>
         <url>http://fenix-framework.github.io/</url>
         <tag>HEAD</tag>
     </scm>
@@ -26,7 +26,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- PLEASE KEEP THIS LIST SORTED ALPHABETICALLY!!! THANKS -->
-        <version.advice>1.9</version.advice>
+        <version.advice>1.11.0</version.advice>
         <version.antlr>2.7.7</version.antlr>
         <version.apache.ant>1.10.7</version.apache.ant>
         <version.asm>7.2</version.asm>
@@ -48,8 +48,8 @@
         <version.jodatime>2.10.5</version.jodatime>
         <version.jpa>1.0.2</version.jpa>
         <version.jta>1.1</version.jta>
-        <version.junit>4.12</version.junit>
-        <version.jvstm-fenix>1.4</version.jvstm-fenix>
+        <version.junit>5.7.0</version.junit>
+        <version.jvstm-fenix>1.4.3</version.jvstm-fenix>
         <version.jvstm-lock-free>2.3</version.jvstm-lock-free>
         <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
         <version.maven.build-helper-plugin>1.7</version.maven.build-helper-plugin>
@@ -108,15 +108,52 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.0</version>
+                <version>2.22.2</version>
                 <configuration>
                     <reuseForks>false</reuseForks>
                     <forkCount>${forkCount}</forkCount>
-                    <argLine>-Xms512m -Xmx512m -Djava.net.preferIPv4Stack=true</argLine>
+                    <argLine>${argLine} -Xms512m -Xmx512m -Djava.net.preferIPv4Stack=true</argLine>
                     <excludes>
                         <exclude>${test.excludes}</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>2.13.0</version>
+                <configuration>
+                    <!--Using the provided code formatting style to format the code -->
+                    <configFile>${maven.multiModuleProjectDirectory}/EclipseFenixFrameworkCodeStyle.xml</configFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <goals>
+                            <goal>validate</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.6</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -307,10 +344,11 @@
                 <version>${version.maven.core}</version>
             </dependency>
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
                 <version>${version.junit}</version>
-                <scope>test</scope>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.jgroups</groupId>
@@ -358,8 +396,8 @@
         </repository>
 
         <repository>
-            <id>advice-repository</id>
-            <url>http://inesc-id-esw.github.com/advice/maven-repo/</url>
+            <id>fenix-framework-releases</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/repository/fenix-framework-releases</url>
         </repository>
 
         <repository>
@@ -426,8 +464,8 @@
         </pluginRepository>
 
         <pluginRepository>
-            <id>advice-repository</id>
-            <url>http://inesc-id-esw.github.com/advice/maven-repo/</url>
+            <id>fenix-framework-releases</id>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/repository/fenix-framework-releases</url>
         </pluginRepository>
 
         <pluginRepository>
@@ -450,7 +488,7 @@
     <distributionManagement>
         <repository>
             <id>fenix-framework-releases</id>
-            <url>https://repo.fenixedu.org/fenixedu-releases</url>
+            <url>https://fenix-ashes.ist.utl.pt/nexus/repository/fenix-framework-releases</url>
         </repository>
     </distributionManagement>
 

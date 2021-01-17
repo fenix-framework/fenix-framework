@@ -153,9 +153,8 @@ public class FenixFramework {
         String currentBackEndName = BackEndId.getBackEndId().getBackEndName();
         logger.debug("CurrentBackEndName = " + currentBackEndName);
         /* then override with the backend-specific config file */
-        props =
-                loadProperties(FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX + currentBackEndName
-                        + FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX, props);
+        props = loadProperties(
+                FENIX_FRAMEWORK_CONFIG_RESOURCE_PREFIX + currentBackEndName + FENIX_FRAMEWORK_CONFIG_RESOURCE_SUFFIX, props);
         logger.debug("Fenix Framework properties after reading backend config file:" + props.toString());
 
         /* finally, enforce any system properties */

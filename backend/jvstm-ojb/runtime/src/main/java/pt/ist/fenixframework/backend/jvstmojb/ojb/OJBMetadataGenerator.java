@@ -81,8 +81,8 @@ public class OJBMetadataGenerator {
         if (domainClass.getSuperclass() == null) {
             return getTableName(domainClass.getName());
         }
-        return domainClass.getSuperclass() instanceof DomainClass ? getExpectedTableName((DomainClass) domainClass
-                .getSuperclass()) : null;
+        return domainClass.getSuperclass() instanceof DomainClass ? getExpectedTableName(
+                (DomainClass) domainClass.getSuperclass()) : null;
     }
 
     private static String getTableName(final String name) {

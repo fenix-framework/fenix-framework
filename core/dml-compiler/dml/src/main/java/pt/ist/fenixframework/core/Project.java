@@ -58,8 +58,8 @@ public class Project {
         this(name, version, dmls, dependencies, Collections.<Project> emptyList());
     }
 
-    public Project(String name, String version, List<DmlFile> dmls, List<Project> dependencies, List<Project> optionalDependencies)
-            throws ProjectException {
+    public Project(String name, String version, List<DmlFile> dmls, List<Project> dependencies,
+            List<Project> optionalDependencies) throws ProjectException {
         this.name = name;
         this.version = version;
         this.dmls = dmls;
@@ -205,8 +205,8 @@ public class Project {
         return fromName(projectName, Thread.currentThread().getContextClassLoader());
     }
 
-    public static Project fromName(String projectName, ClassLoader loader) throws IOException, ProjectException,
-            MalformedURLException {
+    public static Project fromName(String projectName, ClassLoader loader)
+            throws IOException, ProjectException, MalformedURLException {
         Properties properties = new Properties();
         InputStream is = loader.getResourceAsStream(projectName + "/project.properties");
         if (is == null) {
@@ -224,8 +224,8 @@ public class Project {
         return fromProperties(properties, Thread.currentThread().getContextClassLoader());
     }
 
-    public static Project fromProperties(Properties properties, ClassLoader loader) throws MalformedURLException, IOException,
-            ProjectException {
+    public static Project fromProperties(Properties properties, ClassLoader loader)
+            throws MalformedURLException, IOException, ProjectException {
         String name = properties.getProperty(NAME_KEY);
         String version = properties.getProperty(VERSION_KEY, VERSION_UNKNOWN);
         if (!projects.containsKey(name)) {

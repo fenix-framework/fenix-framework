@@ -1,7 +1,7 @@
 package pt.ist.fenixframework.test.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -11,16 +11,14 @@ import org.joda.time.DateTimeFieldType;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.Partial;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+
+import org.junit.jupiter.api.Test;
 
 import pt.ist.fenixframework.util.JsonConverter;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-@RunWith(JUnit4.class)
 public class JsonConverterTest {
 
     @Test

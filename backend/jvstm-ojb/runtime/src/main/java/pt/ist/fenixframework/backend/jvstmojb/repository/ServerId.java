@@ -21,24 +21,21 @@ public class ServerId {
     public static void ensureServerId() {
         try (Connection connection = DbUtil.openConnection()) {
             Statement query = connection.createStatement();
-            ResultSet rs =
-                    query.executeQuery("select ID from FF$SERVER_ID_LEASE"
-                            + " where EXPIRATION is null or EXPIRATION < now() order by EXPIRATION limit 1 FOR UPDATE;");
+            ResultSet rs = query.executeQuery("select ID from FF$SERVER_ID_LEASE"
+                    + " where EXPIRATION is null or EXPIRATION < now() order by EXPIRATION limit 1 FOR UPDATE;");
 
             String updateStr;
             // leases not refreshed since leaseLimit will be considered available
             if (rs.next()) {
                 serverId = rs.getInt("ID");
-                updateStr =
-                        "update FF$SERVER_ID_LEASE set EXPIRATION = now() + interval " + DbUtil.getServerIdLeaseTime()
-                                + " minute, SERVER = '" + Util.getServerName() + "' where ID = " + serverId;
+                updateStr = "update FF$SERVER_ID_LEASE set EXPIRATION = now() + interval " + DbUtil.getServerIdLeaseTime()
+                        + " minute, SERVER = '" + Util.getServerName() + "' where ID = " + serverId;
             } else { // No available record, search for Max
                 try (ResultSet maxRs = query.executeQuery("select max(ID) from FF$SERVER_ID_LEASE")) {
                     maxRs.first();
                     serverId = maxRs.getInt(1) + 1;
-                    updateStr =
-                            "INSERT INTO FF$SERVER_ID_LEASE (ID, SERVER, EXPIRATION) VALUES (" + serverId + ", '"
-                                    + Util.getServerName() + "', now() + interval " + DbUtil.getServerIdLeaseTime() + " minute)";
+                    updateStr = "INSERT INTO FF$SERVER_ID_LEASE (ID, SERVER, EXPIRATION) VALUES (" + serverId + ", '"
+                            + Util.getServerName() + "', now() + interval " + DbUtil.getServerIdLeaseTime() + " minute)";
                 }
             }
 
@@ -95,10 +92,8 @@ public class ServerId {
                      */
                     if (validUntil.isBeforeNow()) {
                         serverId = -1;
-                        logger.error(
-                                "Server ID lease has expired! Was valid until {}. Object creation is not possible. "
-                                        + "Shutting down the system",
-                                validUntil);
+                        logger.error("Server ID lease has expired! Was valid until {}. Object creation is not possible. "
+                                + "Shutting down the system", validUntil);
                         System.exit(-1);
                     }
 
@@ -116,8 +111,8 @@ public class ServerId {
         private void renewLease() throws SQLException {
             logger.info("Renewing server id lease.");
             try (Connection connection = DbUtil.openConnection(); Statement stmt = connection.createStatement()) {
-                stmt.executeUpdate("update FF$SERVER_ID_LEASE set EXPIRATION = now() + interval "
-				        + DbUtil.getServerIdLeaseTime() + " minute where ID = " + serverId);
+                stmt.executeUpdate("update FF$SERVER_ID_LEASE set EXPIRATION = now() + interval " + DbUtil.getServerIdLeaseTime()
+                        + " minute where ID = " + serverId);
                 connection.commit();
             }
         }

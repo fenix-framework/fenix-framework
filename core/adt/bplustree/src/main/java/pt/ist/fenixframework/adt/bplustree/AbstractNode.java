@@ -23,7 +23,9 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
     /** Removes the element with the given key */
     abstract AbstractNode remove(Comparable key);
 
-    /** Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key. */
+    /**
+     * Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key.
+     */
     abstract T get(Comparable key);
 
     /**
@@ -102,13 +104,13 @@ public abstract class AbstractNode<T extends Serializable> extends AbstractNode_
      * don't deal well with byte[] yet.
      */
 
-    public static Serializable /*byte[]*/externalizeTreeMap(TreeMap treeMap) {
+    public static Serializable /*byte[]*/ externalizeTreeMap(TreeMap treeMap) {
         // return Externalization.externalizeObject(new TreeMapExternalization(treeMap));
         return new TreeMapExternalization(treeMap);
         // return treeMap;
     }
 
-    public static TreeMap internalizeTreeMap(Serializable/*byte[]*/externalizedTreeMap) {
+    public static TreeMap internalizeTreeMap(Serializable/*byte[]*/ externalizedTreeMap) {
         // TreeMapExternalization treeMapExternalization = Externalization.internalizeObject(externalizedTreeMap);
         return ((TreeMapExternalization) externalizedTreeMap).toTreeMap();
         // return (TreeMap)externalizedTreeMap;

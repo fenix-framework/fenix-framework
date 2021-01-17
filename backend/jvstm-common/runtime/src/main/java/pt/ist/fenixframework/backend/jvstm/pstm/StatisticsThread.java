@@ -44,10 +44,9 @@ public class StatisticsThread extends Thread {
     @Atomic(mode = TxMode.WRITE)
     private void doAtomicReporting(final TransactionStatistics.Report stats) {
         TransactionStatisticsEntry entry;
-        entry =
-                new TransactionStatisticsEntry(server, numReport, stats.numReads, stats.numWrites, stats.numAborts,
-                        stats.numConflicts, SECONDS_BETWEEN_REPORTS, new DateTime(), stats.readOnlyReads, stats.readWriteReads,
-                        stats.readWriteWrites);
+        entry = new TransactionStatisticsEntry(server, numReport, stats.numReads, stats.numWrites, stats.numAborts,
+                stats.numConflicts, SECONDS_BETWEEN_REPORTS, new DateTime(), stats.readOnlyReads, stats.readWriteReads,
+                stats.readWriteWrites);
         FenixFrameworkData ffData = FenixFramework.getDomainRoot().getFenixFrameworkData();
         ffData.addFFTxStatsEntry(entry);
     }

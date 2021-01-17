@@ -130,14 +130,14 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
     /* The validation for commit-only transactions follows the usual protocol:
     (1) helpCommitAll, (2) snapshotValidation, and (3) validateAndEnqueue.  The
     difference is that now others may also be helping with the validation. So:
-
+    
     - initially, check if validation already completed.  This is also useful to
     avoid starting the validation when there is only one (already validated)
     entry in the commit requests queue, and we're just waiting until more requests
     arrive.  Actually, I think that doing this would skip enqueuing if needed,
     so we should be doing the normal validation and just skipping when we really
     see them done.  In short, if already valid just move along to enqueueing.
-
+    
     - snapshot validation is a helped phase (split into buckets).  if it fails
     the request is marked as failed.  however, care must be taken to check that
     if a read vbox already contains a more recent entry, such entry may belong
@@ -145,7 +145,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
     case, the whole commit for this transaction is done! :-)  As usual, a more
     recent write by another to a VBox that was read, will cause validation to
     fail.
-
+    
     - validateCommitAndEnqueue only needs to be attempted once.  Given that
     snapshotValidation passed, then if enqueue fails it's because someone else
     did it already.  Moving along...
@@ -254,9 +254,9 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
                 could have been loaded and the version we're seeing is >
                 myReadVersion but lower than my prospective commit version,
                 which means I'm invalid.
-
+                
                 (true for local tx only?!)
-
+                
                 Can validation NOT have finished in this node, and what we
                 see written is a box that another node already wrote.  No,
                 because our reload only loads versions that may be necessary
@@ -268,7 +268,7 @@ public abstract class CommitOnlyTransaction extends TopLevelTransaction {
                 processed in this node, which ultimately implies that THIS
                 commit request needs to have its validation status already
                 set (after all, it was ahead in the queue!)
-
+                
                 So, if this commit request's validation state is unset after
                 we already have seen a body with a version > myReadVersion,
                 this commit request must be invalid.

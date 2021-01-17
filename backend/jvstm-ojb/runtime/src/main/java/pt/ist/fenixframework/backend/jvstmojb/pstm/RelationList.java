@@ -12,8 +12,8 @@ import pt.ist.fenixframework.backend.jvstmojb.ojb.OJBFunctionalSetWrapper;
 import pt.ist.fenixframework.dml.runtime.Relation;
 import pt.ist.fenixframework.dml.runtime.RelationBaseSet;
 
-public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends AbstractSet<E2> implements
-        VersionedSubject, RelationBaseSet<E2> {
+public class RelationList<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends AbstractSet<E2>
+        implements VersionedSubject, RelationBaseSet<E2> {
     private final E1 listHolder;
     private final Relation<E1, E2> relation;
     private final String attributeName;

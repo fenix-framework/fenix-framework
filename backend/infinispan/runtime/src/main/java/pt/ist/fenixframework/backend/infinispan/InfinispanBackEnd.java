@@ -135,8 +135,8 @@ public class InfinispanBackEnd implements BackEnd {
      * generated in the Domain Objects.
      */
     public final void cachePut(String key, Object value) {
-        domainCache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES)
-                .put(key, (value != null) ? value : Externalization.NULL_OBJECT);
+        domainCache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES).put(key,
+                (value != null) ? value : Externalization.NULL_OBJECT);
     }
 
     /**

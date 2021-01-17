@@ -14,7 +14,9 @@ public abstract class AbstractNodeArray<T extends Serializable> extends Abstract
     /** Removes the element with the given key */
     abstract AbstractNodeArray remove(Comparable key);
 
-    /** Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key. */
+    /**
+     * Returns the value to which the specified key is mapped, or <code>null</code> if this map contains no mapping for the key.
+     */
     abstract T get(Comparable key);
 
     /**

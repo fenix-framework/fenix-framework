@@ -19,7 +19,8 @@ import javax.lang.model.type.TypeKind;
  * throws an <code>Error</code> during the compilation.
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-@SupportedAnnotationTypes({ "pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate", "jvstm.cps.ConsistencyPredicate" })
+@SupportedAnnotationTypes({ "pt.ist.fenixframework.consistencyPredicates.ConsistencyPredicate",
+        "jvstm.cps.ConsistencyPredicate" })
 public class ConsistencyPredicateAnnotationProcessor extends AbstractProcessor {
 
     @Override
@@ -35,8 +36,8 @@ public class ConsistencyPredicateAnnotationProcessor extends AbstractProcessor {
                         + executableMethod.getSimpleName() + "()");
             }
             if (!executableMethod.getReturnType().getKind().equals(TypeKind.BOOLEAN)) {
-                throw new Error("Consistency Predicates must return a primitive boolean value - "
-                        + classSymbol.getQualifiedName() + "." + executableMethod.getSimpleName() + "()");
+                throw new Error("Consistency Predicates must return a primitive boolean value - " + classSymbol.getQualifiedName()
+                        + "." + executableMethod.getSimpleName() + "()");
             }
             if (!executableMethod.getModifiers().contains(Modifier.PUBLIC)
                     && !executableMethod.getModifiers().contains(Modifier.PRIVATE)

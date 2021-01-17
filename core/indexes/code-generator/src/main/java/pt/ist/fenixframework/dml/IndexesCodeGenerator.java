@@ -33,9 +33,8 @@ public class IndexesCodeGenerator extends TxIntrospectorCodeGenerator {
             onNewline(out);
             Slot indexedSlot = getIndexedSlot(role);
             String keyField = role.getIndexProperty();
-            println(out,
-                    generateMapKeyFunction(role.getName(), role.getType().getFullName(), indexedSlot.getSlotType().getFullname(),
-                            keyField, role.getIndexCardinality() == Role.MULTIPLICITY_MANY));
+            println(out, generateMapKeyFunction(role.getName(), role.getType().getFullName(),
+                    indexedSlot.getSlotType().getFullname(), keyField, role.getIndexCardinality() == Role.MULTIPLICITY_MANY));
             onNewline(out);
         } else {
             super.generateStaticKeyFunctionForRole(role, out);

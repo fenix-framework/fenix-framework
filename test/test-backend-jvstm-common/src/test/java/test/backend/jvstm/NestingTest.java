@@ -3,9 +3,12 @@ package test.backend.jvstm;
 import javax.transaction.NotSupportedException;
 import javax.transaction.SystemException;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +26,7 @@ public class NestingTest {
 
     Counter counter;
 
-    @Before
+    @BeforeEach
     @Atomic(mode = TxMode.WRITE)
     public void createCounter() {
         logger.info("Creating counter");
@@ -40,7 +43,7 @@ public class NestingTest {
     public void testNestedIncrementBeforeOuterIncrement() {
         incTopLevelAfterNestedInc(this.counter);
 
-        Assert.assertEquals(2, getCounterValue(this.counter));
+        assertEquals(2, getCounterValue(this.counter));
     }
 
     @Atomic(mode = TxMode.SPECULATIVE_READ)
@@ -63,11 +66,11 @@ public class NestingTest {
         try {
             topLevelReadOnlyInc(this.counter);
         } catch (WriteOnReadError e) {
-            Assert.assertEquals(0, getCounterValue(this.counter));
+            assertEquals(0, getCounterValue(this.counter));
             return;
         }
 
-        Assert.fail("Expected a WriteOnReadError");
+        fail("Expected a WriteOnReadError");
     }
 
     @Atomic(mode = TxMode.READ)
@@ -86,18 +89,18 @@ public class NestingTest {
         try {
             topLevelReadOnlyIncNested(this.counter);
         } catch (WriteOnReadError e) {
-            Assert.assertEquals(0, getCounterValue(this.counter));
+            assertEquals(0, getCounterValue(this.counter));
             return;
         }
 
-        Assert.fail("Expected a WriteOnReadError");
+        fail("Expected a WriteOnReadError");
     }
 
     @Atomic(mode = TxMode.READ)
     private void topLevelReadOnlyIncNested(Counter c) {
         // this inc should not be allowed
         incNested(c);
-        Assert.fail("expected an exception before this point");
+        fail("expected an exception before this point");
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -105,7 +108,7 @@ public class NestingTest {
     @Test
     public void testNestedFailureIsHidden() throws NotSupportedException, SystemException {
         topLevelIncCallsNestedIncThatRollsback(this.counter);
-        Assert.assertEquals(1, getCounterValue(this.counter));
+        assertEquals(1, getCounterValue(this.counter));
     }
 
     @Atomic(mode = TxMode.WRITE)
@@ -114,10 +117,10 @@ public class NestingTest {
         try {
             incAndFail(c);
         } catch (MyException e) {
-            Assert.assertTrue("Unexpected exception: " + e.getClass().getCanonicalName(), e instanceof MyException);
+            assertTrue(e instanceof MyException, "Unexpected exception: " + e.getClass().getCanonicalName());
             return;
         }
-        Assert.fail("Expected an exception from nested transaction");
+        fail("Expected an exception from nested transaction");
     }
 
     @Atomic(flattenNested = false)
@@ -131,7 +134,7 @@ public class NestingTest {
     @Test
     public void testFlattenNestedFailureIsNotHidden() throws NotSupportedException, SystemException {
         topLevelIncCallsFlattenNestedIncThatRollsback(this.counter);
-        Assert.assertEquals(2, getCounterValue(this.counter));
+        assertEquals(2, getCounterValue(this.counter));
     }
 
     @Atomic(mode = TxMode.WRITE)
@@ -140,10 +143,10 @@ public class NestingTest {
         try {
             flattenIncAndFail(c);
         } catch (MyException e) {
-            Assert.assertTrue("Unexpected exception: " + e.getClass().getCanonicalName(), e instanceof MyException);
+            assertTrue(e instanceof MyException, "Unexpected exception: " + e.getClass().getCanonicalName());
             return;
         }
-        Assert.fail("Expected an exception from flatten nested transaction");
+        fail("Expected an exception from flatten nested transaction");
     }
 
     @Atomic(flattenNested = true)

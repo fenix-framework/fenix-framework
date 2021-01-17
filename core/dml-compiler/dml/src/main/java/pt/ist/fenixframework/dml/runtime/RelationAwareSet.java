@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.core.AbstractDomainObject;
 
-public class RelationAwareSet<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends AbstractSet<E2> implements
-        Set<E2>, RelationBaseSet<E2> {
+public class RelationAwareSet<E1 extends AbstractDomainObject, E2 extends AbstractDomainObject> extends AbstractSet<E2>
+        implements Set<E2>, RelationBaseSet<E2> {
 
     private static final Logger logger = LoggerFactory.getLogger(RelationAwareSet.class);
 
