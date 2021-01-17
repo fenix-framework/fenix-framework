@@ -27,11 +27,11 @@ Test:
   stage: Test
   script:
     - mvn -s .m2/settings.xml verify
-  artifacts:
-    when: always
-    paths:
-      - target/site/jacoco
-    expire_in: 1 day
+#  artifacts:
+#    when: always
+#    paths:
+#      - target/site/jacoco
+#    expire_in: 1 day
 
 Release:
   stage: Release
@@ -46,7 +46,7 @@ Release:
     - mvn -s .m2/settings.xml --batch-mode -Dtag=$RELEASE release:prepare -DreleaseVersion=$RELEASE -DdevelopmentVersion=DEV-SNAPSHOT
   only:
     refs:
-      - jvstm-fenix
+      - master
     variables:
       - $RELEASE
 
