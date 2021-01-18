@@ -5,7 +5,7 @@
         <groupId>pt.ist</groupId>
         <artifactId>fenix-framework-backend-jvstm-common</artifactId>
         <!-- Perhaps in Maven 3.1 the version may be ommitted -->
-        <version>2.9.1</version>
+        <version>DEV-SNAPSHOT</version>
     </parent>
 
     <artifactId>fenix-framework-backend-jvstm-common-code-generator</artifactId>
