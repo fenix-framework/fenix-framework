@@ -319,18 +319,6 @@ public abstract class Config {
     protected abstract void init();
 
     /**
-     * Utility method to wait for the number of expected initial nodes to be up.
-     */
-    public void waitForExpectedInitialNodes(String barrierName) throws Exception {
-        logger.debug("expectedInitialNodes=" + expectedInitialNodes);
-        if (expectedInitialNodes > 1) {
-            logger.debug("Waiting until " + expectedInitialNodes + " nodes are up");
-            FenixFramework.barrier(barrierName, expectedInitialNodes);
-            logger.debug("All nodes are up.");
-        }
-    }
-
-    /**
      * Get the current {@link BackEnd} in use.
      */
     public abstract BackEnd getBackEnd();

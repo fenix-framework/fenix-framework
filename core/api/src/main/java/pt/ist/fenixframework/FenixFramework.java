@@ -14,7 +14,6 @@ import pt.ist.fenixframework.core.Project;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 import pt.ist.fenixframework.data.InstallationData;
 import pt.ist.fenixframework.dml.DomainModel;
-import pt.ist.fenixframework.util.NodeBarrier;
 
 /**
  * <p>
@@ -125,8 +124,6 @@ public class FenixFramework {
      * can only be invoked after the framework is initialized.
      */
     private static DomainModel domainModel = null;
-
-    private static NodeBarrier barrier;
 
     static {
         logger.trace("Static initializer block for FenixFramework class [BEGIN]");
@@ -446,24 +443,10 @@ public class FenixFramework {
         logger.info("Shutting down...");
         synchronized (INIT_LOCK) {
             initialized = false;
-            if (barrier != null) {
-                barrier.shutdown();
-            }
             getConfig().shutdown();
             SharedIdentityMap.getCache().shutdown();
         }
         logger.info("Shutdown complete.");
-    }
-
-    private static synchronized NodeBarrier getNodeBarrier() throws Exception {
-        if (barrier == null) {
-            barrier = new NodeBarrier(getConfig().getJGroupsConfigFile());
-        }
-        return barrier;
-    }
-
-    public static void barrier(String barrierName, int expectedMembers) throws Exception {
-        getNodeBarrier().blockUntil(barrierName, expectedMembers);
     }
 
     /**
