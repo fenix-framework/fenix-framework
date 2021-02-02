@@ -35,22 +35,11 @@
         <version.commons.lang>2.6</version.commons.lang>
         <version.com.google.code.gson>2.8.6</version.com.google.code.gson>
         <version.dap-framework>2.0</version.dap-framework>
-        <version.hazelcast.api>3.12.4</version.hazelcast.api>
-        <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
-        <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
-        <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
         <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
-        <version.hibernate>4.0.1.Final</version.hibernate>
-        <version.infinispan>5.2.1.Final</version.infinispan>
-        <version.jboss.logging>3.4.1.Final</version.jboss.logging>
-        <version.jbossjta>4.16.6.Final</version.jbossjta>
-        <version.jgroups>3.6.19.Final</version.jgroups>
         <version.jodatime>2.10.5</version.jodatime>
-        <version.jpa>1.0.2</version.jpa>
         <version.jta>1.1</version.jta>
         <version.junit>5.7.0</version.junit>
         <version.jvstm-fenix>1.4.3</version.jvstm-fenix>
-        <version.jvstm-lock-free>2.3</version.jvstm-lock-free>
         <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
         <version.maven.build-helper-plugin>1.7</version.maven.build-helper-plugin>
         <version.maven.core>3.6.3</version.maven.core>
@@ -63,7 +52,6 @@
         <version.maven.umlgraph-doclet-plugin>5.1</version.maven.umlgraph-doclet-plugin>
         <version.mysql.connector>8.0.21</version.mysql.connector>
         <version.ojb>1.0.0-escaped</version.ojb>
-        <version.rhq.helpers>3.0.4</version.rhq.helpers>
         <version.slf4j.api>1.7.29</version.slf4j.api>
 
         <!-- Used in surefire plugin -->
@@ -210,7 +198,6 @@
         <module>maven</module>
         <module>core</module>
         <module>backend</module>
-        <module>test</module>
     </modules>
 
     <dependencyManagement>
@@ -236,11 +223,6 @@
                 <version>${version.jvstm-fenix}</version>
             </dependency>
             <dependency>
-                <groupId>jvstm</groupId>
-                <artifactId>jvstm</artifactId>
-                <version>${version.jvstm-lock-free}</version>
-            </dependency>
-            <dependency>
                 <groupId>pt.ist</groupId>
                 <artifactId>db-ojb</artifactId>
                 <version>${version.ojb}</version>
@@ -256,31 +238,6 @@
                 <version>${version.commons.codec}</version>
             </dependency>
             <dependency>
-                <groupId>javax.persistence</groupId>
-                <artifactId>persistence-api</artifactId>
-                <version>${version.jpa}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-entitymanager</artifactId>
-                <version>${version.hibernate}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.infinispan</groupId>
-                <artifactId>infinispan-core</artifactId>
-                <version>${version.infinispan}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hibernate.ogm</groupId>
-                <artifactId>hibernate-ogm-core</artifactId>
-                <version>${version.hibernate.ogm.core}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hibernate.ogm</groupId>
-                <artifactId>hibernate-ogm-infinispan</artifactId>
-                <version>${version.hibernate.ogm.infinispan}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-search-engine</artifactId>
                 <version>${version.hibernate.search}</version>
@@ -289,27 +246,6 @@
                 <groupId>javax.transaction</groupId>
                 <artifactId>jta</artifactId>
                 <version>${version.jta}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.rhq.helpers</groupId>
-                <artifactId>rhq-pluginAnnotations</artifactId>
-                <version>${version.rhq.helpers}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.jbossts</groupId>
-                <artifactId>jbossjta</artifactId>
-                <version>${version.jbossjta}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.jboss.logging</groupId>
-                        <artifactId>jboss-logging-spi</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.logging</groupId>
-                <artifactId>jboss-logging</artifactId>
-                <version>${version.jboss.logging}</version>
             </dependency>
             <dependency>
                 <groupId>commons-lang</groupId>
@@ -350,11 +286,6 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>org.jgroups</groupId>
-                <artifactId>jgroups</artifactId>
-                <version>${version.jgroups}</version>
-            </dependency>
-            <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${version.mysql.connector}</version>
@@ -368,11 +299,6 @@
                 <groupId>pt.ist.esw</groupId>
                 <artifactId>advice-runtime</artifactId>
                 <version>${version.advice}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast</artifactId>
-                <version>${version.hazelcast.api}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
@@ -393,66 +319,9 @@
             <id>fenixedu-maven-repository</id>
             <url>https://repo.fenixedu.org/fenixedu-maven-repository</url>
         </repository>
-
         <repository>
             <id>fenix-framework-releases</id>
             <url>https://fenix-ashes.ist.utl.pt/nexus/repository/fenix-framework-releases</url>
-        </repository>
-
-        <repository>
-            <id>jvstm-lock-free-repository</id>
-            <url>http://inesc-id-esw.github.com/jvstm/maven-repo/</url>
-        </repository>
-
-        <repository>
-            <id>jboss-public-repository-group</id>
-            <name>JBoss Public Maven Repository Group</name>
-            <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>guice-maven</id>
-            <name>guice maven</name>
-            <url>http://guice-maven.googlecode.com/svn/trunk</url>
-        </repository>
-
-        <repository>
-            <id>jboss-deprecated-repository</id>
-            <name>JBoss Deprecated Maven Repository</name>
-            <url>https://repository.jboss.org/nexus/content/repositories/deprecated/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>jboss-thirdparty-releases</id>
-            <name>JBoss Third Party Maven Repository</name>
-            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
         </repository>
     </repositories>
 
@@ -465,21 +334,6 @@
         <pluginRepository>
             <id>fenix-framework-releases</id>
             <url>https://fenix-ashes.ist.utl.pt/nexus/repository/fenix-framework-releases</url>
-        </pluginRepository>
-
-        <pluginRepository>
-            <id>jboss-public-repository-group</id>
-            <name>JBoss Public Maven Repository Group</name>
-            <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
         </pluginRepository>
     </pluginRepositories>
 
