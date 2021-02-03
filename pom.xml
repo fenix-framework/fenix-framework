@@ -28,7 +28,7 @@
         <!-- PLEASE KEEP THIS LIST SORTED ALPHABETICALLY!!! THANKS -->
         <version.advice>1.9</version.advice>
         <version.antlr>2.7.7</version.antlr>
-        <version.apache.ant>1.10.7</version.apache.ant>
+        <version.apache.ant>1.10.9</version.apache.ant>
         <version.asm>7.2</version.asm>
         <version.commons.codec>1.13</version.commons.codec>
         <version.commons.io>2.6</version.commons.io>
