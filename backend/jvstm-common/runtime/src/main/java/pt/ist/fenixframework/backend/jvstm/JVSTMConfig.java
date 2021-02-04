@@ -9,7 +9,6 @@ package pt.ist.fenixframework.backend.jvstm;
 
 import pt.ist.fenixframework.Config;
 import pt.ist.fenixframework.ConfigError;
-import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
 
 /**
  * This is the JVSTM configuration manager common for all JVSTM-based backends.
@@ -17,7 +16,7 @@ import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
  * @see Config
  * 
  */
-public class JVSTMConfig extends HibernateSearchConfig {
+public class JVSTMConfig extends Config {
 
     private static final String FAILED_INIT = "Failed to initialize Backend";
 
@@ -46,8 +45,6 @@ public class JVSTMConfig extends HibernateSearchConfig {
         } catch (Exception e) {
             throw new ConfigError(FAILED_INIT, e);
         }
-
-        super.init();
     }
 
     @Override

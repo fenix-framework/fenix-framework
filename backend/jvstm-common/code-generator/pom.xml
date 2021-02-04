@@ -58,11 +58,6 @@
             <artifactId>fenix-framework-backend-jvstm-common-runtime</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-indexes-code-generator</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
 </project>

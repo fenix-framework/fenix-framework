@@ -2,9 +2,9 @@ package pt.ist.fenixframework.backend.jvstmmem;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.BackEnd;
-import pt.ist.fenixframework.hibernatesearch.HibernateSearchConfig;
+import pt.ist.fenixframework.Config;
 
-public class JVSTMMemConfig extends HibernateSearchConfig {
+public class JVSTMMemConfig extends Config {
     protected final BackEnd backEnd;
 
     public JVSTMMemConfig() {
@@ -14,7 +14,6 @@ public class JVSTMMemConfig extends HibernateSearchConfig {
     @Override
     protected void init() {
         DomainClassInfo.initializeClassInfos(FenixFramework.getDomainModel(), 0);
-        super.init();
     }
 
     @Override

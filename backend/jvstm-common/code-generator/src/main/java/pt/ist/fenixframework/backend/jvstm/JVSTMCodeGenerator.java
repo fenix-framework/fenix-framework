@@ -11,11 +11,11 @@ import java.io.PrintWriter;
 
 import pt.ist.fenixframework.dml.CompilerArgs;
 import pt.ist.fenixframework.dml.DomainModel;
-import pt.ist.fenixframework.dml.IndexesCodeGenerator;
+import pt.ist.fenixframework.dml.CodeGenerator;
 import pt.ist.fenixframework.dml.Role;
 import pt.ist.fenixframework.dml.Slot;
 
-public class JVSTMCodeGenerator extends IndexesCodeGenerator {
+public class JVSTMCodeGenerator extends CodeGenerator {
 
     public JVSTMCodeGenerator(CompilerArgs compArgs, DomainModel domainModel) {
         super(compArgs, domainModel);
@@ -269,7 +269,7 @@ public class JVSTMCodeGenerator extends IndexesCodeGenerator {
         newline(out);
         printFinalMethod(out, "public", getSetTypeDeclarationFor(role), methodName);
         startMethodBody(out);
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
+//        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
         generateRoleStarGetterBody(role.getName(), getTypeFullName(role.getType()), out);
         endMethodBody(out);
     }
