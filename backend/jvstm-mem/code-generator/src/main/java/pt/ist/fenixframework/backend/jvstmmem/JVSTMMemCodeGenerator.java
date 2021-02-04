@@ -110,7 +110,7 @@ public class JVSTMMemCodeGenerator extends JVSTMCodeGenerator {
         newline(out);
         printFinalMethod(out, "public", typeName, methodName);
         startMethodBody(out);
-        generateGetterDAPStatement(dC, name, typeName, out);//DAP read stats update statement
+//        generateGetterDAPStatement(dC, name, typeName, out);//DAP read stats update statement
         printWords(out, "return", getSlotExpression(name) + "." + accessToVBox + "();");
         endMethodBody(out);
     }
@@ -120,8 +120,8 @@ public class JVSTMMemCodeGenerator extends JVSTMCodeGenerator {
         printFinalMethod(out, "public", "void", "set" + capitalize(slot.getName()), makeArg(slot.getTypeName(), slot.getName()));
         startMethodBody(out);
 
-        generateSetterDAPStatement(dC, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
-        generateSetterTxIntrospectorStatement(slot, out); // TxIntrospector
+//        generateSetterDAPStatement(dC, slot.getName(), slot.getTypeName(), out);//DAP write stats update statement
+//        generateSetterTxIntrospectorStatement(slot, out); // TxIntrospector
 
         printWords(out, getSlotExpression(slot.getName()) + ".put(" + slot.getName() + ");");
         endMethodBody(out);
@@ -134,7 +134,7 @@ public class JVSTMMemCodeGenerator extends JVSTMCodeGenerator {
         newline(out);
         printFinalMethod(out, "public", getSetTypeDeclarationFor(role), methodName);
         startMethodBody(out);
-        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
+//        generateGetterDAPStatement(dC, role.getName(), role.getType().getFullName(), out);//DAP read stats update statement
         print(out, "return new ");
         print(out, getRelationAwareTypeFor(role));
         print(out, "((");
@@ -158,7 +158,7 @@ public class JVSTMMemCodeGenerator extends JVSTMCodeGenerator {
     @Override
     protected void generateGetterBody(String slotName, String typeName, PrintWriter out) {
         // call the DAP CodeGen which is overridden in this method
-        generateGetterDAPStatement(dC, slotName, typeName, out);
+//        generateGetterDAPStatement(dC, slotName, typeName, out);
         printWords(out, "return", getSlotExpression(slotName) + ".get();");
     }
 

@@ -18,10 +18,6 @@
         <module>adt</module>
         <module>api</module>
         <module>consistency-predicates</module>
-        <module>data-access-patterns</module>
         <module>dml-compiler</module>
-        <module>hibernate-search</module>
-        <module>indexes</module>
-        <module>txintrospector</module>
     </modules>
 </project>

@@ -34,8 +34,6 @@
         <version.commons.io>2.6</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
         <version.com.google.code.gson>2.8.6</version.com.google.code.gson>
-        <version.dap-framework>2.0</version.dap-framework>
-        <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
         <version.jodatime>2.10.5</version.jodatime>
         <version.jta>1.1</version.jta>
         <version.junit>5.7.0</version.junit>
@@ -203,11 +201,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>pt.ist</groupId>
-                <artifactId>dap-framework</artifactId>
-                <version>${version.dap-framework}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${version.slf4j.api}</version>
@@ -236,11 +229,6 @@
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${version.commons.codec}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-search-engine</artifactId>
-                <version>${version.hibernate.search}</version>
             </dependency>
             <dependency>
                 <groupId>javax.transaction</groupId>
