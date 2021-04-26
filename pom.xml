@@ -31,7 +31,7 @@
         <version.apache.ant>1.10.7</version.apache.ant>
         <version.asm>7.2</version.asm>
         <version.commons.codec>1.13</version.commons.codec>
-        <version.commons.io>2.6</version.commons.io>
+        <version.commons.io>2.7</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
         <version.com.google.code.gson>2.8.6</version.com.google.code.gson>
         <version.dap-framework>2.0</version.dap-framework>
