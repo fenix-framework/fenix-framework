@@ -196,6 +196,7 @@
         <module>maven</module>
         <module>core</module>
         <module>backend</module>
+        <module>aggregate-tests</module>
     </modules>
 
     <dependencyManagement>

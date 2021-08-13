@@ -27,11 +27,12 @@ Test:
   stage: Test
   script:
     - mvn -s .m2/settings.xml verify
-#  artifacts:
-#    when: always
-#    paths:
-#      - target/site/jacoco
-#    expire_in: 1 day
+    - echo "Test Results" && grep -o "<tfoot>.*</tfoot>" aggregate-tests/target/site/jacoco-aggregate/index.html
+  artifacts:
+    when: always
+    paths:
+      - aggregate-tests/target/site/jacoco-aggregate
+    expire_in: 1 day
 
 Release:
   stage: Release
