@@ -35,7 +35,7 @@
         <version.commons.lang>2.6</version.commons.lang>
         <version.com.google.code.gson>2.8.6</version.com.google.code.gson>
         <version.dap-framework>2.0</version.dap-framework>
-        <version.hazelcast.api>3.12.4</version.hazelcast.api>
+        <version.hazelcast.api>4.0.5</version.hazelcast.api>
         <version.hibernate.ogm.core>${version.hibernate.ogm}</version.hibernate.ogm.core>
         <version.hibernate.ogm.infinispan>${version.hibernate.ogm}</version.hibernate.ogm.infinispan>
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
