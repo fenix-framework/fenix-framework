@@ -41,7 +41,7 @@
         <version.hibernate.ogm>4.0.0.Beta1</version.hibernate.ogm>
         <version.hibernate.search>4.2.0.Beta2</version.hibernate.search>
         <version.hibernate>4.0.1.Final</version.hibernate>
-        <version.infinispan>5.2.1.Final</version.infinispan>
+        <version.infinispan>11.0.6.Final</version.infinispan>
         <version.jboss.logging>3.4.1.Final</version.jboss.logging>
         <version.jbossjta>4.16.6.Final</version.jbossjta>
         <version.jgroups>3.6.19.Final</version.jgroups>
