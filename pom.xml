@@ -44,7 +44,7 @@
         <version.infinispan>5.2.1.Final</version.infinispan>
         <version.jboss.logging>3.4.1.Final</version.jboss.logging>
         <version.jbossjta>4.16.6.Final</version.jbossjta>
-        <version.jgroups>3.6.19.Final</version.jgroups>
+        <version.jgroups>4.0.0.Final</version.jgroups>
         <version.jodatime>2.10.5</version.jodatime>
         <version.jpa>1.0.2</version.jpa>
         <version.jta>1.1</version.jta>
