@@ -1,4 +1,4 @@
-image: dockerhub.dsi.tecnico.ulisboa.pt/fenix-framework/docker/java-fenix-framework:jdk8
+image: dockerhub.dsi.tecnico.ulisboa.pt/fenix-framework/docker/java-fenix-framework:openjdk17
 
 cache:
   paths:

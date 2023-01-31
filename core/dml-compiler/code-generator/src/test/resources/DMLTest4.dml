@@ -1,0 +1,31 @@
+package foo;
+
+valueType java.util.Locale as Locale {
+	externalizeWith {
+		String toLanguageTag();
+		JsonElement toJson();
+	}
+	internalizeWith forLanguageTag();
+}
+
+enum java.lang.Object as Objects;
+
+protected class Test {
+    Locale locale;
+}
+
+public class Test2 {
+    Objects o;
+}
+
+relation barTestExtendsbarTest {
+    Test playsRole footest {
+        multiplicity 0..1;
+        indexed by Locale;
+    }
+
+    Test2 playsRole bartest {
+        multiplicity 0..0;
+        indexed by o;
+    }
+}

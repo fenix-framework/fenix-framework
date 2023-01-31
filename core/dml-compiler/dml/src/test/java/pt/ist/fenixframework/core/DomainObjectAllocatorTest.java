@@ -51,23 +51,39 @@ public class DomainObjectAllocatorTest {
     }
 
     @Test
-    public void shouldCreateAllocator() {
+    public void createAllocator() {
         new DomainObjectAllocator(MyADO.class);
     }
 
     @Test
-    public void shouldThrowErrorOnMissingConstructor() {
+    public void createAllocatorWithObjectNotExtendsOid() {
         assertThrows(Error.class, () -> {
             new DomainObjectAllocator(Object.class);
         });
     }
 
     @Test
-    public void shouldAllocateObject() {
+    public void allocateObjectAbstractDO() {
+        DomainObjectAllocator allocator = new DomainObjectAllocator(AbstractDO.class);
+        assertThrows(RuntimeException.class, () -> {
+            allocator.allocateObject(AbstractDO.class, "xpto");
+        });
+    }
+
+    @Test
+    public void allocateObjectMyADO() {
         DomainObjectAllocator allocator = new DomainObjectAllocator(MyADO.class);
-        AbstractDomainObject object = allocator.allocateObject(MyDO.class, "xpto");
-        assertEquals(object.getClass(), MyDO.class);
+        AbstractDomainObject object = allocator.allocateObject(MyADO.class, "xpto");
+        assertEquals(object.getClass(), MyADO.class);
         assertEquals(object.getExternalId(), "xpto");
+    }
+
+    @Test
+    public void allocateObjectMyADOWithNullClass() {
+        DomainObjectAllocator allocator = new DomainObjectAllocator(MyADO.class);
+        assertThrows(RuntimeException.class, () -> {
+            allocator.allocateObject(null, "xpto");
+        });
     }
 
     private static final int MAX = 100_000_000;

@@ -45,32 +45,12 @@
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-adt-linkedlist</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-adt-skiplist</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-backend-jvstm-common-code-generator</artifactId>
             <version>DEV-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
             <artifactId>fenix-framework-backend-jvstm-common-runtime</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-jvstm-mem-code-generator</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-jvstm-mem-runtime</artifactId>
             <version>DEV-SNAPSHOT</version>
         </dependency>
         <dependency>

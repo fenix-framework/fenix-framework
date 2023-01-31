@@ -16,7 +16,6 @@
 
     <modules>
         <module>jvstm-common</module>
-        <module>jvstm-mem</module>
         <module>jvstm-ojb</module>
     </modules>
 </project>

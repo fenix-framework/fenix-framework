@@ -27,6 +27,13 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
     protected MavenProject mavenProject;
 
     /**
+     * Skip class generation
+     *
+     * @parameter default-value="false"
+     */
+    protected boolean skip;
+
+    /**
      * File Source Directory
      * 
      * @parameter default-value="${basedir}/src/main/dml"
@@ -98,8 +105,13 @@ public class DmlCodeGeneratorMojo extends AbstractDmlCodeGeneratorMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        super.execute();
-        getMavenProject().addCompileSourceRoot(getGeneratedSourcesDirectory().getAbsolutePath());
+        if (!skip) {
+            System.out.println("Generating DML Sources...");
+            super.execute();
+            getMavenProject().addCompileSourceRoot(getGeneratedSourcesDirectory().getAbsolutePath());
+        } else {
+            System.out.println("Skip flag is set. Ignoring");
+        }
     }
 
     @Override

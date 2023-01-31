@@ -1,0 +1,94 @@
+package pt.ist.fenixframework.test;
+
+valueType java.util.Locale as Locale {
+	externalizeWith {
+		String toLanguageTag();
+	}
+	internalizeWith forLanguageTag();
+}
+
+valueType java.util.ArrayList<Integer> as IntegerList {
+    externalizeWith {
+        String toString();
+    }
+}
+
+valueType java.util.ArrayList as List {
+    externalizeWith {
+        String toString();
+    }
+}
+
+enum java.lang.Object as Objects;
+
+public class TestEmpty {
+}
+
+protected class Test1 {
+    public Float f1;
+    protected String s1 (REQUIRED);
+    protected DateTime time1;
+    protected Boolean b1;
+    protected Integer i1;
+    protected List<Float> fl1;
+    protected IntegerList il1;
+}
+
+class Test2 extends Test1 {
+    Locale l1;
+}
+
+
+relation Relation1to1 {
+    protected TestEmpty playsRole te {
+        multiplicity 1..1;
+    }
+
+    public Test1 playsRole t1 {
+        multiplicity 1..1;
+        indexed by s1;
+    }
+}
+
+relation RelationNto1 {
+    TestEmpty playsRole te {
+        multiplicity *;
+    }
+
+    Test1 playsRole t1 {
+        multiplicity 1..1;
+        indexed by s1;
+    }
+}
+
+relation Relation1toN {
+    TestEmpty playsRole te {
+        multiplicity 1..1;
+    }
+
+    Test1 playsRole t1 {
+        multiplicity *;
+        indexed by s1;
+    }
+}
+
+relation RelationNtoN {
+    TestEmpty playsRole te {
+        multiplicity *;
+    }
+
+    Test1 playsRole t1 {
+        multiplicity *;
+        indexed by s1;
+    }
+}
+
+relation Relation0to0 {
+    TestEmpty playsRole te {
+        multiplicity 0..0;
+    }
+
+    Test1 playsRole t1 {
+        multiplicity 0..0;
+    }
+}

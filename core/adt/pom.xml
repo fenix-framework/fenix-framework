@@ -16,7 +16,5 @@
 
     <modules>
         <module>bplustree</module>
-        <module>linkedlist</module>
-        <module>skiplist</module>
     </modules>
 </project>

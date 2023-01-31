@@ -1,0 +1,52 @@
+package foo;
+
+protected class Test {
+    String name;
+    Integer age;
+    Float timestamp;
+}
+
+public class .bar.TestExtends extends Test {
+    Short idx;
+}
+
+public class .bar.Test {
+    String name;
+    Integer age;
+    Float timestamp;
+}
+
+valueType bar.Test as TestBar {
+    externalizeWith {
+        String toString();
+    }
+}
+
+valueType bar.TestExtends as TestExtendsBar {
+    externalizeWith {
+        String toString();
+    }
+}
+
+public class Test2 {
+    TestBar tb;
+    TestExtendsBar teb;
+}
+
+relation barTestExtendsbarTest {
+    .bar.Test playsRole footest {
+        multiplicity 0..1;
+        indexed by idx;
+    }
+
+    .bar.TestExtends playsRole bartest {
+        multiplicity 0..*;
+        indexed by age;
+    }
+}
+
+relation barTestTest2 {
+    .bar.Test playsRole bartest;
+
+    Test2 playsRole test2;
+}

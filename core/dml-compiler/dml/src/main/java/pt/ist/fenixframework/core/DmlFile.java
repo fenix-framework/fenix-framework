@@ -3,6 +3,7 @@ package pt.ist.fenixframework.core;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import pt.ist.fenixframework.core.exception.SpecifiedDmlFileNotFoundException;
@@ -46,15 +47,22 @@ public class DmlFile {
     public static List<DmlFile> parseDependencyDmlFiles(String dmlFilesField, ClassLoader loader)
             throws SpecifiedDmlFileNotFoundException {
         List<DmlFile> dmlFileList = new ArrayList<DmlFile>();
-        for (String dmlFileName : dmlFilesField.trim().split("\\s*,\\s*")) {
-            if (dmlFileName != null && !dmlFileName.isEmpty()) {
-                URL dmlFileUrl = loader.getResource(dmlFileName);
-                if (dmlFileUrl == null) {
-                    throw new SpecifiedDmlFileNotFoundException(dmlFileName);
+
+        // As dmlFilesField comes from the project properties it can be either null or empty
+        // if the property key or the property value does not exist (respectively).
+        // In that case default to an empty list as there are no files to parse
+        if (dmlFilesField != null && !dmlFilesField.isEmpty()) {
+            for (String dmlFileName : dmlFilesField.trim().split("\\s*,\\s*")) {
+                if (dmlFileName != null && !dmlFileName.isEmpty()) {
+                    URL dmlFileUrl = loader.getResource(dmlFileName);
+                    if (dmlFileUrl == null) {
+                        throw new SpecifiedDmlFileNotFoundException(dmlFileName);
+                    }
+                    dmlFileList.add(new DmlFile(dmlFileUrl, dmlFileName));
                 }
-                dmlFileList.add(new DmlFile(dmlFileUrl, dmlFileName));
             }
         }
+
         return dmlFileList;
     }
 }
