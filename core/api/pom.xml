@@ -9,6 +9,11 @@
         <version>DEV-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <dml.generate.skip>false</dml.generate.skip>
+        <exec.generate.skip>true</exec.generate.skip>
+    </properties>
+
     <artifactId>fenix-framework-core-api</artifactId>
     <name>Fenix Framework Core API</name>
 
@@ -54,12 +59,52 @@
             <plugin>
                 <groupId>pt.ist</groupId>
                 <artifactId>dml-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
+                <configuration>
+                    <skip>${dml.generate.skip}</skip>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>generate-domain</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- TEST CODE GENERATION PLUGINS -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${exec.generate.skip}</skip>
+                            <executable>${pom.build.testSourceDirectory}/../resources/gen_dml.sh</executable>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/dml-maven-plugin</source>
+                            </sources>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -86,6 +131,16 @@
 
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>test</id>
+            <properties>
+                <dml.generate.skip>true</dml.generate.skip>
+                <exec.generate.skip>false</exec.generate.skip>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>

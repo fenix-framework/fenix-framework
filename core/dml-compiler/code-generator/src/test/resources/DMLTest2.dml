@@ -1,0 +1,22 @@
+package foo;
+
+public class Test {
+    String name;
+    Integer age;
+    Float timestamp;
+}
+
+public class .bar.Test {
+    String name;
+    Integer age;
+    Float timestamp;
+}
+
+relation fooTestbarTest {
+    Test playsRole footest;
+
+    .bar.Test playsRole bartest {
+        multiplicity 0..*;
+        indexed by age;
+    }
+}
