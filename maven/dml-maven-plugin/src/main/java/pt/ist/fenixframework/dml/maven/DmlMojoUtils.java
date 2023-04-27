@@ -58,6 +58,7 @@ public class DmlMojoUtils {
                 dmls.add(new DmlFile(url, null));
             }
         }
+
         return new Project(project.getArtifactId(), project.getVersion(), dmls, dependencies, optionalDependencies);
     }
 

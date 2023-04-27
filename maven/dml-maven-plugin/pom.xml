@@ -21,7 +21,7 @@
 		</dependency>
 		<dependency>
 			<groupId>pt.ist</groupId>
-			<artifactId>fenix-framework-core-dml-code-generator</artifactId>
+			<artifactId>fenix-framework-dml-compiler</artifactId>
             <version>${project.version}</version>
 		</dependency>
 		<dependency>

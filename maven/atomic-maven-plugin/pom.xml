@@ -15,21 +15,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-api</artifactId>
+            <artifactId>fenix-framework-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>pt.ist.esw</groupId>
-            <artifactId>advice-program</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -43,7 +35,6 @@
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-maven-plugin</artifactId>

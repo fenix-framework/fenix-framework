@@ -10,14 +10,427 @@
     </parent>
 
     <artifactId>fenix-framework-core</artifactId>
-    <packaging>pom</packaging>
     <name>Fenix Framework Core</name>
-    <url>http://fenix-ashes.ist.utl.pt</url>
 
-    <modules>
-        <module>adt</module>
-        <module>api</module>
-        <module>consistency-predicates</module>
-        <module>dml-compiler</module>
-    </modules>
+    <!-- Building -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <proc>none</proc>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>[3,)</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <reuseForks>false</reuseForks>
+                    <forkCount>${forkCount}</forkCount>
+                    <argLine>${argLine} -Xms512m -Xmx512m -Djava.net.preferIPv4Stack=true</argLine>
+                    <excludes>
+                        <exclude>${test.excludes}</exclude>
+                    </excludes>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+            </plugin>
+            <!--plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>2.13.0</version>
+                <configuration>
+                    <configFile>${maven.multiModuleProjectDirectory}/EclipseFenixFrameworkCodeStyle.xml</configFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <goals>
+                            <goal>validate</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+            </plugin-->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.8</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${version.maven.javadoc-plugin}</version>
+                <configuration>
+                    <!-- get all sub-projects -->
+                    <aggregate>true</aggregate>
+                    <!-- use pretty UML graph. Note about UmlGraph: You must have the Graphviz binary in your PATH, or the
+                        images will not be generated. For more information about Graphviz, please refer to http://www.graphviz.org/ -->
+                    <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
+                    <docletArtifact>
+                        <groupId>org.umlgraph</groupId>
+                        <artifactId>doclet</artifactId>
+                        <version>${version.maven.umlgraph-doclet-plugin}</version>
+                    </docletArtifact>
+                    <additionalparam>-views</additionalparam>
+                    <useStandardDocletOptions>true</useStandardDocletOptions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${version.maven.release.plugin}</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+
+                    <!-- Ensure that every module is versioned together -->
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+            <!--plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${version.maven.jar-plugin}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <archive>
+                            <manifestEntries>
+                                <Dependencies>org.apache.commons.lang:main,org.antlr:main,org.joda.time:main</Dependencies>
+                            </manifestEntries>
+                        </archive>
+                        <excludes>
+                            <exclude>**/*_Base*</exclude>
+                            <exclude>pt/ist/fenixframework/ValueTypeSerializer*</exclude>
+                            <exclude>pt/ist/fenixframework/backend/CurrentBackEndId*</exclude>
+                        </excludes>
+                    </archive>
+                </configuration>
+            </plugin-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>3.6.0</version>
+            </plugin>
+
+            <!-- Common -->
+            <!-- Core -->
+
+            <!-- api -->
+
+            <!-- Generate AtomicInstance -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${version.maven.exec-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>generate-atomic-instance</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <mainClass>pt.ist.esw.advice.GenerateAnnotationInstance</mainClass>
+                            <arguments>
+                                <argument>pt.ist.fenixframework.Atomic</argument>
+                                <argument>${project.build.outputDirectory}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <!-- Hack: process atomic annotations directly here to avoid circular dependencies with plugins -->
+                    <execution>
+                        <id>process-atomic-annotations</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <mainClass>pt.ist.fenixframework.maven.AtomicProcessor</mainClass>
+                            <arguments>
+                                <argument>${project.packaging}</argument>
+                                <argument>${project.build.outputDirectory}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <!-- TEST CODE GENERATION PLUGINS -->
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${exec.generate.skip}</skip>
+                            <executable>${project.build.testSourceDirectory}/../resources/gen_dml.sh</executable>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Process dml file class immediately before compiling -->
+            <plugin>
+                <groupId>pt.ist</groupId>
+                <artifactId>dml-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-domain</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/dml-maven-plugin</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <!-- Generate the Annotation Instance classes and Process
+                 Annotations after compiling tests -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${version.maven.exec-plugin}</version>
+                <executions>
+                    <!-- MyAnnotationWithProvidedFactory. In this
+                         case, the annotation itself defines the
+                         factory to use. -->
+                    <execution>
+                        <id>generate-annotation-instance-1</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>pt.ist.esw.advice.GenerateAnnotationInstance</mainClass>
+                            <arguments>
+                                <argument>pt.ist.esw.advice.impl.MyAnnotationWithProvidedFactory</argument>
+                                <argument>${project.build.testOutputDirectory}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>process-annotation-1</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>pt.ist.esw.advice.ProcessAnnotations</mainClass>
+                            <arguments>
+                                <argument>-a</argument>
+                                <argument>pt.ist.esw.advice.impl.MyAnnotationWithProvidedFactory</argument>
+                                <argument>${project.build.testOutputDirectory}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- Deprecated annotation.  In this case the
+                         annotation does not define a factory, and we
+                         name the factory to use. -->
+                    <execution>
+                        <id>generate-annotation-instance-2</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>pt.ist.esw.advice.GenerateAnnotationInstance</mainClass>
+                            <arguments>
+                                <argument>java.lang.Deprecated</argument>
+                                <argument>${project.build.testOutputDirectory}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>process-annotation-2</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>pt.ist.esw.advice.ProcessAnnotations</mainClass>
+                            <arguments>
+                                <argument>-a</argument>
+                                <argument>java.lang.Deprecated</argument>
+                                <argument>-f</argument>
+                                <argument>pt.ist.esw.advice.impl.DeprecatedAdviceFactory</argument>
+                                <argument>${project.build.testOutputDirectory}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- MyAnnotationWithDefaults annotation.  In this
+                         case the annotation does not define a
+                         factory, and we name the factory to use (we
+                         just happened to use the default name that is
+                         used if none is specified neither in the
+                         annotation nor in the command line:
+                         pt.ist.esw.advice.impl.ClientAdviceFactory. -->
+                    <execution>
+                        <id>generate-annotation-instance-3</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>pt.ist.esw.advice.GenerateAnnotationInstance</mainClass>
+                            <arguments>
+                                <argument>pt.ist.esw.advice.impl.MyAnnotationWithDefaults</argument>
+                                <argument>${project.build.testOutputDirectory}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>process-annotation-3</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>pt.ist.esw.advice.ProcessAnnotations</mainClass>
+                            <arguments>
+                                <argument>-a</argument>
+                                <argument>pt.ist.esw.advice.impl.MyAnnotationWithDefaults</argument>
+                                <argument>${project.build.testOutputDirectory}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
+
+            <!-- backend -->
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-tree</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>fenix-framework-dml-compiler</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>pt.ist</groupId>
+            <artifactId>db-ojb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <!--  We don't really need this, but OJB requires it -->
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-pool</groupId>
+            <artifactId>commons-pool</artifactId>
+            <version>${version.commons.pool}</version>
+        </dependency>
+    </dependencies>
 </project>
