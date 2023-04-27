@@ -20,47 +20,12 @@
     <dependencies>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-dml</artifactId>
+            <artifactId>fenix-framework-dml-compiler</artifactId>
             <version>DEV-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-dml-code-generator</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-consistency-predicates</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-api</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-core-adt-bplustree</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-jvstm-common-code-generator</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-jvstm-common-runtime</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-jvstm-ojb-code-generator</artifactId>
-            <version>DEV-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.ist</groupId>
-            <artifactId>fenix-framework-backend-jvstm-ojb-runtime</artifactId>
+            <artifactId>fenix-framework-core</artifactId>
             <version>DEV-SNAPSHOT</version>
         </dependency>
     </dependencies>

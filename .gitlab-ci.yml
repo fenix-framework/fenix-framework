@@ -3,7 +3,12 @@ image: dockerhub.dsi.tecnico.ulisboa.pt/fenix-framework/docker/java-fenix-framew
 cache:
   paths:
     - .m2/
-    - target/
+    - aggregate-tests/target/
+    - core/target/
+    - dml-compiler/target/
+    - maven/atomic-maven-plugin/target/
+    - maven/ff-maven-plugin/target/
+    - maven/dml-maven-plugin/target/
 
 default:
   before_script:
@@ -13,21 +18,16 @@ default:
     - export MAVEN_REPO_ID=fenix-framework-releases
 
 stages:
-  - Install and Lint
-  - Test
+  - Install, Lint and Test
   - Release
   - Deploy
 
-Install and Lint:
-  stage: Install and Lint
-  script:
-    - mvn -s .m2/settings.xml clean install -Dmaven.test.skip=true
 
-Test:
-  stage: Test
+Install, Lint and Test:
+  stage: Install, Lint and Test
   script:
-    - mvn -s .m2/settings.xml verify
-    - echo "Test Results" && grep -o "<tfoot>.*</tfoot>" aggregate-tests/target/site/jacoco-aggregate/index.html
+    - mvn -s .m2/settings.xml clean install
+    - ./aggregate-tests/print_coverage_results.sh
   artifacts:
     when: always
     paths:

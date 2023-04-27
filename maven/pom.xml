@@ -18,6 +18,5 @@
         <module>atomic-maven-plugin</module>
         <module>dml-maven-plugin</module>
         <module>ff-maven-plugin</module>
-        <module>archetypes</module>
     </modules>
 </project>

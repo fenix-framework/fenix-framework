@@ -72,6 +72,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
 
         List<URL> dmlFiles = scanDmlDirectory(getDmlSourceDirectory());
 
+
         try {
             Project project = DmlMojoUtils.getProject(getMavenProject(), getDmlSourceDirectory(), getGeneratedSourcesDirectory(),
                     dmlFiles, getLog(), verbose());
@@ -81,6 +82,7 @@ public abstract class AbstractDmlCodeGeneratorMojo extends AbstractMojo {
                 sourceDmls.add(new DmlFile(dml,
                         StringUtils.removeStart(dml.toExternalForm(), getMainDmlDirectory().toURI().toURL().toExternalForm())));
             }
+
             project.setSourceDmls(sourceDmls);
 
             List<URL> allDmls = new ArrayList<URL>();
