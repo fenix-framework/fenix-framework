@@ -319,8 +319,8 @@
     <!-- Distribution Management -->
     <distributionManagement>
         <repository>
-            <id>fenix-framework-releases</id>
-            <url>https://fenix-ashes.ist.utl.pt/nexus/repository/fenix-framework-releases</url>
+            <id>fenixedu-releases</id>
+            <url>https://repo.fenixedu.org/fenixedu-releases</url>
         </repository>
     </distributionManagement>
 
