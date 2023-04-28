@@ -6,7 +6,7 @@
         <groupId>pt.ist</groupId>
         <artifactId>fenix-framework</artifactId>
         <!-- Perhaps in Maven 3.1 the version may be ommitted -->
-        <version>DEV-SNAPSHOT</version>
+        <version>3.0.0-beta1</version>
     </parent>
 
     <artifactId>fenix-framework-dml-compiler</artifactId>
