@@ -4,7 +4,7 @@
 
     <groupId>pt.ist</groupId>
     <artifactId>fenix-framework</artifactId>
-    <version>DEV-SNAPSHOT</version>
+    <version>3.0.0</version>
     <packaging>pom</packaging>
 
     <name>Fenix Framework Distribution</name>
@@ -18,7 +18,7 @@
         <connection>scm:git:git@repo.dsi.tecnico.ulisboa.pt::fenix-framework/fenix-framework.git</connection>
         <developerConnection>scm:git:git@repo.dsi.tecnico.ulisboa.pt::fenix-framework/fenix-framework</developerConnection>
         <url>http://fenix-framework.github.io/</url>
-        <tag>HEAD</tag>
+        <tag>v3.0.0</tag>
     </scm>
 
     <properties>
