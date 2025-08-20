@@ -33,8 +33,8 @@
         <version.commons.io>2.6</version.commons.io>
         <version.commons.lang>2.6</version.commons.lang>
         <version.commons.pool>1.6</version.commons.pool>
-        <version.com.google.code.gson>2.8.6</version.com.google.code.gson>
-        <version.jodatime>2.10.5</version.jodatime>
+        <version.com.google.code.gson>2.13.1</version.com.google.code.gson>
+        <version.jodatime>2.14.0</version.jodatime>
         <version.jta>1.1</version.jta>
         <version.junit>5.7.0</version.junit>
         <version.maven.antlr-plugin>2.2</version.maven.antlr-plugin>
