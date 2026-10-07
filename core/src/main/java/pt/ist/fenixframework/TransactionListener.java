@@ -1,6 +1,6 @@
 package pt.ist.fenixframework;
 
-import javax.transaction.Transaction;
+import jakarta.transaction.Transaction;
 
 public interface TransactionListener {
     public void notifyBeforeBegin();

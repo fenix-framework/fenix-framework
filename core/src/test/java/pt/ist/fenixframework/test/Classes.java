@@ -11,40 +11,40 @@ import pt.ist.fenixframework.dml.DomainModel;
 import pt.ist.fenixframework.txintrospector.TxIntrospector;
 import pt.ist.fenixframework.txintrospector.TxStats;
 
-import javax.transaction.*;
+import jakarta.transaction.*;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
 
 public class Classes {
     public static class CustomTx implements Transaction {
-        public void commit() throws javax.transaction.RollbackException, javax.transaction.HeuristicMixedException,
-                javax.transaction.HeuristicRollbackException, java.lang.SecurityException, java.lang.IllegalStateException,
-                javax.transaction.SystemException {
+        public void commit() throws jakarta.transaction.RollbackException, jakarta.transaction.HeuristicMixedException,
+                jakarta.transaction.HeuristicRollbackException, java.lang.SecurityException, java.lang.IllegalStateException,
+                jakarta.transaction.SystemException {
         }
 
         public boolean delistResource(javax.transaction.xa.XAResource xaResource, int i)
-                throws java.lang.IllegalStateException, javax.transaction.SystemException {
+                throws java.lang.IllegalStateException, jakarta.transaction.SystemException {
             return true;
         }
 
         public boolean enlistResource(javax.transaction.xa.XAResource xaResource)
-                throws javax.transaction.RollbackException, java.lang.IllegalStateException, javax.transaction.SystemException {
+                throws jakarta.transaction.RollbackException, java.lang.IllegalStateException, jakarta.transaction.SystemException {
             return true;
         }
 
-        public int getStatus() throws javax.transaction.SystemException {
+        public int getStatus() throws jakarta.transaction.SystemException {
             return 1;
         }
 
-        public void registerSynchronization(javax.transaction.Synchronization synchronization)
-                throws javax.transaction.RollbackException, java.lang.IllegalStateException, javax.transaction.SystemException {
+        public void registerSynchronization(jakarta.transaction.Synchronization synchronization)
+                throws jakarta.transaction.RollbackException, java.lang.IllegalStateException, jakarta.transaction.SystemException {
         }
 
-        public void rollback() throws java.lang.IllegalStateException, javax.transaction.SystemException {
+        public void rollback() throws java.lang.IllegalStateException, jakarta.transaction.SystemException {
         }
 
-        public void setRollbackOnly() throws java.lang.IllegalStateException, javax.transaction.SystemException {
+        public void setRollbackOnly() throws java.lang.IllegalStateException, jakarta.transaction.SystemException {
         }
     }
 

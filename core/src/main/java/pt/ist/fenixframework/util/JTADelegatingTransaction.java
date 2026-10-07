@@ -2,11 +2,11 @@ package pt.ist.fenixframework.util;
 
 import java.lang.ref.WeakReference;
 
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.RollbackException;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
+import jakarta.transaction.HeuristicMixedException;
+import jakarta.transaction.HeuristicRollbackException;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
 import javax.transaction.xa.XAResource;
 
 import pt.ist.fenixframework.FenixAbstractTransaction;
@@ -15,15 +15,15 @@ import pt.ist.fenixframework.txintrospector.TxStats;
 
 public class JTADelegatingTransaction extends FenixAbstractTransaction {
 
-    private final WeakReference<javax.transaction.Transaction> delegateTxRef;
+    private final WeakReference<jakarta.transaction.Transaction> delegateTxRef;
 
-    public JTADelegatingTransaction(javax.transaction.Transaction delegateTx) {
+    public JTADelegatingTransaction(jakarta.transaction.Transaction delegateTx) {
         super();
-        this.delegateTxRef = new WeakReference<javax.transaction.Transaction>(delegateTx);
+        this.delegateTxRef = new WeakReference<jakarta.transaction.Transaction>(delegateTx);
     }
 
-    private javax.transaction.Transaction getDelegateTx() {
-        javax.transaction.Transaction delegateTx = delegateTxRef.get();
+    private jakarta.transaction.Transaction getDelegateTx() {
+        jakarta.transaction.Transaction delegateTx = delegateTxRef.get();
         if (delegateTx == null) {
             throw new IllegalStateException("Delegate transaction no longer exists");
         }

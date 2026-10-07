@@ -4,12 +4,12 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.InvalidTransactionException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
-import javax.transaction.SystemException;
+import jakarta.transaction.HeuristicMixedException;
+import jakarta.transaction.HeuristicRollbackException;
+import jakarta.transaction.InvalidTransactionException;
+import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.SystemException;
 
 import jvstm.CommitException;
 import jvstm.Transaction;
@@ -84,7 +84,7 @@ public class JvstmOJBTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    public void resume(javax.transaction.Transaction tobj)
+    public void resume(jakarta.transaction.Transaction tobj)
             throws InvalidTransactionException, IllegalStateException, SystemException {
         if (!(tobj instanceof JvstmOJBTransaction)) {
             throw new InvalidTransactionException("Expected JvstmOJBTransaction, got " + tobj);

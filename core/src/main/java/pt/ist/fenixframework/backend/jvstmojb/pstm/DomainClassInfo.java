@@ -224,7 +224,7 @@ public class DomainClassInfo {
 
             ResultSet rs = stmt.executeQuery(sqlStmtText.toString());
 
-            rs.first();
+            rs.next();
             return rs.getLong(1); // getLong() will return 0 in case there is no line matching the query
         }
     }

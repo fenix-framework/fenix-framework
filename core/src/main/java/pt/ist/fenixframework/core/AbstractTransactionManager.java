@@ -2,11 +2,11 @@ package pt.ist.fenixframework.core;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
-import javax.transaction.SystemException;
+import jakarta.transaction.HeuristicMixedException;
+import jakarta.transaction.HeuristicRollbackException;
+import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.SystemException;
 
 import pt.ist.fenixframework.CommitListener;
 import pt.ist.fenixframework.Transaction;
@@ -77,7 +77,7 @@ public abstract class AbstractTransactionManager implements TransactionManager {
     }
 
     /**
-     * @see javax.transaction.TransactionManager#getStatus()
+     * @see jakarta.transaction.TransactionManager#getStatus()
      */
     @Override
     public int getStatus() throws SystemException {
@@ -85,7 +85,7 @@ public abstract class AbstractTransactionManager implements TransactionManager {
     }
 
     /**
-     * @see javax.transaction.TransactionManager#rollback()
+     * @see jakarta.transaction.TransactionManager#rollback()
      */
     @Override
     public void rollback() throws IllegalStateException, SecurityException, SystemException {
@@ -104,7 +104,7 @@ public abstract class AbstractTransactionManager implements TransactionManager {
     }
 
     /**
-     * @see javax.transaction.TransactionManager#setRollbackOnly()
+     * @see jakarta.transaction.TransactionManager#setRollbackOnly()
      */
     @Override
     public void setRollbackOnly() throws IllegalStateException, SystemException {

@@ -4,7 +4,7 @@ import pt.ist.fenixframework.test.Classes.*;
 
 import org.junit.jupiter.api.Test;
 
-import javax.transaction.Status;
+import jakarta.transaction.Status;
 
 import static org.junit.jupiter.api.Assertions.*;
 

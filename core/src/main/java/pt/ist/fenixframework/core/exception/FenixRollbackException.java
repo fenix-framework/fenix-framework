@@ -1,6 +1,6 @@
 package pt.ist.fenixframework.core.exception;
 
-import javax.transaction.RollbackException;
+import jakarta.transaction.RollbackException;
 
 /**
  * This subclass of {@link RollbackException} only exists because

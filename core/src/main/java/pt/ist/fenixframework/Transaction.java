@@ -4,16 +4,16 @@ import pt.ist.fenixframework.txintrospector.TxIntrospector;
 
 /**
  * Fenix Framework's Interface for {@link Transaction}s. This interface mostly
- * extends JTA's {@link javax.transaction.Transaction}, and adds the capability
+ * extends JTA's {@link jakarta.transaction.Transaction}, and adds the capability
  * to introspect the changes performed by this transaction.
  * 
  * Please refer to the documentation in each individual backend for the list of
  * supported operations.
  * 
- * @see javax.transaction
+ * @see jakarta.transaction
  * 
  */
-public interface Transaction extends javax.transaction.Transaction {
+public interface Transaction extends jakarta.transaction.Transaction {
 
     /**
      * Get the TxIntrospector object that contains the changes caused by this

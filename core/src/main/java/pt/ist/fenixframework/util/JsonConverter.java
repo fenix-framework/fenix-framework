@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeField;

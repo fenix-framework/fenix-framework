@@ -2,22 +2,22 @@ package pt.ist.fenixframework;
 
 import java.util.concurrent.Callable;
 
-import javax.transaction.NotSupportedException;
-import javax.transaction.SystemException;
+import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.SystemException;
 
 import pt.ist.fenixframework.core.WriteOnReadError;
 
 /**
  * Fenix Framework's interface for all Transaction Managers. This interface is
- * similar to {@link javax.transaction.TransactionManager}'s interface with some
+ * similar to {@link jakarta.transaction.TransactionManager}'s interface with some
  * extensions added.
  * 
  * Please refer to the documentation in each individual backend for the list of
  * supported operations.
  * 
- * @see javax.transaction
+ * @see jakarta.transaction
  */
-public interface TransactionManager extends javax.transaction.TransactionManager {
+public interface TransactionManager extends jakarta.transaction.TransactionManager {
 
     /**
      * Get the {@link Transaction} object that represents the transaction

@@ -13,9 +13,9 @@ public class TxMap {
      * design allows old TxLocal objects to be GC'd along with their
      * corresponding Transaction objects.
      */
-    private static final class MapKey extends WeakReference<javax.transaction.Transaction> {
-        private static final ReferenceQueue<javax.transaction.Transaction> REFERENCE_QUEUE =
-                new ReferenceQueue<javax.transaction.Transaction>();
+    private static final class MapKey extends WeakReference<jakarta.transaction.Transaction> {
+        private static final ReferenceQueue<jakarta.transaction.Transaction> REFERENCE_QUEUE =
+                new ReferenceQueue<jakarta.transaction.Transaction>();
 
         static {
             // This thread monitors the reference queue and removes the
@@ -41,7 +41,7 @@ public class TxMap {
 
         private final int hashCode;
 
-        private MapKey(javax.transaction.Transaction transaction) {
+        private MapKey(jakarta.transaction.Transaction transaction) {
             super(transaction, REFERENCE_QUEUE);
             hashCode = transaction.hashCode();
         }
@@ -67,7 +67,7 @@ public class TxMap {
 
     private static final ConcurrentHashMap<MapKey, Transaction> txToLocalMap = new ConcurrentHashMap<MapKey, Transaction>();
 
-    public static Transaction getTx(javax.transaction.Transaction transaction) {
+    public static Transaction getTx(jakarta.transaction.Transaction transaction) {
         MapKey mapKey = new MapKey(transaction);
         Transaction txLocal = txToLocalMap.get(mapKey);
         if (txLocal == null) {

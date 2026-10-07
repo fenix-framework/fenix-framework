@@ -2,7 +2,7 @@ package pt.ist.fenixframework.test.core;
 
 import org.junit.jupiter.api.Test;
 
-import javax.transaction.*;
+import jakarta.transaction.*;
 import pt.ist.fenixframework.test.Classes.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

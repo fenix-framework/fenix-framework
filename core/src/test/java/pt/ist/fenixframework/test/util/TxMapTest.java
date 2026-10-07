@@ -5,7 +5,7 @@ import pt.ist.fenixframework.test.Classes.CustomTx;
 import pt.ist.fenixframework.util.JTADelegatingTransaction;
 import pt.ist.fenixframework.util.TxMap;
 
-import javax.transaction.Transaction;
+import jakarta.transaction.Transaction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
