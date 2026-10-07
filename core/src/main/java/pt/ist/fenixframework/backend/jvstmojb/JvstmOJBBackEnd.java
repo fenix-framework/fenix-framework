@@ -3,6 +3,8 @@ package pt.ist.fenixframework.backend.jvstmojb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mysql.cj.jdbc.AbandonedConnectionCleanupThread;
+
 import pt.ist.fenixframework.DomainObject;
 import pt.ist.fenixframework.DomainRoot;
 import pt.ist.fenixframework.TransactionManager;
@@ -14,7 +16,6 @@ import pt.ist.fenixframework.core.AbstractDomainObject;
 import pt.ist.fenixframework.core.DomainObjectAllocator;
 import pt.ist.fenixframework.core.SharedIdentityMap;
 
-import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 
 public class JvstmOJBBackEnd implements BackEnd {
     private static final Logger logger = LoggerFactory.getLogger(JvstmOJBBackEnd.class);

@@ -6,9 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.mysql.jdbc.NonRegisteringDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mysql.cj.jdbc.NonRegisteringDriver;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;

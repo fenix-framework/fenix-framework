@@ -32,7 +32,7 @@ public class ServerId {
                         + " minute, SERVER = '" + Util.getServerName() + "' where ID = " + serverId;
             } else { // No available record, search for Max
                 try (ResultSet maxRs = query.executeQuery("select max(ID) from FF$SERVER_ID_LEASE")) {
-                    maxRs.first();
+                    maxRs.next();
                     serverId = maxRs.getInt(1) + 1;
                     updateStr = "INSERT INTO FF$SERVER_ID_LEASE (ID, SERVER, EXPIRATION) VALUES (" + serverId + ", '"
                             + Util.getServerName() + "', now() + interval " + DbUtil.getServerIdLeaseTime() + " minute)";

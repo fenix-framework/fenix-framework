@@ -1,9 +1,10 @@
 package pt.ist.fenixframework.backend.jvstmojb.ojb;
 
-import com.mysql.jdbc.NonRegisteringDriver;
 import org.apache.ojb.broker.metadata.ConnectionPoolDescriptor;
 import org.apache.ojb.broker.metadata.JdbcConnectionDescriptor;
 import org.apache.ojb.broker.util.configuration.impl.OjbConfiguration;
+
+import com.mysql.cj.jdbc.NonRegisteringDriver;
 
 import pt.ist.fenixframework.FenixFramework;
 import pt.ist.fenixframework.backend.jvstmojb.JvstmOJBConfig;
